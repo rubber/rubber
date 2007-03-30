@@ -7,6 +7,8 @@
 # Version:
 #   $Id$
 #
+## TODO [mikey] checkout settings of svn keywords replacement
+#
 module Rubber
 	VERSION = '0.0.0.0'
 end
