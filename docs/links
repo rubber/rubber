@@ -4,6 +4,12 @@ Resources on the internet:
 * Coding convetions:
 	** http://pub.cozmixng.org/~the-rwiki/rw-cgi.rb?cmd=view;name=RubyCodingConvention
 
+* XMPP:
+	** http://www.xmpp.org/
+
+* XMPP libs:
+	** http://home.gna.org/xmpp4r/
+
 * Sockets:
 	** http://www.koders.com/ruby/fid9244F0C838625E6452E1DCE8925C7556A8459C8C.aspx?s=socket - HTTP server
 	** http://www.devx.com/enterprise/Article/28101/0/page/2 - REST, web services
