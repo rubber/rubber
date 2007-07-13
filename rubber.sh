@@ -1,2 +1,2 @@
 #!/bin/sh
-ruby src/rubber.rb
+ruby src/rubber.rb $1 $2 $3
