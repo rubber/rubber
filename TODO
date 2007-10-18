@@ -1,9 +1,16 @@
 ToDo
 ----
 
-* GUI toolkit
-  - which GUI toolkit to use? fox/wx/tk
-  - check out their features
+* How about write it in JRuby!?
+  ** Pros
+    - Keep in touch with both Java and Ruby.
+    - Get to know JRuby.
+  ** Bottlenecks?
+    - Does XMMP4R run on JRuby?
+
+* GUI toolkits
+  - Which GUI toolkit to use?
+  - Check out their features.
 
 * RDoc
-  - learn how to write RDoc comments
+  - Learn how to write RDoc comments.
