@@ -18,6 +18,8 @@ Resources on the Internet
   - http://www.xml.com/lpt/a/1626 - XML processing
 
 * GUI tookits
-  - fxruby - http://www.fxruby.org
-  - tk - inluded in stdlib
-  - wxruby - http://wxruby.rubyforge.org
+  - FXRuby - http://www.fxruby.org
+  - Tk - inluded in stdlib
+  - WxRuby - http://wxruby.rubyforge.org
+  - Ruby-GTK2 - http://ruby-gnome2.sourceforge.jp
+  - QtRuby/Korundum - http://developer.kde.org/language-bindings/ruby/index.html , http://rubyforge.org/projects/korundum/
