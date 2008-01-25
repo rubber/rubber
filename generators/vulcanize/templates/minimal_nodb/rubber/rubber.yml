@@ -15,13 +15,6 @@
 aws_access_key: XXX
 aws_secret_access_key: YYY
 
-# REQUIRED: the ami and instance type for creating instances
-#
-# Ubuntu 7.10 Gutsy Base 32-bit http://developer.amazonwebservices.com/connect/entry.jspa?externalID=1065
-ec2_instance: ami-ed22c784
-# m1.small or m1.large or m1.xlarge
-ec2_instance_type: m1.small
-
 # REQUIRED:  The name of the amazon keypair and location of its private key
 #
 # NOTE: for some reason Capistrano requires you to have both the public and
@@ -29,6 +22,13 @@ ec2_instance_type: m1.small
 # extension ".pub".
 ec2_key_name: gsg-keypair
 ec2_key_file: ~/.ec2/id_rsa-gsg-keypair
+
+# REQUIRED: the ami and instance type for creating instances
+#
+# Ubuntu 7.10 Gutsy Base 32-bit http://developer.amazonwebservices.com/connect/entry.jspa?externalID=1065
+ec2_instance: ami-ed22c784
+# m1.small or m1.large or m1.xlarge
+ec2_instance_type: m1.small
 
 # REQUIRED: The timezone the server should be in
 timezone: US/Eastern
