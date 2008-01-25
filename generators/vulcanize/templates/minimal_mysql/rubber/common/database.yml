@@ -1,5 +1,19 @@
 <%
   @path = "#{RAILS_ROOT}/config/database.yml"
+
+  prod_user = 'myuser'
+  prod_pass = nil
+  prod_db = 'production'
+  prod_host = rubber_instances.find{|i| i.roles.find{|r| r.name == 'db' && r.options['primary'] } }
+  pass = "identified by '#{prod_pass}'" if prod_pass
+
+  @post = <<-POST
+    if [ `hostname -s` == '#{prod_host}' ]; then
+      mysql -u root -e "create database #{prod_db};"
+      mysql -u root -e "grant all on #{prod_db}.* to '#{prod_user}'@'%' #{pass};"
+      mysql -u root -e "update user set Super_priv = 'N' where user = '#{prod_user}';" mysql
+    fi
+  POST
 %>
 
 # SQLite version 3.x
@@ -19,7 +33,7 @@ test:
 
 production:
   adapter: mysql
-  database: production
-  username: myuser
-  password:
-  host: <%= rubber_instances.for_role('db').first.name %>
+  database: <%= prod_db %>
+  username: <%= prod_user %>
+  password: <%= prod_pass %>
+  host: <%= prod_host %>
