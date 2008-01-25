@@ -9,9 +9,11 @@
 
   @post = <<-POST
     if [ `hostname -s` == '#{prod_host}' ]; then
-      mysql -u root -e "create database #{prod_db};"
-      mysql -u root -e "grant all on #{prod_db}.* to '#{prod_user}'@'%' #{pass};"
-      mysql -u root -e "update user set Super_priv = 'N' where user = '#{prod_user}';" mysql
+      if ! mysql -u root -e 'use #{prod_db}' &> /dev/null; then
+        mysql -u root -e "create database #{prod_db};"
+        mysql -u root -e "grant all on #{prod_db}.* to '#{prod_user}'@'%' #{pass};"
+        mysql -u root -e "update user set Super_priv = 'N' where user = '#{prod_user}';" mysql
+      fi
     fi
   POST
 %>
