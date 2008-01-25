@@ -1,0 +1,152 @@
+The rubber plugin enables relatively complex multi-instance deployments to
+Amazon's Elastic Compute Cloud (EC2).
+
+If you just want a simple single instance setup for your rails app, you might
+be better off using something like ec2onrails (which I borrowed heavily from).
+The main difference between the two is that rubber was built from the
+ground-up to support deploying to multiple instances, and has a very flexible
+mechanism for configuring said instances at a host, role or global level.
+That is, you can define a set of configuration files for a role, thereby making
+it easy to create as many instance for that role as you desire (e.g. scaling up
+the quantity of instances you need to host your app servers)
+
+REQUIREMENTS:
+
+* An EC2 account with keypair (both public and private keys) and port 22 access
+    to the default security group (ec2-authorize default -p 22)
+    See the EC2 docs for more details:
+    http://docs.amazonwebservices.com/AWSEC2/2007-08-29/GettingStartedGuide/?ref=get-started
+* amazon-ec2: gem install amazon-ec2
+* Capistrano: gem install capistrano
+
+INSTALLATION:
+
+Rubber needs to be installed as a rails plugin.
+
+First you need to capify your project to enable capistrano:
+cd <rails_root> && capify .
+
+Once capified, run the vulcanize generator to install a rubber configuration
+template:
+./script generate vulcanize minimal_db
+
+Then edit config/rubber/rubber.yml to add your settings.  You can edit or
+add to the config files in RAILS_ROOT/config/rubber/<common|role|host> to
+setup instances globally or for specific roles and/or hosts.
+
+You will also need to customize config/deploy.rb for your needs
+
+Running "rake rubber:config" in a development env will tranform config files
+for the global scope along with the config file for all roles, and config
+files for the current machine (if any).  This helps one to test out config
+file transformations before committing and deploying to your instances
+
+CONFIGURATION:
+
+Config files are just ERB templates.  There are some special variables that
+need to be set at the top of the config template file that control what
+happens when the template is transformed:
+
+@path       The output path to write the transformed config file to
+@read_cmd   The command to use for reading the original config file from
+            e.g. "crontab -l"
+@write_cmd  The command to use for piping the transformed config file to
+            e.g. "crontab -"
+@post       The command to run after generating the config file ONLY if it
+            has changed
+@owner      The owner the output file should have, e.g. "root"
+@group      The group the output file should have, e.g. "system"
+@perms      The permissions the output file should have, e.g. 644
+@additive   Sets transformation to be additive, only replaces between given
+            delimiters, e.g. @additive = ["## start", "## end"]
+
+In addition, within the config templates you have access to the rubber
+configuration objects rubber_env (rubber.yml) and rubber_instances (instance*.yml)
+
+Configuration files that exist in config/rubber/common will be transformed for
+all hosts.
+Configuration files that exist in config/rubber/role/<role_name> will only be
+transformed on the hosts that are members of role_name.
+Configuration files that exist in config/rubber/host/<host_name> will only be
+transformed on the hosts with a hostname of host_name.
+
+RUNNING:
+
+Once rubber is installed and configured for your project, the workflow
+is as follows:
+
+Create instance(s)
+Bootstrap instance(s)
+cap deploy(:cold)
+Rinse, Repeat
+
+Since boostrap runs for all roles/hosts, not just the newly creeated ones, I
+tried to make it safe for repeat executinons on existing instances.  However,
+you should probably verify that this is the case for your setup before
+trusting it on a production system.
+
+Note that if you change a config file template, you need to check it in before
+rubber:config will be able to see the change on remote hosts.  However,
+changing rubber.yml or instance*.yml do not need to be checked in for their
+changes to be seen remotely because they are pushed by the rubber:config
+recipe.
+
+For example, to create a single staging instance:
+
+cd <rails_root>
+RAILS_ENV=staging ALIAS=staging ROLES=web,app,db:primary=true cap rubber:create
+RAILS_ENV=staging cap rubber:bootstrap
+RAILS_ENV=staging cap deploy:cold
+
+or for a more complex production setup
+
+ALIAS=web01 ROLES=web cap rubber:create
+ALIAS=app01 ROLES=app cap rubber:create
+ALIAS=app02 ROLES=app cap rubber:create
+ALIAS=db01 ROLES=db:primary=true cap rubber:create
+ALIAS=db02 ROLES=db cap rubber:create
+cap rubber:bootstrap
+cap deploy:cold
+
+To add another app server:
+
+ALIAS=app03 ROLES=app cap rubber:create
+cap rubber:bootstrap
+cap deploy
+
+EXTEND:
+
+To add some custom install steps in your deploy.rb:
+
+after "rubber:install_packages", "custom_install"
+
+task :custom_install do
+  # Setup ssh access to svn from all hosts
+  svn_pvt_key = <<-DATA
+    -----BEGIN DSA PRIVATE KEY-----
+    XXXX
+    -----END DSA PRIVATE KEY-----
+  DATA
+  svn_pvt_key.gsub!(/^ */, '')
+  svn_pub_key = "ssh-dss YYY foo@bar.com"
+  put(svn_pvt_key, "/root/.ssh/id_dsa", :mode => 0600)
+  put(svn_pub_key, "/root/.ssh/id_dsa.pub", :mode => 0600)
+
+  # Get host key for src machine to prevent ssh from failing
+  # during cap deploy
+  run "ssh  -o 'StrictHostKeyChecking=no' mobicious@src.foo.com echo"
+  custom_install_app
+end
+
+task :custom_install_app, :roles => :app do
+  # add the rails user for running app server with
+  run "adduser --system --group rails"
+end
+
+If anyone has any configuration templates similar to what is provided in
+generators/vulcanize/templates, please contribute them to
+the project.
+
+Enjoy!
+
+Matt Conway
