@@ -488,7 +488,7 @@ namespace :rubber do
     user, pass = cfg.dyndns_user, cfg.dyndns_password
     update_url = cfg.dyndns_update_url
     if update_url && user
-      current_ip = Resolv.getaddress(instance_host)
+      current_ip = Resolv.getaddress(instance_host) rescue nil
       if instance_ip == current_ip
         puts "IP has not changed, not updating dynamic DNS"
         return
