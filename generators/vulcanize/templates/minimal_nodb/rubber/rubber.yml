@@ -43,7 +43,7 @@ dyndns_password:
 dyndns_update_url: https://members.dyndns.org/nic/update?hostname=#{instance_host}&myip=#{instance_ip}
 
 # OPTIONAL: The packages to install on all instances
-packages: [build-essential, ruby-full, ruby1.8-dev, rake, irb, subversion, monit, librmagick-ruby, munin-node]
+packages: [build-essential, ruby-full, ruby1.8-dev, rake, irb, subversion]
 
 # OPTIONAL: The gems to install on all instances
 gems: [rails]

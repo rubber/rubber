@@ -3,8 +3,10 @@
 set :rails_env, (ENV["RAILS_ENV"] ||= 'production')
 set :application, "your_app_name"
 
-set :deploy_via, :checkout
-set :repository, 'http://src.foo.com/svn/yourapp/trunk'
+require 'capistrano/noscm'
+set :scm, :noscm
+set :deploy_via, :copy
+set :copy_strategy, :export
 
 set :user, 'root'
 set :password, nil

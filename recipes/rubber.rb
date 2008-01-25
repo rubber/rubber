@@ -114,8 +114,8 @@ namespace :rubber do
     hosts_file = '/etc/hosts'
 
     # Generate /etc/hosts contents for the local machine from instance config
-    delim = "## rubber config"
-    delim = "#{delim} #{ENV['RAILS_ENV']}" if ENV['RAILS_ENV']
+    env = rubber_cfg.environment.bind(nil, nil)
+    delim = "## rubber config #{env.domain} #{ENV['RAILS_ENV']}"
     local_hosts = delim + "\n"
     rubber_cfg.instance.each do |ic|
       full_name = ic.name + "." + rubber_cfg.environment.bind(ic.roles.first.name, ic.name).domain

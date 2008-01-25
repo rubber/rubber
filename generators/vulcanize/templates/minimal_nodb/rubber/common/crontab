@@ -4,7 +4,7 @@
 %>
 
 # PATH=/usr/local/bin:/usr/local/sbin:/usr/local/mysql/bin:/usr/bin:/bin:/sbin:/usr/sbin
-# MAILTO=<%= DEV_EMAIL %>
+# MAILTO=foo@bar.com
 # don't need to set RAILS_ENV for each script since we set it for all cron here
 # RAILS_ENV=<%= RAILS_ENV %>
 
