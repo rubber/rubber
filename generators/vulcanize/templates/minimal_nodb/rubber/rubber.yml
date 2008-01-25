@@ -1,0 +1,66 @@
+# All variables can also be overridden on the role and/or host level by creating
+# a sub level to the config under roles and hosts
+# e.g. to install mysql only on db role, and awstats only on web01:
+#
+# packages: [ruby]
+# roles:
+#   db:
+#     packages: [mysql]
+# hosts:
+#   web01:
+#     packages: [awstats]
+
+# REQUIRED The amazon keys used to create instances
+#
+aws_access_key: XXX
+aws_secret_access_key: YYY
+
+# REQUIRED: the ami and instance type for creating instances
+#
+# Ubuntu 7.10 Gutsy Base 32-bit http://developer.amazonwebservices.com/connect/entry.jspa?externalID=1065
+ec2_instance: ami-ed22c784
+# m1.small or m1.large or m1.xlarge
+ec2_instance_type: m1.small
+
+# REQUIRED:  The name of the amazon keypair and location of its private key
+#
+# NOTE: for some reason Capistrano requires you to have both the public and
+# the private key in the same folder, the public key should have the
+# extension ".pub".
+ec2_key_name: mykey
+ec2_key_file: /home/me/.ec2/mykey
+
+# REQUIRED: The timezone the server should be in
+timezone: US/Eastern
+
+# REQUIRED: the domain all the instances should be associated with
+#
+domain: foo.com
+
+# OPTIONAL: The username/password/url for updating a dynamic dns service with the instance alias and ip
+dyndns_user:
+dyndns_password:
+dyndns_update_url: https://members.dyndns.org/nic/update?hostname=#{instance_host}&myip=#{instance_ip}
+
+# OPTIONAL: The packages to install on all instances
+packages: [build-essential, ruby-full, ruby1.8-dev, rake, irb, subversion, monit, librmagick-ruby, munin-node]
+
+# OPTIONAL: The gems to install on all instances
+gems: [rails]
+
+# OPTIONAL: You can also define your own variables here for use when transforming config files
+#
+mongrel_base_port: 8000
+mongrel_count: 8
+
+# OPTIONAL: Role specific overrides
+roles:
+  web:
+    packages: [nginx]
+  app:
+    gems: [mongrel, mongrel_cluster]
+
+# OPTIONAL: Host specific overrides
+hosts:
+  somehost:
+    packages: []

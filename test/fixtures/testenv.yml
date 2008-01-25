@@ -1,0 +1,10 @@
+var1: val1
+var2: val2
+
+roles:
+  role1:
+    var2: role1val2
+
+hosts:
+  host1:
+    var2: host1val2
