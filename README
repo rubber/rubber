@@ -118,12 +118,6 @@ ALIAS=www ROLES=web,app,db:primary=true cap rubber:create
 cap rubber:bootstrap
 cap deploy:cold
 
-
-cd <rails_root>
-RAILS_ENV=staging ALIAS=staging ROLES=web,app,db:primary=true cap rubber:create
-RAILS_ENV=staging cap rubber:bootstrap
-RAILS_ENV=staging cap deploy:cold
-
 or for a more complex production setup
 
 ALIAS=web01 ROLES=web cap rubber:create
