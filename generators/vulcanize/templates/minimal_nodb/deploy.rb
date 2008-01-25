@@ -10,10 +10,13 @@ set :scm, :noscm
 set :deploy_via, :copy
 set :copy_strategy, :export
 
+# Easier to do system level config as root - probably should do it through
+# sudo in the future.  We use ssh keys for access, so no passwd needed
 set :user, 'root'
 set :password, nil
 
 # Use sudo with user rails for cap deploy:[stop|start|restart]
+# This way exposed services (mongrel) aren't running as a privileged user
 set :use_sudo,      true
 set :runner,        'rails'
 
