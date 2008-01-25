@@ -37,6 +37,10 @@ timezone: US/Eastern
 #
 domain: foo.com
 
+# REQUIRED: The filename for the database server config file
+#
+db_config: my.cnf
+
 # OPTIONAL: The username/password/url for updating a dynamic dns service with the instance alias and ip
 dyndns_user:
 dyndns_password:
