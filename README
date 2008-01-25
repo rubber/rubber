@@ -28,7 +28,7 @@ cd <rails_root> && capify .
 
 Once capified, run the vulcanize generator to install a rubber configuration
 template:
-./script generate vulcanize minimal_db
+./script generate vulcanize minimal_mysql
 
 Then edit config/rubber/rubber.yml to add your settings.  You can edit or
 add to the config files in RAILS_ROOT/config/rubber/<common|role|host> to
@@ -80,7 +80,7 @@ Bootstrap instance(s)
 cap deploy(:cold)
 Rinse, Repeat
 
-Since boostrap runs for all roles/hosts, not just the newly creeated ones, I
+Since bootstrap runs for all roles/hosts, not just the newly creeated ones, I
 tried to make it safe for repeat executinons on existing instances.  However,
 you should probably verify that this is the case for your setup before
 trusting it on a production system.
@@ -91,7 +91,33 @@ changing rubber.yml or instance*.yml do not need to be checked in for their
 changes to be seen remotely because they are pushed by the rubber:config
 recipe.
 
-For example, to create a single staging instance:
+For example, you can follow these steps to create a demo app on a single
+instance:
+
+Create a simple rails project:
+rails rubbertest
+cd rubbertest
+./script/generate scaffold post title:string body:text
+
+Install rubber:
+./script/plugin install http://rubber.rubyforge.org/svn/trunk
+./script/generate vulcanize minimal_mysql
+
+Configure rubber:
+<edit config/rubber/rubber.yml>
+For demo, you need real values for these:
+  aws_access_key
+  aws_secret_access_key
+  ec2_key_name
+  ec2_key_file
+You should go through the rest for a real app.
+
+
+Create, bootstrap, then deploy to instance:
+ALIAS=www ROLES=web,app,db:primary=true cap rubber:create
+cap rubber:bootstrap
+cap deploy:cold
+
 
 cd <rails_root>
 RAILS_ENV=staging ALIAS=staging ROLES=web,app,db:primary=true cap rubber:create
