@@ -27,8 +27,8 @@ ec2_instance_type: m1.small
 # NOTE: for some reason Capistrano requires you to have both the public and
 # the private key in the same folder, the public key should have the
 # extension ".pub".
-ec2_key_name: mykey
-ec2_key_file: /home/me/.ec2/mykey
+ec2_key_name: gsg-keypair
+ec2_key_file: ~/.ec2/id_rsa-gsg-keypair
 
 # REQUIRED: The timezone the server should be in
 timezone: US/Eastern
