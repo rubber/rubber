@@ -16,7 +16,7 @@ module Capistrano
       class Noscm < Base
         # Sets the default command name for this SCM. Users may override this
         # by setting the :scm_command variable.
-        default_command "cp -R"
+        default_command "cp -R -L"
 
         def head
           "1"
