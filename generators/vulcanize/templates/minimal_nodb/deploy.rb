@@ -3,6 +3,8 @@
 set :rails_env, (ENV["RAILS_ENV"] ||= 'production')
 set :application, "your_app_name"
 
+# Use a simple directory tree copy here to make demo easier.
+# You probably want to use your own repository for a real app
 require 'capistrano/noscm'
 set :scm, :noscm
 set :deploy_via, :copy
