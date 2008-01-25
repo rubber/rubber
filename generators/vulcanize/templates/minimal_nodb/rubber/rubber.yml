@@ -37,10 +37,6 @@ timezone: US/Eastern
 #
 domain: foo.com
 
-# REQUIRED: The filename for the database server config file
-#
-db_config: my.cnf
-
 # OPTIONAL: The username/password/url for updating a dynamic dns service with the instance alias and ip
 dyndns_user:
 dyndns_password:
@@ -51,6 +47,13 @@ packages: [build-essential, ruby-full, ruby1.8-dev, rake, irb, subversion, monit
 
 # OPTIONAL: The gems to install on all instances
 gems: [rails]
+
+# OPTIONAL: The filename for the database server config file.  This allows
+#           rubber to bootstrap the db by generating the config for the db
+#           server before the dbn is needed by your app (e.g. moving datdir
+#           to /mnt for mysql)
+#
+# db_config: my.cnf
 
 # OPTIONAL: You can also define your own variables here for use when transforming config files
 #
