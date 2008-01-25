@@ -19,7 +19,7 @@ namespace :rubber do
     # NOTE: for some reason Capistrano requires you to have both the public and
     # the private key in the same folder, the public key should have the
     # extension ".pub".
-    ssh_options[:keys] = rubber_cfg.environment.bind(nil, nil)['ec2_key_file']
+    ssh_options[:keys] = File.expand_path(rubber_cfg.environment.bind(nil, nil).ec2_key_file)
   end
 
   desc <<-DESC
@@ -287,9 +287,9 @@ namespace :rubber do
   def create_instance(instance_alias, instance_roles)
     env = rubber_cfg.environment.bind(instance_roles.first.name, instance_alias)
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
-    ami = env['ec2_instance']
-    ami_type = env['ec2_instance_type']
-    response = ec2.run_instances(:image_id => ami, :key_name => env['ec2_key_name'], :instance_type => ami_type)
+    ami = env.ec2_instance
+    ami_type = env.ec2_instance_type
+    response = ec2.run_instances(:image_id => ami, :key_name => env.ec2_key_name, :instance_type => ami_type)
     item = response.instancesSet.item[0]
     instance_id = item.instanceId
 
