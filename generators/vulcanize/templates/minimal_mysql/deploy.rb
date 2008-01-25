@@ -28,6 +28,7 @@ set :keep_releases, 3
 # TASKS
 # =============================================================================
 
+before "deploy:migrate", "rubber:config"
 before "deploy:restart", "rubber:config", "setup_perms"
 before "deploy:start", "rubber:config", "setup_perms"
 after "deploy", "deploy:cleanup"

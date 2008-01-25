@@ -4,7 +4,7 @@
   prod_user = 'myuser'
   prod_pass = nil
   prod_db = 'production'
-  prod_host = rubber_instances.find{|i| i.roles.find{|r| r.name == 'db' && r.options['primary'] } }
+  prod_host = rubber_instances.for_role('db', :primary => true).first.name
   pass = "identified by '#{prod_pass}'" if prod_pass
 
   @post = <<-POST
