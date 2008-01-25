@@ -10,7 +10,7 @@ class VulcanizeGenerator < Rails::Generator::NamedBase
         raise Rails::Generator::UsageError.new("Invalid template #{file_name}, use one of #{valid_templates}")
       end
 
-      m.file('Capfile', '')
+      m.file('Capfile', 'Capfile')
       Find.find(sp) do |f|
         Find.prune if f =~ /CVS|svn|Capfile/
         rel = f.gsub(/#{source_root}\//, '')
