@@ -109,8 +109,8 @@ module Rubber
         @items[name] || @items[name.gsub(/\..*/, '')]
       end
 
-      def for_role(role_name, options={})
-        @items.collect {|n, i| i if i.roles.any? {|r| r.name == role_name && r.options == options}}.compact
+      def for_role(role_name, options=nil)
+        @items.collect {|n, i| i if i.roles.any? {|r| r.name == role_name && (! options || r.options == options)}}.compact
       end
 
       def add(instance_item)
