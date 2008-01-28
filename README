@@ -21,16 +21,11 @@ REQUIREMENTS:
 
 INSTALLATION:
 
-Rubber needs to be installed as a rails plugin.
+First, Rubber needs to be installed as a rails plugin.  Then run its
+vulcanize generator to add a basic set of configuration files to your
+project.
 
-First you need to capify your project to enable capistrano:
-cd <rails_root> && capify .
-
-Once capified, run the vulcanize generator to install a rubber configuration
-template:
-./script generate vulcanize minimal_mysql
-
-Then edit config/rubber/rubber.yml to add your settings.  You can edit or
+Edit config/rubber/rubber.yml to add your settings.  You can edit or
 add to the config files in RAILS_ROOT/config/rubber/<common|role|host> to
 setup instances globally or for specific roles and/or hosts.
 
@@ -38,8 +33,14 @@ You will also need to customize config/deploy.rb for your needs
 
 Running "rake rubber:config" in a development env will tranform config files
 for the global scope along with the config file for all roles, and config
-files for the current machine (if any).  This helps one to test out config
-file transformations before committing and deploying to your instances
+files for the current machine (if any), but not config files specific to
+other hosts.  This helps one to test out config file transformations before
+committing and deploying to your instances.  Currently this needs to run via
+sudo as it typically writes to files that only root can modify (e.g.
+/etc/my/my.cnf) - I need  a better solution here, maybe writing them to a
+"Fake root" in /tmp.
+
+See RUNNING below for a walkthrough on installing rubber for a demo rails app.
 
 CONFIGURATION:
 
@@ -60,8 +61,15 @@ happens when the template is transformed:
 @additive   Sets transformation to be additive, only replaces between given
             delimiters, e.g. @additive = ["## start", "## end"]
 
+Of the above, the only variables that are required are  @path or both
+@read_cmd and @write_cmd
+
 In addition, within the config templates you have access to the rubber
-configuration objects rubber_env (rubber.yml) and rubber_instances (instance*.yml)
+configuration objects rubber_env (rubber.yml) and rubber_instances
+(instance*.yml).  This makes it possible to write config files in such a way
+that adding more instances gets handled automatically - e.g. the proxy
+destinations in the nginx.conf need to get updated when we add more app server
+instances.
 
 Configuration files that exist in config/rubber/common will be transformed for
 all hosts.
@@ -80,8 +88,8 @@ Bootstrap instance(s)
 cap deploy(:cold)
 Rinse, Repeat
 
-Since bootstrap runs for all roles/hosts, not just the newly creeated ones, I
-tried to make it safe for repeat executinons on existing instances.  However,
+Since bootstrap runs for all roles/hosts, not just the newly created ones, I
+tried to make it safe for repeat executions on existing instances.  However,
 you should probably verify that this is the case for your setup before
 trusting it on a production system.
 
