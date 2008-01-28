@@ -12,3 +12,5 @@ configs together)
 * add s3 backups
 * move serial_task into rubber namespace
 * do something more intelligent with hosts in .etc.hosts, and clean them up on instance remove
+* don't use /etc/hosts when checking if ip same for dyndns - maybe we should move dyndns setting to instances?
+* divorce from rails for use in deploying other things
