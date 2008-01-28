@@ -31,14 +31,14 @@ setup instances globally or for specific roles and/or hosts.
 
 You will also need to customize config/deploy.rb for your needs
 
-Running "rake rubber:config" in a development env will tranform config files
-for the global scope along with the config file for all roles, and config
-files for the current machine (if any), but not config files specific to
-other hosts.  This helps one to test out config file transformations before
-committing and deploying to your instances.  Currently this needs to run via
-sudo as it typically writes to files that only root can modify (e.g.
-/etc/my/my.cnf) - I need  a better solution here, maybe writing them to a
-"Fake root" in /tmp.
+You probably don't want to do this, but running "rake rubber:config" in a
+development env will tranform config files for the global scope along with
+the config file for all roles, and config files for the current machine
+(if any), but not config files specific to other hosts.  This helps one to
+test out config file transformations before committing and deploying to your
+instances.  Currently this needs to run via sudo as it typically writes to
+files that only root can modify (e.g./etc/my/my.cnf) - I need  a better
+solution here, maybe writing them to a "Fake root" in /tmp.
 
 See RUNNING below for a walkthrough on installing rubber for a demo rails app.
 
