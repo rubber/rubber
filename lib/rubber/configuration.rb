@@ -63,6 +63,9 @@ module Rubber
       end
 
       class BoundEnv
+        attr_reader :role
+        attr_reader :host
+
         def initialize(cfg, role, host)
           @cfg = cfg
           @role = role
