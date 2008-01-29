@@ -8,9 +8,11 @@ configs together)
 * try to do less stuff as root
 * do development rubber:config into tmp dir rather than requiring it be run as root?
 * extract ec2 specific code, and ubuntu specific code into a strategy/factory pattern so this can be used with other grid computing system
+* also have strategy/factory for dns updates (nettica vs dyndns/generic url post)
 * figure out how to test the capistrano bits
 * add s3 backups
 * move serial_task into rubber namespace
 * do something more intelligent with hosts in .etc.hosts, and clean them up on instance remove
 * don't use /etc/hosts when checking if ip same for dyndns - maybe we should move dyndns setting to instances?
 * divorce from rails for use in deploying other things
+* add a rubber:build_image so bootstraps can be quicker once setup is locked down
