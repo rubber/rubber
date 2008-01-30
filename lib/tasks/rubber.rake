@@ -31,4 +31,32 @@ namespace :rubber do
 
   end
 
+  desc <<-DESC
+    Rotate rails app server logfiles.  Should be run right after midnight.
+    The following arguments affect behavior:
+    LOG_DIR (required): Directory where log files are located
+    LOG_FILE (*.log):   File pattern to match to find logs to rotate
+    LOG_AGE (7):        Delete rotated logs older than this many days in the past
+  DESC
+  task :rotate_logs do
+    log_src_dir = ENV['LOG_DIR'] || raise("No log dir given, try 'LOG_DIR=/foo/log rake rubber:rotate_logs'")
+    log_file_glob = ENV['LOG_FILES'] || "*.log"
+    log_file_age = ENV['LOG_AGE'].to_i rescue 7
+
+    puts "Rotating logfiles located at: #{log_src_dir}/#{log_file_glob}"
+    Dir["#{log_src_dir}/#{log_file_glob}"].each do |logfile|
+      sh "cat #{logfile} >> #{logfile}.#{1.day.ago.strftime('%Y%m%d')}"
+      File.truncate logfile, 0
+    end
+
+    threshold = Time.now - log_file_age * 86400
+    puts "Cleaning rotated log files older than #{log_file_age} days"
+    Dir["#{log_src_dir}/#{log_file_glob}.[0-9]*"].each do |logfile|
+      if File.mtime(logfile) < threshold
+        File.unlink(logfile)
+      end
+    end
+  end
+
+
 end
