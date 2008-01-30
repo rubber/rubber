@@ -49,6 +49,9 @@ namespace :rubber do
     puts "Rotating logfiles located at: #{log_src_dir}/#{log_file_glob}"
     Dir["#{log_src_dir}/#{log_file_glob}"].each do |logfile|
       rotated_file = "#{logfile}.#{rotated_date}"
+      if File.exist?(rotated_file)
+        rotated_file += "_#{Time.now.to_i}"
+      end
       FileUtils.cp(logfile, rotated_file)
       File.truncate logfile, 0
     end
