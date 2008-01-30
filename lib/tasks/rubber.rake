@@ -1,3 +1,5 @@
+require 'fileutils'
+
 namespace :rubber do
 
   if ENV['NO_ENV']
@@ -41,12 +43,12 @@ namespace :rubber do
   task :rotate_logs do
     log_src_dir = ENV['LOG_DIR'] || raise("No log dir given, try 'LOG_DIR=/foo/log rake rubber:rotate_logs'")
     log_file_glob = ENV['LOG_FILES'] || "*.log"
-    log_file_age = ENV['LOG_AGE'].to_i rescue 7
+    log_file_age = (ENV['LOG_AGE'] || 7).to_i
 
     rotated_date = (Time.now - 86400).strftime('%Y%m%d')
     puts "Rotating logfiles located at: #{log_src_dir}/#{log_file_glob}"
     Dir["#{log_src_dir}/#{log_file_glob}"].each do |logfile|
-      sh "cat #{logfile} >> #{logfile}.#{rotated_date}"
+      FileUtils.cp(logfile, "#{logfile}.#{rotated_date}")
       File.truncate logfile, 0
     end
 
@@ -54,7 +56,7 @@ namespace :rubber do
     puts "Cleaning rotated log files older than #{log_file_age} days"
     Dir["#{log_src_dir}/#{log_file_glob}.[0-9]*"].each do |logfile|
       if File.mtime(logfile) < threshold
-        File.unlink(logfile)
+        FileUtils.rm_f(logfile)
       end
     end
   end
