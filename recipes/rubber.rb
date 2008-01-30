@@ -48,8 +48,18 @@ namespace :rubber do
           role.options[p[0]] = val
         end
       end
+
+      # If user doesn't setup a primary db, then be nice and do it
+      if role.name == "db" && role.options["primary"] == nil && rubber_cfg.instance.for_role("db").size == 0
+        value = Capistrano::CLI.ui.ask("You do not have a primary db role, should #{instance_alias} be it [y/n]?: ")
+        if value =~ /^y/
+          role.options["primary"] = true
+        end
+      end
+
       ir << role
     end
+
     create_instance(instance_alias, ir)
   end
 
@@ -74,6 +84,7 @@ namespace :rubber do
   DESC
   task :bootstrap do
     set_timezone
+    link_bash
     install_packages
     install_rubygems
     install_gems
@@ -239,6 +250,14 @@ namespace :rubber do
   end
 
   desc <<-DESC
+    The ubuntu has /bin/sh linking to dash instead of bash, fix this
+    You can override this task if you don't want this to happen
+  DESC
+  task :link_bash do
+    sudo("ln -sf /bin/bash /bin/sh")
+  end
+
+  desc <<-DESC
     Set the timezone using the value of the variable named timezone. \
     Valid options for timezone can be determined by the contents of \
     /usr/share/zoneinfo, which can be seen here: \
@@ -252,6 +271,8 @@ namespace :rubber do
       # run "echo `hostname`: #{cfg_value.join(' ')}" }
       sudo "bash -c 'echo #{cfg_value} > /etc/timezone'"
       sudo "cp /usr/share/zoneinfo/#{cfg_value} /etc/localtime"
+      # restart syslog so that times match timezone
+      sudo "/etc/init.d/sysklogd restart"
     end
   end
 
