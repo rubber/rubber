@@ -43,9 +43,10 @@ namespace :rubber do
     log_file_glob = ENV['LOG_FILES'] || "*.log"
     log_file_age = ENV['LOG_AGE'].to_i rescue 7
 
+    rotated_date = (Time.now - 86400).strftime('%Y%m%d')
     puts "Rotating logfiles located at: #{log_src_dir}/#{log_file_glob}"
     Dir["#{log_src_dir}/#{log_file_glob}"].each do |logfile|
-      sh "cat #{logfile} >> #{logfile}.#{1.day.ago.strftime('%Y%m%d')}"
+      sh "cat #{logfile} >> #{logfile}.#{rotated_date}"
       File.truncate logfile, 0
     end
 
