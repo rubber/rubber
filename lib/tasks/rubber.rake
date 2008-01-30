@@ -63,7 +63,7 @@ namespace :rubber do
   end
 
   desc <<-DESC
-    Backup database to s3
+    Backup database to given backup directory
     The following arguments affect behavior:
     BACKUP_DIR (required): Directory where db backups will be stored
     BACKUP_AGE (7):        Delete rotated logs older than this many days in the past
