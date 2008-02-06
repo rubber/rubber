@@ -236,7 +236,7 @@ module Rubber
         end
 
         reader = config.path || "|#{config.read_cmd}"
-        orig = IO.read(reader) rescue nil
+        orig = IO.read(reader) rescue ""
 
         # When additive is set we need to only replace between our delimiters
         if config.additive
