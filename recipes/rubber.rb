@@ -472,8 +472,8 @@ namespace :rubber do
 
   def package_helper(packages, update=false)
     pkgs = packages.join(' ') rescue nil
+    sudo "aptitude -q update"
     if update
-      sudo "aptitude -q update"
       run "export DEBIAN_FRONTEND=noninteractive; sudo aptitude -q -y " + (pkgs ? "update #{pkgs}" : "dist-upgrade")
     else
       # run "echo `hostname`: #{cfg_value.join(' ')}" }
