@@ -1,33 +1,47 @@
+# Since the rake task is typically done outside rails env, we setup load
+# path to include the lib dir
+$:.unshift "#{File.dirname(__FILE__)}/.."
+ENV['RAILS_ENV'] ||= 'development'
+
 require 'fileutils'
 
 namespace :rubber do
 
-  if ENV['NO_ENV']
-    $:.unshift "#{File.dirname(__FILE__)}/.."
-  end
-
   desc "Generate system config files by transforming the files in the config tree"
-  task :config => ENV['NO_ENV'] ? [] : [:environment] do
-    require 'socket'
-    instance_alias = Socket::gethostname.gsub(/\..*/, '')
-
+  task :config do
     require 'rubber/configuration'
     cfg = Rubber::Configuration.get_configuration(ENV['RAILS_ENV'])
+    instance_alias = cfg.environment.current_host
     instance = cfg.instance[instance_alias]
     if instance
-      roles = instance.roles.collect{|role| role.name}
+      roles = instance.role_names
+      gen = Rubber::Configuration::Generator.new('config/rubber', roles, instance_alias)
     elsif RAILS_ENV == 'development'
       roles = cfg.environment.known_roles
-      instance = Rubber::Configuration::InstanceItem.new(instance_alias, roles, nil)
+      role_items = roles.collect {|r| Rubber::Configuration::RoleItem.new(r)}
+      env = cfg.environment.bind(roles, instance_alias)
+      domain = env.domain
+      instance = Rubber::Configuration::InstanceItem.new(instance_alias, domain, role_items, 'dummyid')
+      instance.external_host = instance.full_name
+      instance.external_ip = "127.0.0.1"
+      instance.internal_host = instance.full_name
+      instance.internal_ip = "127.0.0.1"
       cfg.instance.add(instance)
+      gen = Rubber::Configuration::Generator.new('config/rubber', roles, instance_alias)
+      gen.fake_root ="#{RAILS_ROOT}/tmp/rubber"
+    else
+      puts "Instance not found for host: #{instance_alias}"
+      exit 1
     end
 
-    gen = Rubber::Configuration::Generator.new('config/rubber', roles, instance_alias)
     if ENV['NO_POST']
       gen.no_post = true
     end
     if ENV['FILE']
       gen.file_pattern = ENV['FILE']
+    end
+    if ENV['FORCE']
+      gen.force = true
     end
     gen.run
 

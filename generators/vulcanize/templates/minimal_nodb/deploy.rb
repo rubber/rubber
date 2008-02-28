@@ -66,7 +66,7 @@ end
 
 task :custom_install_app, :roles => :app do
   # Setup system to restart mongrel_cluster on reboot
-  rubber.run_script 'install_app', <<-ENDSCRIPT
+  rubber.sudo_script 'install_app', <<-ENDSCRIPT
     mkdir -p /etc/mongrel_cluster
     rm -f /etc/mongrel_cluster/#{application}-#{rails_env}.yml && ln -s /mnt/#{application}-#{rails_env}/current/config/mongrel_cluster.yml /etc/mongrel_cluster/#{application}-#{rails_env}.yml
     find /usr/lib/ruby/gems -path "*/resources/mongrel_cluster" -exec cp {} /etc/init.d/ \\;

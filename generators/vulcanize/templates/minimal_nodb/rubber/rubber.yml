@@ -37,10 +37,11 @@ timezone: US/Eastern
 #
 domain: foo.com
 
-# OPTIONAL: The username/password/url for updating a dynamic dns service with the instance alias and ip
-dyndns_user:
-dyndns_password:
-dyndns_update_url: https://members.dyndns.org/nic/update?hostname=#{instance_host}&myip=#{instance_ip}
+# OPTIONAL: The provider(nettica|dyndns)/username/password for updating a dynamic dns service with the instance alias and ip
+dns_provider:
+dns_user:
+dns_password:
+dns_ttl:
 
 # OPTIONAL: The packages to install on all instances
 packages: [build-essential, ruby-full, ruby1.8-dev, rake, irb, subversion]

@@ -5,6 +5,7 @@ require "socket"
 require 'resolv'
 require 'rubber/util'
 require 'rubber/configuration'
+require 'capistrano/hostcmd'
 
 require 'rubygems'
 require 'ec2'
@@ -23,7 +24,7 @@ namespace :rubber do
   end
 
   desc <<-DESC
-    Create a new EC2 instance with the given ALIAS and ROLE
+    Create a new EC2 instance with the given ALIAS and ROLES
   DESC
   task :create do
     instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
@@ -92,10 +93,13 @@ namespace :rubber do
   end
 
   desc <<-DESC
-    Bootstrap the production database config
+    Bootstrap the production database config.  Db bootstrap is special - the
+    user could be requiring the rails env inside some of their config
+    templates, which creates a catch 22 situation with the db, so we try and
+    bootstrap the db separate from the rest of the config
   DESC
   task :bootstrap_db, :roles => :db do
-    env = rubber_cfg.environment.bind(nil, nil)
+    env = rubber_cfg.environment.bind("db", nil)
     if env.db_config
       # After everything installed on machines, we need the source tree
       # on hosts in order to run rubber:config for bootstrapping the db
@@ -103,18 +107,20 @@ namespace :rubber do
       deploy.update_code
       # Gen mysql conf because we need a functioning db before we can migrate
       # Its up to user to create initial DB in mysql.cnf @post
-      rubber.run_config(:deploy_path => release_path, :RAILS_ENV => rails_env, :NO_ENV => true, :FILE => env.db_config)
+      rubber.run_config(:deploy_path => release_path, :RAILS_ENV => rails_env, :FILE => env.db_config)
     end
   end
 
 
   desc <<-DESC
     Sets up aliases for instance hostnames based on contents of instance.yml.
-    Generates/etc/hosts for local/remote machines and sets hostname on remote instances
+    Generates /etc/hosts for local/remote machines and sets hostname on
+    remote instances, and sets values in dynamic dns entries
   DESC
   task :setup_aliases do
     setup_local_aliases
     setup_remote_aliases
+    setup_dns_aliases
   end
 
   desc <<-DESC
@@ -129,10 +135,11 @@ namespace :rubber do
     delim = "## rubber config #{env.domain} #{ENV['RAILS_ENV']}"
     local_hosts = delim + "\n"
     rubber_cfg.instance.each do |ic|
-      full_name = ic.name + "." + rubber_cfg.environment.bind(ic.roles.first.name, ic.name).domain
-      hosts_data = [ic.name, full_name, ic.external_host, ic.internal_host].join(' ')
+      env = rubber_cfg.environment.bind(ic.role_names, ic.name)
+      # don't add unqualified hostname in local hosts file since user may be
+      # managing multiple domains with same aliases
+      hosts_data = [ic.full_name, ic.external_host, ic.internal_host].join(' ')
       local_hosts << ic.external_ip << ' ' << hosts_data << "\n"
-      update_dyndns(full_name, ic.external_ip)
     end
     local_hosts << delim << "\n"
 
@@ -142,6 +149,15 @@ namespace :rubber do
     Rubber::Util::sudo_open(hosts_file, 'w') do |f|
       f.write(filtered)
       f.write(local_hosts)
+    end
+  end
+
+  desc <<-DESC
+    Sets up aliases in dynamic dns provider for instance hostnames based on contents of instance.yml.
+  DESC
+  task :setup_dns_aliases do
+    rubber_cfg.instance.each do |ic|
+      update_dyndns(ic)
     end
   end
 
@@ -157,22 +173,24 @@ namespace :rubber do
     delim = "#{delim} #{ENV['RAILS_ENV']}" if ENV['RAILS_ENV']
     remote_hosts = delim + "\n"
     rubber_cfg.instance.each do |ic|
-      full_name = ic.name + "." + rubber_cfg.environment.bind(ic.roles.first.name, ic.name).domain
-      hosts_data = [ic.name, full_name, ic.external_host, ic.internal_host].join(' ')
+      env = rubber_cfg.environment.bind(ic.roles.first.name, ic.name)
+      hosts_data = [ic.name, ic.full_name, ic.external_host, ic.internal_host].join(' ')
       remote_hosts << ic.internal_ip << ' ' << hosts_data << "\n"
     end
     remote_hosts << delim << "\n"
 
-    # write out the hosts file for the remote instances
-    # NOTE that we use "capture" to get the existing hosts
-    # file, which only grabs the hosts file from the first host
-    filtered = (capture "cat #{hosts_file}").gsub(/^#{delim}.*^#{delim}\n?/m, '')
-    filtered = filtered + remote_hosts
-    # Put the generated hosts back on remote instance
-    put filtered, hosts_file
+    if rubber_cfg.instance.size > 0
+      # write out the hosts file for the remote instances
+      # NOTE that we use "capture" to get the existing hosts
+      # file, which only grabs the hosts file from the first host
+      filtered = (capture "cat #{hosts_file}").gsub(/^#{delim}.*^#{delim}\n?/m, '')
+      filtered = filtered + remote_hosts
+      # Put the generated hosts back on remote instance
+      put filtered, hosts_file
 
-    # Setup hostname on instance so shell, etcs have nice display
-    run "echo $CAPISTRANO:HOST$ > /etc/hostname && hostname $CAPISTRANO:HOST$"
+      # Setup hostname on instance so shell, etcs have nice display
+      sudo "echo $CAPISTRANO:HOST$ > /etc/hostname && hostname $CAPISTRANO:HOST$"
+    end
 
     # TODO
     # /etc/resolv.conf to add search domain
@@ -191,17 +209,14 @@ namespace :rubber do
     Upgrade to the newest versions of all Ubuntu packages.
   DESC
   task :update_packages do
-    package_helper('', true)
+    package_helper(true)
   end
 
   desc <<-DESC
     Upgrade to the newest versions of all rubygems.
   DESC
   task :update_gems do
-    execute_for_scopes('gems') do |cfg_value|
-      # run "echo `hostname`: #{cfg_value.join(' ')}" }
-      gem_helper(cfg_value, true)
-    end
+    gem_helper(true)
   end
 
   desc <<-DESC
@@ -217,9 +232,7 @@ namespace :rubber do
     be an array of strings.
   DESC
   task :install_packages do
-    execute_for_scopes('packages') do |cfg_value|
-      package_helper(cfg_value, false)
-    end
+    package_helper(false)
   end
 
   desc <<-DESC
@@ -227,17 +240,14 @@ namespace :rubber do
     be an array of strings.
   DESC
   task :install_gems do
-    execute_for_scopes('gems') do |cfg_value|
-      # run "echo `hostname`: #{cfg_value.join(' ')}" }
-      gem_helper(cfg_value, false)
-    end
+    gem_helper(false)
   end
 
   desc <<-DESC
     The ubuntu rubygem package is woefully out of date, so install it manually
   DESC
   task :install_rubygems do
-    rubber.run_script 'install_rubygems', <<-ENDSCRIPT
+    rubber.sudo_script 'install_rubygems', <<-ENDSCRIPT
       if [ ! -f /usr/bin/gem ]; then
         wget -qP /tmp http://rubyforge.org/frs/download.php/29548/rubygems-1.0.1.tgz
         tar -C /tmp -xzf /tmp/rubygems-1.0.1.tgz
@@ -267,13 +277,12 @@ namespace :rubber do
     'posix/GMT' or 'Canada/Eastern'.
   DESC
   task :set_timezone do
-    execute_for_scopes('timezone') do |cfg_value|
-      # run "echo `hostname`: #{cfg_value.join(' ')}" }
-      sudo "bash -c 'echo #{cfg_value} > /etc/timezone'"
-      sudo "cp /usr/share/zoneinfo/#{cfg_value} /etc/localtime"
-      # restart syslog so that times match timezone
-      sudo "/etc/init.d/sysklogd restart"
-    end
+    opts = get_host_options('timezone')
+    # run "echo `hostname`: #{cfg_value.join(' ')}" }
+    sudo "bash -c 'echo $CAPISTRANO:VAR$ > /etc/timezone'", opts
+    sudo "cp /usr/share/zoneinfo/$CAPISTRANO:VAR$ /etc/localtime", opts
+    # restart syslog so that times match timezone
+    sudo "/etc/init.d/sysklogd restart"
   end
 
   desc <<-DESC
@@ -281,7 +290,6 @@ namespace :rubber do
   DESC
   task :config do
     opts = {}
-    opts['NO_ENV'] = true if ENV['NO_ENV']
     opts['NO_POST'] = true if ENV['NO_POST']
     opts['FILE'] = ENV['FILE'] if ENV['FILE']
     opts['RAILS_ENV'] = ENV['RAILS_ENV'] if ENV['RAILS_ENV']
@@ -293,7 +301,7 @@ namespace :rubber do
     extra_env = options.keys.inject("") {|all, k|  "#{all} #{k}='#{options[k]}'"}
     put(File.read(rubber_cfg.environment.file), "#{path}/#{rubber_cfg.environment.file}")
     put(File.read(rubber_cfg.instance.file), "#{path}/#{rubber_cfg.instance.file}")
-    run "cd #{path} && #{extra_env} rake rubber:config"
+    sudo "sh -c 'cd #{path} && #{extra_env} rake rubber:config'"
   end
 
   def get_env(name, desc, required=false)
@@ -306,7 +314,12 @@ namespace :rubber do
   # Creates a new ec2 instance with the given alias and roles
   # Configures aliases (/etc/hosts) on local and remote machines
   def create_instance(instance_alias, instance_roles)
-    env = rubber_cfg.environment.bind(instance_roles.first.name, instance_alias)
+    if rubber_cfg.instance[instance_alias]
+      puts "Instance already exists: #{instance_alias}"
+      exit 1
+    end
+
+    env = rubber_cfg.environment.bind(instance_roles.collect{|x| x.name}, instance_alias)
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
     ami = env.ec2_instance
     ami_type = env.ec2_instance_type
@@ -314,9 +327,9 @@ namespace :rubber do
     item = response.instancesSet.item[0]
     instance_id = item.instanceId
 
-    puts "Instance created, id=#{instance_id}"
+    puts "Instance #{instance_id} created"
 
-    instance_item = Rubber::Configuration::InstanceItem.new(instance_alias, instance_roles, instance_id)
+    instance_item = Rubber::Configuration::InstanceItem.new(instance_alias, env.domain, instance_roles, instance_id)
     rubber_cfg.instance.add(instance_item)
     rubber_cfg.instance.save()
 
@@ -324,7 +337,7 @@ namespace :rubber do
     print "Waiting for instance to start"
     while true do
       print "."
-      sleep 5
+      sleep 2
       response = ec2.describe_instances(:instance_id => instance_id)
       item = response.reservationSet.item[0].instancesSet.item[0]
       if item.instanceState.name == "running"
@@ -345,13 +358,20 @@ namespace :rubber do
         task :_get_ip, :hosts => instance_item.external_host do
           instance_item.internal_ip = capture("curl -s http://169.254.169.254/latest/meta-data/local-ipv4").strip
         end
-        # even though instance is running, we need to give ssh a chance
-        # to get started
-        sleep 5
-        _get_ip
+
+        # even though instance is running, sometimes ssh hasn't started yet,
+        # so retry on connect failure
+        begin
+          _get_ip
+        rescue ConnectionError
+          sleep 2
+          puts "Failed to connect to #{instance_alias} (#{instance_item.external_ip}), retrying"
+          retry
+        end
 
         # Add the aliases for this instance to all other hosts
         setup_remote_aliases
+        setup_dns_aliases
 
         break
       end
@@ -364,7 +384,12 @@ namespace :rubber do
   # Configures aliases (/etc/hosts) on local and remote machines
   def refresh_instance(instance_alias)
     instance_item = rubber_cfg.instance[instance_alias]
-    env = rubber_cfg.environment.bind(instance_item.roles.first.name, instance_alias)
+    if ! instance_item
+      puts "Instance does not exist: #{instance_alias}"
+      exit 1
+    end
+
+    env = rubber_cfg.environment.bind(instance_item.role_names, instance_alias)
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
     response = ec2.describe_instances(:instance_id => instance_item.instance_id)
     item = response.reservationSet.item[0].instancesSet.item[0]
@@ -383,7 +408,7 @@ namespace :rubber do
 
       # Connect to newly created instance and grab its internal ip
       # so that we can update all aliases
-      task :_get_ip, :hosts => instance_item.name do
+      task :_get_ip, :hosts => instance_item.full_name do
         instance_item.internal_ip = capture("curl -s http://169.254.169.254/latest/meta-data/local-ipv4").strip
       end
       # even though instance is running, we need to give ssh a chance
@@ -393,22 +418,27 @@ namespace :rubber do
 
       # Add the aliases for this instance to all other hosts
       setup_remote_aliases
+      setup_dns_aliases
     end
 
     rubber_cfg.instance.save()
   end
 
 
-
   # Destroys the given ec2 instance
   def destroy_instance(instance_alias)
-    value = Capistrano::CLI.ui.ask("About to DESTROY #{instance_alias} in mode #{ENV['RAILS_ENV']}.  Are you SURE [yes/NO]?: ")
+    instance_item = rubber_cfg.instance[instance_alias]
+    if ! instance_item
+      puts "Instance does not exist: #{instance_alias}"
+      exit 1
+    end
+    env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
+
+    value = Capistrano::CLI.ui.ask("About to DESTROY #{instance_alias} (#{instance_item.instance_id}) in mode #{ENV['RAILS_ENV']}.  Are you SURE [yes/NO]?: ")
     if value != "yes"
       puts "Exiting"
       exit
     end
-    instance_item = rubber_cfg.instance[instance_alias]
-    env = rubber_cfg.environment.bind(instance_item.roles.first.name, instance_item.name)
 
     puts "Destroying instance alias=#{instance_alias}, instance_id=#{instance_item.instance_id}"
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
@@ -416,75 +446,51 @@ namespace :rubber do
 
     rubber_cfg.instance.remove(instance_alias)
     rubber_cfg.instance.save()
+
+    # re-load the roles since we just removed some and setup_remote_aliases
+    # shouldn't hit removed ones
+    load_roles() unless env.disable_auto_roles
+
+    setup_aliases
+    destroy_dyndns(instance_item)
   end
 
-  # Looks up the given config value and runs the given block for each scope (common, roles, host)
+
+  # Returns a map of "hostvar_<hostname>" => value for the given config value for each instance host
   # This is used to run capistrano tasks scoped to the correct role/host so that a config value
   # specific to a role/host will only be used for that role/host, e.g. the list of packages to
-  # be installed.  Does not run the block for a role/host if it has already been run for that
-  # config value at a higher scope
-  def execute_for_scopes(cfg_name)
-    seen = {}
-    env = rubber_cfg.environment.bind(nil, nil)
-    cfg_value = env[cfg_name]
-    if cfg_value
-      puts "Installing global #{cfg_name}"
-      seen[cfg_value] = true
-      yield cfg_value
-    end
-
-    instance_roles = [], instance_hosts = []
+  # be installed.
+  def get_host_options(cfg_name, &block)
+    opts = {}
     rubber_cfg.instance.each do | ic|
-      instance_hosts << ic.name
-      instance_roles.concat(ic.roles.collect{|r| r.name})
-    end
-    instance_hosts = instance_hosts.compact.uniq
-    instance_roles = instance_roles.compact.uniq
-
-    first = true
-    instance_roles.each do |r|
-      env = rubber_cfg.environment.bind(r, nil)
+      env = rubber_cfg.environment.bind(ic.role_names, ic.name)
       cfg_value = env[cfg_name]
-      if cfg_value and ! seen[cfg_value]
-        puts "Installing role specific #{cfg_name}" if first; first = false
-        (seen[r] ||= {})[cfg_value] = true
-        task "install_#{cfg_name}_#{r}", :roles => r do
-          yield cfg_value
+      if cfg_value
+        if block
+          cfg_value = block.call(cfg_value)
         end
-        eval "install_#{cfg_name}_#{r}"
+        opts["hostvar_#{ic.full_name}"] = cfg_value
       end
     end
-
-    first = true
-    instance_hosts.each do |h|
-      env = rubber_cfg.environment.bind(nil, h)
-      cfg_value = env[cfg_name]
-      hosts_roles_already_seen = rubber_cfg.instance[h].roles.any? {|r| seen[r.name][cfg_value] rescue nil }
-      if cfg_value && ! seen[cfg_value] && ! hosts_roles_already_seen
-        puts "Installing host specific #{cfg_name}" if first; first = false
-        task "install_#{cfg_name}_#{h}", :hosts => h do
-          yield cfg_value
-        end
-        eval "install_#{cfg_name}_#{h}"
-      end
-    end
+    return opts
   end
 
-  def package_helper(packages, update=false)
-    pkgs = packages.join(' ') rescue nil
-    sudo "aptitude -q update"
+  def package_helper(update=false)
+    opts = get_host_options('packages') { |x| x.join(' ') }
+    sudo "apt-get -q update", opts
     if update
-      run "export DEBIAN_FRONTEND=noninteractive; sudo aptitude -q -y " + (pkgs ? "update #{pkgs}" : "dist-upgrade")
+      run "export DEBIAN_FRONTEND=noninteractive; sudo apt-get -q -y " + (pkgs ? "update $CAPISTRANO:VAR$" : "dist-upgrade"), opts
     else
       # run "echo `hostname`: #{cfg_value.join(' ')}" }
-      run "export DEBIAN_FRONTEND=noninteractive; sudo aptitude -q -y install #{pkgs}"
+      run "export DEBIAN_FRONTEND=noninteractive; sudo apt-get -q -y install $CAPISTRANO:VAR$", opts
     end
   end
 
   # Helper for installing gems,allows one to respond to prompts
-  def gem_helper(gems, update=false)
+  def gem_helper(update=false)
     cmd = update ? "update" : "install"
-    sudo "gem #{cmd} #{gems.join(' ')} --no-rdoc --no-ri" do |ch, str, data|
+    opts = get_host_options('gems') { |x| x.join(' ') }
+    sudo "gem #{cmd} $CAPISTRANO:VAR$ --no-rdoc --no-ri", opts do |ch, str, data|
       ch[:data] ||= ""
       ch[:data] << data
       if data =~ />\s*$/
@@ -498,55 +504,52 @@ namespace :rubber do
     end
   end
 
-  def run_script(name, contents)
+  # this lets us abort a script if a command in the middle of it errors out
+  set :stop_on_err_cmd, "function error_exit { exit 99; }; trap error_exit ERR"
+
+  def prepare_script(name, contents, stop_on_err=true)
     script = "/tmp/#{name}"
-    put(contents, script)
+    sc = stop_on_err ? "#{stop_on_err_cmd}\n#{contents}": contents
+    put(sc, script)
+    return script
+  end
+
+  def run_script(name, contents, stop_on_err=true)
+    script = prepare_script(name, contents, stop_on_err)
+    run "sh #{script}"
+  end
+
+  def sudo_script(name, contents, stop_on_err=true)
+    script = prepare_script(name, contents, stop_on_err)
     sudo "sh #{script}"
   end
 
-  def update_dyndns(instance_host, instance_ip)
-    cfg = rubber_cfg.environment.bind(nil, nil)
-    user, pass = cfg.dyndns_user, cfg.dyndns_password
-    update_url = cfg.dyndns_update_url
-    if update_url && user
-      current_ip = Resolv.getaddress(instance_host) rescue nil
-      if instance_ip == current_ip
-        puts "IP has not changed, not updating dynamic DNS"
-        return
-      end
+  def update_dyndns(instance_item)
+    env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
+    if env.dns_provider
+      provider = DynamicDnsBase.get_provider(env.dns_provider, env)
+      provider.update(instance_item.name, instance_item.external_ip)
+    end
+  end
 
-      update_url = eval "\"#{update_url}\""
-      puts "Updating dynamic DNS: #{instance_host} => #{instance_ip}"
-      puts "Using update url: #{update_url}"
-      # This header is required by dyndns.org
-      headers = {
-       "User-Agent" => "Capistrano - Rubber - 0.1"
-      }
-
-      uri = URI.parse(update_url)
-      http = Net::HTTP.new(uri.host, uri.port)
-      # switch on SSL
-      http.use_ssl = true if uri.scheme == "https"
-      # suppress verification warning
-      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-      req = Net::HTTP::Get.new(update_url.gsub(/.*:\/\/[^\/]*/, ''), headers)
-      # authentication details
-      req.basic_auth user, pass
-      resp = http.request(req)
-      # print out the response for the update
-      puts "Dynamic DNS Update result: #{resp.body}"
+  def destroy_dyndns(instance_item)
+    env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
+    if env.dns_provider
+      provider = DynamicDnsBase.get_provider(env.dns_provider, env)
+      provider.destroy(instance_item.name)
     end
   end
 
   # Automatically load and define capistrano roles from instance config
   def load_roles
+    top.roles.clear
     rubber_cfg.instance.each do |ic|
       ic.roles.each do |role|
         opts = Rubber::Util::symbolize_keys(role.options)
-        msg = "Auto role: #{role.name.to_sym} => #{ic.name}"
+        msg = "Auto role: #{role.name.to_sym} => #{ic.full_name}"
         msg << ", #{opts.inspect}" if opts.inspect.size > 0
         puts msg
-        top.role role.name.to_sym, ic.name, opts
+        top.role role.name.to_sym, ic.full_name, opts
       end
     end
   end

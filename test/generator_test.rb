@@ -2,10 +2,7 @@ require 'test/unit'
 require 'rubber/configuration'
 require 'tempfile'
 
-require 'rubygems'
-require 'ruby-debug'
-
-class ExceptionLoggerTest < Test::Unit::TestCase
+class GeneratorTest < Test::Unit::TestCase
   include Rubber::Configuration
 
   def test_validate
@@ -209,49 +206,4 @@ end
     assert_equal "common", File.read("#{out_dir}/foo.conf").strip, "transformed contents are incorrect"
   end
 
-  def test_known_roles
-    env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures/rubber.yml")
-    assert_equal ['role1', 'role2'], env.known_roles, "list of know roles not correct"
-  end
-
-  def test_env
-    env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures/testenv.yml")
-    e = env.bind(nil, nil)
-    assert_equal 'val1', e['var1'], 'env not retrieving right val'
-    assert_equal 'val2', e['var2'], 'env not retrieving right val'
-    assert_equal 'val1', e.var1, 'env not retrieving right val for method missing'
-    assert_equal 'val2', e.var2, 'env not retrieving right val for method missing'
-
-    e = env.bind('role1', 'nohost')
-    assert_equal 'val1', e['var1'], 'env not retrieving right val'
-    assert_equal 'role1val2', e['var2'], 'env not retrieving right val'
-    assert_equal 'val1', e.var1, 'env not retrieving right val for method missing'
-    assert_equal 'role1val2', e.var2, 'env not retrieving right val for method missing'
-
-    e = env.bind('role1', 'host1')
-    assert_equal 'val1', e['var1'], 'env not retrieving right val'
-    assert_equal 'host1val2', e['var2'], 'env not retrieving right val'
-    assert_equal 'val1', e.var1, 'env not retrieving right val for method missing'
-    assert_equal 'host1val2', e.var2, 'env not retrieving right val for method missing'
-
-    e = env.bind('norole', 'host1')
-    assert_equal 'val1', e['var1'], 'env not retrieving right val'
-    assert_equal 'host1val2', e['var2'], 'env not retrieving right val'
-    assert_equal 'val1', e.var1, 'env not retrieving right val for method missing'
-    assert_equal 'host1val2', e.var2, 'env not retrieving right val for method missing'
-  end
-
-  def test_for_role
-    instance = Instance.new(Tempfile.new('testforrole').path)
-    instance.add(i1 = InstanceItem.new('host1', [RoleItem.new('role1')], ''))
-    instance.add(i2 = InstanceItem.new('host2', [RoleItem.new('role1')], ''))
-    instance.add(i3 = InstanceItem.new('host3', [RoleItem.new('role2')], ''))
-    instance.add(i4 = InstanceItem.new('host4', [RoleItem.new('role2', 'primary' => true)], ''))
-    assert_equal 2, instance.for_role('role1').size, 'not finding correct instances for role'
-    assert_equal 2, instance.for_role('role2').size, 'not finding correct instances for role'
-    assert_equal 1, instance.for_role('role2', {}).size, 'not finding correct instances for role'
-    assert_equal i3, instance.for_role('role2', {}).first, 'not finding correct instances for role'
-    assert_equal 1, instance.for_role('role2', 'primary' => true).size, 'not finding correct instances for role'
-    assert_equal i4, instance.for_role('role2', 'primary' => true).first, 'not finding correct instances for role'
-  end
 end

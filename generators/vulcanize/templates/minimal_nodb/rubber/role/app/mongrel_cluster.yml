@@ -8,6 +8,6 @@ group: rails
 cwd: <%= RAILS_ROOT %>
 port: "<%= rubber_env.mongrel_base_port %>"
 environment: <%= RAILS_ENV %>
-address: <%= Socket::gethostname.gsub(/\..*/, '') %>
+address: <%= rubber_env.host %>
 pid_file: tmp/pids/mongrel.pid
 servers: <%= rubber_env.mongrel_count %>
