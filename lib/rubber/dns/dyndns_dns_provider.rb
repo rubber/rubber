@@ -4,11 +4,11 @@ class DyndnsDnsProvider < DynamicDnsBase
   def initialize(env)
     super(env)
     @user, @pass = env.dns_user, env.dns_password
-    @update_url = env.dns_update_url || "https://members.dyndns.org/nic/update?hostname=#{host}&myip=#{ip}"
+    @update_url = env.dns_update_url || 'https://members.dyndns.org/nic/update?hostname=#{host}&myip=#{ip}'
   end
 
   def nameserver
-    "ns1.dyndns.org"
+    "ns1.mydyndns.org"
   end
 
   def host_exists?(host)
