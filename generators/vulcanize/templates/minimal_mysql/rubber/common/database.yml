@@ -4,11 +4,12 @@
   prod_user = 'myuser'
   prod_pass = nil
   prod_db = 'production'
-  prod_host = rubber_instances.for_role('db', 'primary' => true).first.full_name
+  primary_db_instance = rubber_instances.for_role('db', 'primary' => true).first
+  prod_host = primary_db_role.full_name
   pass = "identified by '#{prod_pass}'" if prod_pass
 
   @post = <<-POST
-    if [ '#{rubber_env.host}' == '#{prod_host}' ]; then
+    if [ '#{rubber_env.host}' == '#{primary_db_instance.name}' ]; then
       if ! mysql -u root -e 'use #{prod_db}' &> /dev/null; then
         mysql -u root -e "create database #{prod_db};"
         mysql -u root -e "grant all on #{prod_db}.* to '#{prod_user}'@'%' #{pass};"
