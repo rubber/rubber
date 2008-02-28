@@ -18,7 +18,9 @@ namespace :rubber do
       gen = Rubber::Configuration::Generator.new('config/rubber', roles, instance_alias)
     elsif RAILS_ENV == 'development'
       roles = cfg.environment.known_roles
-      role_items = roles.collect {|r| Rubber::Configuration::RoleItem.new(r)}
+      role_items = roles.collect do |r|
+        Rubber::Configuration::RoleItem.new(r, r == "db" ? {'primary' => true} : {})
+      end
       env = cfg.environment.bind(roles, instance_alias)
       domain = env.domain
       instance = Rubber::Configuration::InstanceItem.new(instance_alias, domain, role_items, 'dummyid')
