@@ -12,6 +12,7 @@ module Rubber
       attr_accessor :no_post
       attr_accessor :force
       attr_accessor :fake_root
+      attr_accessor :stop_on_error_cmd
 
       def initialize(config_dir, roles, host, options={})
         @config_dir = config_dir
@@ -129,6 +130,10 @@ module Rubber
             elsif fake_root
               LOGGER.info("Not running post command as a fake root was given: #{config.post}")
             else
+              # this lets us abort a script if a command in the middle of it errors out
+              # stop_on_error_cmd = "function error_exit { exit 99; }; trap error_exit ERR"
+              config.post = "#{stop_on_error_cmd}\n#{config.post}" if stop_on_error_cmd
+
               LOGGER.info{"Transformation executing post config command: #{config.post}"}
               LOGGER.info `#{config.post}`
               if $?.exitstatus != 0

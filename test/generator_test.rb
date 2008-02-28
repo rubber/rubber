@@ -97,7 +97,32 @@ class GeneratorTest < Test::Unit::TestCase
     assert File.exists?(out_file.path), "transform did not generate an output file"
     assert ! File.exists?(post_file), "post should not have been generated for no_post option"
     assert_equal "hello\nthere", File.read(out_file.path).strip, "transformed contents are incorrect"
-end
+  end
+
+  def test_stop_on_error
+    out_file = Tempfile.new('teststoponerr')
+    post_file = out_file.path + '.post'
+    src = <<-SRC
+      <%
+        @path = '#{out_file.path}'
+        @post = 'badcommand; touch #{post_file}'
+      %>
+      hello
+    SRC
+
+    g = Generator.new(nil, nil, nil)
+    g.transform(src)
+    assert File.exists?(out_file.path), "transform did not generate an output file"
+    assert File.exists?(post_file), "transform did not execute post"
+    assert_equal "hello", File.read(out_file.path).strip, "transformed contents are incorrect"
+
+    FileUtils.rm_f(post_file)
+    g = Generator.new(nil, nil, nil)
+    g.stop_on_error_cmd = "function error_exit { exit 99; }; trap error_exit ERR"
+    g.transform(src)
+    assert File.exists?(out_file.path), "transform did not generate an output file"
+    assert ! File.exists?(post_file), "post should not have been executed as comes after error"
+  end
 
   def test_pipe_command
     out_file = Tempfile.new('testpipe')

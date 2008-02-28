@@ -49,6 +49,11 @@ packages: [build-essential, ruby-full, ruby1.8-dev, rake, irb, subversion]
 # OPTIONAL: The gems to install on all instances
 gems: [rails]
 
+# OPTIONAL: A string prepended to shell command strings that cause multi
+# statement shell commands to fail fast.  You may need to comment this out
+# on some platforms, but it works for me on linux/osx with a bash shell
+stop_on_error_cmd: "function error_exit { exit 99; }; trap error_exit ERR"
+
 # OPTIONAL: The filename for the database server config file.  This allows
 #           rubber to bootstrap the db by generating the config for the db
 #           server before the dbn is needed by your app (e.g. moving datdir

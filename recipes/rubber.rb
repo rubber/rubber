@@ -201,14 +201,14 @@ namespace :rubber do
     Update to the newest versions of all packages/gems.
   DESC
   task :update do
-    update_packages
+    upgrade_packages
     update_gems
   end
 
   desc <<-DESC
     Upgrade to the newest versions of all Ubuntu packages.
   DESC
-  task :update_packages do
+  task :upgrade_packages do
     package_helper(true)
   end
 
@@ -278,7 +278,6 @@ namespace :rubber do
   DESC
   task :set_timezone do
     opts = get_host_options('timezone')
-    # run "echo `hostname`: #{cfg_value.join(' ')}" }
     sudo "bash -c 'echo $CAPISTRANO:VAR$ > /etc/timezone'", opts
     sudo "cp /usr/share/zoneinfo/$CAPISTRANO:VAR$ /etc/localtime", opts
     # restart syslog so that times match timezone
@@ -475,13 +474,12 @@ namespace :rubber do
     return opts
   end
 
-  def package_helper(update=false)
+  def package_helper(upgrade=false)
     opts = get_host_options('packages') { |x| x.join(' ') }
     sudo "apt-get -q update", opts
-    if update
-      run "export DEBIAN_FRONTEND=noninteractive; sudo apt-get -q -y " + (pkgs ? "update $CAPISTRANO:VAR$" : "dist-upgrade"), opts
+    if upgrade
+      run "export DEBIAN_FRONTEND=noninteractive; sudo apt-get -q -y dist-upgrade", opts
     else
-      # run "echo `hostname`: #{cfg_value.join(' ')}" }
       run "export DEBIAN_FRONTEND=noninteractive; sudo apt-get -q -y install $CAPISTRANO:VAR$", opts
     end
   end
@@ -504,23 +502,23 @@ namespace :rubber do
     end
   end
 
-  # this lets us abort a script if a command in the middle of it errors out
-  set :stop_on_err_cmd, "function error_exit { exit 99; }; trap error_exit ERR"
 
-  def prepare_script(name, contents, stop_on_err=true)
+  def prepare_script(name, contents)
     script = "/tmp/#{name}"
-    sc = stop_on_err ? "#{stop_on_err_cmd}\n#{contents}": contents
-    put(sc, script)
+    # this lets us abort a script if a command in the middle of it errors out
+    env = rubber_cfg.environment.bind(nil, nil)
+    contents = "#{env.stop_on_error_cmd}\n#{contents}" if env.stop_on_error_cmd
+    put(contents, script)
     return script
   end
 
-  def run_script(name, contents, stop_on_err=true)
-    script = prepare_script(name, contents, stop_on_err)
+  def run_script(name, contents)
+    script = prepare_script(name, contents)
     run "sh #{script}"
   end
 
-  def sudo_script(name, contents, stop_on_err=true)
-    script = prepare_script(name, contents, stop_on_err)
+  def sudo_script(name, contents)
+    script = prepare_script(name, contents)
     sudo "sh #{script}"
   end
 

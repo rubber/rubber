@@ -15,6 +15,7 @@ namespace :rubber do
     instance = cfg.instance[instance_alias]
     if instance
       roles = instance.role_names
+      env = cfg.environment.bind(roles, instance_alias)
       gen = Rubber::Configuration::Generator.new('config/rubber', roles, instance_alias)
     elsif RAILS_ENV == 'development'
       roles = cfg.environment.known_roles
@@ -45,6 +46,7 @@ namespace :rubber do
     if ENV['FORCE']
       gen.force = true
     end
+    gen.stop_on_error_cmd = env.stop_on_error_cmd
     gen.run
 
   end
