@@ -16,7 +16,7 @@ namespace :rubber do
     if instance
       roles = instance.role_names
       env = cfg.environment.bind(roles, instance_alias)
-      gen = Rubber::Configuration::Generator.new('#{RAILS_ROOT}/config/rubber', roles, instance_alias)
+      gen = Rubber::Configuration::Generator.new("#{RAILS_ROOT}/config/rubber", roles, instance_alias)
     elsif RAILS_ENV == 'development'
       roles = cfg.environment.known_roles
       role_items = roles.collect do |r|
@@ -30,7 +30,7 @@ namespace :rubber do
       instance.internal_host = instance.full_name
       instance.internal_ip = "127.0.0.1"
       cfg.instance.add(instance)
-      gen = Rubber::Configuration::Generator.new('#{RAILS_ROOT}/config/rubber', roles, instance_alias)
+      gen = Rubber::Configuration::Generator.new("#{RAILS_ROOT}/config/rubber", roles, instance_alias)
       gen.fake_root ="#{RAILS_ROOT}/tmp/rubber"
     else
       puts "Instance not found for host: #{instance_alias}"
