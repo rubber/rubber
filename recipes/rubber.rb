@@ -298,8 +298,10 @@ namespace :rubber do
   def run_config(options={})
     path = options.delete(:deploy_path) || current_path
     extra_env = options.keys.inject("") {|all, k|  "#{all} #{k}='#{options[k]}'"}
-    put(File.read(rubber_cfg.environment.file), "#{path}/#{rubber_cfg.environment.file}")
-    put(File.read(rubber_cfg.instance.file), "#{path}/#{rubber_cfg.instance.file}")
+    dest_env_file = rubber_cfg.environment.file.sub(/^#{RAILS_ROOT}/, '')
+    put(File.read(rubber_cfg.environment.file), "#{path}/#{dest_env_file}")
+    dest_instance_file = rubber_cfg.instance.file.sub(/^#{RAILS_ROOT}/, '')
+    put(File.read(rubber_cfg.instance.file), "#{path}/#{dest_instance_file}")
     sudo "sh -c 'cd #{path} && #{extra_env} rake rubber:config'"
   end
 
