@@ -65,7 +65,8 @@ namespace :rubber do
   end
 
   desc <<-DESC
-    Refresh the host data for a EC2 instance with the given ALIAS
+    Refresh the host data for a EC2 instance with the given ALIAS.
+    This is useful to run when rubber:create fails after instance creation
   DESC
   task :refresh do
     instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
@@ -78,6 +79,15 @@ namespace :rubber do
   task :destroy do
     instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
     destroy_instance(instance_alias)
+  end
+
+  desc <<-DESC
+    Destroy ALL the EC2 instances for the current env
+  DESC
+  task :destroy_all do
+    rubber_cfg.instance.each do |ic|
+      destroy_instance(ic.name)
+    end
   end
 
   desc <<-DESC
