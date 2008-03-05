@@ -7,9 +7,14 @@ require 'rubber/dns/dynamic_dns_base'
 module Rubber
   module Configuration
 
-    LOGGER = (defined?(RAILS_DEFAULT_LOGGER) && RAILS_DEFAULT_LOGGER) || Logger.new($stdout)
-    LOGGER.level = Logger::DEBUG
-    LOGGER.formatter = lambda {|severity, time, progname, msg| "Rubber[%s]: %s\n" % [severity, msg.to_s.lstrip]}
+    debugger
+    if defined?(RAILS_DEFAULT_LOGGER) && RAILS_DEFAULT_LOGGER
+      LOGGER = RAILS_DEFAULT_LOGGER
+    else
+      LOGGER = Logger.new($stdout)
+      LOGGER.level = Logger::INFO
+      LOGGER.formatter = lambda {|severity, time, progname, msg| "Rubber[%s]: %s\n" % [severity, msg.to_s.lstrip]}
+    end
 
     @@configurations = {}
 
