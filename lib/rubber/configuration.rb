@@ -7,7 +7,6 @@ require 'rubber/dns/dynamic_dns_base'
 module Rubber
   module Configuration
 
-    debugger
     if defined?(RAILS_DEFAULT_LOGGER) && RAILS_DEFAULT_LOGGER
       LOGGER = RAILS_DEFAULT_LOGGER
     else
