@@ -28,8 +28,8 @@ set :keep_releases, 3
 # TASKS
 # =============================================================================
 
-before "deploy:restart", "rubber:config", "setup_perms"
-before "deploy:start", "rubber:config", "setup_perms"
+after "deploy:update_code", "rubber:config"
+after "deploy:symlink", "setup_perms"
 after "deploy", "deploy:cleanup"
 
 # Fix perms because we start server as rails user

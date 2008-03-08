@@ -117,7 +117,7 @@ namespace :rubber do
       deploy.update_code
       # Gen mysql conf because we need a functioning db before we can migrate
       # Its up to user to create initial DB in mysql.cnf @post
-      rubber.run_config(:deploy_path => release_path, :RAILS_ENV => rails_env, :FILE => env.db_config)
+      rubber.run_config(:RAILS_ENV => rails_env, :FILE => env.db_config)
     end
   end
 
@@ -306,7 +306,7 @@ namespace :rubber do
   end
 
   def run_config(options={})
-    path = options.delete(:deploy_path) || current_path
+    path = options.delete(:deploy_path) || release_path
     extra_env = options.keys.inject("") {|all, k|  "#{all} #{k}='#{options[k]}'"}
     dest_env_file = rubber_cfg.environment.file.sub(/^#{RAILS_ROOT}/, '')
     put(File.read(rubber_cfg.environment.file), "#{path}/#{dest_env_file}")
