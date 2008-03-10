@@ -109,6 +109,7 @@ namespace :rubber do
     bootstrap the db separate from the rest of the config
   DESC
   task :bootstrap_db, :roles => :db do
+    next if find_servers_for_task(current_task).empty?
     env = rubber_cfg.environment.bind("db", nil)
     if env.db_config
       # After everything installed on machines, we need the source tree
@@ -155,7 +156,7 @@ namespace :rubber do
 
     # Write out the hosts file for this machine, use sudo
     filtered = File.read(hosts_file).gsub(/^#{delim}.*^#{delim}\n?/m, '')
-    puts "Writing out aliases into local machines #{hosts_file}, sudo access needed"
+    logger.info "Writing out aliases into local machines #{hosts_file}, sudo access needed"
     Rubber::Util::sudo_open(hosts_file, 'w') do |f|
       f.write(filtered)
       f.write(local_hosts)
@@ -326,7 +327,7 @@ namespace :rubber do
   # Configures aliases (/etc/hosts) on local and remote machines
   def create_instance(instance_alias, instance_roles)
     if rubber_cfg.instance[instance_alias]
-      puts "Instance already exists: #{instance_alias}"
+      logger.info "Instance already exists: #{instance_alias}"
       exit 1
     end
 
@@ -338,7 +339,7 @@ namespace :rubber do
     item = response.instancesSet.item[0]
     instance_id = item.instanceId
 
-    puts "Instance #{instance_id} created"
+    logger.info "Instance #{instance_id} created"
 
     instance_item = Rubber::Configuration::InstanceItem.new(instance_alias, env.domain, instance_roles, instance_id)
     rubber_cfg.instance.add(instance_item)
@@ -352,7 +353,7 @@ namespace :rubber do
       response = ec2.describe_instances(:instance_id => instance_id)
       item = response.reservationSet.item[0].instancesSet.item[0]
       if item.instanceState.name == "running"
-        puts "\nInstance running, fetching hostname/ip data"
+        logger.info "\nInstance running, fetching hostname/ip data"
         instance_item.external_host = item.dnsName
         instance_item.external_ip = IPSocket.getaddress(item.dnsName)
         instance_item.internal_host = item.privateDnsName
@@ -376,7 +377,7 @@ namespace :rubber do
           _get_ip
         rescue ConnectionError
           sleep 2
-          puts "Failed to connect to #{instance_alias} (#{instance_item.external_ip}), retrying"
+          logger.info "Failed to connect to #{instance_alias} (#{instance_item.external_ip}), retrying"
           retry
         end
 
@@ -396,7 +397,7 @@ namespace :rubber do
   def refresh_instance(instance_alias)
     instance_item = rubber_cfg.instance[instance_alias]
     if ! instance_item
-      puts "Instance does not exist: #{instance_alias}"
+      logger.info "Instance does not exist: #{instance_alias}"
       exit 1
     end
 
@@ -405,7 +406,7 @@ namespace :rubber do
     response = ec2.describe_instances(:instance_id => instance_item.instance_id)
     item = response.reservationSet.item[0].instancesSet.item[0]
     if item.instanceState.name == "running"
-      puts "\nInstance running, fetching hostname/ip data"
+      logger.info "\nInstance running, fetching hostname/ip data"
       instance_item.external_host = item.dnsName
       instance_item.external_ip = IPSocket.getaddress(item.dnsName)
       instance_item.internal_host = item.privateDnsName
@@ -440,18 +441,18 @@ namespace :rubber do
   def destroy_instance(instance_alias)
     instance_item = rubber_cfg.instance[instance_alias]
     if ! instance_item
-      puts "Instance does not exist: #{instance_alias}"
+      logger.info "Instance does not exist: #{instance_alias}"
       exit 1
     end
     env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
 
     value = Capistrano::CLI.ui.ask("About to DESTROY #{instance_alias} (#{instance_item.instance_id}) in mode #{ENV['RAILS_ENV']}.  Are you SURE [yes/NO]?: ")
     if value != "yes"
-      puts "Exiting"
+      logger.info "Exiting"
       exit
     end
 
-    puts "Destroying instance alias=#{instance_alias}, instance_id=#{instance_item.instance_id}"
+    logger.info "Destroying instance alias=#{instance_alias}, instance_id=#{instance_item.instance_id}"
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
     response = ec2.terminate_instances(:instance_id => instance_item.instance_id)
 
@@ -504,12 +505,12 @@ namespace :rubber do
       ch[:data] ||= ""
       ch[:data] << data
       if data =~ />\s*$/
-        puts data
-        puts "The gem command is asking for a number:"
+        logger.info data
+        logger.info "The gem command is asking for a number:"
         choice = STDIN.gets
         ch.send_data(choice)
       else
-        puts data
+        logger.info data
       end
     end
   end
@@ -549,17 +550,47 @@ namespace :rubber do
       provider.destroy(instance_item.name)
     end
   end
-
+  
+  # advise capistrano's task so that tasks for non-existant roles don't fail
+  # when roles isn't defined due to using a FILTER for load_roles
+  class << top
+    alias :required_task :task 
+  end
+  def top.task(name, options={}, &block)
+    top.required_task(name, options) do
+      if find_servers_for_task(current_task).empty?
+        logger.info "No servers for task #{name}, skipping"
+        next
+      end
+      block.call
+    end
+  end
+  
   # Automatically load and define capistrano roles from instance config
   def load_roles
     top.roles.clear
+    if ENV['FILTER']
+      filters = ENV['FILTER'].split(/\s*,\s*/)
+      logger.info "Applying filters to auto roles"
+    end
+    
+    # define empty roles for all known ones so tasks don't fail if a role
+    # doesn't exist due to a filter
+    all_roles = rubber_cfg.instance.all_roles
+    all_roles += rubber_cfg.environment.known_roles
+    all_roles.uniq!
+    all_roles.each {|name| top.roles[name.to_sym] = []}
+    
+    # define capistrano host => role mapping for all instances
     rubber_cfg.instance.each do |ic|
-      ic.roles.each do |role|
-        opts = Rubber::Util::symbolize_keys(role.options)
-        msg = "Auto role: #{role.name.to_sym} => #{ic.full_name}"
-        msg << ", #{opts.inspect}" if opts.inspect.size > 0
-        puts msg
-        top.role role.name.to_sym, ic.full_name, opts
+      if ! filters || filters.include?(ic.name)
+        ic.roles.each do |role|
+          opts = Rubber::Util::symbolize_keys(role.options)
+          msg = "Auto role: #{role.name.to_sym} => #{ic.full_name}"
+          msg << ", #{opts.inspect}" if opts.inspect.size > 0
+          logger.info msg
+          top.role role.name.to_sym, ic.full_name, opts
+        end
       end
     end
   end

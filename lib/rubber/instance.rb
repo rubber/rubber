@@ -36,6 +36,10 @@ module Rubber
         @items.collect {|n, i| i if i.roles.any? {|r| r.name == role_name && (! options || r.options == options)}}.compact
       end
 
+      def all_roles()
+        @items.collect {|n, i| i.role_names}.flatten
+      end
+
       def add(instance_item)
         @items[instance_item.name] = instance_item
       end
