@@ -110,7 +110,7 @@ namespace :rubber do
     sh "nice mysqldump -h #{host} -u #{user} #{'-p' + pass if pass} #{name} | gzip -c > #{backup_file}"
     puts "Created backup: #{backup_file}"
 
-    tdate = Date.today - log_file_age
+    tdate = Date.today - age
     threshold = Time.local(tdate.year, tdate.month, tdate.day)
     puts "Cleaning backups older than #{age} days"
     Dir["#{dir}/*"].each do |file|
