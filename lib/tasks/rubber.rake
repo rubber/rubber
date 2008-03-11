@@ -4,6 +4,8 @@ $:.unshift "#{File.dirname(__FILE__)}/.."
 ENV['RAILS_ENV'] ||= 'development'
 
 require 'fileutils'
+require 'date'
+require 'time'
 
 namespace :rubber do
 
@@ -63,7 +65,7 @@ namespace :rubber do
     log_file_glob = get_env('LOG_FILES') || "*.log"
     log_file_age = (get_env('LOG_AGE') || 7).to_i
 
-    rotated_date = (Time.now - 86400).strftime('%Y%m%d')
+    rotated_date = (Date.today - 1).strftime('%Y%m%d')
     puts "Rotating logfiles located at: #{log_src_dir}/#{log_file_glob}"
     Dir["#{log_src_dir}/#{log_file_glob}"].each do |logfile|
       rotated_file = "#{logfile}.#{rotated_date}"
@@ -74,7 +76,8 @@ namespace :rubber do
       File.truncate logfile, 0
     end
 
-    threshold = Time.now - log_file_age * 86400
+    tdate = Date.today - log_file_age
+    threshold = Time.local(tdate.year, tdate.month, tdate.day)
     puts "Cleaning rotated log files older than #{log_file_age} days"
     Dir["#{log_src_dir}/#{log_file_glob}.[0-9]*"].each do |logfile|
       if File.mtime(logfile) < threshold
@@ -107,7 +110,8 @@ namespace :rubber do
     sh "nice mysqldump -h #{host} -u #{user} #{'-p' + pass if pass} #{name} | gzip -c > #{backup_file}"
     puts "Created backup: #{backup_file}"
 
-    threshold = Time.now - age * 86400
+    tdate = Date.today - log_file_age
+    threshold = Time.local(tdate.year, tdate.month, tdate.day)
     puts "Cleaning backups older than #{age} days"
     Dir["#{dir}/*"].each do |file|
       if File.mtime(file) < threshold
