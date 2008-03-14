@@ -21,7 +21,7 @@ aws_secret_access_key: YYY
 # the private key in the same folder, the public key should have the
 # extension ".pub".
 ec2_key_name: gsg-keypair
-ec2_key_file: ~/.ec2/id_rsa-gsg-keypair
+ec2_key_file: #{(File.expand_path('~') rescue '/root') + '/.ec2/id_rsa-gsg-keypair'}
 
 # REQUIRED: the ami and instance type for creating instances
 #

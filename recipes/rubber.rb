@@ -20,7 +20,7 @@ namespace :rubber do
     # NOTE: for some reason Capistrano requires you to have both the public and
     # the private key in the same folder, the public key should have the
     # extension ".pub".
-    ssh_options[:keys] = File.expand_path(rubber_cfg.environment.bind(nil, nil).ec2_key_file)
+    ssh_options[:keys] = rubber_cfg.environment.bind(nil, nil).ec2_key_file
   end
 
   desc <<-DESC
@@ -550,11 +550,11 @@ namespace :rubber do
       provider.destroy(instance_item.name)
     end
   end
-  
+
   # advise capistrano's task so that tasks for non-existant roles don't fail
   # when roles isn't defined due to using a FILTER for load_roles
   class << top
-    alias :required_task :task 
+    alias :required_task :task
   end
   def top.task(name, options={}, &block)
     top.required_task(name, options) do
@@ -565,7 +565,7 @@ namespace :rubber do
       block.call
     end
   end
-  
+
   # Automatically load and define capistrano roles from instance config
   def load_roles
     top.roles.clear
@@ -573,14 +573,14 @@ namespace :rubber do
       filters = ENV['FILTER'].split(/\s*,\s*/)
       logger.info "Applying filters to auto roles"
     end
-    
+
     # define empty roles for all known ones so tasks don't fail if a role
     # doesn't exist due to a filter
     all_roles = rubber_cfg.instance.all_roles
     all_roles += rubber_cfg.environment.known_roles
     all_roles.uniq!
     all_roles.each {|name| top.roles[name.to_sym] = []}
-    
+
     # define capistrano host => role mapping for all instances
     rubber_cfg.instance.each do |ic|
       if ! filters || filters.include?(ic.name)
