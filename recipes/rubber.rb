@@ -146,7 +146,6 @@ namespace :rubber do
     delim = "## rubber config #{env.domain} #{ENV['RAILS_ENV']}"
     local_hosts = delim + "\n"
     rubber_cfg.instance.each do |ic|
-      env = rubber_cfg.environment.bind(ic.role_names, ic.name)
       # don't add unqualified hostname in local hosts file since user may be
       # managing multiple domains with same aliases
       hosts_data = [ic.full_name, ic.external_host, ic.internal_host].join(' ')
@@ -184,12 +183,10 @@ namespace :rubber do
     delim = "#{delim} #{ENV['RAILS_ENV']}" if ENV['RAILS_ENV']
     remote_hosts = delim + "\n"
     rubber_cfg.instance.each do |ic|
-      env = rubber_cfg.environment.bind(ic.roles.first.name, ic.name)
       hosts_data = [ic.name, ic.full_name, ic.external_host, ic.internal_host].join(' ')
       remote_hosts << ic.internal_ip << ' ' << hosts_data << "\n"
     end
     remote_hosts << delim << "\n"
-
     if rubber_cfg.instance.size > 0
       # write out the hosts file for the remote instances
       # NOTE that we use "capture" to get the existing hosts
