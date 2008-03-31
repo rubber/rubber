@@ -15,6 +15,17 @@ namespace :rubber do
   on :load, "rubber:init"
 
   task :init do
+    # pull in basic rails env.  rubber only needs RAILS_ROOT and RAILS_ENV.
+    # We actually do NOT want the entire rails environment because it
+    # complicates bootstrap (i.e. can't run config to create db because full
+    # rails env needs db to exist as some plugin accesses model or something)
+    if ! defined?(RAILS_ROOT)
+      if File.dirname(__FILE__) =~ /vendor\/plugins/
+        require(File.join(File.dirname(__FILE__), '../../../../config/boot'))
+      else
+        raise "Cannot load rails env because rubber is not being used as a rails plugin"
+      end
+    end
     set :rubber_cfg, Rubber::Configuration.get_configuration(ENV['RAILS_ENV'])
     load_roles() unless rubber_cfg.environment.bind(nil, nil).disable_auto_roles
     # NOTE: for some reason Capistrano requires you to have both the public and
