@@ -1,5 +1,7 @@
 # This is a sample Capistrano config file for rubber
 
+# pull in basic rails env (RAILS_ROOT)
+require(File.join(File.dirname(__FILE__), 'boot'))
 set :rails_env, (ENV["RAILS_ENV"] ||= 'production')
 set :application, "your_app_name"
 
