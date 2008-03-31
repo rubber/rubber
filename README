@@ -124,6 +124,7 @@ You should go through the rest for a real app.
 Create, bootstrap, then deploy to instance:
 ALIAS=www ROLES=web,app,db:primary=true cap rubber:create
 cap rubber:bootstrap
+cap deploy:setup
 cap deploy:cold
 
 or for a more complex production setup
@@ -134,6 +135,7 @@ ALIAS=app02 ROLES=app cap rubber:create
 ALIAS=db01 ROLES=db:primary=true cap rubber:create
 ALIAS=db02 ROLES=db cap rubber:create
 cap rubber:bootstrap
+cap deploy:setup
 cap deploy:cold
 
 To add another app server:
