@@ -5,7 +5,7 @@
   prod_pass = nil
   prod_db = 'production'
   primary_db_instance = rubber_instances.for_role('db', 'primary' => true).first
-  prod_host = primary_db_role.full_name
+  prod_host = primary_db_instance.full_name
   pass = "identified by '#{prod_pass}'" if prod_pass
 
   @post = <<-POST
