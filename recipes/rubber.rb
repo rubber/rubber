@@ -8,7 +8,7 @@ require 'rubber/configuration'
 require 'capistrano/hostcmd'
 
 require 'rubygems'
-require 'ec2'
+require 'EC2'
 
 namespace :rubber do
 
@@ -317,10 +317,10 @@ namespace :rubber do
   def run_config(options={})
     path = options.delete(:deploy_path) || release_path
     extra_env = options.keys.inject("") {|all, k|  "#{all} #{k}='#{options[k]}'"}
-    dest_env_file = rubber_cfg.environment.file.sub(/^#{RAILS_ROOT}/, '')
-    put(File.read(rubber_cfg.environment.file), "#{path}/#{dest_env_file}")
+    dest_env_file = rubber_cfg.environment.file.sub(/^#{RAILS_ROOT}\//, '')
+    put(File.read(rubber_cfg.environment.file), File.join(path, dest_env_file))
     dest_instance_file = rubber_cfg.instance.file.sub(/^#{RAILS_ROOT}/, '')
-    put(File.read(rubber_cfg.instance.file), "#{path}/#{dest_instance_file}")
+    put(File.read(rubber_cfg.instance.file), File.join(path, dest_instance_file))
     sudo "sh -c 'cd #{path} && #{extra_env} rake rubber:config'"
   end
 
