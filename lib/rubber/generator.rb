@@ -161,7 +161,7 @@ module Rubber
       attr_accessor :owner
       # The group the output file should have, e.g. "system"
       attr_accessor :group
-      # The permissions the output file should have, e.g. 644
+      # The permissions the output file should have, e.g. 0644 (octal, leading zero is significant)
       attr_accessor :perms
       # Sets transformation to be additive, only replaces between given delimiters, e/g/ additive = ["## start", "## end"]
       attr_accessor :additive
