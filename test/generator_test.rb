@@ -231,4 +231,24 @@ class GeneratorTest < Test::Unit::TestCase
     assert_equal "common", File.read("#{out_dir}/foo.conf").strip, "transformed contents are incorrect"
   end
 
+  def test_perms
+    user = ENV['USER']
+    group = `groups`.split.last
+    out_file = Tempfile.new('testperms')
+    src = <<-SRC
+      <%
+        @path = '#{out_file.path}'
+        @perms = 0777
+        @owner = '#{user}'
+        @group = '#{group}'
+      %>
+      hello
+    SRC
+
+    Generator.new(nil, nil, nil).transform(src)
+    assert File.exists?(out_file.path), "transform did not generate an output file"
+    assert_equal "100777", sprintf("%o", File.stat(out_file.path).mode), "transformed permissions are incorrect"
+    assert_equal Etc.getpwnam(user).uid, File.stat(out_file.path).uid, "transformed owner is incorrect"
+    assert_equal Etc.getgrnam(group).gid,  File.stat(out_file.path).gid, "transformed group is incorrect"
+  end
 end

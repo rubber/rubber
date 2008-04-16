@@ -118,8 +118,8 @@ module Rubber
           end
 
           # Set file permissions and owner if needed
-          File.chmod(config.perms, config_path) if config.perms && config_path
-          File.chown(config.owner, config.group, config_path) if config_path && (config.owner || config.group)
+          FileUtils.chmod(config.perms, config_path) if config.perms && config_path
+          FileUtils.chown(config.owner, config.group, config_path) if config_path && (config.owner || config.group)
 
           # Run post transform command if needed
           if config.post
