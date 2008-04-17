@@ -28,7 +28,14 @@ set :keep_releases, 3
 # TASKS
 # =============================================================================
 
-after "deploy:update_code", "rubber:config"
+# Don't want to do rubber:config for update_code as that tree isn't official
+# until it is 'committed' by the symlink task (and doing so causes it to run
+# for bootstrap_db which should only config the db config file).  However, 
+# deploy:migrations doesn't call update, so we need an additional trigger for
+# it
+after "deploy:update", "rubber:config"
+before "deploy:migrate", "rubber:config"
+
 after "deploy:symlink", "setup_perms"
 after "deploy", "deploy:cleanup"
 
