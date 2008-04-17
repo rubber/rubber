@@ -314,6 +314,67 @@ namespace :rubber do
     run_config(opts)
   end
 
+  set :mnt_vol, "/mnt"
+    
+  desc "Back up and register an image of the running instance to S3"
+  task :bundle do
+    if find_servers_for_task(current_task).size > 1
+      raise "Can only bundle a single instance at a time, use FILTER to limit the scope"
+    end
+    image_name = get_env('IMAGE', "The image name for the bundle", true, Time.now.strftime("%Y%m%d_%H%M"))
+    bundle_vol(image_name)
+    upload_bundle(image_name)
+  end
+  
+  desc "De-register and Destroy the bundle for the given image name"
+  task :destroy_bundle do
+    image_name = get_env('IMAGE', 'The image name to be destroyed', true)
+    delete_bundle(image_name)
+  end
+
+  def bundle_vol(image_name)
+    ec2_key = rubber_cfg.environment.bind(nil, nil).ec2_key_file
+    ec2_pk = rubber_cfg.environment.bind(nil, nil).ec2_pk_file
+    ec2_cert = rubber_cfg.environment.bind(nil, nil).ec2_cert_file
+    ec2_account = rubber_cfg.environment.bind(nil, nil).ec2_account
+    ec2_key_dest = "#{mnt_vol}/#{File.basename(ec2_key)}"
+    ec2_pk_dest = "#{mnt_vol}/#{File.basename(ec2_pk)}"
+    ec2_cert_dest = "#{mnt_vol}/#{File.basename(ec2_cert)}"
+    
+    put(File.read(ec2_key), ec2_key_dest)
+    put(File.read(ec2_pk), ec2_pk_dest)
+    put(File.read(ec2_cert), ec2_cert_dest)
+    
+    arch = capture "uname -m"
+    arch = case arch when /i\d86/ then "i386" else arch end
+    sudo_script "create_bundle", <<-CMD
+      export RUBYLIB=/usr/lib/site_ruby/
+      ec2-bundle-vol -d #{mnt_vol} -k #{ec2_pk_dest} -c #{ec2_cert_dest} -u #{ec2_account} -p #{image_name} -r #{arch}
+    CMD
+  end
+
+  def upload_bundle(image_name)
+    bucket = rubber_cfg.environment.bind(nil, nil).ec2_image_bucket
+    access_key = rubber_cfg.environment.bind(nil, nil).aws_access_key
+    secret_access_key = rubber_cfg.environment.bind(nil, nil).aws_secret_access_key
+    sudo_script "register_bundle", <<-CMD
+      export RUBYLIB=/usr/lib/site_ruby/
+      ec2-upload-bundle -b #{bucket} -m #{mnt_vol}/#{image_name}.manifest.xml -a #{access_key} -s #{secret_access_key}
+    CMD
+    system "ec2-register #{bucket}/#{image_name}.manifest.xml"
+  end
+
+  def delete_bundle(image_name)
+    bucket = rubber_cfg.environment.bind(nil, nil).ec2_image_bucket
+    access_key = rubber_cfg.environment.bind(nil, nil).aws_access_key
+    secret_access_key = rubber_cfg.environment.bind(nil, nil).aws_secret_access_key
+    sudo_script "destroy_bundle", <<-CMD
+      export RUBYLIB=/usr/lib/site_ruby/
+      ec2-deregister #{bucket}/#{image_name}.manifest.xml
+      ec2-delete-bundle -b #{bucket} -p #{image_name} -a #{access_key} -s #{secret_access_key}
+    CMD
+  end
+
   def run_config(options={})
     path = options.delete(:deploy_path) || release_path
     extra_env = options.keys.inject("") {|all, k|  "#{all} #{k}='#{options[k]}'"}
@@ -324,9 +385,13 @@ namespace :rubber do
     sudo "sh -c 'cd #{path} && #{extra_env} rake rubber:config'"
   end
 
-  def get_env(name, desc, required=false)
+  def get_env(name, desc, required=false, default=nil)
     value = ENV.delete(name)
-    value = Capistrano::CLI.ui.ask("#{desc}: ") unless value
+    msg = "#{desc}"
+    msg << " [#{default}]" if default
+    msg << ": "
+    value = Capistrano::CLI.ui.ask(msg) unless value
+    value = value.size == 0 ? default : value
     raise("#{name} is required, pass using environment or enter at prompt") if required && ! value
     return value
   end

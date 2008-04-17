@@ -7,4 +7,3 @@
 * add s3 backups
 * move serial_task into rubber namespace
 * divorce from rails for use in deploying other things
-* add a rubber:build_image so bootstraps can be quicker once setup is locked down

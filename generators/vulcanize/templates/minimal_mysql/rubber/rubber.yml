@@ -23,6 +23,12 @@ aws_secret_access_key: YYY
 ec2_key_name: gsg-keypair
 ec2_key_file: #{(File.expand_path('~') rescue '/root') + '/.ec2/id_rsa-gsg-keypair'}
 
+# OPTIONAL: Needed for bundling a running instance using rubber:bundle
+ec2_pk_file: #{Dir[(File.expand_path('~') rescue '/root') + '/.ec2/pk-*'].first}
+ec2_cert_file: #{Dir[(File.expand_path('~') rescue '/root') + '/.ec2/cert-*'].first}
+ec2_account: XXX
+ec2_image_bucket: my_image_bucket
+
 # REQUIRED: the ami and instance type for creating instances
 #
 # Ubuntu 7.10 Gutsy Base 32-bit http://developer.amazonwebservices.com/connect/entry.jspa?externalID=1065
