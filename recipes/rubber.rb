@@ -328,15 +328,21 @@ namespace :rubber do
   
   desc "De-register and Destroy the bundle for the given image name"
   task :destroy_bundle do
-    image_name = get_env('IMAGE', 'The image name to be destroyed', true)
-    delete_bundle(image_name)
+    ami = get_env('AMI', 'The AMI id of the image to be destroyed', true)
+    delete_bundle(ami)
+  end
+
+  desc "Describes all your own registered bundles"
+  task :describe_bundles do
+    describe_bundles
   end
 
   def bundle_vol(image_name)
-    ec2_key = rubber_cfg.environment.bind(nil, nil).ec2_key_file
-    ec2_pk = rubber_cfg.environment.bind(nil, nil).ec2_pk_file
-    ec2_cert = rubber_cfg.environment.bind(nil, nil).ec2_cert_file
-    ec2_account = rubber_cfg.environment.bind(nil, nil).ec2_account
+    env = rubber_cfg.environment.bind(nil, nil)
+    ec2_key = env.ec2_key_file
+    ec2_pk = env.ec2_pk_file
+    ec2_cert = env.ec2_cert_file
+    ec2_account = env.ec2_account
     ec2_key_dest = "#{mnt_vol}/#{File.basename(ec2_key)}"
     ec2_pk_dest = "#{mnt_vol}/#{File.basename(ec2_pk)}"
     ec2_cert_dest = "#{mnt_vol}/#{File.basename(ec2_cert)}"
@@ -354,24 +360,44 @@ namespace :rubber do
   end
 
   def upload_bundle(image_name)
-    bucket = rubber_cfg.environment.bind(nil, nil).ec2_image_bucket
-    access_key = rubber_cfg.environment.bind(nil, nil).aws_access_key
-    secret_access_key = rubber_cfg.environment.bind(nil, nil).aws_secret_access_key
+    env = rubber_cfg.environment.bind(nil, nil)
+    
     sudo_script "register_bundle", <<-CMD
       export RUBYLIB=/usr/lib/site_ruby/
-      ec2-upload-bundle -b #{bucket} -m #{mnt_vol}/#{image_name}.manifest.xml -a #{access_key} -s #{secret_access_key}
+      ec2-upload-bundle -b #{env.ec2_image_bucket} -m #{mnt_vol}/#{image_name}.manifest.xml -a #{env.aws_access_key} -s #{env.aws_secret_access_key}
     CMD
-    system "ec2-register #{bucket}/#{image_name}.manifest.xml"
+    
+    ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
+    response = ec2.register_image(:image_location => "#{env.ec2_image_bucket}/#{image_name}.manifest.xml")
+    puts "Newly registered AMI is: #{response.imageId}"
   end
 
-  def delete_bundle(image_name)
-    bucket = rubber_cfg.environment.bind(nil, nil).ec2_image_bucket
-    access_key = rubber_cfg.environment.bind(nil, nil).aws_access_key
-    secret_access_key = rubber_cfg.environment.bind(nil, nil).aws_secret_access_key
+  def describe_bundles
+    env = rubber_cfg.environment.bind(nil, nil)
+
+    ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
+    response = ec2.describe_images(:owner_id => 'self')
+    response.imagesSet.item.each do |item|
+      puts "AMI: #{item.imageId}"
+      puts "S3 Location: #{item.imageLocation}"
+    end
+  end
+
+  def delete_bundle(ami)
+    env = rubber_cfg.environment.bind(nil, nil)
+
+    ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
+    response = ec2.describe_images(:image_id => ami)
+    image_location = response.imagesSet.item[0].imageLocation
+    bucket = image_location.split('/').first
+    image_name = image_location.split('/').last.gsub(/\.manifest\.xml$/, '')
+    
+    ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
+    response = ec2.deregister_image(:image_id => ami)
+
     sudo_script "destroy_bundle", <<-CMD
       export RUBYLIB=/usr/lib/site_ruby/
-      ec2-deregister #{bucket}/#{image_name}.manifest.xml
-      ec2-delete-bundle -b #{bucket} -p #{image_name} -a #{access_key} -s #{secret_access_key}
+      ec2-delete-bundle -y -b #{bucket} -p #{image_name} -a #{env.aws_access_key} -s #{env.aws_secret_access_key}
     CMD
   end
 
