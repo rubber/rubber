@@ -1,0 +1,15 @@
+<%
+  @read_cmd = 'crontab -l'
+  @write_cmd = 'crontab -'
+  @additive = ["# rubber-nginx-start", "# rubber-nginx-end"]
+%>
+
+PATH=/usr/local/bin:/usr/local/sbin:/usr/local/mysql/bin:/usr/bin:/bin:/sbin:/usr/sbin
+MAILTO=<%= rubber_env.admin_email %>
+# don't need to set RAILS_ENV for each script since we set it for all cron here
+RAILS_ENV=<%= RAILS_ENV %>
+
+
+# Roll the nginx logs at midnight
+0 0 * * * LOG_DIR=/mnt/nginx/log <%= RAILS_ROOT %>/script/cron-rake rubber:rotate_logs
+

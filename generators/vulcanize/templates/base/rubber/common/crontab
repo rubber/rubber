@@ -4,10 +4,12 @@
 %>
 
 # PATH=/usr/local/bin:/usr/local/sbin:/usr/local/mysql/bin:/usr/bin:/bin:/sbin:/usr/sbin
-# MAILTO=foo@bar.com
+# MAILTO=<%= rubber_env.admin_email %>
 # don't need to set RAILS_ENV for each script since we set it for all cron here
 # RAILS_ENV=<%= RAILS_ENV %>
 
-# Roll the logs at midnight
-# 0 0 * * * cd <%= RAILS_ROOT %> && rake roll_logs
+# Roll all rails logs at midnight
+0 0 * * * LOG_DIR=<%= RAILS_ROOT %>/log <%= RAILS_ROOT %>/script/cron-rake rubber:rotate_logs
 
+# Automatically set the clock for all machines
+<%= rand(60) %> 4 * * * <%= RAILS_ROOT %>/script/cron-sh -- ntpdate pool.ntp.org

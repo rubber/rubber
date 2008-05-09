@@ -1,0 +1,70 @@
+<%
+  @path = "#{RAILS_ROOT}/script/cron-sh"
+  @perms = 0755
+%>#!/usr/bin/env ruby
+
+# For running shell commands through cron - only prints output if there is an error
+#
+# author mconway
+# since 8/12/07
+
+require 'optparse'
+require 'ostruct'
+require 'rubygems'
+require 'open4'
+
+options = OpenStruct.new
+options.logfile = "/tmp/cron-sh-#{Time.now.tv_sec}.log"
+options.echoerr = false
+options.echoout = false
+
+opts = OptionParser.new do |opts|
+  opts.banner = "Usage: cron-sh [options] <shell command>"
+  opts.separator "Runs the given command, sending all stdout/stderr to a logfile, but echoing"
+  opts.separator "the entire file if the command exits with an error"
+  opts.separator ""
+  opts.separator "Specific options:"
+
+  opts.on("-l", "--log logfile", "Log to given file instead of a default") do |val|
+    options.logfile = val
+  end
+
+  opts.on("-o", "--[no-]echoout", "Log _and_ echo stdout") do |val|
+    options.echoout = true
+  end
+
+  opts.on("-e", "--[no-]echoerr", "Log _and_ echo stderr") do |val|
+    options.echoerr = true
+  end
+
+  opts.on_tail("-h", "--help", "Show this message") do
+    puts opts
+    exit
+  end
+end
+
+cmd = opts.parse(ARGV)
+
+status = Open4::popen4(*cmd) do |pid, stdin, stdout, stderr|
+  File.open(options.logfile, "w") do | fh |
+    threads = []
+    threads <<  Thread.new(stdout) do |stdout|
+       stdout.each { |line| $stdout.puts line if options.echoout; fh.print line; fh.flush }
+    end
+    threads <<  Thread.new(stderr) do |stderr|
+       stderr.each { |line| $stderr.puts line if options.echoerr; fh.print line; fh.flush }
+    end
+    threads.each { |t| t.join }
+  end
+end
+
+result = status.exitstatus
+if result != 0
+  puts ""
+  puts "*** Process exited with non-zero error code, full output follows"
+  puts "*** Command was: #{cmd.join(' ')}"
+  puts ""
+  puts IO.read(options.logfile)
+end
+
+exit(result)
