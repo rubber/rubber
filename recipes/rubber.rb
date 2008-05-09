@@ -10,11 +10,45 @@ require 'capistrano/hostcmd'
 require 'rubygems'
 require 'EC2'
 
+# advise capistrano's task method so that tasks for non-existant roles don't
+# fail when roles isn't defined due to using a FILTER for load_roles
+# TODO:
+# Need something cleaner here than doing it globally for all cap tasks...?
+# As it stands, if you have a task you need to execute even when there are no
+# roles, you have to user required_task instead of task - see rubber:create
+# as an example of this role bootstrapping problem.
+#[Capistrano::Configuration, Capistrano::Configuration::Namespaces::Namespace].each do |clazz|
+  class Capistrano::Configuration
+    alias :required_task :task
+    def task(name, options={}, &block)
+      required_task(name, options) do
+        if find_servers_for_task(current_task).empty?
+          logger.info "No servers for task #{name}, skipping"
+          next
+        end
+        block.call
+      end
+    end
+  end
+  class Capistrano::Configuration::Namespaces::Namespace
+    alias :required_task :task
+    def task(name, options={}, &block)
+      required_task(name, options) do
+        if find_servers_for_task(current_task).empty?
+          logger.info "No servers for task #{name}, skipping"
+          next
+        end
+        block.call
+      end
+    end
+  end
+#end
+
 namespace :rubber do
 
   on :load, "rubber:init"
 
-  task :init do
+  required_task :init do
     # pull in basic rails env.  rubber only needs RAILS_ROOT and RAILS_ENV.
     # We actually do NOT want the entire rails environment because it
     # complicates bootstrap (i.e. can't run config to create db because full
@@ -37,7 +71,7 @@ namespace :rubber do
   desc <<-DESC
     Create a new EC2 instance with the given ALIAS and ROLES
   DESC
-  task :create do
+  required_task :create do
     instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
     r = get_env('ROLES', "Instance roles (e.g. web,app,db:primary=true)", true)
     if r == '*'
@@ -139,7 +173,7 @@ namespace :rubber do
     Generates /etc/hosts for local/remote machines and sets hostname on
     remote instances, and sets values in dynamic dns entries
   DESC
-  task :setup_aliases do
+  required_task :setup_aliases do
     setup_local_aliases
     setup_remote_aliases
     setup_dns_aliases
@@ -149,7 +183,7 @@ namespace :rubber do
     Sets up local aliases for instance hostnames based on contents of instance.yml.
     Generates/etc/hosts for local machine
   DESC
-  task :setup_local_aliases do
+  required_task :setup_local_aliases do
     hosts_file = '/etc/hosts'
 
     # Generate /etc/hosts contents for the local machine from instance config
@@ -176,7 +210,7 @@ namespace :rubber do
   desc <<-DESC
     Sets up aliases in dynamic dns provider for instance hostnames based on contents of instance.yml.
   DESC
-  task :setup_dns_aliases do
+  required_task :setup_dns_aliases do
     rubber_cfg.instance.each do |ic|
       update_dyndns(ic)
     end
@@ -344,9 +378,10 @@ namespace :rubber do
     At the end, the instance will be up and running
     e.g. RAILS_ENV=matt cap create_staging
   DESC
-  top.required_task :create_staging do
+  required_task :create_staging do
     validate_staging_env
-    roles = rubber.get_env("ROLES", "Roles to use for staging instance", true, rubber_env.staging_roles || "*")
+    default_roles = rubber_cfg.environment.bind().staging_roles || "*"
+    roles = rubber.get_env("ROLES", "Roles to use for staging instance", true, default_roles)
     ENV['ROLES'] = roles 
     rubber.create
     rubber.bootstrap
@@ -709,21 +744,6 @@ namespace :rubber do
       task_syms.each do |t|
         self.send t
       end
-    end
-  end
-
-  # advise capistrano's task so that tasks for non-existant roles don't fail
-  # when roles isn't defined due to using a FILTER for load_roles
-  class << top
-    alias :required_task :task
-  end
-  def top.task(name, options={}, &block)
-    top.required_task(name, options) do
-      if find_servers_for_task(current_task).empty?
-        logger.info "No servers for task #{name}, skipping"
-        next
-      end
-      block.call
     end
   end
 
