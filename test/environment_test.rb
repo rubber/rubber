@@ -12,7 +12,7 @@ class EnvironmentTest < Test::Unit::TestCase
 
   def test_env
     env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures")
-    e = env.bind(nil, nil)
+    e = env.bind()
     assert_equal 'val1', e['var1'], 'env not retrieving right val'
     assert_equal 'val2', e['var2'], 'env not retrieving right val'
     assert_equal 'val1', e.var1, 'env not retrieving right val for method missing'

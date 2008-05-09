@@ -1,7 +1,11 @@
 # This is a sample Capistrano config file for rubber
 
 set :rails_env, (ENV["RAILS_ENV"] ||= 'production')
-set :application, "your_app_name"
+
+on :lod do
+  set :application, rubber_cfg.environment.bind().app_name
+  set :deploy_to,     "/mnt/#{application}-#{rails_env}"
+end
 
 # Use a simple directory tree copy here to make demo easier.
 # You probably want to use your own repository for a real app
@@ -20,7 +24,6 @@ set :password, nil
 set :use_sudo,      true
 set :runner,        'rails'
 
-set :deploy_to,     "/mnt/#{application}-#{rails_env}"
 # How many old releases should be kept around when running "cleanup" task
 set :keep_releases, 3
 

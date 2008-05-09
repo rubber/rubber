@@ -1,0 +1,4 @@
+# Uses admin_email from base
+
+packages: [monit]
+

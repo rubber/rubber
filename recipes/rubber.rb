@@ -27,11 +27,11 @@ namespace :rubber do
       end
     end
     set :rubber_cfg, Rubber::Configuration.get_configuration(ENV['RAILS_ENV'])
-    load_roles() unless rubber_cfg.environment.bind(nil, nil).disable_auto_roles
+    load_roles() unless rubber_cfg.environment.bind().disable_auto_roles
     # NOTE: for some reason Capistrano requires you to have both the public and
     # the private key in the same folder, the public key should have the
     # extension ".pub".
-    ssh_options[:keys] = rubber_cfg.environment.bind(nil, nil).ec2_key_file
+    ssh_options[:keys] = rubber_cfg.environment.bind().ec2_key_file
   end
 
   desc <<-DESC
@@ -153,7 +153,7 @@ namespace :rubber do
     hosts_file = '/etc/hosts'
 
     # Generate /etc/hosts contents for the local machine from instance config
-    env = rubber_cfg.environment.bind(nil, nil)
+    env = rubber_cfg.environment.bind()
     delim = "## rubber config #{env.domain} #{ENV['RAILS_ENV']}"
     local_hosts = delim + "\n"
     rubber_cfg.instance.each do |ic|
@@ -338,7 +338,7 @@ namespace :rubber do
   end
 
   def bundle_vol(image_name)
-    env = rubber_cfg.environment.bind(nil, nil)
+    env = rubber_cfg.environment.bind()
     ec2_key = env.ec2_key_file
     ec2_pk = env.ec2_pk_file
     ec2_cert = env.ec2_cert_file
@@ -360,7 +360,7 @@ namespace :rubber do
   end
 
   def upload_bundle(image_name)
-    env = rubber_cfg.environment.bind(nil, nil)
+    env = rubber_cfg.environment.bind()
     
     sudo_script "register_bundle", <<-CMD
       export RUBYLIB=/usr/lib/site_ruby/
@@ -373,7 +373,7 @@ namespace :rubber do
   end
 
   def describe_bundles
-    env = rubber_cfg.environment.bind(nil, nil)
+    env = rubber_cfg.environment.bind()
 
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
     response = ec2.describe_images(:owner_id => 'self')
@@ -384,7 +384,7 @@ namespace :rubber do
   end
 
   def delete_bundle(ami)
-    env = rubber_cfg.environment.bind(nil, nil)
+    env = rubber_cfg.environment.bind()
 
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
     response = ec2.describe_images(:image_id => ami)
@@ -614,7 +614,7 @@ namespace :rubber do
   def prepare_script(name, contents)
     script = "/tmp/#{name}"
     # this lets us abort a script if a command in the middle of it errors out
-    env = rubber_cfg.environment.bind(nil, nil)
+    env = rubber_cfg.environment.bind()
     contents = "#{env.stop_on_error_cmd}\n#{contents}" if env.stop_on_error_cmd
     put(contents, script)
     return script

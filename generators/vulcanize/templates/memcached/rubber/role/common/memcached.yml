@@ -1,0 +1,14 @@
+<%
+  @path = "#{RAILS_ROOT}/config/memcached.yml"
+  @additive =  ["# rubber-memcached-start", "# rubber-memcached-end"]
+%>
+
+
+<%= RAILS_ENV %>:
+  memory: 256
+  fragments: true
+  benchmarking: false
+  servers:
+  <% rubber_instances.for_role('memcached').each do |ic| %>
+    - <%= ic.full_name %>:11211
+  <% end %>

@@ -34,7 +34,7 @@ module Rubber
         Socket::gethostname.gsub(/\..*/, '')
       end
 
-      def bind(roles, host)
+      def bind(roles = nil, host = nil)
         BoundEnv.new(@items, roles, host)
       end
 

@@ -1,0 +1,8 @@
+# Uses admin_email from base
+
+packages: [munin-node]
+
+roles:
+  munin_host:
+    packages: [munin]
+
