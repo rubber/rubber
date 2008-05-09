@@ -337,6 +337,54 @@ namespace :rubber do
     describe_bundles
   end
 
+  desc <<-DESC
+    Convenience task for creating a staging instance for the given RAILS_ENV.
+    By default this task assigns all known roles when creating the instance,
+    but you can specify a different default in rubber.yml:staging_roles
+    At the end, the instance will be up and running
+    e.g. RAILS_ENV=matt cap create_staging
+  DESC
+  top.required_task :create_staging do
+    validate_staging_env
+    roles = rubber.get_env("ROLES", "Roles to use for staging instance", true, rubber_env.staging_roles || "*")
+    ENV['ROLES'] = roles 
+    rubber.create
+    rubber.bootstrap
+    # bootstrap_db does setup/update_code, so so since release directory
+    # variable gets reused by cap, we have to just do the symlink here - doing
+    # a update again will fail
+    deploy.symlink
+    deploy.migrate
+    deploy.start
+  end
+  
+  desc <<-DESC
+    Destroy the staging instance for the given RAILS_ENV.
+  DESC
+  task :destroy_staging do
+    validate_staging_env
+    rubber.destroy
+  end
+
+  desc <<-DESC
+    Live tail of rails log files for all machines
+    By default tails the rails logs for the current RAILS_ENV, but one can
+    set FILE=/path/file.*.glob to tails a different set
+  DESC
+  task :tail_logs, :roles => :app do
+    log_file_glob = rubber.get_env("FILE", "Log files to tail", true, "#{shared_path}/log/#{rails_env}*.log")
+    run "tail -qf #{log_file_glob}" do |channel, stream, data|
+      puts  # for an extra line break before the host name
+      puts data
+      break if stream == :err
+    end
+  end
+
+  def validate_staging_env
+    raise "Need to set RAILS_ENV to something other than production/development" if ['production', 'development'].include? rails_env
+    ENV['ALIAS'] = rails_env
+  end
+  
   def bundle_vol(image_name)
     env = rubber_cfg.environment.bind()
     ec2_key = env.ec2_key_file

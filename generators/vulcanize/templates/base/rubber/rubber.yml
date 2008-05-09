@@ -74,9 +74,18 @@ stop_on_error_cmd: "function error_exit { exit 99; }; trap error_exit ERR"
 #
 # db_config: my.cnf
 
-# OPTIONAL: You can also define your own variables here for use when transforming config files
+# OPTIONAL: The default set of roles to use when creating a staging instance
+# with "cap rubber:create_staging".  By default this uses all the known roles,
+# but this is not always desired for staging, so you can specify a different
+# set here
 #
-# someconfig: someval
+staging_roles: *
+
+# OPTIONAL: You can also define your own variables here for use when
+# transforming config files, and they will be available in your config
+# templates as  <%= rubber_env.var_name %>
+#
+# var_name: var_value
 
 # OPTIONAL: Role specific overrides
 # roles:
