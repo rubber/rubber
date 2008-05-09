@@ -3,4 +3,4 @@ Description:
     sample rubber configuration template
 
 Examples:
-    ./script/generate vulcanize minimal_nodb
+    ./script/generate vulcanize minimal_mysql

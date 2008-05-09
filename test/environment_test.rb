@@ -6,17 +6,19 @@ class EnvironmentTest < Test::Unit::TestCase
   include Rubber::Configuration
 
   def test_known_roles
-    env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures/rubber.yml")
+    env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures")
     assert_equal ['role1', 'role2'], env.known_roles, "list of know roles not correct"
   end
 
   def test_env
-    env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures/testenv.yml")
+    env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures")
     e = env.bind(nil, nil)
     assert_equal 'val1', e['var1'], 'env not retrieving right val'
     assert_equal 'val2', e['var2'], 'env not retrieving right val'
     assert_equal 'val1', e.var1, 'env not retrieving right val for method missing'
     assert_equal 'val2', e.var2, 'env not retrieving right val for method missing'
+    
+    assert_equal 'val3', e.var3, 'env not retrieving right val for config in supplemental file'
 
     e = env.bind('role1', 'nohost')
     assert_equal 'val1', e['var1'], 'env not retrieving right val'
@@ -38,7 +40,7 @@ class EnvironmentTest < Test::Unit::TestCase
   end
 
   def test_combine
-    env = Rubber::Configuration::Environment.new("nofile").bind("norole", "nohost")
+    env = Rubber::Configuration::Environment
     assert_equal "new", env.combine("old", "new"), "Last should win for scalar combine"
     assert_equal 5, env.combine(1, 5), "Last should win for scalar combine"
     assert_equal [1, 2, 3, 4], env.combine([1, 2, 3], [3, 4]), "Arrays should be unioned when combined"

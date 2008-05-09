@@ -93,11 +93,11 @@ tried to make it safe for repeat executions on existing instances.  However,
 you should probably verify that this is the case for your setup before
 trusting it on a production system.
 
-Note that if you change a config file template, you need to check it in before
-rubber:config will be able to see the change on remote hosts.  However,
-changing rubber.yml or instance*.yml do not need to be checked in for their
-changes to be seen remotely because they are pushed by the rubber:config
-recipe.
+Note that if you change a config file template, and are using a real scm
+provider for capistrano (like svn), you need to check it in before
+rubber:config will be able to see the change on remote hosts.  One should use
+the noscm scm provider for capistrano to iterate rapidly when building out a
+deployment scenario with rubber.
 
 For example, you can follow these steps to create a demo app on a single
 instance:

@@ -7,20 +7,25 @@ module Rubber
     # Handles selecting of correct config values based on
     # the host/role passed into bind
     class Environment
-      attr_reader :file
+      attr_reader :config_root
 
-      def initialize(file)
-        LOGGER.info{"Reading rubber configuration from #{file}"}
-        @file = file
+      def initialize(config_root)
+        @config_root = config_root
         @items = {}
-        if File.exist?(@file)
-          expanded = eval('%Q{' + File.read(@file) + '}', binding, @file, 1)
-          @items = YAML.load(expanded) || {}
+        read_config("#{@config_root}/rubber.yml")
+        Dir["#{@config_root}/rubber-*.yml"].each { |file| read_config(file) }
+      end
+      
+      def read_config(file)
+        LOGGER.debug{"Reading rubber configuration from #{file}"}
+        if File.exist?(file)
+          expanded = eval('%Q{' + File.read(file) + '}', binding, file, 1)
+          @items = Environment.combine(@items, YAML.load(expanded) || {})
         end
       end
-
+      
       def known_roles
-        roles_dir = File.join(File.dirname(@file), "role")
+        roles_dir = File.join(@config_root, "role")
         roles = Dir.entries(roles_dir)
         roles.delete_if {|d| d =~ /(^\..*)/}
       end
@@ -33,6 +38,28 @@ module Rubber
         BoundEnv.new(@items, roles, host)
       end
 
+      # combine old and new into a single value:
+      # non-nil wins if other is nil
+      # arrays just get unioned
+      # hashes also get unioned, but the values of conflicting keys get combined
+      # All else, the new value wins
+      def self.combine(old, new)
+        return old if new.nil?
+        return new if old.nil?
+        value = old
+        if old.is_a?(Hash) && new.is_a?(Hash)
+          value = old.clone
+          new.each do |nk, nv|
+            value[nk] = combine(value[nk], nv)
+          end
+        elsif old.is_a?(Array) && new.is_a?(Array)
+          value = old | new
+        else
+          value = new
+        end
+        return value
+      end
+
       class BoundEnv
         attr_reader :roles
         attr_reader :host
@@ -43,28 +70,6 @@ module Rubber
           @host = host
         end
 
-        # combine old and new into a single value:
-        # non-nil wins if other is nil
-        # arrays just get unioned
-        # hashes also get unioned, but the values of conflicting keys get combined
-        # All else, the new value wins
-        def combine(old, new)
-          return old if new.nil?
-          return new if old.nil?
-          value = old
-          if old.is_a?(Hash) && new.is_a?(Hash)
-            value = old.clone
-            new.each do |nk, nv|
-              value[nk] = combine(value[nk], nv)
-            end
-          elsif old.is_a?(Array) && new.is_a?(Array)
-            value = old | new
-          else
-            value = new
-          end
-          return value
-        end
-
         # get the environment value for the given key
         # if combine is true, value are cmobined for role/host overrides
         # if combine is false, host overrides roles overrides global
@@ -72,9 +77,9 @@ module Rubber
           if combine
             value = @cfg[name]
             @roles.to_a.each do |role|
-              value = combine(value, (@cfg["roles"][role][name] rescue nil))
+              value = Environment.combine(value, (@cfg["roles"][role][name] rescue nil))
             end
-            value = combine(value, (@cfg["hosts"][@host][name] rescue nil))
+            value = Environment.combine(value, (@cfg["hosts"][@host][name] rescue nil))
           else
             value = @cfg[name]
             @roles.to_a.each do |role|

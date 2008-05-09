@@ -50,7 +50,7 @@ dns_password:
 dns_ttl:
 
 # OPTIONAL: The packages to install on all instances
-packages: [build-essential, ruby-full, ruby1.8-dev, rake, irb, subversion, mysql-client, libmysql-ruby]
+packages: [build-essential, ruby-full, ruby1.8-dev, rake, irb, subversion]
 
 # OPTIONAL: The gems to install on all instances
 gems: [rails]
@@ -65,23 +65,20 @@ stop_on_error_cmd: "function error_exit { exit 99; }; trap error_exit ERR"
 #           server before the dbn is needed by your app (e.g. moving datdir
 #           to /mnt for mysql)
 #
-db_config: my.cnf
+# db_config: my.cnf
 
 # OPTIONAL: You can also define your own variables here for use when transforming config files
 #
-mongrel_base_port: 8000
-mongrel_count: 8
+# someconfig: someval
 
 # OPTIONAL: Role specific overrides
-roles:
-  web:
-    packages: [nginx]
-  app:
-    gems: [mongrel, mongrel_cluster]
-  db:
-    packages: [mysql-server]
+# roles:
+#   somerole:
+#     packages: []
+#   somerole2:
+#     myconfig: someval
 
 # OPTIONAL: Host specific overrides
-hosts:
-  somehost:
-    packages: []
+# hosts:
+#   somehost:
+#     packages: []

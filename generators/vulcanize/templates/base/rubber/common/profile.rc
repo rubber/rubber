@@ -1,0 +1,7 @@
+<%
+  @path = "/root/.profile"
+  @additive = ["# rubber-common-start", "# rubber-common-end"]
+%>
+
+# convenience to simply running rails console, etc with correct env
+export RAILS_ENV=<%= RAILS_ENV %>

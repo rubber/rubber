@@ -369,7 +369,7 @@ namespace :rubber do
     
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
     response = ec2.register_image(:image_location => "#{env.ec2_image_bucket}/#{image_name}.manifest.xml")
-    puts "Newly registered AMI is: #{response.imageId}"
+    logger.info "Newly registered AMI is: #{response.imageId}"
   end
 
   def describe_bundles
@@ -378,8 +378,8 @@ namespace :rubber do
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
     response = ec2.describe_images(:owner_id => 'self')
     response.imagesSet.item.each do |item|
-      puts "AMI: #{item.imageId}"
-      puts "S3 Location: #{item.imageLocation}"
+      logger.info "AMI: #{item.imageId}"
+      logger.info "S3 Location: #{item.imageLocation}"
     end
   end
 
@@ -404,10 +404,6 @@ namespace :rubber do
   def run_config(options={})
     path = options.delete(:deploy_path) || current_path
     extra_env = options.keys.inject("") {|all, k|  "#{all} #{k}='#{options[k]}'"}
-    dest_env_file = rubber_cfg.environment.file.sub(/^#{RAILS_ROOT}\//, '')
-    put(File.read(rubber_cfg.environment.file), File.join(path, dest_env_file))
-    dest_instance_file = rubber_cfg.instance.file.sub(/^#{RAILS_ROOT}/, '')
-    put(File.read(rubber_cfg.instance.file), File.join(path, dest_instance_file))
     sudo "sh -c 'cd #{path} && #{extra_env} rake rubber:config'"
   end
 
@@ -647,6 +643,24 @@ namespace :rubber do
     if env.dns_provider
       provider = DynamicDnsBase.get_provider(env.dns_provider, env)
       provider.destroy(instance_item.name)
+    end
+  end
+
+  # Use instead of task to define a capistrano taks that runs serially instead of in parallel
+  def serial_task(ns, name, options = {}, &block)
+    servers = self.roles[options[:roles]].collect {|server| server.host}
+    task_syms = []
+    servers.each do |hostname|
+      role_sym = "_serial_task_#{name.to_s}_#{hostname}".to_sym
+      task_sym = "_do_task_#{name.to_s}_#{hostname}".to_sym
+      task_syms << task_sym
+      top.role role_sym, hostname
+      ns.task task_sym, :roles => role_sym, &block
+    end
+    ns.task name do
+      task_syms.each do |t|
+        self.send t
+      end
     end
   end
 

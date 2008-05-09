@@ -1,0 +1,12 @@
+
+packages: [mysql-client, libmysql-ruby]
+
+db_config: my.cnf
+
+db_user: myuser
+db_pass:
+db_db: myapp_#{RAILS_ENV}
+
+roles:
+  db:
+    packages: [mysql-server]

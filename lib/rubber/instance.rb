@@ -9,7 +9,7 @@ module Rubber
       attr_reader :file
 
       def initialize(file)
-        LOGGER.info{"Reading rubber instances from #{file}"}
+        LOGGER.debug{"Reading rubber instances from #{file}"}
         @file = file
         @items = {}
         if File.exist?(@file)

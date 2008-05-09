@@ -8,9 +8,6 @@
 # don't need to set RAILS_ENV for each script since we set it for all cron here
 # RAILS_ENV=<%= RAILS_ENV %>
 
-<% if RAILS_ENV == 'production' %>
-
 # Roll the logs at midnight
 # 0 0 * * * cd <%= RAILS_ROOT %> && rake roll_logs
 
-<% end %>

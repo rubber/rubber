@@ -1,0 +1,5 @@
+dependent_templates:
+  - base
+  - mysql
+  - mongrel
+  - nginx

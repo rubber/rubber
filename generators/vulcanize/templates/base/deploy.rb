@@ -28,6 +28,10 @@ set :keep_releases, 3
 # TASKS
 # =============================================================================
 
+Dir["#{File.dirname(__FILE__)}/deploy-*.rb"].each do |deploy_file|
+  load deploy_file
+end
+
 # Don't want to do rubber:config for update_code as that tree isn't official
 # until it is 'committed' by the symlink task (and doing so causes it to run
 # for bootstrap_db which should only config the db config file).  However, 
@@ -46,35 +50,11 @@ task :setup_perms do
   run "chown -R #{runner}:#{runner} #{current_path}/tmp"
 end
 
-deploy.task :restart, :roles => :app do
-    run "cd #{current_path} && mongrel_rails cluster::stop --force --clean"
-    run "cd #{current_path} && mongrel_rails cluster::start --clean"
-end
 
-deploy.task :stop, :roles => :app do
-    run "cd #{current_path} && mongrel_rails cluster::stop --force --clean"
-end
+after "rubber:install_packages", "custom_install_base"
 
-deploy.task :start, :roles => :app do
-    run "cd #{current_path} && mongrel_rails cluster::start --clean"
-end
-
-after "rubber:install_packages", "custom_install"
-after "rubber:install_gems", "custom_install_app"
-
-task :custom_install do
+task :custom_install_base do
   # add the rails user for running app server with
   run "adduser --system --group rails"
 end
 
-task :custom_install_app, :roles => :app do
-  # Setup system to restart mongrel_cluster on reboot
-  rubber.sudo_script 'install_app', <<-ENDSCRIPT
-    mkdir -p /etc/mongrel_cluster
-    rm -f /etc/mongrel_cluster/#{application}-#{rails_env}.yml && ln -s /mnt/#{application}-#{rails_env}/current/config/mongrel_cluster.yml /etc/mongrel_cluster/#{application}-#{rails_env}.yml
-    find /usr/lib/ruby/gems -path "*/resources/mongrel_cluster" -exec cp {} /etc/init.d/ \\;
-    chmod +x /etc/init.d/mongrel_cluster
-    update-rc.d -f mongrel_cluster remove
-    update-rc.d mongrel_cluster defaults 99 00
-  ENDSCRIPT
-end
