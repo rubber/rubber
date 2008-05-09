@@ -2,7 +2,7 @@
 
 set :rails_env, (ENV["RAILS_ENV"] ||= 'production')
 
-on :lod do
+on :load do
   set :application, rubber_cfg.environment.bind().app_name
   set :deploy_to,     "/mnt/#{application}-#{rails_env}"
 end
