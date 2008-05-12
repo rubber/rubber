@@ -8,5 +8,10 @@
 
 roles:
   web:
-    packages: [nginx]
+    packages: [nginx, libpcre3-dev, libssl-dev, zlib1g-dev]
 
+# Rebuilds nginx from source including the upstream_fair module
+# and configures nginx correctly for it - comment this out
+# if you prefer to use the nginx binary from the stock ubuntu nginx package
+#
+nginx_use_fair_proxy: true
