@@ -76,6 +76,7 @@ namespace :rubber do
     r = get_env('ROLES', "Instance roles (e.g. web,app,db:primary=true)", true)
     if r == '*'
       instance_roles = rubber_cfg.environment.known_roles
+      instance_roles = instance_roles.collect {|role| role == "db" ? "db:primary=true" : role }
     else
       instance_roles = r.split(",")
     end
@@ -115,6 +116,7 @@ namespace :rubber do
   DESC
   task :refresh do
     instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
+    ENV.delete('ROLES') # so we don't get an error if people leave ROLES in env from :create CLI
     refresh_instance(instance_alias)
   end
 
@@ -123,6 +125,7 @@ namespace :rubber do
   DESC
   task :destroy do
     instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
+    ENV.delete('ROLES') # so we don't get an error if people leave ROLES in env from :create CLI
     destroy_instance(instance_alias)
   end
 
@@ -742,7 +745,7 @@ namespace :rubber do
     end
     ns.task name do
       task_syms.each do |t|
-        self.send t
+        ns.send t
       end
     end
   end
