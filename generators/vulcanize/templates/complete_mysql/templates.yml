@@ -1,8 +1,5 @@
 dependent_templates:
-  - base
+  - minimal_mysql
   - monit
   - munin
-  - mysql
-  - mongrel
-  - nginx
   - memcached
