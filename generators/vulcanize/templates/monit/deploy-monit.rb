@@ -1,5 +1,7 @@
 
 namespace :monit do
+
+  rubber.allow_optional_tasks(self)
   
   # Put these first so monit gets shut down first
   before "deploy:stop", "monit:stop"

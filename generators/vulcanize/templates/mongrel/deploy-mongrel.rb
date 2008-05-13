@@ -1,6 +1,8 @@
 
 namespace :mongrel do
   
+  rubber.allow_optional_tasks(self)
+  
   after "rubber:install_gems", "mongrel:custom_install"
   
   task :custom_install, :roles => :app do

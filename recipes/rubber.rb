@@ -10,42 +10,29 @@ require 'capistrano/hostcmd'
 require 'rubygems'
 require 'EC2'
 
-# advise capistrano's task method so that tasks for non-existant roles don't
-# fail when roles isn't defined due to using a FILTER for load_roles
-# TODO:
-# Need something cleaner here than doing it globally for all cap tasks...?
-# As it stands, if you have a task you need to execute even when there are no
-# roles, you have to user required_task instead of task - see rubber:create
-# as an example of this role bootstrapping problem.
-#[Capistrano::Configuration, Capistrano::Configuration::Namespaces::Namespace].each do |clazz|
-  class Capistrano::Configuration
-    alias :required_task :task
-    def task(name, options={}, &block)
-      required_task(name, options) do
-        if find_servers_for_task(current_task).empty?
-          logger.info "No servers for task #{name}, skipping"
-          next
-        end
-        block.call
-      end
-    end
-  end
-  class Capistrano::Configuration::Namespaces::Namespace
-    alias :required_task :task
-    def task(name, options={}, &block)
-      required_task(name, options) do
-        if find_servers_for_task(current_task).empty?
-          logger.info "No servers for task #{name}, skipping"
-          next
-        end
-        block.call
-      end
-    end
-  end
-#end
-
 namespace :rubber do
 
+  # advise capistrano's task method so that tasks for non-existant roles don't
+  # fail when roles isn't defined due to using a FILTER for load_roles
+  # If you have a task you need to execute even when there are no
+  # roles, you have to use required_task instead of task - see rubber:create
+  # as an example of this role bootstrapping problem.
+  def allow_optional_tasks(ns)
+    class << ns
+      alias :required_task :task
+      def task(name, options={}, &block)
+        required_task(name, options) do
+          if find_servers_for_task(current_task).empty?
+            logger.info "No servers for task #{name}, skipping"
+            next
+          end
+          block.call
+        end
+      end
+    end
+  end
+  
+  allow_optional_tasks(self)
   on :load, "rubber:init"
 
   required_task :init do

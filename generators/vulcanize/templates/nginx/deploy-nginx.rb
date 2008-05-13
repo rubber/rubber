@@ -1,6 +1,8 @@
 
 namespace :nginx do
 
+  rubber.allow_optional_tasks(self)
+
   after "rubber:install_packages", "nginx:custom_install"
   
   task :custom_install, :roles => :web do
