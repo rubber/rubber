@@ -382,7 +382,14 @@ namespace :rubber do
     e.g. RAILS_ENV=matt cap create_staging
   DESC
   required_task :create_staging do
-    validate_staging_env
+    if rubber_cfg.instance.size > 0
+      value = Capistrano::CLI.ui.ask("The #{rails_env} environment already has instances, Are you SURE you want to create a staging instance that may interact with them [y/N]?: ")
+      if value != "y"
+        logger.info "Exiting"
+        exit
+      end
+    end
+    ENV['ALIAS'] = rubber.get_env("ALIAS", "Hostname to use for staging instance", true, rails_env)
     default_roles = rubber_cfg.environment.bind().staging_roles || "*"
     roles = rubber.get_env("ROLES", "Roles to use for staging instance", true, default_roles)
     ENV['ROLES'] = roles 
@@ -400,7 +407,7 @@ namespace :rubber do
     Destroy the staging instance for the given RAILS_ENV.
   DESC
   task :destroy_staging do
-    validate_staging_env
+    ENV['ALIAS'] = rubber.get_env("ALIAS", "Hostname of staging instance to be destroyed", true, rails_env)
     rubber.destroy
   end
 
@@ -418,11 +425,6 @@ namespace :rubber do
     end
   end
 
-  def validate_staging_env
-    raise "Need to set RAILS_ENV to something other than production/development" if ['production', 'development'].include? rails_env
-    ENV['ALIAS'] = rails_env
-  end
-  
   def bundle_vol(image_name)
     env = rubber_cfg.environment.bind()
     ec2_key = env.ec2_key_file
