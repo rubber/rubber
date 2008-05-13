@@ -6,8 +6,21 @@ ENV['RAILS_ENV'] ||= 'development'
 require 'fileutils'
 require 'date'
 require 'time'
+require 'rubber/configuration'
 
 namespace :rubber do
+
+  def rubber_env()
+    Rubber::Configuration.rubber_env
+  end
+
+  def rubber_instances()
+    Rubber::Configuration.rubber_instances
+  end
+
+  def init_s3()
+    Rubber::Configuration.init_s3(rubber_env)
+  end
 
   desc "Generate system config files by transforming the files in the config tree"
   task :config do
@@ -105,17 +118,45 @@ namespace :rubber do
 
     user = get_env('DBUSER', true)
     pass = get_env('DBPASS')
+    pass = nil if pass.strip.size == 0
     host = get_env('DBHOST', true)
     name = get_env('DBNAME', true)
-    sh "nice mysqldump -h #{host} -u #{user} #{'-p' + pass if pass} #{name} | gzip -c > #{backup_file}"
+    
+    raise "No db_backup_cmd defined in rubber.yml, cannot backup!" unless rubber_env.db_backup_cmd
+    db_backup_cmd = eval('%Q{' + rubber_env.db_backup_cmd + '}')
+    
+    puts "Backing up database with command:"
+    sh db_backup_cmd
     puts "Created backup: #{backup_file}"
+    
+    s3_prefix = "db/"
+    if rubber_env.ec2_backup_bucket
+      init_s3
+      unless AWS::S3::Bucket.list.find { |b| b.name == rubber_env.ec2_backup_bucket }
+        AWS::S3::Bucket.create(rubber_env.ec2_backup_bucket)
+      end
+      dest = "#{s3_prefix}#{File.basename(backup_file)}"
+      puts "Saving db backup to S3: #{rubber_env.ec2_backup_bucket}:#{dest}"
+      AWS::S3::S3Object.store(dest, open(backup_file), rubber_env.ec2_backup_bucket)
+    end
 
     tdate = Date.today - age
     threshold = Time.local(tdate.year, tdate.month, tdate.day)
     puts "Cleaning backups older than #{age} days"
     Dir["#{dir}/*"].each do |file|
       if File.mtime(file) < threshold
+        puts "Deleting #{file}"
         FileUtils.rm_f(file)
+      end
+    end
+    
+    if rubber_env.ec2_backup_bucket
+      puts "Cleaning S3 backups older than #{age} days from: #{rubber_env.ec2_backup_bucket}:#{s3_prefix}"
+      AWS::S3::Bucket.objects(rubber_env.ec2_backup_bucket, :prefix => s3_prefix).each do |obj|
+        if Time.parse(obj.about["last-modified"]) < threshold
+          puts "Deleting #{obj.key}"
+          obj.delete
+        end
       end
     end
   end

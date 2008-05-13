@@ -459,6 +459,7 @@ namespace :rubber do
   end
 
   def delete_bundle(ami)
+    init_s3
     env = rubber_cfg.environment.bind()
 
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
@@ -467,18 +468,29 @@ namespace :rubber do
     bucket = image_location.split('/').first
     image_name = image_location.split('/').last.gsub(/\.manifest\.xml$/, '')
     
+    logger.info{"De-registering image: #{ami}"}
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
     response = ec2.deregister_image(:image_id => ami)
-
-    sudo_script "destroy_bundle", <<-CMD
-      export RUBYLIB=/usr/lib/site_ruby/
-      ec2-delete-bundle -y -b #{bucket} -p #{image_name} -a #{env.aws_access_key} -s #{env.aws_secret_access_key}
-    CMD
+    
+    s3_bucket = AWS::S3::Bucket.find(bucket) 
+    s3_bucket.objects(:prefix => image_name).each do |obj|
+      logger.info{"Deleting image bundle file: #{obj.key}"}
+      obj.delete
+    end
+    if s3_bucket.empty?
+      logger.info{"Removing empty bucket: #{s3_bucket}"}
+      s3_bucket.delete 
+    end
   end
 
   def run_config(options={})
     path = options.delete(:deploy_path) || current_path
-    extra_env = options.keys.inject("") {|all, k|  "#{all} #{k}='#{options[k]}'"}
+    extra_env = options.keys.inject("") {|all, k|  "#{all} #{k}=\"#{options[k]}\""}
+
+    # Need to do this otherwise it forces user to checkin instance file between create and bootstrap
+    dest_instance_file = rubber_cfg.instance.file.sub(/^#{RAILS_ROOT}/, '')
+    put(File.read(rubber_cfg.instance.file), File.join(path, dest_instance_file))
+    
     sudo "sh -c 'cd #{path} && #{extra_env} rake rubber:config'"
   end
 
@@ -719,6 +731,10 @@ namespace :rubber do
       provider = DynamicDnsBase.get_provider(env.dns_provider, env)
       provider.destroy(instance_item.name)
     end
+  end
+  
+  def init_s3()
+    Rubber::Configuration.init_s3(rubber_cfg.environment.bind())
   end
 
   # Use instead of task to define a capistrano taks that runs serially instead of in parallel

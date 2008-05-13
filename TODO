@@ -4,5 +4,4 @@
 * try to do less stuff as root
 * extract ec2 specific code, and ubuntu specific code into a strategy/factory pattern so this can be used with other grid computing system
 * figure out how to test the capistrano bits
-* add s3 backups
 * divorce from rails for use in deploying other things

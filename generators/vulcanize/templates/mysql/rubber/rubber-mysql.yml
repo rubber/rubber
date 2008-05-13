@@ -5,7 +5,8 @@ db_config: my.cnf
 
 db_user: myuser
 db_pass:
-db_db: myapp_#{RAILS_ENV}
+db_name: myapp_#{RAILS_ENV}
+db_backup_cmd: "nice mysqldump -h \#{host} -u \#{user} \#{'-p' + pass if pass} \#{name} | gzip -c > \#{backup_file}"
 
 roles:
   db:

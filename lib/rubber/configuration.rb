@@ -22,12 +22,25 @@ module Rubber
       @@configurations[key] ||= ConfigHolder.new(env, root)
     end
 
-    def self.get_env()
+    def self.rubber_env
       raise "This convenience method needs RAILS_ENV to be set" unless RAILS_ENV
       cfg = Rubber::Configuration.get_configuration(RAILS_ENV)
       host = cfg.environment.current_host
       roles = cfg.instance[host].role_names rescue nil
-      return cfg.environment.bind(roles, host)
+      cfg.environment.bind(roles, host)
+    end
+
+    def self.rubber_instances
+      raise "This convenience method needs RAILS_ENV to be set" unless RAILS_ENV
+      Rubber::Configuration.get_configuration(RAILS_ENV).instance
+    end
+
+    def self.init_s3(env)
+      require 'aws/s3'
+      AWS::S3::Base.establish_connection!(
+        :access_key_id     => env.aws_access_key,
+        :secret_access_key => env.aws_secret_access_key
+      )
     end
 
     class ConfigHolder

@@ -16,8 +16,9 @@ REQUIREMENTS:
     to the default security group (ec2-authorize default -p 22)
     See the EC2 docs for more details:
     http://docs.amazonwebservices.com/AWSEC2/2007-08-29/GettingStartedGuide/?ref=get-started
-* amazon-ec2: gem install amazon-ec2
-* Capistrano: gem install capistrano
+* amazon-ec2: sudo gem install amazon-ec2
+* AWS::S3: sudo gem install aws-s3
+* Capistrano: sudo gem install capistrano
 
 INSTALLATION:
 

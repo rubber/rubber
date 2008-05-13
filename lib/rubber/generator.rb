@@ -172,18 +172,16 @@ module Rubber
 
       def get_binding
         binding
-      end
+    end
+    
+    def rubber_env()
+      Rubber::Configuration.rubber_env
+    end
+  
+    def rubber_instances()
+      Rubber::Configuration.rubber_instances
+    end
 
-      def rubber_instances
-        Rubber::Configuration.get_configuration(RAILS_ENV).instance
-      end
-
-      def rubber_env
-        cfg = Rubber::Configuration.get_configuration(RAILS_ENV)
-        host = cfg.environment.current_host
-        roles = cfg.instance[host].role_names rescue nil
-        cfg.environment.bind(roles, host)
-      end
     end
 
   end
