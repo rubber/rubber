@@ -152,7 +152,7 @@ namespace :rubber do
     
     if rubber_env.ec2_backup_bucket
       puts "Cleaning S3 backups older than #{age} days from: #{rubber_env.ec2_backup_bucket}:#{s3_prefix}"
-      AWS::S3::Bucket.objects(rubber_env.ec2_backup_bucket, :prefix => s3_prefix).each do |obj|
+      AWS::S3::Bucket.objects(rubber_env.ec2_backup_bucket, :prefix => s3_prefix).clone.each do |obj|
         if Time.parse(obj.about["last-modified"]) < threshold
           puts "Deleting #{obj.key}"
           obj.delete

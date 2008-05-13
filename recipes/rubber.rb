@@ -467,18 +467,18 @@ namespace :rubber do
     image_location = response.imagesSet.item[0].imageLocation
     bucket = image_location.split('/').first
     image_name = image_location.split('/').last.gsub(/\.manifest\.xml$/, '')
-    
-    logger.info{"De-registering image: #{ami}"}
+
+    logger.info "De-registering image: #{ami}"
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
     response = ec2.deregister_image(:image_id => ami)
     
     s3_bucket = AWS::S3::Bucket.find(bucket) 
-    s3_bucket.objects(:prefix => image_name).each do |obj|
-      logger.info{"Deleting image bundle file: #{obj.key}"}
+    s3_bucket.objects(:prefix => image_name).clone.each do |obj|
+      logger.info "Deleting image bundle file: #{obj.key}"
       obj.delete
     end
     if s3_bucket.empty?
-      logger.info{"Removing empty bucket: #{s3_bucket}"}
+      logger.info "Removing empty bucket: #{s3_bucket.name}"
       s3_bucket.delete 
     end
   end
