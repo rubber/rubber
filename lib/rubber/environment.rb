@@ -34,7 +34,7 @@ module Rubber
         when Hash
           val.inject({}) {|h, a| h[a[0]] = expand(a[1]); h}
         when String
-          if val =~ /\#{[^\}]+}/
+          if val =~ /\#\{[^\}]+\}/
             eval('%Q{' + val + '}', binding)
           else
             val
