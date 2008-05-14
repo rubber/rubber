@@ -608,7 +608,7 @@ namespace :rubber do
     
     ami = env.ec2_instance
     ami_type = env.ec2_instance_type
-    response = ec2.run_instances(:image_id => ami, :key_name => env.ec2_key_name, :instance_type => ami_type, :security_groups => env.security_groups)
+    response = ec2.run_instances(:image_id => ami, :key_name => env.ec2_key_name, :instance_type => ami_type, :group_id => env.security_groups)
     item = response.instancesSet.item[0]
     instance_id = item.instanceId
 
