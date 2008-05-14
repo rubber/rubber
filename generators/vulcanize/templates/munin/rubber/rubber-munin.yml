@@ -5,10 +5,10 @@ ec2_security_groups:
   internal_web:
     description: To open up port 8080 for internal/tools http server
     rules:
-      - IpProtocol: tcp
-        FromPort: 8080
-        ToPort: 8080
-        CidrIp: 0.0.0.0/0
+      - ip_protocol: tcp
+        from_port: 8080
+        to_port: 8080
+        cidr_ip: 0.0.0.0/0
 
 roles:
   munin_host:

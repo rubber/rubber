@@ -62,32 +62,32 @@ ec2_instance_type: m1.small
 # OPTIONAL: Define ec2 security groups
 # Each security group is a name associated with a sequence of maps where the
 # keys are the parameters to the ec2 AuthorizeSecurityGroupIngress API
-# SourceSecurityGroupName, SourceSecurityGroupOwnerId
-# IpProtocol, FromPort, ToPort, CidrIp
+# source_security_group_name, source_security_group_owner_id
+# ip_protocol, from_port, to_port, cidr_ip
 #
 ec2_security_groups:
   default:
     description: The default security group
     rules:
-      - IpProtocol: tcp
-        FromPort: 0
-        ToPort: 65535
-        SourceSecurityGroupName: default
-        SourceSecurityGroupOwnerId: "#{aws_account}"
-      - IpProtocol: udp
-        FromPort: 0
-        ToPort: 65535
-        SourceSecurityGroupName: default
-        SourceSecurityGroupOwnerId: "#{aws_account}"
-      - IpProtocol: icmp
-        FromPort: -1
-        ToPort: -1
-        SourceSecurityGroupName: default
-        SourceSecurityGroupOwnerId: "#{aws_account}"
-      - IpProtocol: tcp
-        FromPort: 22
-        ToPort: 22
-        CidrIp: 0.0.0.0/0
+      - ip_protocol: tcp
+        from_port: 0
+        to_port: 65535
+        source_security_group_name: default
+        source_security_group_owner_id: "#{aws_account}"
+      - ip_protocol: udp
+        from_port: 0
+        to_port: 65535
+        source_security_group_name: default
+        source_security_group_owner_id: "#{aws_account}"
+      - ip_protocol: icmp
+        from_port: -1
+        to_port: -1
+        source_security_group_name: default
+        source_security_group_owner_id: "#{aws_account}"
+      - ip_protocol: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: 0.0.0.0/0
 
 # OPTIONAL: The default security groups to create instances with
 security_groups: [default2]

@@ -263,13 +263,13 @@ namespace :rubber do
         rules = group['rules'].clone
         item.ipPermissions.item.each do |rule|
           rule_maps = []
-          rule_map = {'IpProtocol' => rule.ipProtocol, 'FromPort' => rule.fromPort.to_i, 'ToPort' => rule.toPort.to_i}
+          rule_map = {'ip_protocol' => rule.ipProtocol, 'from_port' => rule.fromPort.to_i, 'to_port' => rule.toPort.to_i}
           # Collect the group and ipRange rules
           rule.groups.item.each do |rule_group|
-            rule_maps << rule_map.merge('SourceSecurityGroupName' => rule_group.groupName, 'SourceSecurityGroupOwnerId' => rule_group.userId)
+            rule_maps << rule_map.merge('source_security_group_name' => rule_group.groupName, 'source_security_group_owner_id' => rule_group.userId)
           end if rule.groups
           rule.ipRanges.item.each do |ip|
-            rule_maps << rule_map.merge('CidrIp' => ip.cidrIp)
+            rule_maps << rule_map.merge('cidr_ip' => ip.cidrIp)
           end if rule.ipRanges
           # For each rule, if it exists, do nothing, otherwise remove it as its no longer defined locally
           rule_maps.each do |rule_map|
@@ -279,14 +279,16 @@ namespace :rubber do
             else
               # rules don't match, remove them from ec2 and re-add below
               logger.debug "Removing out of sync rule: #{rule_map.inspect}"
-              ec2.revoke_security_group_ingress(rule_map.merge(:group_name => item.groupName))
+              rule = Rubber::Util::symbolize_keys(rule_map.merge(:group_name => item.groupName))
+              ec2.revoke_security_group_ingress(rule)
             end
           end
-        end
+        end if item.ipPermissions
         rules.each do |rule|
           # create non-existing rules
           logger.debug "Mising rule, creating: #{rule.inspect}"
-          ec2.authorize_security_group_ingress(rule.merge(:group_name => item.groupName))
+          rule = Rubber::Util::symbolize_keys(rule.merge(:group_name => item.groupName))
+          ec2.authorize_security_group_ingress(rule)
         end
       else
         # delete group
@@ -304,7 +306,8 @@ namespace :rubber do
       # create rules for group
       group['rules'].each do |rule|
         logger.debug "Creating new rule: #{rule.inspect}"
-        ec2.authorize_security_group_ingress(rule.merge(:group_name => key))
+        rule = Rubber::Util::symbolize_keys(rule.merge(:group_name => key))
+        ec2.authorize_security_group_ingress(rule)
       end
     end
   end

@@ -9,10 +9,10 @@ ec2_security_groups:
   web:
     description: To open up port 80 for http server on web role
     rules:
-      - IpProtocol: tcp
-        FromPort: 80
-        ToPort: 80
-        CidrIp: 0.0.0.0/0
+      - ip_protocol: tcp
+        from_port: 80
+        to_port: 80
+        cidr_ip: 0.0.0.0/0
 
 roles:
   web:
