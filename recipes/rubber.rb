@@ -134,7 +134,7 @@ namespace :rubber do
     
     results = []
     format = "%-10s %-10s %-15s %-30s"
-    results << format % %w[InstanceID State IP Alias]
+    results << format % %w[InstanceID State IP Alias\ (*=unknown)]
     
     response = ec2.describe_instances()
     response.reservationSet.item.each do |ritem|
@@ -144,7 +144,7 @@ namespace :rubber do
         state = item.instanceState.name
         if ! local_alias && state == 'running'
           task :_get_ip, :hosts => ip do
-            local_alias = capture("hostname").strip
+            local_alias = "* " + capture("hostname").strip
           end
           _get_ip
         end
