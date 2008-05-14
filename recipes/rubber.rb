@@ -126,6 +126,35 @@ namespace :rubber do
   end
 
   desc <<-DESC
+    List all your EC2 instances
+  DESC
+  required_task :describe do
+    env = rubber_cfg.environment.bind()
+    ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
+    
+    results = []
+    format = "%-10s %-10s %-15s %-30s"
+    results << format % %w[InstanceID State IP Alias]
+    
+    response = ec2.describe_instances()
+    response.reservationSet.item.each do |ritem|
+      ritem.instancesSet.item.each do |item|
+        ip = IPSocket.getaddress(item.dnsName) rescue "NoIP"
+        local_alias = File.read("/etc/hosts").grep(/#{ip}/).first.split[1] rescue nil
+        state = item.instanceState.name
+        if ! local_alias && state == 'running'
+          task :_get_ip, :hosts => ip do
+            local_alias = capture("hostname").strip
+          end
+          _get_ip
+        end
+        results << format % [item.instanceId, state, ip, local_alias || "Unknown"]
+      end
+    end
+    results.each {|r| logger.info r}
+  end
+
+  desc <<-DESC
     Bootstraps instances by setting timezone, installing packages and gems
   DESC
   task :bootstrap do
