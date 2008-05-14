@@ -42,11 +42,11 @@ aws_account: ZZZ
 # the private key in the same folder, the public key should have the
 # extension ".pub".
 ec2_key_name: gsg-keypair
-ec2_key_file: #{(File.expand_path('~') rescue '/root') + '/.ec2/*#{ec2_key_name}'}
+ec2_key_file: "#{Dir[(File.expand_path('~') rescue '/root') + '/.ec2/*' + ec2_key_name].first}"
 
 # OPTIONAL: Needed for bundling a running instance using rubber:bundle
-# ec2_pk_file: #{Dir[(File.expand_path('~') rescue '/root') + '/.ec2/pk-*'].first}
-# ec2_cert_file: #{Dir[(File.expand_path('~') rescue '/root') + '/.ec2/cert-*'].first}
+# ec2_pk_file: "#{Dir[(File.expand_path('~') rescue '/root') + '/.ec2/pk-*'].first}"
+# ec2_cert_file: "#{Dir[(File.expand_path('~') rescue '/root') + '/.ec2/cert-*'].first}"
 # ec2_image_bucket: "#{app_name}_images"
 
 # OPTIONAL: Needed for backing up database to s3
@@ -90,7 +90,7 @@ ec2_security_groups:
         cidr_ip: 0.0.0.0/0
 
 # OPTIONAL: The default security groups to create instances with
-security_groups: [default2]
+security_groups: [default]
 
 # OPTIONAL: The packages to install on all instances
 packages: [build-essential, ruby-full, ruby1.8-dev, rake, irb, subversion]
