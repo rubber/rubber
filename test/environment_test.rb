@@ -6,12 +6,12 @@ class EnvironmentTest < Test::Unit::TestCase
   include Rubber::Configuration
 
   def test_known_roles
-    env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures")
+    env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures/basic")
     assert_equal ['role1', 'role2'], env.known_roles, "list of know roles not correct"
   end
 
   def test_env
-    env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures")
+    env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures/basic")
     e = env.bind()
     assert_equal 'val1', e['var1'], 'env not retrieving right val'
     assert_equal 'val2', e['var2'], 'env not retrieving right val'
@@ -47,6 +47,17 @@ class EnvironmentTest < Test::Unit::TestCase
     assert_equal({1 => "1", 2 => "2", 3 => "3", 4 => "4"}, env.combine({1 => "1", 2 => "2"}, {3 => "3", 4 => "4"}), "Maps should be unioned when combined")
     assert_equal({1 => "2"}, env.combine({1 => "1"}, {1 => "2"}), "Last should win for scalars in maps when combined")
     assert_equal({1 => {1 => "1", 2 => "2"}}, env.combine({1 => {1 => "1"}}, {1 => {2 => "2"}}), "Maps should be unioned recursively when combined")
+  end
+
+  def test_expansion
+    env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures/expansion")
+    e = env.bind()
+    assert_equal 'val1', e['var1']
+    assert_equal 'val2', e['var2']
+    assert_equal 'val1', e['var3']
+    assert_equal '4 is val2', e['var4']
+    assert_equal %w[lv1 lv2 val1], e['list1']
+    assert_equal({'mk1' => 'mv1', 'mk2' => 'mv2', 'mk3' => 'val2'}, e['map1'])
   end
 
 end

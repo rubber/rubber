@@ -241,6 +241,90 @@ namespace :rubber do
   end
 
   desc <<-DESC
+    Sets up the network security groups
+    All defined groups will be created, and any not defined will be removed.
+    Likewise, rules within a group will get created, and those not will be removed
+  DESC
+  required_task :setup_security_groups do
+    env = rubber_cfg.environment.bind()
+    groups = env.ec2_security_groups
+    return unless groups
+    
+    group_keys = groups.keys.clone()
+    ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
+    
+    # For each group that does already exist in ec2
+    response = ec2.describe_security_groups()
+    response.securityGroupInfo.item.each do |item|
+      if group_keys.delete(item.groupName)
+        # sync rules
+        logger.debug "Security Group already in ec2, syncing rules: #{item.groupName}"
+        group = groups[item.groupName]
+        rules = group['rules'].clone
+        item.ipPermissions.item.each do |rule|
+          rule_maps = []
+          rule_map = {'IpProtocol' => rule.ipProtocol, 'FromPort' => rule.fromPort.to_i, 'ToPort' => rule.toPort.to_i}
+          # Collect the group and ipRange rules
+          rule.groups.item.each do |rule_group|
+            rule_maps << rule_map.merge('SourceSecurityGroupName' => rule_group.groupName, 'SourceSecurityGroupOwnerId' => rule_group.userId)
+          end if rule.groups
+          rule.ipRanges.item.each do |ip|
+            rule_maps << rule_map.merge('CidrIp' => ip.cidrIp)
+          end if rule.ipRanges
+          # For each rule, if it exists, do nothing, otherwise remove it as its no longer defined locally
+          rule_maps.each do |rule_map|
+            if rules.delete(rule_map)
+              # rules match, don't need to do anything
+              logger.debug "Rule in sync: #{rule_map.inspect}"
+            else
+              # rules don't match, remove them from ec2 and re-add below
+              logger.debug "Removing out of sync rule: #{rule_map.inspect}"
+              ec2.revoke_security_group_ingress(rule_map.merge(:group_name => item.groupName))
+            end
+          end
+        end
+        rules.each do |rule|
+          # create non-existing rules
+          logger.debug "Mising rule, creating: #{rule.inspect}"
+          ec2.authorize_security_group_ingress(rule.merge(:group_name => item.groupName))
+        end
+      else
+        # delete group
+        logger.debug "Removing security group: #{item.groupName}"
+        ec2.delete_security_group(:group_name => item.groupName)
+      end
+    end
+    
+    # For each group that didnt already exist in ec2
+    group_keys.each do |key|
+      group = groups[key]
+      logger.debug "Creating new security group: #{key}"
+      # create each group
+      ec2.create_security_group(:group_name => key, :group_description => group['description'])
+      # create rules for group
+      group['rules'].each do |rule|
+        logger.debug "Creating new rule: #{rule.inspect}"
+        ec2.authorize_security_group_ingress(rule.merge(:group_name => key))
+      end
+    end
+  end
+
+  desc <<-DESC
+    Describes the network security groups
+  DESC
+  required_task :describe_security_groups do
+    env = rubber_cfg.environment.bind()
+    ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
+    
+    # For each group that does already exist in ec2
+    response = ec2.describe_security_groups()
+    puts response.xml
+#    response.securityGroupInfo.item.each do |item|
+#      puts item
+#    end
+  end
+
+  desc <<-DESC
     Update to the newest versions of all packages/gems.
   DESC
   task :update do
@@ -417,7 +501,7 @@ namespace :rubber do
     ec2_key = env.ec2_key_file
     ec2_pk = env.ec2_pk_file
     ec2_cert = env.ec2_cert_file
-    ec2_account = env.ec2_account
+    aws_account = env.aws_account
     ec2_key_dest = "#{mnt_vol}/#{File.basename(ec2_key)}"
     ec2_pk_dest = "#{mnt_vol}/#{File.basename(ec2_pk)}"
     ec2_cert_dest = "#{mnt_vol}/#{File.basename(ec2_cert)}"
@@ -430,7 +514,7 @@ namespace :rubber do
     arch = case arch when /i\d86/ then "i386" else arch end
     sudo_script "create_bundle", <<-CMD
       export RUBYLIB=/usr/lib/site_ruby/
-      ec2-bundle-vol -d #{mnt_vol} -k #{ec2_pk_dest} -c #{ec2_cert_dest} -u #{ec2_account} -p #{image_name} -r #{arch}
+      ec2-bundle-vol -d #{mnt_vol} -k #{ec2_pk_dest} -c #{ec2_cert_dest} -u #{aws_account} -p #{image_name} -r #{arch}
     CMD
   end
 
@@ -515,9 +599,13 @@ namespace :rubber do
 
     env = rubber_cfg.environment.bind(instance_roles.collect{|x| x.name}, instance_alias)
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
+    
+    # We need to use security_groups during create, so create them up front
+    setup_security_groups
+    
     ami = env.ec2_instance
     ami_type = env.ec2_instance_type
-    response = ec2.run_instances(:image_id => ami, :key_name => env.ec2_key_name, :instance_type => ami_type)
+    response = ec2.run_instances(:image_id => ami, :key_name => env.ec2_key_name, :instance_type => ami_type, :security_groups => env.security_groups)
     item = response.instancesSet.item[0]
     instance_id = item.instanceId
 

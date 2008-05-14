@@ -14,13 +14,35 @@ module Rubber
         @items = {}
         read_config("#{@config_root}/rubber.yml")
         Dir["#{@config_root}/rubber-*.yml"].each { |file| read_config(file) }
+        @items = expand(@items)
       end
       
       def read_config(file)
         LOGGER.debug{"Reading rubber configuration from #{file}"}
         if File.exist?(file)
-          expanded = eval('%Q{' + File.read(file) + '}', binding, file, 1)
-          @items = Environment.combine(@items, YAML.load(expanded) || {})
+          @items = Environment.combine(@items, YAML.load_file(file) || {})
+        end
+      end
+
+      def method_missing(method_id)
+        key = method_id.id2name
+        @items[key]
+      end
+
+      def expand(val)
+        case val
+        when Hash
+          val.inject({}) {|h, a| h[a[0]] = expand(a[1]); h}
+        when String
+          if val =~ /\#{[^\}]+}/
+            eval('%Q{' + val + '}', binding)
+          else
+            val
+          end
+        when Enumerable
+          val.collect {|v| expand(v)}
+        else
+          val
         end
       end
       

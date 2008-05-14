@@ -1,0 +1,13 @@
+var1: val1
+var2: val2
+
+var3: "#{var1}"
+var4: "4 is #{var2}"
+
+list1: [lv1, lv2, "#{var1}"]
+
+map1:
+  mk1: mv1
+  mk2: mv2
+  mk3: "#{var2}"
+  

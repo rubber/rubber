@@ -30,10 +30,11 @@ dns_user:
 dns_password:
 dns_ttl:
 
-# REQUIRED The amazon keys used to create instances
+# REQUIRED The amazon keys and account ID used to access the AWS API
 #
 aws_access_key: XXX
 aws_secret_access_key: YYY
+aws_account: ZZZ
 
 # REQUIRED:  The name of the amazon keypair and location of its private key
 #
@@ -41,16 +42,15 @@ aws_secret_access_key: YYY
 # the private key in the same folder, the public key should have the
 # extension ".pub".
 ec2_key_name: gsg-keypair
-ec2_key_file: #{(File.expand_path('~') rescue '/root') + '/.ec2/id_rsa-gsg-keypair'}
+ec2_key_file: #{(File.expand_path('~') rescue '/root') + '/.ec2/*#{ec2_key_name}'}
 
 # OPTIONAL: Needed for bundling a running instance using rubber:bundle
 # ec2_pk_file: #{Dir[(File.expand_path('~') rescue '/root') + '/.ec2/pk-*'].first}
 # ec2_cert_file: #{Dir[(File.expand_path('~') rescue '/root') + '/.ec2/cert-*'].first}
-# ec2_account: XXX
-# ec2_image_bucket: my_image_bucket
+# ec2_image_bucket: "#{app_name}_images"
 
 # OPTIONAL: Needed for backing up database to s3
-# ec2_backup_bucket: my_backup_bucket
+# ec2_backup_bucket: "#{app_name}_backups"
 
 # REQUIRED: the ami and instance type for creating instances
 #
@@ -58,6 +58,39 @@ ec2_key_file: #{(File.expand_path('~') rescue '/root') + '/.ec2/id_rsa-gsg-keypa
 ec2_instance: ami-c144a1a8
 # m1.small or m1.large or m1.xlarge
 ec2_instance_type: m1.small
+
+# OPTIONAL: Define ec2 security groups
+# Each security group is a name associated with a sequence of maps where the
+# keys are the parameters to the ec2 AuthorizeSecurityGroupIngress API
+# SourceSecurityGroupName, SourceSecurityGroupOwnerId
+# IpProtocol, FromPort, ToPort, CidrIp
+#
+ec2_security_groups:
+  default:
+    description: The default security group
+    rules:
+      - IpProtocol: tcp
+        FromPort: 0
+        ToPort: 65535
+        SourceSecurityGroupName: default
+        SourceSecurityGroupOwnerId: "#{aws_account}"
+      - IpProtocol: udp
+        FromPort: 0
+        ToPort: 65535
+        SourceSecurityGroupName: default
+        SourceSecurityGroupOwnerId: "#{aws_account}"
+      - IpProtocol: icmp
+        FromPort: -1
+        ToPort: -1
+        SourceSecurityGroupName: default
+        SourceSecurityGroupOwnerId: "#{aws_account}"
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 0.0.0.0/0
+
+# OPTIONAL: The default security groups to create instances with
+security_groups: [default2]
 
 # OPTIONAL: The packages to install on all instances
 packages: [build-essential, ruby-full, ruby1.8-dev, rake, irb, subversion]

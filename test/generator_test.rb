@@ -177,7 +177,7 @@ class GeneratorTest < Test::Unit::TestCase
     FileUtils.rm_rf(out_dir)
     assert ! File.exists?(out_dir)
 
-    g = Generator.new("#{File.dirname(__FILE__)}/fixtures", nil, nil, :out_dir => out_dir)
+    g = Generator.new("#{File.dirname(__FILE__)}/fixtures/basic", nil, nil, :out_dir => out_dir)
     g.run()
     assert File.directory?(out_dir), "scoped transform did not create dir"
     assert_equal ['bar.conf', 'foo.conf'], list_dir(out_dir), "scoped transform did not create correct files"
@@ -187,7 +187,7 @@ class GeneratorTest < Test::Unit::TestCase
     FileUtils.rm_rf(out_dir)
     assert ! File.exists?(out_dir)
 
-    g = Generator.new("#{File.dirname(__FILE__)}/fixtures", ['role1'], nil, :out_dir => out_dir)
+    g = Generator.new("#{File.dirname(__FILE__)}/fixtures/basic", ['role1'], nil, :out_dir => out_dir)
     g.run()
     assert File.directory?(out_dir), "scoped transform did not create dir"
     assert_equal ['bar.conf', 'foo.conf'], list_dir(out_dir), "scoped transform did not create correct files"
@@ -197,7 +197,7 @@ class GeneratorTest < Test::Unit::TestCase
     FileUtils.rm_rf(out_dir)
     assert ! File.exists?(out_dir)
 
-    g = Generator.new("#{File.dirname(__FILE__)}/fixtures", ['role2', 'role1'], nil, :out_dir => out_dir)
+    g = Generator.new("#{File.dirname(__FILE__)}/fixtures/basic", ['role2', 'role1'], nil, :out_dir => out_dir)
     g.run()
     assert File.directory?(out_dir), "scoped transform did not create dir"
     assert_equal ['bar.conf', 'foo.conf'], list_dir(out_dir), "scoped transform did not create correct files"
@@ -207,7 +207,7 @@ class GeneratorTest < Test::Unit::TestCase
     FileUtils.rm_rf(out_dir)
     assert ! File.exists?(out_dir)
 
-    g = Generator.new("#{File.dirname(__FILE__)}/fixtures", ['role1'], ['host1'], :out_dir => out_dir)
+    g = Generator.new("#{File.dirname(__FILE__)}/fixtures/basic", ['role1'], ['host1'], :out_dir => out_dir)
     g.run()
     assert File.directory?(out_dir), "scoped transform did not create dir"
     assert_equal ['bar.conf', 'foo.conf'], list_dir(out_dir), "scoped transform did not create correct files"
@@ -223,7 +223,7 @@ class GeneratorTest < Test::Unit::TestCase
     FileUtils.rm_rf(out_dir)
     assert ! File.exists?(out_dir)
 
-    g = Generator.new("#{File.dirname(__FILE__)}/fixtures", nil, nil, :out_dir => out_dir)
+    g = Generator.new("#{File.dirname(__FILE__)}/fixtures/basic", nil, nil, :out_dir => out_dir)
     g.file_pattern = 'foo\.conf'
     g.run()
     assert File.directory?(out_dir), "scoped transform did not create dir"
