@@ -4,4 +4,3 @@
 * extract ec2 specific code, and ubuntu specific code into a strategy/factory pattern so this can be used with other grid computing system
 * figure out how to test the capistrano bits
 * divorce from rails for use in deploying other things
-* add elastic IP support
