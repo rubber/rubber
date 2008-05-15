@@ -44,7 +44,7 @@ namespace :rubber do
       if File.dirname(__FILE__) =~ /vendor\/plugins/
         require(File.join(File.dirname(__FILE__), '../../../../config/boot'))
       else
-        raise "Cannot load rails env because rubber is not being used as a rails plugin"
+        fatal "Cannot load rails env because rubber is not being used as a rails plugin"
       end
     end
     set :rubber_cfg, Rubber::Configuration.get_configuration(ENV['RAILS_ENV'])
@@ -86,9 +86,7 @@ namespace :rubber do
       # If user doesn't setup a primary db, then be nice and do it
       if role.name == "db" && role.options["primary"] == nil && rubber_cfg.instance.for_role("db").size == 0
         value = Capistrano::CLI.ui.ask("You do not have a primary db role, should #{instance_alias} be it [y/n]?: ")
-        if value =~ /^y/
-          role.options["primary"] = true
-        end
+        role.options["primary"] = true if value =~ /^y/
       end
 
       ir << role
@@ -139,16 +137,11 @@ namespace :rubber do
     response = ec2.describe_instances()
     response.reservationSet.item.each do |ritem|
       ritem.instancesSet.item.each do |item|
-        ip = IPSocket.getaddress(item.dnsName) rescue "NoIP"
-        local_alias = File.read("/etc/hosts").grep(/#{ip}/).first.split[1] rescue nil
+        ip = IPSocket.getaddress(item.dnsName) rescue nil
+        instance_id = item.instanceId
         state = item.instanceState.name
-        if ! local_alias && state == 'running'
-          task :_get_ip, :hosts => ip do
-            local_alias = "* " + capture("hostname").strip
-          end
-          _get_ip
-        end
-        results << format % [item.instanceId, state, ip, local_alias || "Unknown"]
+        local_alias = find_alias(ip, instance_id, state == 'running')
+        results << format % [instance_id, state, ip || "NoIP", local_alias || "Unknown"]
       end
     end
     results.each {|r| logger.info r}
@@ -282,7 +275,7 @@ namespace :rubber do
           rule_maps.each do |rule_map|
             if rules.delete(rule_map)
               # rules match, don't need to do anything
-              logger.debug "Rule in sync: #{rule_map.inspect}"
+              # logger.debug "Rule in sync: #{rule_map.inspect}"
             else
               # rules don't match, remove them from ec2 and re-add below
               logger.debug "Removing out of sync rule: #{rule_map.inspect}"
@@ -329,10 +322,76 @@ namespace :rubber do
     # For each group that does already exist in ec2
     response = ec2.describe_security_groups()
     puts response.xml
-#    response.securityGroupInfo.item.each do |item|
-#      puts item
-#    end
   end
+
+  desc <<-DESC
+    Sets up static IPs for the instances configured to have them
+  DESC
+  required_task :setup_static_ips do
+    rubber_cfg.instance.each do |ic|
+      env = rubber_cfg.environment.bind(ic.role_names, ic.name)
+      if env.use_static_ip
+        if ! ic.static_ip
+          allocate_static_ip(ic)
+        end
+        if ic.static_ip && ic.static_ip != ic.external_ip
+          associate_static_ip(ic)
+        end
+      end
+    end
+  end
+
+  desc <<-DESC
+    Assigns the given static ip to the given host
+  DESC
+  task :assign_static_ip do
+    instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
+    instance_ip = get_env('IP', "Static IP (run rubber:describe_static_ips for a list)", true)
+    
+    ic = rubber_cfg.instance[instance_alias]
+    env = rubber_cfg.environment.bind(ic.role_names, ic.name)
+    
+    fatal "#{instance_alias} is not configured to have a static_ip in rubber.yml" unless env.use_static_ip
+    value = Capistrano::CLI.ui.ask("Static ip already assigned, #{instance_alias}:#{ic.static_ip}, proceed [y/n]?: ")
+    fatal("Exiting", 0) if value !~ /^y/
+
+    ic.static_ip = instance_ip
+    associate_static_ip(ic)
+  end
+
+  desc <<-DESC
+    Deallocates the given static ip
+  DESC
+  required_task :release_static_ip do
+    instance_ip = get_env('IP', "Static IP (run rubber:describe_static_ips for a list)", true)
+    deallocate_static_ip(instance_ip)    
+  end
+
+  desc <<-DESC
+    Shows the configured static IPs
+  DESC
+  required_task :describe_static_ips do
+    env = rubber_cfg.environment.bind()
+    ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
+    
+    
+    results = []
+    format = "%-10s %-15s %-30s"
+    results << format % %w[InstanceID IP Alias]
+    
+    response = ec2.describe_addresses()
+    response.addressesSet.item.each do |item|
+      instance_id = item.instanceId
+      ip = item.publicIp
+      
+      local_alias = find_alias(ip, instance_id, false)
+      
+      results << format % [instance_id || "Unassigned", ip, local_alias || "Unknown"]
+    end if response.addressesSet
+    
+    results.each {|r| logger.info r}
+  end
+
 
   desc <<-DESC
     Update to the newest versions of all packages/gems.
@@ -437,7 +496,7 @@ namespace :rubber do
   desc "Back up and register an image of the running instance to S3"
   task :bundle do
     if find_servers_for_task(current_task).size > 1
-      raise "Can only bundle a single instance at a time, use FILTER to limit the scope"
+      fatal "Can only bundle a single instance at a time, use FILTER to limit the scope"
     end
     image_name = get_env('IMAGE', "The image name for the bundle", true, Time.now.strftime("%Y%m%d_%H%M"))
     bundle_vol(image_name)
@@ -465,10 +524,7 @@ namespace :rubber do
   required_task :create_staging do
     if rubber_cfg.instance.size > 0
       value = Capistrano::CLI.ui.ask("The #{rails_env} environment already has instances, Are you SURE you want to create a staging instance that may interact with them [y/N]?: ")
-      if value != "y"
-        logger.info "Exiting"
-        exit
-      end
+      fatal("Exiting", 0) if value !~ /^y/
     end
     ENV['ALIAS'] = rubber.get_env("ALIAS", "Hostname to use for staging instance", true, rails_env)
     default_roles = rubber_cfg.environment.bind().staging_roles || "*"
@@ -595,17 +651,19 @@ namespace :rubber do
     msg << ": "
     value = Capistrano::CLI.ui.ask(msg) unless value
     value = value.size == 0 ? default : value
-    raise("#{name} is required, pass using environment or enter at prompt") if required && ! value
+    fatal "#{name} is required, pass using environment or enter at prompt" if required && ! value
     return value
+  end
+  
+  def fatal(msg, code=1)
+    logger.info msg
+    exit code
   end
 
   # Creates a new ec2 instance with the given alias and roles
   # Configures aliases (/etc/hosts) on local and remote machines
   def create_instance(instance_alias, instance_roles)
-    if rubber_cfg.instance[instance_alias]
-      logger.info "Instance already exists: #{instance_alias}"
-      exit 1
-    end
+    fatal "Instance already exists: #{instance_alias}" if rubber_cfg.instance[instance_alias]
 
     env = rubber_cfg.environment.bind(instance_roles.collect{|x| x.name}, instance_alias)
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
@@ -638,6 +696,9 @@ namespace :rubber do
         instance_item.external_ip = IPSocket.getaddress(item.dnsName)
         instance_item.internal_host = item.privateDnsName
 
+        # setup amazon elastic ips if configured to do so
+        setup_static_ips
+        
         # Need to setup aliases so ssh doesn't give us errors when we
         # later try to connect to same ip but using alias
         setup_local_aliases
@@ -676,10 +737,8 @@ namespace :rubber do
   # Configures aliases (/etc/hosts) on local and remote machines
   def refresh_instance(instance_alias)
     instance_item = rubber_cfg.instance[instance_alias]
-    if ! instance_item
-      logger.info "Instance does not exist: #{instance_alias}"
-      exit 1
-    end
+    
+    fatal "Instance does not exist: #{instance_alias}" if ! instance_item
 
     env = rubber_cfg.environment.bind(instance_item.role_names, instance_alias)
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
@@ -720,18 +779,18 @@ namespace :rubber do
   # Destroys the given ec2 instance
   def destroy_instance(instance_alias)
     instance_item = rubber_cfg.instance[instance_alias]
-    if ! instance_item
-      logger.info "Instance does not exist: #{instance_alias}"
-      exit 1
-    end
+    fatal "Instance does not exist: #{instance_alias}" if ! instance_item
+    
     env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
 
     value = Capistrano::CLI.ui.ask("About to DESTROY #{instance_alias} (#{instance_item.instance_id}) in mode #{ENV['RAILS_ENV']}.  Are you SURE [yes/NO]?: ")
-    if value != "yes"
-      logger.info "Exiting"
-      exit
+    fatal("Exiting", 0) if value != "yes"
+    
+    if env.use_static_ip && instance_item.static_ip
+      value = Capistrano::CLI.ui.ask("Instance has a static ip, do you want to release it? [y/N]?: ")
+      deallocate_static_ip(instance_item.static_ip) if value =~ /^y/
     end
-
+    
     logger.info "Destroying instance alias=#{instance_alias}, instance_id=#{instance_item.instance_id}"
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
     response = ec2.terminate_instances(:instance_id => instance_item.instance_id)
@@ -833,6 +892,55 @@ namespace :rubber do
   
   def init_s3()
     Rubber::Configuration.init_s3(rubber_cfg.environment.bind())
+  end
+
+  def allocate_static_ip(ic)
+    env = rubber_cfg.environment.bind()
+    ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
+    logger.info "Allocating static ip for #{ic.full_name}"
+    response = ec2.allocate_address()
+    ic.static_ip = response.publicIp
+    rubber_cfg.instance.save()
+  end
+    
+  def associate_static_ip(ic)
+    env = rubber_cfg.environment.bind()
+    ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
+    logger.info "Associating static ip to instance: #{ic.full_name} (#{ic.instance_id}) => #{ic.static_ip}"
+    response = ec2.associate_address(:instance_id => ic.instance_id, :public_ip => ic.static_ip)
+    if response.return == "true"
+      ic.external_ip = ic.static_ip
+      response = ec2.describe_instances(:instance_id => ic.instance_id)
+      item = response.reservationSet.item[0].instancesSet.item[0]
+      ic.external_host = item.dnsName
+      ic.internal_host = item.privateDnsName
+      rubber_cfg.instance.save()
+    else
+      fatal "Failed to associate static ip"
+    end
+  end
+
+  def deallocate_static_ip(instance_ip)
+    env = rubber_cfg.environment.bind()
+    ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
+    logger.info "DeAllocating static ip: #{instance_ip}"
+    response = ec2.release_address(:public_ip => instance_ip)
+    fatal "Failed to deallocate" if response.return != "true"
+  end
+    
+  def find_alias(ip, instance_id, do_connect=true)
+    if instance_id
+      instance = rubber_cfg.instance.find {|i| i.instance_id == instance_id }
+      local_alias = instance.full_name if instance
+    end
+    local_alias ||= File.read("/etc/hosts").grep(/#{ip}/).first.split[1] rescue nil
+    if ! local_alias && do_connect
+      task :_get_ip, :hosts => ip do
+        local_alias = "* " + capture("hostname").strip
+      end
+      _get_ip rescue ConnectionError
+    end
+    return local_alias
   end
 
   # Use instead of task to define a capistrano taks that runs serially instead of in parallel

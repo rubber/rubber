@@ -7,6 +7,7 @@ module Rubber
     #
     class Instance
       attr_reader :file
+      include Enumerable
 
       def initialize(file)
         LOGGER.debug{"Reading rubber instances from #{file}"}
@@ -62,6 +63,7 @@ module Rubber
       attr_reader :name, :domain, :roles, :instance_id
       attr_accessor :external_host, :external_ip
       attr_accessor :internal_host, :internal_ip
+      attr_accessor :static_ip
 
       def initialize(name, domain, roles, instance_id)
         @name = name
