@@ -14,7 +14,6 @@ module Rubber
         @items = {}
         read_config("#{@config_root}/rubber.yml")
         Dir["#{@config_root}/rubber-*.yml"].each { |file| read_config(file) }
-        @items = expand(@items)
       end
       
       def read_config(file)
@@ -24,28 +23,6 @@ module Rubber
         end
       end
 
-      def method_missing(method_id)
-        key = method_id.id2name
-        @items[key]
-      end
-
-      def expand(val)
-        case val
-        when Hash
-          val.inject({}) {|h, a| h[a[0]] = expand(a[1]); h}
-        when String
-          if val =~ /\#\{[^\}]+\}/
-            eval('%Q{' + val + '}', binding)
-          else
-            val
-          end
-        when Enumerable
-          val.collect {|v| expand(v)}
-        else
-          val
-        end
-      end
-      
       def known_roles
         roles_dir = File.join(@config_root, "role")
         roles = Dir.entries(roles_dir)
@@ -95,7 +72,7 @@ module Rubber
         # get the environment value for the given key
         # if combine is true, value are cmobined for role/host overrides
         # if combine is false, host overrides roles overrides global
-        def get(name, combine=false)
+        def get(name, combine=false, expand=false)
           if combine
             value = @cfg[name]
             @roles.to_a.each do |role|
@@ -111,11 +88,28 @@ module Rubber
             v = @cfg["hosts"][@host][name] rescue nil
             value = v if v
           end
-          return value
+          
+          return (expand ? self.expand(value) : value)
         end
 
         def [](name)
-          get(name, true)
+          get(name, true, true)
+        end
+
+        def expand(val)
+          case val
+          when Hash
+            val.inject({}) {|h, a| h[a[0]] = expand(a[1]); h}
+          when String
+            while val =~ /\#\{[^\}]+\}/
+              val = eval('%Q{' + val + '}', binding)
+            end
+            val
+          when Enumerable
+            val.collect {|v| expand(v)}
+          else
+            val
+          end
         end
 
         def method_missing(method_id)

@@ -56,8 +56,25 @@ class EnvironmentTest < Test::Unit::TestCase
     assert_equal 'val2', e['var2']
     assert_equal 'val1', e['var3']
     assert_equal '4 is val2', e['var4']
+    assert_equal 'val1', e['var5']
     assert_equal %w[lv1 lv2 val1], e['list1']
     assert_equal({'mk1' => 'mv1', 'mk2' => 'mv2', 'mk3' => 'val2'}, e['map1'])
+      
+    e = env.bind('role1', 'nohost')
+    assert_equal 'role1val1', e['var1']
+    assert_equal 'role1val1', e['var3']
+    assert_equal %w[lv1 lv2 role1val1 role1lv1 role1val2], e['list1']
+
+    e = env.bind('role1', 'host1')
+    assert_equal 'host1val1', e['var1']
+    assert_equal 'host1val1', e['var3']
+    assert_equal %w[lv1 lv2 host1val1 role1lv1 host1val2 host1lv1], e['list1'] # lists are additive
+    
+    e = env.bind('norole', 'host1')
+    assert_equal 'host1val1', e['var1']
+    assert_equal 'host1val1', e['var3']
+    assert_equal %w[lv1 lv2 host1val1 host1lv1 host1val2], e['list1']
+      
   end
 
 end
