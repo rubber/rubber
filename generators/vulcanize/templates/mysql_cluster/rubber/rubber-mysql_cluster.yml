@@ -1,0 +1,26 @@
+# MySQL user accounts and privileges are not automatically propagated between different MySQL servers accessing the same MySQL Cluster. Therefore, you must make sure that these are copied between the SQL nodes yourself.
+
+# REQUIRED: The credentials for creating/accessong your app's database
+#
+db_user: "#{app_name}"
+db_pass:
+db_name: "#{app_name}_#{RAILS_ENV}"
+
+# REQUIRED: The command to use to do a full backup of your database using
+#           "rake rubber:backup_db"
+db_backup_cmd: "nice mysqldump -h \#{host} -u \#{user} \#{'-p' + pass if pass} \#{name} | gzip -c > \#{backup_file}"
+
+# REQUIRED: The directory the data nodes store the db data in
+#
+db_data_dir: /mnt/mysql_cluster_data
+
+packages: [mysql-client, libmysql-ruby]
+
+
+roles:
+  mysql_sql:
+    packages: [mysql-server]
+  mysql_mgm:
+    packages: [mysql-server]
+  mysql_data:
+    packages: [mysql-server]

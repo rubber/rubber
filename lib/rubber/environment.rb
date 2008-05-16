@@ -32,6 +32,10 @@ module Rubber
       def current_host
         Socket::gethostname.gsub(/\..*/, '')
       end
+      
+      def current_full_host
+        Socket::gethostname
+      end
 
       def bind(roles = nil, host = nil)
         BoundEnv.new(@items, roles, host)
@@ -62,11 +66,13 @@ module Rubber
       class BoundEnv
         attr_reader :roles
         attr_reader :host
+        attr_reader :full_host
 
         def initialize(cfg, roles, host)
           @cfg = cfg
           @roles = roles
           @host = host
+        @full_host = host + "." + self['domain'] rescue nil
         end
 
         # get the environment value for the given key

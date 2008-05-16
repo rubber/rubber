@@ -111,7 +111,7 @@ stop_on_error_cmd: "function error_exit { exit 99; }; trap error_exit ERR"
 staging_roles: *
 
 # OPTIONAL: Lets one assign amazon elastic IPs (static IPs) to your instances
-#           You should typicallly set this on the role/host level rather than
+#           You should typically set this on the role/host level rather than
 #           globally , unless you really do want all instances to have a
 #           static IP
 #

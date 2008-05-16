@@ -1,0 +1,34 @@
+<%
+  data_nodes = rubber_instances.for_role('mysql_data')
+  sql_nodes = rubber_instances.for_role('mysql_sql')
+
+  @path = "/etc/mysql/ndb_mgmd.cnf"
+%>
+
+# You can use the following formula for obtaining a rough estimate of how much
+# RAM is needed for each data node in the cluster:
+# (SizeofDatabase ? NumberOfReplicas ? 1.1 ) / NumberOfDataNodes
+
+[NDBD DEFAULT]
+NoOfReplicas=<%= data_nodes.size == 1 ? 1 : 2 %>
+
+[MYSQLD DEFAULT]
+[NDB_MGMD DEFAULT]
+[TCP DEFAULT]
+
+# Managment Server
+[NDB_MGMD]
+HostName=<%= rubber_env.full_host %>
+
+# Data Nodes (Where your data is stored)
+<% data_nodes.each do |data_node| %>
+[NDBD]
+HostName=<%= data_node.full_name %>
+DataDir=<%= rubber_env.db_data_dir %>
+<% end %>
+
+# SQL Nodes (what your clients connect to)
+<% sql_nodes.each do |sql_node| %>
+[MYSQLD]
+HostName=<%= sql_node.full_name %>
+<% end %>
