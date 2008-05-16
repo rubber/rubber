@@ -90,8 +90,8 @@ your needs.  The goal here is to get people to contribute generators so that
 we all don't have to reinvent the wheel every time we need to come up with a
 deployment environment.  For example,
 
-./script/generate mysql_minimal
-./script/generate monit
+./script/generate vulcanize mysql_minimal
+./script/generate vulcanize monit
 
 to setup a minimal mysql setup (a stack made up of mysql, mongrel and nginx),
 and add in monit for making sure your components stay running
