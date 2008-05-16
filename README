@@ -12,13 +12,70 @@ the quantity of instances you need to host your app servers)
 
 REQUIREMENTS:
 
-* An EC2 account with keypair (both public and private keys) and port 22 access
-    to the default security group (ec2-authorize default -p 22)
+* An EC2 account with keypair (both public and private keys)
+    By default rubber _will_ configure your ec2 security groups for you
     See the EC2 docs for more details:
     http://docs.amazonwebservices.com/AWSEC2/2007-08-29/GettingStartedGuide/?ref=get-started
-* amazon-ec2: sudo gem install amazon-ec2
-* AWS::S3: sudo gem install aws-s3
-* Capistrano: sudo gem install capistrano
+* amazon-ec2: "sudo gem install amazon-ec2"
+* AWS::S3: "sudo gem install aws-s3"
+* Capistrano: "sudo gem install capistrano"
+* nettica gem: "sudo gem install nettica" if using nettica to auto map instances to A records
+
+QUICK START:
+
+You can follow these steps to create a demo app on a single
+instance:
+
+Create a simple rails project:
+rails rubbertest
+cd rubbertest
+./script/generate scaffold post title:string body:text
+
+Install rubber:
+./script/plugin install http://rubber.rubyforge.org/svn/trunk
+./script/generate vulcanize minimal_mysql
+
+Configure rubber:
+<edit config/rubber/rubber.yml>
+For demo, you need real values for these:
+  aws_access_key
+  aws_secret_access_key
+  aws_account
+  ec2_key_name
+  ec2_key_file
+
+For a real app, you should go through all the settings in rubber.yml as well
+as the settings in rubber-MODULE.yml which contains settings specific to
+each MODULE (nginx, mongrel, etc)
+
+Create, bootstrap, then deploy to instance:
+ALIAS=production ROLES=web,app,db:primary=true cap rubber:create
+cap rubber:bootstrap
+cap deploy:setup
+cap deploy:cold
+
+Then you should be able to browse to http://production.foo.com (uses
+/etc/hosts file, so need to set your own domain for the demo)
+
+As a convenience, you could instead run "cap rubber:create_staging" to
+automate the above for a single instance.
+
+For a more complex production setup
+
+ALIAS=web01 ROLES=web cap rubber:create
+ALIAS=app01 ROLES=app cap rubber:create
+ALIAS=app02 ROLES=app cap rubber:create
+ALIAS=db01 ROLES=db:primary=true cap rubber:create
+ALIAS=db02 ROLES=db cap rubber:create
+cap rubber:bootstrap
+cap deploy:setup
+cap deploy:cold
+
+To add another app server to an existing deployment:
+
+ALIAS=app03 ROLES=app cap rubber:create
+cap rubber:bootstrap
+cap deploy
 
 INSTALLATION:
 
@@ -26,22 +83,39 @@ First, Rubber needs to be installed as a rails plugin.  Then run its
 vulcanize generator to add a basic set of configuration files to your
 project.
 
-Edit config/rubber/rubber.yml to add your settings.  You can edit or
+The vulcanize generator follows a mixin model.  You can choose to generate
+a complete deployment scenario like "mysql_complete", or you can start with
+the "base" or "mysql_minimal" generator and mixin in the modules you want for
+your needs.  The goal here is to get people to contribute generators so that
+we all don't have to reinvent the wheel every time we need to come up with a
+deployment environment.  For example,
+
+./script/generate mysql_minimal
+./script/generate monit
+
+to setup a minimal mysql setup (a stack made up of mysql, mongrel and nginx),
+and add in monit for making sure your components stay running
+
+Each component/stack will install a set of transformable config files, a
+rubber-module.yml file for configuring their transformation, and a
+deploy-module.rb file for doing the right thing for that module during
+deployment.  I try to ensure that all components have sane defaults so
+they will work out of the box, but you'll still want to peruse the files
+they generate to customize their behavior.
+
+Edit config/rubber/rubber*.yml to add your settings.  You can edit or
 add to the config files in RAILS_ROOT/config/rubber/<common|role|host> to
-setup instances globally or for specific roles and/or hosts.
+transform those config files globally for all instances or for specific roles
+and/or hosts.
 
-You will also need to customize config/deploy.rb for your needs
+You will also need to customize config/deploy.rb for your needs. The deployment
+scripts in config/deploy-MODULE.yml contain MODULE specific (mongrel, nginx,
+etc) scripts for deploying those pieces of your setup.
 
-You probably don't want to do this, but running "rake rubber:config" in a
-development env will tranform config files for the global scope along with
-the config file for all roles, and config files for the current machine
-(if any), but not config files specific to other hosts.  This helps one to
-test out config file transformations before committing and deploying to your
-instances.  Currently this needs to run via sudo as it typically writes to
-files that only root can modify (e.g./etc/my/my.cnf) - I need  a better
-solution here, maybe writing them to a "Fake root" in /tmp.
-
-See RUNNING below for a walkthrough on installing rubber for a demo rails app.
+To test that your transformations all work before deploying, you can run
+"rake rubber:config" in a development env.  This will transform all your
+rubber config files into RAILS_ROOT/tmp/rubber as if it were "/" on your 
+remote servers.
 
 CONFIGURATION:
 
@@ -58,7 +132,7 @@ happens when the template is transformed:
             has changed
 @owner      The owner the output file should have, e.g. "root"
 @group      The group the output file should have, e.g. "system"
-@perms      The permissions the output file should have, e.g. 644
+@perms      The permissions the output file should have, e.g. 0644
 @additive   Sets transformation to be additive, only replaces between given
             delimiters, e.g. @additive = ["## start", "## end"]
 
@@ -66,11 +140,12 @@ Of the above, the only variables that are required are  @path or both
 @read_cmd and @write_cmd
 
 In addition, within the config templates you have access to the rubber
-configuration objects rubber_env (rubber.yml) and rubber_instances
+configuration objects rubber_env (rubber*.yml) and rubber_instances
 (instance*.yml).  This makes it possible to write config files in such a way
 that adding more instances gets handled automatically - e.g. the proxy
 destinations in the nginx.conf need to get updated when we add more app server
-instances.
+instances.  Look at existing config files for examples of using these two
+configuration objects.
 
 Configuration files that exist in config/rubber/common will be transformed for
 all hosts.
@@ -78,6 +153,22 @@ Configuration files that exist in config/rubber/role/<role_name> will only be
 transformed on the hosts that are members of role_name.
 Configuration files that exist in config/rubber/host/<host_name> will only be
 transformed on the hosts with a hostname of host_name.
+
+All the variables used in the config files (and the rubber runtime) are
+determined by combining all the settings in rubber.yml as well as the
+settings in rubber-MODULE.yml which contains settings specific to each
+MODULE (nginx, mongrel, etc)
+
+When combining host/role/global variables in rubber*.yml, scalar (strings,
+ints) values are overidden by more specific values, that is for the same
+variable name in all three, the one in host takes precendence followed by
+role then global.  Non-scalar values (sequences, maps) are merged when
+combining roles, with keys in maps getting overridden by the more specific
+ones when there is a conflict.  There currently is no way to override a
+non-scalar for a more specific group, but I actually haven't needed that
+capability yet.  You can also refer to other variables within the file like
+so 'foo: "#{app_name}"'.  You are also allowed to execute arbitrary ruby
+code in the #{} blocks.
 
 RUNNING:
 
@@ -100,83 +191,41 @@ rubber:config will be able to see the change on remote hosts.  One should use
 the noscm scm provider for capistrano to iterate rapidly when building out a
 deployment scenario with rubber.
 
-For example, you can follow these steps to create a demo app on a single
-instance:
-
-Create a simple rails project:
-rails rubbertest
-cd rubbertest
-./script/generate scaffold post title:string body:text
-
-Install rubber:
-./script/plugin install http://rubber.rubyforge.org/svn/trunk
-./script/generate vulcanize minimal_mysql
-
-Configure rubber:
-<edit config/rubber/rubber.yml>
-For demo, you need real values for these:
-  aws_access_key
-  aws_secret_access_key
-  ec2_key_name
-  ec2_key_file
-You should go through the rest for a real app.
-
-
-Create, bootstrap, then deploy to instance:
-ALIAS=www ROLES=web,app,db:primary=true cap rubber:create
-cap rubber:bootstrap
-cap deploy:setup
-cap deploy:cold
-
-or for a more complex production setup
-
-ALIAS=web01 ROLES=web cap rubber:create
-ALIAS=app01 ROLES=app cap rubber:create
-ALIAS=app02 ROLES=app cap rubber:create
-ALIAS=db01 ROLES=db:primary=true cap rubber:create
-ALIAS=db02 ROLES=db cap rubber:create
-cap rubber:bootstrap
-cap deploy:setup
-cap deploy:cold
-
-To add another app server:
-
-ALIAS=app03 ROLES=app cap rubber:create
-cap rubber:bootstrap
-cap deploy
-
+I recommend that people use nettica for managing their DNS because they have a 
+completely scriptable API for adding/removing instances from DNS which I have
+integrated into rubber (thats what I use).  There is also limited support for
+dyndns (basically any service that has a url for mapping hosts->IPs using basic
+http auth), but I don't use it so no guarantees on how well it works.
+ 
 EXTEND:
 
-To add some custom install steps in your deploy.rb:
+It should be safe to edit the generated files because the rails generate
+script will warn of conflicts on subsequent runs, and allow you to perform
+a diff for resolving the conflict.  However, for deployment scripts, there
+is a lot you can do by tying into the existing process flow by using the
+capistrano before/after mechanism.  For example,
 
 after "rubber:install_packages", "custom_install"
+before "rubber:install_packages", "custom_install_web"
 
+# run for all roles
 task :custom_install do
-  # Setup ssh access to svn from all hosts
-  svn_pvt_key = <<-DATA
-    -----BEGIN DSA PRIVATE KEY-----
-    XXXX
-    -----END DSA PRIVATE KEY-----
-  DATA
-  svn_pvt_key.gsub!(/^ */, '')
-  svn_pub_key = "ssh-dss YYY foo@bar.com"
-  put(svn_pvt_key, "/root/.ssh/id_dsa", :mode => 0600)
-  put(svn_pub_key, "/root/.ssh/id_dsa.pub", :mode => 0600)
-
-  # Get host key for src machine to prevent ssh from failing
-  # during cap deploy
-  run "ssh  -o 'StrictHostKeyChecking=no' mobicious@src.foo.com echo"
-  custom_install_app
+  sudo_script <<-SCRIPT
+    run_cmd
+    other_cmd
+    ! cmd_that_can_have_non-zero_exit
+  SCRIPT
 end
 
-task :custom_install_app, :roles => :app do
-  # add the rails user for running app server with
-  run "adduser --system --group rails"
+# only run for web roles
+task :custom_install_web, :roles => :web do
+  put(File.read("local/file"), "/some/file")
 end
 
 If anyone has any configuration templates similar to what is provided in
-generators/vulcanize/templates, please contribute them to
-the project.
+generators/vulcanize/templates, please contribute them to the project,
+e.g. a module for using apache instead of nginx, or postgres instead of
+mysql, etc.
 
 Enjoy!
 

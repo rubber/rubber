@@ -4,3 +4,8 @@
 * extract ec2 specific code, and ubuntu specific code into a strategy/factory pattern so this can be used with other grid computing system
 * figure out how to test the capistrano bits
 * divorce from rails for use in deploying other things
+* Script setup of round robin dns (Web role), mx records (mail role), etc in generators 
+* add scripted failover to generated configs for:
+    * remove web hosts from round robin on web host failure
+    * db failover (promote slave replica? master-master replicas?  cluster?)
+* mysql_cluster generator
