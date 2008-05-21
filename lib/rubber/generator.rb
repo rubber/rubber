@@ -23,23 +23,25 @@ module Rubber
 
       def run
         config_dirs = []
-        config_dirs << "#{@config_dir}/common/"
-        @roles.each {|role| config_dirs <<  "#{@config_dir}/role/#{role}" }
-        config_dirs << "#{@config_dir}/host/#{@host}"
+        config_dirs << "#{@config_dir}/common/**/**"
+        @roles.sort.each {|role| config_dirs <<  "#{@config_dir}/role/#{role}/**/**" }
+        config_dirs << "#{@config_dir}/host/#{@host}/**/**"
 
         pat = Regexp.new(file_pattern) if file_pattern
-
-        Find.find(*config_dirs) do |f|
-          Find.prune if f =~ /\/(CVS|\.svn)\//
-          if File.file?(f) && (! pat || pat.match(f))
-            LOGGER.info{"Transforming #{f}"}
-            begin
-              transform(IO.read(f), @options)
-            rescue Exception => e
-              lines = e.backtrace.grep(/^\(erb\):([0-9]+)/) {|b| Regexp.last_match(1) }
-              LOGGER.error{"Transformation failed for #{f}#{':' + lines.first if lines.first}"}
-              LOGGER.error e.message
-              exit 1
+        
+        config_dirs.each do |dir|
+          Dir[dir].sort.each do |f|
+            next if f =~ /\/(CVS|\.svn)\//
+            if File.file?(f) && (! pat || pat.match(f))
+              LOGGER.info{"Transforming #{f}"}
+              begin
+                transform(IO.read(f), @options)
+              rescue Exception => e
+                lines = e.backtrace.grep(/^\(erb\):([0-9]+)/) {|b| Regexp.last_match(1) }
+                LOGGER.error{"Transformation failed for #{f}#{':' + lines.first if lines.first}"}
+                LOGGER.error e.message
+                exit 1
+              end
             end
           end
         end

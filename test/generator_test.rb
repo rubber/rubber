@@ -218,7 +218,47 @@ class GeneratorTest < Test::Unit::TestCase
     FileUtils.rm_rf(out_dir)
   end
 
-  def test_file_pattern
+  def test_ordering
+    out_dir = "#{Dir::tmpdir}/test_rubber_ordering"
+    FileUtils.rm_rf(out_dir)
+    assert ! File.exists?(out_dir)
+    
+    g = Generator.new("#{File.dirname(__FILE__)}/fixtures/generator_order", ['role2', 'role1'], ['host1'], :out_dir => out_dir)
+    g.run()
+    assert File.directory?(out_dir), "transform did not create dir"
+    assert_equal ['out.conf'], list_dir(out_dir), "transform did not create correct file"
+    result = <<DATA
+# common first start
+first
+# common first end
+# common last start
+last
+# common last end
+# role1 first start
+role1 first
+# role1 first end
+# role1 last start
+role1 last
+# role1 last end
+# role2 first start
+role2 first
+# role2 first end
+# role2 last start
+role2 last
+# role2 last end
+# host1 first start
+host1 first
+# host1 first end
+# host1 last start
+host1 last
+# host1 last end
+DATA
+    assert_equal result.strip, File.read("#{out_dir}/out.conf").strip, "transformed contents are incorrect"
+    
+    FileUtils.rm_rf(out_dir)
+  end
+
+def test_file_pattern
     out_dir = "#{Dir::tmpdir}/test_rubber_scoping"
     FileUtils.rm_rf(out_dir)
     assert ! File.exists?(out_dir)
