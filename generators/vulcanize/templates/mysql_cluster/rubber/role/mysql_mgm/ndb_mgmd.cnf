@@ -32,3 +32,6 @@ DataDir=<%= rubber_env.db_data_dir %>
 [MYSQLD]
 HostName=<%= sql_node.full_name %>
 <% end %>
+
+# One extra sql_node for use by things like ndb_restore from mgm node itself.
+[MYSQLD]
