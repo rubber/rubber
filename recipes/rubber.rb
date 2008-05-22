@@ -490,7 +490,7 @@ namespace :rubber do
     opts['RAILS_ENV'] = ENV['RAILS_ENV'] if ENV['RAILS_ENV']
 
     # when running deploy:migrations, we need to run config against release_path
-    opts[:deploy_path] = release_path if migrate_target.to_sym == :latest
+    opts[:deploy_path] = current_release if fetch(:migrate_target, :current).to_sym == :latest
      
     run_config(opts)
   end
