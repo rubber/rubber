@@ -488,6 +488,10 @@ namespace :rubber do
     opts['NO_POST'] = true if ENV['NO_POST']
     opts['FILE'] = ENV['FILE'] if ENV['FILE']
     opts['RAILS_ENV'] = ENV['RAILS_ENV'] if ENV['RAILS_ENV']
+
+    # when running deploy:migrations, we need to run config against release_path
+    opts[:deploy_path] = release_path if migrate_target.to_sym == :latest
+     
     run_config(opts)
   end
 
