@@ -532,12 +532,16 @@ namespace :rubber do
     ENV['ROLES'] = roles 
     rubber.create
 
-    # Need to do this otherwise it forces user to checkin instance file between create and bootstrap
-    dest_instance_file = rubber_cfg.instance.file.sub(/^#{RAILS_ROOT}/, '')
-    put(File.read(rubber_cfg.instance.file), File.join(path, dest_instance_file))
-
+    # Need to do this so we can bootstrap db (rubber.run_config for just db
+    # files) without having to checkin instance file between create and
+    # bootstrap
+    after "deploy:update_code" do
+      dest_instance_file = rubber_cfg.instance.file.sub(/^#{RAILS_ROOT}/, '')
+      put(File.read(rubber_cfg.instance.file), File.join(release_path, dest_instance_file))
+    end
+    
     rubber.bootstrap
-    # bootstrap_db does setup/update_code, so so since release directory
+    # bootstrap_db does setup/update_code, so since release directory
     # variable gets reused by cap, we have to just do the symlink here - doing
     # a update again will fail
     deploy.symlink
