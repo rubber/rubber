@@ -1,3 +1,4 @@
+description: A simple nginx/mongrel/mysql rails stack 
 dependent_templates:
   - base
   - mysql

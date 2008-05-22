@@ -1,5 +1,9 @@
+description: A fairly complete and scalable mysql deployment setup
 dependent_templates:
-  - minimal_mysql
+  - base
+  - mysql_cluster
+  - mongrel
+  - nginx
   - monit
   - munin
   - memcached
