@@ -22,43 +22,65 @@ namespace :mysql_cluster do
   after "rubber:bootstrap", "mysql_cluster:bootstrap"
 
   task :bootstrap, :roles => :mysql_data do
-    # Only bootstrap if there isn't a data_dir for the first data_host
-    # Need to use FILTER if you want to bootstrap any subsequent additions    exists = ""
-    exists = capture("if test -d #{rubber_cfg.environment.bind().db_data_dir}; then echo exists; fi")
-    if exists.strip.size == 0
-      do_bootstrap
+    # Conditionaly bootstrap for each node/role only if that node has not
+    # been boostrapped for that role before
+
+    rubber_cfg.instance.for_role("mysql_mgm").each do |ic|
+      task_name = "_bootstrap_mysql_mgm_#{ic.full_name}".to_sym()
+      task task_name, :host => ic.full_name do
+        exists = capture("if grep -c rubber.*mysql_mgm /etc/mysql/ndb_mgmd.cnf &> /dev/null; then echo exists; fi")
+        if exists.strip.size == 0
+          common_bootstrap("mysql_mgm")
+          sudo "/etc/init.d/mysql-ndb-mgm start"
+        end
+      end
+      send task_name
     end
+      rubber_cfg.instance.for_role("mysql_data").each do |ic|
+      task_name = "_bootstrap_mysql_data_#{ic.full_name}".to_sym()
+      task task_name, :host => ic.full_name do
+        exists = capture("if grep -c rubber.*mysql_data /etc/mysql/my.cnf &> /dev/null; then echo exists; fi")
+        if exists.strip.size == 0
+          common_bootstrap("mysql_data")
+          sudo "/etc/init.d/mysql-ndb start-initial"
+        end
+      end
+      send task_name
+    end
+    
+    rubber_cfg.instance.for_role("mysql_sql").each do |ic|
+      task_name = "_bootstrap_mysql_sql_#{ic.full_name}".to_sym()
+      task task_name, :host => ic.full_name do
+        exists = capture("if grep -c rubber.*mysql_sql /etc/mysql/my.cnf &> /dev/null; then echo exists; fi")
+        if exists.strip.size == 0
+          common_bootstrap("mysql_sql")
+          sudo "/etc/init.d/mysql start"
+          env = rubber_cfg.environment.bind()
+          # For mysql 5.0 cluster, need to create users and database for EVERY sql node
+          pass = "identified by '#{env.db_pass}'" if env.db_pass
+          sudo "mysql -u root -e 'create database #{env.db_name};'"
+          sudo "mysql -u root -e \"grant all on #{env.db_name}.* to '#{env.db_user}'@'%' #{pass};\""
+          sudo "mysql -u root -e \"update user set Super_priv = 'N' where user = '#{env.db_user}';\" mysql"
+        end
+      end
+      send task_name
+    end
+    
   end
 
-  task :do_bootstrap, :roles => [:mysql_mgm, :mysql_data, :mysql_sql] do
-    # make sure all mysql not running on all cluster hosts    sudo "/etc/init.d/mysql-ndb-mgm stop" rescue nil
-    sudo "/etc/init.d/mysql-ndb stop" rescue nil
+  def common_bootstrap(role)
+    # mysql package install starts mysql, so stop it
     sudo "/etc/init.d/mysql stop" rescue nil
     
     # After everything installed on machines, we need the source tree
     # on hosts in order to run rubber:config for bootstrapping the db
     deploy.setup
     deploy.update_code
-    # Gen mysql conf because we need a functioning db before we can migrate
-    rubber.run_config(:RAILS_ENV => rails_env, :FILE => "role/mysql_", :deploy_path => release_path)
     
-    start_mgm
-    bootstrap_data
-    bootstrap_sql
+    # Gen just the conf for the given mysql role
+    rubber.run_config(:RAILS_ENV => rails_env, :FILE => "role/#{role}", :deploy_path => release_path)
   end
   
-  task :bootstrap_data, :roles => :mysql_data do
-    sudo "/etc/init.d/mysql-ndb start-initial"  end
-  
-  task :bootstrap_sql, :roles => :mysql_sql do
-    start_sql    env = rubber_cfg.environment.bind()
-    # For mysql 5.0 cluster, need to create users and database for EVERY sql node
-    pass = "identified by '#{env.db_pass}'" if env.db_pass
-    sudo "mysql -u root -e 'create database #{env.db_name};'"
-    sudo "mysql -u root -e \"grant all on #{env.db_name}.* to '#{env.db_user}'@'%' #{pass};\""
-    sudo "mysql -u root -e \"update user set Super_priv = 'N' where user = '#{env.db_user}';\" mysql"
-  end
-
   desc <<-DESC
     Starts the mysql cluster management daemon on the management node
   DESC
