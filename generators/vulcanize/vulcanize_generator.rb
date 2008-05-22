@@ -29,7 +29,7 @@ class VulcanizeGenerator < Rails::Generator::NamedBase
       Find.prune if File.basename(f) =~ /^(CVS|\.svn)$/
       Find.prune if f == "#{sp}#{TEMPLATE_FILE}"
       rel = f.gsub(/#{source_root}\//, '')
-      dest_rel = "config/" + rel.gsub(/#{name}\//, '')
+      dest_rel = "config/" + rel.gsub(/^#{name}\//, '')
       m.directory(dest_rel) if File.directory?(f)
       m.file(rel, dest_rel) if File.file?(f)
     end
