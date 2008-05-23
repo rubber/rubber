@@ -42,6 +42,8 @@ namespace :nginx do
     end
   end
   
+  before "deploy:stop", "nginx:stop"
+  after "deploy:start", "nginx:start"
   after "deploy:restart", "nginx:serial_restart"
   
   desc "Stops the nginx web server"
