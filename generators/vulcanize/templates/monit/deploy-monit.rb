@@ -1,31 +1,32 @@
 
-namespace :monit do
+namespace :rubber do
+    namespace :monit do
+  
+    rubber.allow_optional_tasks(self)
+    
+    # monit needs to get stopped first and started last so that it doesn't
+    # mess with us restarting everything as part of a deploy.
+    before "rubber:pre_stop", "rubber:monit:stop"
+    before "rubber:pre_restart", "rubber:monit:stop"
+    after "rubber:post_start", "rubber:monit:start"
+    after "rubber:post_restart", "rubber:monit:start"
 
-  rubber.allow_optional_tasks(self)
+    desc "Start monit daemon monitoring"
+    task :start do
+      run "/etc/init.d/monit start"
+    end
+    
+    desc "Stop monit daemon monitoring"
+    task :stop, :on_error => :continue do
+      run "/etc/init.d/monit stop"
+    end
+    
+    desc "Restart monit daemon monitoring"
+    task :restart do
+      stop
+      start
+    end
   
-  # Put these first so monit gets shut down first
-  before "deploy:stop", "monit:stop"
-  before "deploy:restart", "monit:stop"
-  
-  # put these last so monit gets started last
-  after "deploy:start", "monit:start"
-  after "deploy:restart", "monit:start"
-  
-  desc "Start monit daemon monitoring"
-  task :start do
-    run "/etc/init.d/monit start"
-  end
-  
-  desc "Stop monit daemon monitoring"
-  task :stop, :on_error => :continue do
-    run "/etc/init.d/monit stop"
-  end
-  
-  desc "Restart monit daemon monitoring"
-  task :restart do
-    stop_monit
-    start_monit
   end
 
 end
-

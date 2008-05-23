@@ -34,6 +34,31 @@ namespace :rubber do
   
   allow_optional_tasks(self)
   on :load, "rubber:init"
+    
+
+  # Add in some hooks so that we can insert our own hooks at head/tail of
+  # hook chain - this is needed for making monit stop before everyone else.  
+  before "deploy:start", "rubber:pre_start"
+  before "deploy:restart", "rubber:pre_restart"
+  before "deploy:stop", "rubber:pre_stop"
+  on :load do
+    after "deploy:start", "rubber:post_start"
+    after "deploy:restart", "rubber:post_restart"
+    after "deploy:stop", "rubber:post_stop"
+  end
+  
+  task :pre_start do
+  end
+  task :pre_restart do
+  end
+  task :pre_stop do
+  end
+  task :post_start do
+  end
+  task :post_restart do
+  end
+  task :post_stop do
+  end
 
   required_task :init do
     # pull in basic rails env.  rubber only needs RAILS_ROOT and RAILS_ENV.
