@@ -15,7 +15,6 @@ namespace :rubber do
           primary_exists = rubber_cfg.instance.for_role("db", "primary" => true).size > 0
           role.options["primary"] = true  unless primary_exists
           instance.roles << role
-          rubber_cfg.instance.save()
         end
       end
       db_instances = rubber_cfg.instance.for_role("mysql_slave")
@@ -23,15 +22,15 @@ namespace :rubber do
         if instance.role_names.find {|n| n == 'mysql_master'}
           logger.info "Cannot have a mysql slave and master on the same instance, removing slave role"
           instance.roles.delete_if {|r| r.name == 'mysql_slave'}
-          rubber_cfg.instance.save()
           next
         end
         if ! instance.role_names.find {|n| n == 'db'}
           role = Rubber::Configuration::RoleItem.new('db')
           instance.roles << role
-          rubber_cfg.instance.save()
         end
       end
+      rubber_cfg.instance.save()
+      load_roles() unless rubber_cfg.environment.bind().disable_auto_roles
     end
   
     after "rubber:bootstrap", "rubber:mysql:bootstrap"

@@ -15,9 +15,10 @@ namespace :rubber do
           primary_exists = rubber_cfg.instance.for_role("db", "primary" => true).size > 0
           role.options["primary"] = true  unless primary_exists
           instance.roles << role
-          rubber_cfg.instance.save()
         end
       end
+      rubber_cfg.instance.save()
+      load_roles() unless rubber_cfg.environment.bind().disable_auto_roles
     end
       
     after "rubber:bootstrap", "rubber:mysql_cluster:bootstrap"
