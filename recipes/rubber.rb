@@ -278,9 +278,9 @@ namespace :rubber do
               # logger.debug "Rule in sync: #{rule_map.inspect}"
             else
               # rules don't match, remove them from ec2 and re-add below
-              logger.debug "Removing out of sync rule: #{rule_map.inspect}"
+              answer = Capistrano::CLI.ui.ask("Rule '#{rule_map.inspect}' exists in ec2, but not locally, remove from ec2? [y/N]?: ")
               rule = Rubber::Util::symbolize_keys(rule_map.merge(:group_name => item.groupName))
-              ec2.revoke_security_group_ingress(rule)
+              ec2.revoke_security_group_ingress(rule) if answer =~ /^y/
             end
           end
         end if item.ipPermissions
@@ -292,8 +292,8 @@ namespace :rubber do
         end
       else
         # delete group
-        logger.debug "Removing security group: #{item.groupName}"
-        ec2.delete_security_group(:group_name => item.groupName)
+        answer = Capistrano::CLI.ui.ask("Security group '#{item.groupName}' exists in ec2 but not locally, remove from ec2? [y/N]: ")
+        ec2.delete_security_group(:group_name => item.groupName) if answer =~ /^y/
       end
     end
     
