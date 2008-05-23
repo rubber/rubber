@@ -9,18 +9,17 @@ db_name: "#{app_name}_#{RAILS_ENV}"
 #           "rake rubber:backup_db"
 db_backup_cmd: "nice mysqldump -h \#{host} -u \#{user} \#{'-p' + pass if pass} \#{name} | gzip -c > \#{backup_file}"
 
-
-# REQUIRED: The filename for the database server config file.  This allows
-#           rubber to bootstrap the db by generating the config for the db
-#           server before the db is needed by your app (e.g. moving datdir
-#           to /mnt for mysql)
+# REQUIRED: The directory to store the db data in
 #
-db_config: my.cnf
-
+db_data_dir: /mnt/mysql_data
 
 packages: [mysql-client, libmysql-ruby]
 
-
 roles:
-  db:
+  mysql_master:
+    db_server_id: 1
     packages: [mysql-server]
+  mysql_slave:
+    db_server_id: 2
+    packages: [mysql-server]
+    
