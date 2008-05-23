@@ -21,13 +21,13 @@ namespace :mysql_cluster do
     
   after "rubber:bootstrap", "mysql_cluster:bootstrap"
 
-  task :bootstrap, :roles => :mysql_data do
+  task :bootstrap do
     # Conditionaly bootstrap for each node/role only if that node has not
     # been boostrapped for that role before
 
     rubber_cfg.instance.for_role("mysql_mgm").each do |ic|
       task_name = "_bootstrap_mysql_mgm_#{ic.full_name}".to_sym()
-      task task_name, :host => ic.full_name do
+      task task_name, :hosts => ic.full_name do
         exists = capture("if grep -c rubber.*mysql_mgm /etc/mysql/ndb_mgmd.cnf &> /dev/null; then echo exists; fi")
         if exists.strip.size == 0
           common_bootstrap("mysql_mgm")
@@ -38,7 +38,7 @@ namespace :mysql_cluster do
     end
       rubber_cfg.instance.for_role("mysql_data").each do |ic|
       task_name = "_bootstrap_mysql_data_#{ic.full_name}".to_sym()
-      task task_name, :host => ic.full_name do
+      task task_name, :hosts => ic.full_name do
         exists = capture("if grep -c rubber.*mysql_data /etc/mysql/my.cnf &> /dev/null; then echo exists; fi")
         if exists.strip.size == 0
           common_bootstrap("mysql_data")
@@ -50,7 +50,7 @@ namespace :mysql_cluster do
     
     rubber_cfg.instance.for_role("mysql_sql").each do |ic|
       task_name = "_bootstrap_mysql_sql_#{ic.full_name}".to_sym()
-      task task_name, :host => ic.full_name do
+      task task_name, :hosts => ic.full_name do
         exists = capture("if grep -c rubber.*mysql_sql /etc/mysql/my.cnf &> /dev/null; then echo exists; fi")
         if exists.strip.size == 0
           common_bootstrap("mysql_sql")
