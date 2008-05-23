@@ -35,7 +35,7 @@ set :keep_releases, 3
 # Comment out or use "required_task" for default cap behavior of a hard failure
 rubber.allow_optional_tasks(self)
 
-Dir["#{File.dirname(__FILE__)}/deploy-*.rb"].each do |deploy_file|
+Dir["#{File.dirname(__FILE__)}/rubber/deploy-*.rb"].each do |deploy_file|
   load deploy_file
 end
 
