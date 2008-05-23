@@ -1,6 +1,5 @@
 <%
   @path = "#{RAILS_ROOT}/config/mongrel_cluster.yml"
-  require 'socket'
 %>
 ---
 user: rails

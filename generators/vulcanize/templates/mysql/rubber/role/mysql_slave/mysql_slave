@@ -1,0 +1,51 @@
+<%
+  @path = "/etc/munin/plugins/mysql_slave"
+  @perms = 0755
+%>#!/bin/sh
+#
+# Plugin to monitor the slave delay
+#
+# Parameters:
+#   
+#   config
+#   autoconf
+#
+# Configuration variables
+#
+# mysqlopts    - Options to pass to mysql
+#
+#%# family=auto
+#%# capabilities=autoconf
+
+MYSQLOPTS="$mysqlopts"
+MYSQLADMIN=${mysqladmin:-mysqladmin}
+
+if [ "$1" = "autoconf" ]; then
+        $MYSQLADMIN --version 2>/dev/null >/dev/null
+        if [ $? -eq 0 ]
+        then
+                $MYSQLADMIN $MYSQLOPTS status 2>/dev/null >/dev/null
+                if [ $? -eq 0 ]
+                then
+                        echo yes
+                        exit 0
+                else
+                        echo "no (could not connect to mysql)"
+                fi
+        else
+                echo "no (mysqladmin not found)"
+        fi
+        exit 1
+fi
+
+if [ "$1" = "config" ]; then
+  echo 'graph_title MySQL Slave Delay'
+  echo 'graph_vlabel seconds'
+  echo 'graph_category mysql'
+  echo 'slave.label slave delay'
+  echo 'graph_args --base 1000'
+  exit 0
+fi
+
+/usr/bin/printf "slave.value "
+echo "show slave status\G"| mysql $MYSQLOPTS | grep "Seconds_Behind_Master" | awk '{print $2}'
