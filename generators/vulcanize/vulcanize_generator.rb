@@ -9,7 +9,6 @@ class VulcanizeGenerator < Rails::Generator::NamedBase
   def manifest
     record do |m|
       apply_template(m, file_name)
-      m.file("Capfile", "Capfile")
     end
   end
 
@@ -28,8 +27,9 @@ class VulcanizeGenerator < Rails::Generator::NamedBase
     Find.find(sp) do |f|
       Find.prune if File.basename(f) =~ /^(CVS|\.svn)$/
       Find.prune if f == "#{sp}#{TEMPLATE_FILE}"
+      
       rel = f.gsub(/#{source_root}\//, '')
-      dest_rel = "config/" + rel.gsub(/^#{name}\//, '')
+      dest_rel = rel.gsub(/^#{name}\//, '')
       m.directory(dest_rel) if File.directory?(f)
       m.file(rel, dest_rel) if File.file?(f)
     end
@@ -37,7 +37,7 @@ class VulcanizeGenerator < Rails::Generator::NamedBase
 
   protected
     def valid_templates
-      valid = Dir.entries(TEMPLATE_ROOT).delete_if {|e| e =~ /(^\.)|svn|CVS|Capfile/ }
+      valid = Dir.entries(TEMPLATE_ROOT).delete_if {|e| e =~ /(^\.)|svn|CVS/ }
     end
     
     def load_template_config(template_dir)
