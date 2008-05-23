@@ -30,7 +30,7 @@ dns_user:
 dns_password:
 dns_ttl:
 
-# REQUIRED The amazon keys and account ID used to access the AWS API
+# REQUIRED The amazon keys and account ID (digits only, no dashes) used to access the AWS API
 #
 aws_access_key: XXX
 aws_secret_access_key: YYY
