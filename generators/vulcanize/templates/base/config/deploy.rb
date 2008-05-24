@@ -27,13 +27,20 @@ set :runner,        'rails'
 # How many old releases should be kept around when running "cleanup" task
 set :keep_releases, 3
 
-# =============================================================================
-# TASKS
-# =============================================================================
+# Lets us work with staging instances without having to checkin instance file
+# between create and bootstrap, as well as during a deploy.  This gives us the
+# convenience of not having to checking instance file for staging, as wel as 
+# the safety of forcing it to be checked in for production.
+set :push_instance_config, rails_env != 'production'
 
 # Allows the tasks defined to fail gracefully if there are no hosts for them.
 # Comment out or use "required_task" for default cap behavior of a hard failure
 rubber.allow_optional_tasks(self)
+
+# =============================================================================
+# TASKS
+# =============================================================================
+
 
 Dir["#{File.dirname(__FILE__)}/rubber/deploy-*.rb"].each do |deploy_file|
   load deploy_file
