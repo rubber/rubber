@@ -54,11 +54,11 @@ end
 after "deploy:update", "rubber:config"
 before "deploy:migrate", "rubber:config"
 
-after "deploy:symlink", "setup_perms"
+before "rubber:pre_start", "setup_perms"
 after "deploy", "deploy:cleanup"
 
-# Fix perms because we start server as rails user
-# Server needs to be able to write logs, etc.
+# Fix perms because we start server as rails user, but migrate as root,
+# server needs to be able to write logs, etc.
 task :setup_perms do
   run "find #{shared_path} -name cached-copy -prune -o -print | xargs chown #{runner}:#{runner}"
   run "chown -R #{runner}:#{runner} #{current_path}/tmp"
