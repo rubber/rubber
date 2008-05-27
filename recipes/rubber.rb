@@ -168,7 +168,7 @@ namespace :rubber do
         local_alias = find_alias(ip, instance_id, state == 'running')
         results << format % [instance_id, state, ip || "NoIP", local_alias || "Unknown"]
       end
-    end
+    end if response.reservationSet
     results.each {|r| logger.info r}
   end
 
