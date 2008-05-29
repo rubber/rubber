@@ -11,7 +11,7 @@ ec2_security_groups:
         cidr_ip: 0.0.0.0/0
 
 roles:
-  munin_host:
+  web_munin:
     packages: [munin]
     security_groups: [internal_web]
 
