@@ -49,7 +49,7 @@ as the settings in rubber-MODULE.yml which contains settings specific to
 each MODULE (nginx, mongrel, etc)
 
 Create, bootstrap, then deploy to instance:
-ALIAS=production ROLES=web,app,db:primary=true cap rubber:create
+ALIAS=production ROLES=web,app,mysql_master cap rubber:create
 cap rubber:bootstrap
 cap deploy:setup
 cap deploy:cold
@@ -65,8 +65,8 @@ For a more complex production setup
 ALIAS=web01 ROLES=web cap rubber:create
 ALIAS=app01 ROLES=app cap rubber:create
 ALIAS=app02 ROLES=app cap rubber:create
-ALIAS=db01 ROLES=db:primary=true cap rubber:create
-ALIAS=db02 ROLES=db cap rubber:create
+ALIAS=db01 ROLES=mysql_master cap rubber:create
+ALIAS=db02 ROLES=mysql_slave cap rubber:create
 cap rubber:bootstrap
 cap deploy:setup
 cap deploy:cold
