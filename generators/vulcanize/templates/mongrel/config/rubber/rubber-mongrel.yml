@@ -1,7 +1,7 @@
 
 # These will probably need to be used by the rubber module used for the web role (nginx)
 appserver_base_port: 8000
-appserver_count: 8
+appserver_count: "#{RAILS_ENV == 'production' ? 8 : 2}"
 
 roles:
   app:
