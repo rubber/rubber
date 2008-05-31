@@ -41,7 +41,8 @@ aws_account: ZZZ
 #
 # NOTE: for some reason Capistrano requires you to have both the public and
 # the private key in the same folder, the public key should have the
-# extension ".pub".
+# extension ".pub".  The easiest (only?) way to get your hand on this is to
+# create an instance, ssh into it, and copy the file /mnt/openssh_id.pub
 #
 ec2_key_name: gsg-keypair
 ec2_key_file: "#{Dir[(File.expand_path('~') rescue '/root') + '/.ec2/*' + ec2_key_name].first}"
