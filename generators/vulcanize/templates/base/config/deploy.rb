@@ -58,10 +58,15 @@ before "rubber:pre_start", "setup_perms"
 after "deploy", "deploy:cleanup"
 
 # In cap 2.3, deploy:setup runs as "runner" which doesn't have perms to
-# create deploy dir, so create it and assign ownership to runner
-before "deploy:setup", "setup_app_root"
-task :setup_app_root do
-  run "umask 02 && mkdir -p #{deploy_to} && chown #{runner}:#{runner} #{deploy_to}"
+# create deploy dir, so override cap behavior
+before "deploy:setup", "as_root"
+before "deploy:cleanup", "as_root"
+after "deploy:setup", "not_root"
+after "deploy:setup", "not_root"
+task :as_root do
+  set :use_sudo, falseend
+task :not_root do
+  set :use_sudo, true
 end
 
 # Fix perms because we start server as rails user, but migrate as root,
