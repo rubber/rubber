@@ -59,7 +59,8 @@ after "deploy", "deploy:cleanup"
 
 # In cap 2.3, deploy:setup runs as "runner" which doesn't have perms to
 # create deploy dir, so create it and assign ownership to runner
-before "deploy:setup" do
+before "deploy:setup", "setup_app_root"
+task :setup_app_root do
   run "umask 02 && mkdir -p #{deploy_to} && chown #{runner}:#{runner} #{deploy_to}"
 end
 
