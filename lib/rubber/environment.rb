@@ -13,7 +13,7 @@ module Rubber
         @config_root = config_root
         @items = {}
         read_config("#{@config_root}/rubber.yml")
-        Dir["#{@config_root}/rubber-*.yml"].each { |file| read_config(file) }
+        Dir["#{@config_root}/rubber-*.yml"].sort.each { |file| read_config(file) }
       end
       
       def read_config(file)
