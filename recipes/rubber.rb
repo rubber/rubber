@@ -533,7 +533,7 @@ namespace :rubber do
   end
   
   desc "De-register and Destroy the bundle for the given image name"
-  task :destroy_bundle do
+  required_task :destroy_bundle do
     ami = get_env('AMI', 'The AMI id of the image to be destroyed', true)
     delete_bundle(ami)
   end
