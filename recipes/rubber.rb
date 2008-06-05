@@ -561,6 +561,8 @@ namespace :rubber do
     ENV['ROLES'] = roles 
     rubber.create
     rubber.bootstrap
+    # stop everything in case we have a bundled instance with monit, etc starting at boot
+    deploy.stop rescue nil
     # bootstrap_db does setup/update_code, so since release directory
     # variable gets reused by cap, we have to just do the symlink here - doing
     # a update again will fail
