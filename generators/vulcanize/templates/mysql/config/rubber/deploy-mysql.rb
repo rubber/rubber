@@ -84,6 +84,7 @@ namespace :rubber do
       
     end
   
+    # TODO: Make the setup/update happen just once per host
     def common_bootstrap(role)
       # mysql package install starts mysql, so stop it
       sudo "/etc/init.d/mysql stop" rescue nil
