@@ -55,6 +55,7 @@ after "deploy:update", "rubber:config"
 before "deploy:migrate", "rubber:config"
 
 before "rubber:pre_start", "setup_perms"
+before "rubber:pre_restart", "setup_perms"
 after "deploy", "deploy:cleanup"
 
 # In cap 2.3, deploy:setup runs as "runner" which doesn't have perms to
