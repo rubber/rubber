@@ -123,7 +123,8 @@ namespace :rubber do
     name = get_env('DBNAME', true)
     
     raise "No db_backup_cmd defined in rubber.yml, cannot backup!" unless rubber_env.db_backup_cmd
-    db_backup_cmd = eval('%Q{' + rubber_env.db_backup_cmd + '}')
+    db_backup_cmd = rubber_env.db_backup_cmd.gsub(/%([^%]+)%/, '#{\1}')
+    db_backup_cmd = eval('%Q{' + db_backup_cmd + '}')
     
     puts "Backing up database with command:"
     sh db_backup_cmd
