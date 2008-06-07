@@ -4,7 +4,8 @@ class DyndnsDnsProvider < DynamicDnsBase
   def initialize(env)
     super(env)
     @user, @pass = env.dns_user, env.dns_password
-    @update_url = env.dns_update_url || 'https://members.dyndns.org/nic/update?hostname=#{host}&myip=#{ip}'
+    @update_url = env.dns_update_url || 'https://members.dyndns.org/nic/update?hostname=%host%&myip=%ip%'
+    @update_url = @update_url.gsub(/%([^%]+)%/, '#{\1}')
   end
 
   def nameserver
@@ -32,7 +33,7 @@ class DyndnsDnsProvider < DynamicDnsBase
 
   def update_host_record(host, ip)
     host = hostname(host)
-    update_url = eval "\"#{@update_url}\""
+    update_url = eval('%Q{' + @update_url + '}')
 
     # This header is required by dyndns.org
     headers = {
