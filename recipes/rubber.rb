@@ -864,9 +864,9 @@ namespace :rubber do
     opts = get_host_options('packages') { |x| x.join(' ') }
     sudo "apt-get -q update", opts
     if upgrade
-      run "export DEBIAN_FRONTEND=noninteractive; sudo apt-get -q -y dist-upgrade", opts
+      run "export DEBIAN_FRONTEND=noninteractive; apt-get -q -y dist-upgrade", opts
     else
-      run "export DEBIAN_FRONTEND=noninteractive; sudo apt-get -q -y install $CAPISTRANO:VAR$", opts
+      run "export DEBIAN_FRONTEND=noninteractive; apt-get -q -y install $CAPISTRANO:VAR$", opts
     end
   end
 
