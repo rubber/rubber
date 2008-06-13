@@ -181,6 +181,7 @@ namespace :rubber do
     install_packages
     install_rubygems
     install_gems
+    install_git
   end
 
   desc <<-DESC
@@ -476,6 +477,27 @@ namespace :rubber do
         ln -sf /usr/bin/gem1.8 /usr/bin/gem
         rm -rf /tmp/rubygems*
         gem source -l > /dev/null
+      fi
+    ENDSCRIPT
+  end
+
+  desc <<-DESC
+    The ubuntu git-core package is woefully out of date, so install it manually
+  DESC
+  task :install_git do
+    rubber.sudo_script 'install_git', <<-ENDSCRIPT
+      if [ ! -f /usr/bin/git ]; then
+        export DEBIAN_FRONTEND=noninteractive
+        apt-get -q -y build-dep git-core
+        cd /tmp
+        wget -q http://kernel.org/pub/software/scm/git/git-1.5.5.4.tar.bz2
+        tar -xjf git-1.5.5.4.tar.bz2
+        cd git-1.5.5.4
+        ./configure --prefix=/usr
+        make
+        make install
+        cd ..
+        rm -rf git-1.5.5.4*
       fi
     ENDSCRIPT
   end
@@ -838,6 +860,14 @@ namespace :rubber do
 
     setup_aliases
     destroy_dyndns(instance_item)
+    clean_up_known_hosts(instance_alias)
+  end
+  
+  # delete from ~/.ssh/known_hosts all lines that begin with ec2- or instance_alias
+  def clean_up_known_hosts(instance_alias)
+    ['^ec2-', "^#{instance_alias}"].each do |regexp|
+      system "cd ~/.ssh && cp known_hosts known_hosts.bak && grep -v #{regexp} known_hosts.bak > known_hosts"
+    end
   end
 
 
