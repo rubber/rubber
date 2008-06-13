@@ -1,6 +1,7 @@
 <%
   @read_cmd = 'crontab -l'
   @write_cmd = 'crontab -'
+  @additive = ["# rubber-db-start", "# rubber-db-end"]
 %>
 
 PATH=/usr/local/bin:/usr/local/sbin:/usr/local/mysql/bin:/usr/bin:/bin:/sbin:/usr/sbin
