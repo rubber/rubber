@@ -114,7 +114,8 @@ stop_on_error_cmd: "function error_exit { exit 99; }; trap error_exit ERR"
 # but this is not always desired for staging, so you can specify a different
 # set here
 #
-staging_roles: *
+# staging_roles: "app,memcached,mysql_master,web,web_munin"
+
 
 # OPTIONAL: Lets one assign amazon elastic IPs (static IPs) to your instances
 #           You should typically set this on the role/host level rather than
