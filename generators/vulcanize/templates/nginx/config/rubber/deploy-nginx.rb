@@ -8,18 +8,19 @@ namespace :rubber do
     after "rubber:install_packages", "rubber:nginx:custom_install"
     
     task :custom_install, :roles => :web do
+      ver = "0.6.32"
       # install nginx+fair_proxy over the already installed nginx ubuntu package
       # this way we get all the system scripts
       if rubber_cfg.environment.bind().nginx_use_fair_proxy
         rubber.run_script 'install_nginx', <<-ENDSCRIPT
           if test -f /usr/sbin/nginx && ! strings /usr/sbin/nginx | grep -c fair > /dev/null; then
             rm -rf /tmp/*nginx*
-            wget -qP /tmp http://sysoev.ru/nginx/nginx-0.5.35.tar.gz
+            wget -qP /tmp http://sysoev.ru/nginx/nginx-#{ver}.tar.gz
             wget -qP /tmp http://github.com/gnosek/nginx-upstream-fair/tarball/master
-            tar -C /tmp -xzf /tmp/nginx-0.5.35.tar.gz
+            tar -C /tmp -xzf /tmp/nginx-#{ver}.tar.gz
             tar -C /tmp -xzf /tmp/*nginx-upstream-fair*.tar.gz
             rm -f /tmp/*nginx*.tar.gz
-            cd /tmp/nginx-0.5.35
+            cd /tmp/nginx-#{ver}
             ./configure --conf-path=/etc/nginx/nginx.conf \
               --error-log-path=/var/log/nginx/error.log --pid-path=/var/run/nginx.pid \
               --lock-path=/var/lock/nginx.lock   --http-log-path=/var/log/nginx/access.log \
