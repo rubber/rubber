@@ -9,10 +9,9 @@ end
 
 # Use a simple directory tree copy here to make demo easier.
 # You probably want to use your own repository for a real app
-require 'capistrano/noscm'
-set :scm, :noscm
+set :scm, :none
+set :repository, "."
 set :deploy_via, :copy
-set :copy_strategy, :export
 
 # Easier to do system level config as root - probably should do it through
 # sudo in the future.  We use ssh keys for access, so no passwd needed
@@ -58,31 +57,9 @@ before "rubber:pre_start", "setup_perms"
 before "rubber:pre_restart", "setup_perms"
 after "deploy", "deploy:cleanup"
 
-# In cap 2.3, deploy:setup runs as "runner" which doesn't have perms to
-# create deploy dir, so override cap behavior
-before "deploy:setup", "as_root"
-before "deploy:cleanup", "as_root"
-after "deploy:setup", "not_root"
-after "deploy:setup", "not_root"
-task :as_root do
-  set :use_sudo, falseend
-task :not_root do
-  set :use_sudo, true
-end
-
 # Fix perms because we start server as rails user, but migrate as root,
 # server needs to be able to write logs, etc.
 task :setup_perms do
   run "find #{shared_path} -name cached-copy -prune -o -print | xargs chown #{runner}:#{runner}"
   run "chown -R #{runner}:#{runner} #{current_path}/tmp"
 end
-
-
-after "rubber:install_packages", "custom_install_base"
-
-task :custom_install_base do
-  # add the rails user for running app server with
-  appuser = "rails"
-  run "if ! id #{appuser} &> /dev/null; then adduser --system --group #{appuser}; fi"
-end
-

@@ -72,6 +72,13 @@ namespace :rubber do
         fatal "Cannot load rails env because rubber is not being used as a rails plugin"
       end
     end
+    
+    # Require cap 2.4 since we depend on bugs that have been fixed
+    require 'capistrano/version'
+    if Capistrano::Version::MAJOR < 2 || Capistrano::Version::MINOR < 4
+      fatal "rubber requires capistrano 2.4.0 or greater"
+    end
+    
     set :rubber_cfg, Rubber::Configuration.get_configuration(ENV['RAILS_ENV'])
     load_roles() unless rubber_cfg.environment.bind().disable_auto_roles
     # NOTE: for some reason Capistrano requires you to have both the public and
@@ -179,7 +186,6 @@ namespace :rubber do
     set_timezone
     link_bash
     install_packages
-    install_rubygems
     install_gems
   end
 
@@ -465,22 +471,6 @@ namespace :rubber do
   end
 
   desc <<-DESC
-    The ubuntu rubygem package is woefully out of date, so install it manually
-  DESC
-  task :install_rubygems do
-    rubber.sudo_script 'install_rubygems', <<-ENDSCRIPT
-      if [ ! -f /usr/bin/gem ]; then
-        wget -qP /tmp http://rubyforge.org/frs/download.php/29548/rubygems-1.0.1.tgz
-        tar -C /tmp -xzf /tmp/rubygems-1.0.1.tgz
-        ruby -C /tmp/rubygems-1.0.1 setup.rb
-        ln -sf /usr/bin/gem1.8 /usr/bin/gem
-        rm -rf /tmp/rubygems*
-        gem source -l > /dev/null
-      fi
-    ENDSCRIPT
-  end
-
-  desc <<-DESC
     The ubuntu has /bin/sh linking to dash instead of bash, fix this
     You can override this task if you don't want this to happen
   DESC
@@ -585,7 +575,7 @@ namespace :rubber do
     set FILE=/path/file.*.glob to tails a different set
   DESC
   task :tail_logs, :roles => :app do
-    log_file_glob = rubber.get_env("FILE", "Log files to tail", true, "#{shared_path}/log/#{rails_env}*.log")
+    log_file_glob = rubber.get_env("FILE", "Log files to tail", true, "#{current_path}/log/#{rails_env}*.log")
     run "tail -qf #{log_file_glob}" do |channel, stream, data|
       puts  # for an extra line break before the host name
       puts data
