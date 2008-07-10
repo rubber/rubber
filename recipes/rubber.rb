@@ -529,7 +529,7 @@ namespace :rubber do
   end
 
   desc "Describes all your own registered bundles"
-  task :describe_bundles do
+  required_task :describe_bundles do
     describe_bundles
   end
 
