@@ -626,7 +626,7 @@ namespace :rubber do
     response.imagesSet.item.each do |item|
       logger.info "AMI: #{item.imageId}"
       logger.info "S3 Location: #{item.imageLocation}"
-    end
+    end if response.imagesSet
   end
 
   def delete_bundle(ami)
@@ -635,7 +635,7 @@ namespace :rubber do
 
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
     response = ec2.describe_images(:image_id => ami)
-    image_location = response.imagesSet.item[0].imageLocation
+    image_location = response.imagesSet.item.first.imageLocation
     bucket = image_location.split('/').first
     image_name = image_location.split('/').last.gsub(/\.manifest\.xml$/, '')
 
@@ -854,9 +854,9 @@ namespace :rubber do
     opts = get_host_options('packages') { |x| x.join(' ') }
     sudo "apt-get -q update", opts
     if upgrade
-      run "export DEBIAN_FRONTEND=noninteractive; sudo apt-get -q -y dist-upgrade", opts
+      sudo "/bin/sh -c 'export DEBIAN_FRONTEND=noninteractive; apt-get -q -y dist-upgrade'", opts
     else
-      run "export DEBIAN_FRONTEND=noninteractive; sudo apt-get -q -y install $CAPISTRANO:VAR$", opts
+      sudo "/bin/sh -c 'export DEBIAN_FRONTEND=noninteractive; apt-get -q -y install $CAPISTRANO:VAR$'", opts
     end
   end
 
