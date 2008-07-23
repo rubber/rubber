@@ -57,10 +57,11 @@ ec2_key_file: "#{Dir[(File.expand_path('~') rescue '/root') + '/.ec2/*' + ec2_ke
 # ec2_backup_bucket: "#{app_name}_backups"
 
 # REQUIRED: the ami and instance type for creating instances
+# The Ubuntu images at http://alestic.com/ work well
+# Ubuntu 8.04 LTS Hardy	base install	32-bit	2.6.21	ami-26bc584f
+# Ubuntu 8.04 LTS Hardy	base install	64-bit	2.6.21	ami-3ebc5857
 #
-# Ubuntu 7.10 Gutsy Base 32-bit http://developer.amazonwebservices.com/connect/entry.jspa?externalID=1065
-#
-ec2_instance: ami-c144a1a8
+ec2_instance: ami-26bc584f
 # m1.small or m1.large or m1.xlarge
 ec2_instance_type: m1.small
 
