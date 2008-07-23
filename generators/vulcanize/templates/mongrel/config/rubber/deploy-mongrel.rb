@@ -1,6 +1,7 @@
 
 namespace :rubber do
-    namespace :mongrel do
+  
+  namespace :mongrel do
     
     rubber.allow_optional_tasks(self)
     
@@ -36,6 +37,7 @@ namespace :rubber do
     # rubber auto-roles don't get defined till after all tasks are defined
     on :load do
       rubber.serial_task self, :serial_restart, :roles => :app do
+        teardown_connections_to(sessions.keys)
         mongrel_stop
         mongrel_start
       end
