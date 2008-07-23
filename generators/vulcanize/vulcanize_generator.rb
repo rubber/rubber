@@ -8,7 +8,10 @@ class VulcanizeGenerator < Rails::Generator::NamedBase
     
   def manifest
     record do |m|
-      apply_template(m, file_name)
+      templates = [file_name] + actions
+      templates.each do |t|
+        apply_template(m, t)
+      end
     end
   end
 
@@ -47,7 +50,7 @@ class VulcanizeGenerator < Rails::Generator::NamedBase
     end
 
     def banner
-      usage = "Usage: #{$0} vulcanize template_name\n"
+      usage = "Usage: #{$0} vulcanize template_name ...\n"
       usage << "where template_name is one of:\n\n"
       valid_templates.each do |t|
         templ_conf = load_template_config("#{TEMPLATE_ROOT}/#{t}")
