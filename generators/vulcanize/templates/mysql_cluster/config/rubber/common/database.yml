@@ -2,9 +2,11 @@
   @path = "#{RAILS_ROOT}/config/database.yml"
 %>
 
+# Sets up rails to talk to mysql-proxy load balancer running on localhost,
+# which then then balances requests between sql nodes in the cluster
 <%= RAILS_ENV %>:
   adapter: mysql
   database: <%= rubber_env.db_name %>
   username: <%= rubber_env.db_user %>
   password: <%= rubber_env.db_pass %>
-  host: <%= rubber_instances.for_role('db', 'primary' => true).first.full_name %>
+  host: localhost

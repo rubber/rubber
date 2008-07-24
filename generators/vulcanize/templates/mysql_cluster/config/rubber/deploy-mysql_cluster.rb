@@ -1,6 +1,7 @@
 
 namespace :rubber do
-    namespace :mysql_cluster do
+  
+  namespace :mysql_cluster do
     
     rubber.allow_optional_tasks(self)
   
@@ -20,30 +21,53 @@ namespace :rubber do
       rubber_cfg.instance.save()
       load_roles() unless rubber_cfg.environment.bind().disable_auto_roles
     end
+    
+    before "rubber:install_packages", "rubber:mysql_cluster:install"
+  
+    task :install, :roles => :db do
+      # Setup apt sources to get a newer version of mysql cluster
+      # https://launchpad.net/~mysql-cge-testing/+archive
+      #
+      
+      sources = <<-SOURCES
+         # for mysql cluster 6.2
+         # deb http://ppa.launchpad.net/mysql-cge-testing/ubuntu hardy main
+         # deb-src http://ppa.launchpad.net/mysql-cge-testing/ubuntu hardy main
+         
+         # for mysql cluster 6.3
+         deb http://ppa.launchpad.net/ndb-bindings/ubuntu hardy main
+         deb-src http://ppa.launchpad.net/ndb-bindings/ubuntu hardy main
+      SOURCES
+      sources.gsub!(/^ */, '')
+      put(sources, "/etc/apt/sources.list.d/mysql_cluster.list")
+    end
       
     after "rubber:bootstrap", "rubber:mysql_cluster:bootstrap"
   
     task :bootstrap do
       # Conditionaly bootstrap for each node/role only if that node has not
       # been boostrapped for that role before
+      
+      common_bootstrap
   
       rubber_cfg.instance.for_role("mysql_mgm").each do |ic|
         task_name = "_bootstrap_mysql_mgm_#{ic.full_name}".to_sym()
         task task_name, :hosts => ic.full_name do
           exists = capture("if grep -c rubber.*mysql_mgm /etc/mysql/ndb_mgmd.cnf &> /dev/null; then echo exists; fi")
           if exists.strip.size == 0
-            common_bootstrap("mysql_mgm")
+            rubber.run_config(:RAILS_ENV => rails_env, :FILE => "role/mysql_mgm", :deploy_path => release_path)
             sudo "/etc/init.d/mysql-ndb-mgm start"
           end
         end
         send task_name
       end
-          rubber_cfg.instance.for_role("mysql_data").each do |ic|
+    
+      rubber_cfg.instance.for_role("mysql_data").each do |ic|
         task_name = "_bootstrap_mysql_data_#{ic.full_name}".to_sym()
         task task_name, :hosts => ic.full_name do
           exists = capture("if grep -c rubber.*mysql_data /etc/mysql/my.cnf &> /dev/null; then echo exists; fi")
           if exists.strip.size == 0
-            common_bootstrap("mysql_data")
+            rubber.run_config(:RAILS_ENV => rails_env, :FILE => "role/mysql_data", :deploy_path => release_path)
             sudo "/etc/init.d/mysql-ndb start-initial"
           end
         end
@@ -55,7 +79,7 @@ namespace :rubber do
         task task_name, :hosts => ic.full_name do
           exists = capture("if grep -c rubber.*mysql_sql /etc/mysql/my.cnf &> /dev/null; then echo exists; fi")
           if exists.strip.size == 0
-            common_bootstrap("mysql_sql")
+            rubber.run_config(:RAILS_ENV => rails_env, :FILE => "role/mysql_sql", :deploy_path => release_path)
             sudo "/etc/init.d/mysql start"
             env = rubber_cfg.environment.bind()
             # For mysql 5.0 cluster, need to create users and database for EVERY sql node
@@ -69,8 +93,8 @@ namespace :rubber do
       end
       
     end
-  
-    def common_bootstrap(role)
+    
+    task :common_bootstrap, :roles => :db do
       # mysql package install starts mysql, so stop it
       sudo "/etc/init.d/mysql stop" rescue nil
       
@@ -78,11 +102,8 @@ namespace :rubber do
       # on hosts in order to run rubber:config for bootstrapping the db
       deploy.setup
       deploy.update_code
-      
-      # Gen just the conf for the given mysql role
-      rubber.run_config(:RAILS_ENV => rails_env, :FILE => "role/#{role}", :deploy_path => release_path)
     end
-    
+  
     desc <<-DESC
       Starts the mysql cluster management daemon on the management node
     DESC

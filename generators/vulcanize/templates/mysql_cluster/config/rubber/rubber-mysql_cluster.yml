@@ -14,7 +14,7 @@ db_backup_cmd: "nice mysqldump -h %host% -u %user% --password=%pass% %name% | gz
 #
 db_data_dir: /mnt/mysql_cluster_data
 
-packages: [mysql-client, libmysql-ruby]
+packages: [mysql-client, libmysql-ruby, mysql-proxy]
 
 
 roles:
