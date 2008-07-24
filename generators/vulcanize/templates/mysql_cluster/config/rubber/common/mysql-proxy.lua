@@ -10,4 +10,4 @@
   SCRIPT
 %>
 
-# we could put a lua script here if we needed to customize mysql-proxy behavior
+-- we could put a lua script here if we needed to customize mysql-proxy behavior
