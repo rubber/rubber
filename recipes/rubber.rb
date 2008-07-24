@@ -99,7 +99,9 @@ namespace :rubber do
     else
       instance_roles = r.split(",")
     end
-
+    availability_zone = get_env('ZONE', "Availability zone (use rubber:describe_zones for a list)", false, "None")
+    availability_zone = nil if availability_zone == "None"
+    
     ir = []
     instance_roles.each do |r|
       data = r.split(':');
@@ -124,7 +126,7 @@ namespace :rubber do
       ir << role
     end
 
-    create_instance(instance_alias, ir)
+    create_instance(instance_alias, ir, availability_zone)
   end
 
   desc <<-DESC
@@ -350,9 +352,28 @@ namespace :rubber do
     env = rubber_cfg.environment.bind()
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
     
-    # For each group that does already exist in ec2
     response = ec2.describe_security_groups()
     puts response.xml
+  end
+
+  desc <<-DESC
+    Describes the availability zones
+  DESC
+  required_task :describe_zones do
+    env = rubber_cfg.environment.bind()
+    ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
+
+
+    results = []
+    format = "%-20s %-15s"
+    results << format % %w[Name State]
+
+    response = ec2.describe_availability_zones()
+    response.availabilityZoneInfo.item.each do |item|
+      results << format % [item.zoneName, item.zoneState]
+    end if response.availabilityZoneInfo
+    
+    results.each {|r| logger.info r}
   end
 
   desc <<-DESC
@@ -686,7 +707,7 @@ namespace :rubber do
 
   # Creates a new ec2 instance with the given alias and roles
   # Configures aliases (/etc/hosts) on local and remote machines
-  def create_instance(instance_alias, instance_roles)
+  def create_instance(instance_alias, instance_roles, availability_zone=nil)
     fatal "Instance already exists: #{instance_alias}" if rubber_cfg.instance[instance_alias]
 
     env = rubber_cfg.environment.bind(instance_roles.collect{|x| x.name}, instance_alias)
@@ -697,7 +718,7 @@ namespace :rubber do
     
     ami = env.ec2_instance
     ami_type = env.ec2_instance_type
-    response = ec2.run_instances(:image_id => ami, :key_name => env.ec2_key_name, :instance_type => ami_type, :group_id => env.security_groups)
+    response = ec2.run_instances(:image_id => ami, :key_name => env.ec2_key_name, :instance_type => ami_type, :group_id => env.security_groups, :availability_zone => availability_zone)
     item = response.instancesSet.item[0]
     instance_id = item.instanceId
 
@@ -854,9 +875,9 @@ namespace :rubber do
     opts = get_host_options('packages') { |x| x.join(' ') }
     sudo "apt-get -q update", opts
     if upgrade
-      sudo "/bin/sh -c 'export DEBIAN_FRONTEND=noninteractive; apt-get -q -y dist-upgrade'", opts
+      sudo "/bin/sh -c 'export DEBIAN_FRONTEND=noninteractive; apt-get -q -y --force-yes dist-upgrade'", opts
     else
-      sudo "/bin/sh -c 'export DEBIAN_FRONTEND=noninteractive; apt-get -q -y install $CAPISTRANO:VAR$'", opts
+      sudo "/bin/sh -c 'export DEBIAN_FRONTEND=noninteractive; apt-get -q -y --force-yes install $CAPISTRANO:VAR$'", opts
     end
   end
 
