@@ -9,7 +9,7 @@
   database: <%= rubber_env.db_name %>
   username: <%= rubber_env.db_user %>
   password: <%= rubber_env.db_pass %>
-  host: localhost
+  host: <%= rubber_env.host %>
   port: 4040
 
 
