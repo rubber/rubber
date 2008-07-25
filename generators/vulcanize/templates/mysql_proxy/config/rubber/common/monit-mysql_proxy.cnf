@@ -1,0 +1,10 @@
+<%
+  @path = '/etc/monit/monit.d/monit-mysql_proxy.conf'
+%>
+
+check process mysql with pidfile /var/run/mysql-proxy.pid
+   group mysql_proxy-<%= RAILS_ENV %>
+   start program = "/etc/init.d/mysql-proxy start"
+   stop program = "/etc/init.d/mysql-proxy stop"
+   if failed host 127.0.0.1 port 4040 protocol mysql then alert
+   if 5 restarts within 5 cycles then timeout
