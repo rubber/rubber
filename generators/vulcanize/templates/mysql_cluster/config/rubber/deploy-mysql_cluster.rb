@@ -24,7 +24,7 @@ namespace :rubber do
     
     before "rubber:install_packages", "rubber:mysql_cluster:install"
   
-    task :install, :roles => :db do
+    task :install, :roles => [:mysql_mgm, :mysql_data, :mysql_sql] do
       # Setup apt sources to get a newer version of mysql cluster
       # https://launchpad.net/~mysql-cge-testing/+archive
       #
@@ -44,12 +44,18 @@ namespace :rubber do
       
     after "rubber:bootstrap", "rubber:mysql_cluster:bootstrap"
   
-    task :bootstrap do
+    task :bootstrap, :roles => [:mysql_mgm, :mysql_data, :mysql_sql] do
+      # mysql package install starts mysql, so stop it
+      sudo "/etc/init.d/mysql stop" rescue nil
+      
+      # After everything installed on machines, we need the source tree
+      # on hosts in order to run rubber:config for bootstrapping the db
+      deploy.setup
+      deploy.update_code
+  
       # Conditionaly bootstrap for each node/role only if that node has not
       # been boostrapped for that role before
       
-      common_bootstrap
-  
       rubber_cfg.instance.for_role("mysql_mgm").each do |ic|
         task_name = "_bootstrap_mysql_mgm_#{ic.full_name}".to_sym()
         task task_name, :hosts => ic.full_name do
@@ -92,16 +98,6 @@ namespace :rubber do
         send task_name
       end
       
-    end
-    
-    task :common_bootstrap, :roles => :db do
-      # mysql package install starts mysql, so stop it
-      sudo "/etc/init.d/mysql stop" rescue nil
-      
-      # After everything installed on machines, we need the source tree
-      # on hosts in order to run rubber:config for bootstrapping the db
-      deploy.setup
-      deploy.update_code
     end
   
     desc <<-DESC

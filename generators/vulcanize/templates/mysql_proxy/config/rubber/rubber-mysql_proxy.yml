@@ -1,0 +1,11 @@
+# MySQL user accounts and privileges are not automatically propagated between different MySQL servers accessing the same MySQL Cluster. Therefore, you must make sure that these are copied between the SQL nodes yourself.
+
+# Uses db credtial variables from mysql/mysql_cluster
+# db_user, db_pass, db_name
+
+# REQUIRED: The role of the servers mysql_proxy load balances sql requests to.
+# e.g. 'mysql_sql' for mysql_cluster, or 'db' for both mysql master/slave,
+# or 'mysql_master' for just master
+mysql_proxy_role: myql_sql
+
+packages: [mysql-proxy]
