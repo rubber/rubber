@@ -9,7 +9,7 @@ namespace :rubber do
     # other processes that use db aren't affected
     after "deploy:stop", "rubber:mysql_proxy:stop"
     before "deploy:start", "rubber:mysql_proxy:start"
-    before "deploy:restart", "rubber:mysql_proxy:stop"
+    before "deploy:restart", "rubber:mysql_proxy:restart"
       
     before "rubber:install_packages", "rubber:mysql_proxy:install"
   
