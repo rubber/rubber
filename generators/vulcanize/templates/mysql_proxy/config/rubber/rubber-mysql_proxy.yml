@@ -6,6 +6,6 @@
 # REQUIRED: The role of the servers mysql_proxy load balances sql requests to.
 # e.g. 'mysql_sql' for mysql_cluster, or 'db' for both mysql master/slave,
 # or 'mysql_master' for just master
-mysql_proxy_role: myql_sql
+mysql_proxy_role: mysql_sql
 
 packages: [mysql-proxy]
