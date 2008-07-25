@@ -2,7 +2,7 @@
   @path = '/etc/monit/monit.d/monit-mysql_proxy.conf'
 %>
 
-check process mysql with pidfile /var/run/mysql-proxy.pid
+check process mysql_proxy with pidfile /var/run/mysql-proxy.pid
    group mysql_proxy-<%= RAILS_ENV %>
    start program = "/etc/init.d/mysql-proxy start"
    stop program = "/etc/init.d/mysql-proxy stop"

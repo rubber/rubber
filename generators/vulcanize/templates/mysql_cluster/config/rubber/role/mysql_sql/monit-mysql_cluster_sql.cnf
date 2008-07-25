@@ -2,7 +2,7 @@
   @path = '/etc/monit/monit.d/monit-mysql_cluster_sql.conf'
 %>
 
-check process mysql with pidfile /var/lib/mysql/<%= rubber_env.full_host %>.pid
+check process mysql_cluster_sql with pidfile /var/lib/mysql/<%= rubber_env.full_host %>.pid
    group mysql_cluster_sql-<%= RAILS_ENV %>
    start program = "/etc/init.d/mysql start"
    stop program = "/etc/init.d/mysql stop"
