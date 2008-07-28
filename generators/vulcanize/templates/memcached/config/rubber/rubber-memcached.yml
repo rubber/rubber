@@ -4,4 +4,4 @@ gems: [memcache-client]
 
 roles:
   memcached:
-    packages: [memcached]
+    packages: [memcached, libcache-memcached-perl]
