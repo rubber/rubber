@@ -98,6 +98,11 @@ ec2_security_groups:
 # OPTIONAL: The default security groups to create instances with
 security_groups: [default]
 
+# OPTIONAL: Automatically create security groups for each host and role
+# EC2 doesn't allow one to change what groups an instance belongs to after
+# creation, so its good to have some empty ones predefined.
+# auto_security_groups: true
+
 # OPTIONAL: The packages to install on all instances
 packages: [build-essential, ruby-full, ruby1.8-dev, rake, irb, subversion]
 

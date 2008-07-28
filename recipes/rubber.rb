@@ -270,15 +270,23 @@ namespace :rubber do
     # /etc/resolv.conf to add search domain
     # ~/.ssh/options to setup user/host/key aliases
   end
+  
+  def inject_auto_security_groups(groups, group_names, hosts, roles)
+    hosts.each do |name|
+      group_name = name
+      groups[group_name] ||= {'description' => "Rubber automatic security group for host: #{name}", 'rules' => []}
+      group_names << group_name
+    end
+    roles.each do |name|
+      group_name = name
+      groups[group_name] ||= {'description' => "Rubber automatic security group for role: #{name}", 'rules' => []}
+      group_names << group_name
+    end
+    return groups, group_names
+  end
 
-  desc <<-DESC
-    Sets up the network security groups
-    All defined groups will be created, and any not defined will be removed.
-    Likewise, rules within a group will get created, and those not will be removed
-  DESC
-  required_task :setup_security_groups do
+  def sync_security_groups(groups)
     env = rubber_cfg.environment.bind()
-    groups = env.ec2_security_groups
     return unless groups
     
     group_keys = groups.keys.clone()
@@ -317,7 +325,7 @@ namespace :rubber do
         end if item.ipPermissions
         rules.each do |rule|
           # create non-existing rules
-          logger.debug "Mising rule, creating: #{rule.inspect}"
+          logger.debug "Missing rule, creating: #{rule.inspect}"
           rule = Rubber::Util::symbolize_keys(rule.merge(:group_name => item.groupName))
           ec2.authorize_security_group_ingress(rule)
         end
@@ -341,6 +349,17 @@ namespace :rubber do
         ec2.authorize_security_group_ingress(rule)
       end
     end
+  end
+    
+  desc <<-DESC
+    Sets up the network security groups
+    All defined groups will be created, and any not defined will be removed.
+    Likewise, rules within a group will get created, and those not will be removed
+  DESC
+  required_task :setup_security_groups do
+    env = rubber_cfg.environment.bind()
+    groups = env.ec2_security_groups
+    sync_security_groups(groups)
   end
 
   desc <<-DESC
@@ -708,15 +727,27 @@ namespace :rubber do
   def create_instance(instance_alias, instance_roles)
     fatal "Instance already exists: #{instance_alias}" if rubber_cfg.instance[instance_alias]
 
-    env = rubber_cfg.environment.bind(instance_roles.collect{|x| x.name}, instance_alias)
+    role_names = instance_roles.collect{|x| x.name}
+    env = rubber_cfg.environment.bind(role_names, instance_alias)
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
     
     # We need to use security_groups during create, so create them up front
-    setup_security_groups
+    security_groups = env.security_groups
+    security_group_defns = env.ec2_security_groups
+    if env.auto_security_groups
+      hosts = rubber_cfg.instance.collect{|ic| ic.name } + [instance_alias]
+      roles = (rubber_cfg.instance.all_roles + role_names).uniq      
+      security_group_defns, security_groups = inject_auto_security_groups(security_group_defns, security_groups, hosts, roles)
+      sync_security_groups(security_group_defns)
+    else
+      sync_security_groups(security_group_defns)
+    end
     
     ami = env.ec2_instance
     ami_type = env.ec2_instance_type
-    response = ec2.run_instances(:image_id => ami, :key_name => env.ec2_key_name, :instance_type => ami_type, :group_id => env.security_groups, :availability_zone => env.availability_zone)
+    availability_zone = env.availability_zone
+    logger.info "Creating instance #{ami}/#{ami_type}/#{security_groups.join(',') rescue 'Default'}/#{availability_zone || 'Default'}"
+    response = ec2.run_instances(:image_id => ami, :key_name => env.ec2_key_name, :instance_type => ami_type, :group_id => security_groups, :availability_zone => availability_zone)
     item = response.instancesSet.item[0]
     instance_id = item.instanceId
 
