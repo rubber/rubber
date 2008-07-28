@@ -38,7 +38,7 @@ module Rubber
       end
 
       def all_roles()
-        @items.collect {|n, i| i.role_names}.flatten
+        @items.collect {|n, i| i.role_names}.flatten.uniq
       end
 
       def add(instance_item)

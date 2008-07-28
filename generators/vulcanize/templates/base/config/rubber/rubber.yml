@@ -125,6 +125,16 @@ stop_on_error_cmd: "function error_exit { exit 99; }; trap error_exit ERR"
 #
 # use_static_ip: true
 
+# OPTIONAL: Specifies an instance to be created in the given availability zone
+#           Availability zones are sepcified by amazon to be somewhat isolated
+#           from each other so that hardware failures in one zone shouldn't
+#           affect instances in another.  As such, it is good to specify these
+#           for instances that need to be redundant to reduce your chance of
+#           downtime. You should typically set this on the role/host level
+#           rather than globally.  Use rubber describe:zones to see the list
+#           of zones
+# availability_zone: us-east-1a
+
 # OPTIONAL: You can also define your own variables here for use when
 # transforming config files, and they will be available in your config
 # templates as  <%= rubber_env.var_name %>

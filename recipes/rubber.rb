@@ -99,8 +99,6 @@ namespace :rubber do
     else
       instance_roles = r.split(",")
     end
-    availability_zone = get_env('ZONE', "Availability zone (use rubber:describe_zones for a list)", false, "None")
-    availability_zone = nil if availability_zone == "None"
     
     ir = []
     instance_roles.each do |r|
@@ -126,7 +124,7 @@ namespace :rubber do
       ir << role
     end
 
-    create_instance(instance_alias, ir, availability_zone)
+    create_instance(instance_alias, ir)
   end
 
   desc <<-DESC
@@ -707,7 +705,7 @@ namespace :rubber do
 
   # Creates a new ec2 instance with the given alias and roles
   # Configures aliases (/etc/hosts) on local and remote machines
-  def create_instance(instance_alias, instance_roles, availability_zone=nil)
+  def create_instance(instance_alias, instance_roles)
     fatal "Instance already exists: #{instance_alias}" if rubber_cfg.instance[instance_alias]
 
     env = rubber_cfg.environment.bind(instance_roles.collect{|x| x.name}, instance_alias)
@@ -718,7 +716,7 @@ namespace :rubber do
     
     ami = env.ec2_instance
     ami_type = env.ec2_instance_type
-    response = ec2.run_instances(:image_id => ami, :key_name => env.ec2_key_name, :instance_type => ami_type, :group_id => env.security_groups, :availability_zone => availability_zone)
+    response = ec2.run_instances(:image_id => ami, :key_name => env.ec2_key_name, :instance_type => ami_type, :group_id => env.security_groups, :availability_zone => env.availability_zone)
     item = response.instancesSet.item[0]
     instance_id = item.instanceId
 
