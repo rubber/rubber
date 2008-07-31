@@ -5,6 +5,7 @@
     ln -sf #{@path} /etc/munin/plugins/memcached_rates
     ln -sf #{@path} /etc/munin/plugins/memcached_bytes
     ln -sf #{@path} /etc/munin/plugins/memcached_counters
+    /etc/init.d/munin-node restart
   POST
 %>#!/usr/bin/perl
 #
