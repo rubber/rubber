@@ -163,8 +163,8 @@ namespace :rubber do
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
     
     results = []
-    format = "%-10s %-10s %-15s %-30s"
-    results << format % %w[InstanceID State IP Alias\ (*=unknown)]
+    format = "%-10s %-10s %-10s %-15s %-30s"
+    results << format % %w[InstanceID State Zone IP Alias\ (*=unknown)]
     
     response = ec2.describe_instances()
     response.reservationSet.item.each do |ritem|
@@ -173,7 +173,8 @@ namespace :rubber do
         instance_id = item.instanceId
         state = item.instanceState.name
         local_alias = find_alias(ip, instance_id, state == 'running')
-        results << format % [instance_id, state, ip || "NoIP", local_alias || "Unknown"]
+        zone = item.placement.availabilityZone
+        results << format % [instance_id, state, zone, ip || "NoIP", local_alias || "Unknown"]
       end
     end if response.reservationSet
     results.each {|r| logger.info r}
