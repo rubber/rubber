@@ -1,4 +1,3 @@
-* better error handling instead of just a stack trace, e.g. when alias doesn't exist
 * add version selector to gem/package installs
 * try to do less stuff as root
 * extract ec2 specific code, and ubuntu specific code into a strategy/factory pattern so this can be used with other grid computing system
@@ -8,4 +7,3 @@
 * add scripted failover to generated configs for:
     * remove web hosts from round robin on web host failure
     * db failover (promote slave replica? master-master replicas?  cluster?)
-* add support for availability zones
