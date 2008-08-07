@@ -272,18 +272,17 @@ namespace :rubber do
     # ~/.ssh/options to setup user/host/key aliases
   end
   
-  def inject_auto_security_groups(groups, group_names, hosts, roles)
+
+  def inject_auto_security_groups(groups, hosts, roles)
     hosts.each do |name|
       group_name = name
       groups[group_name] ||= {'description' => "Rubber automatic security group for host: #{name}", 'rules' => []}
-      group_names << group_name
     end
     roles.each do |name|
       group_name = name
       groups[group_name] ||= {'description' => "Rubber automatic security group for role: #{name}", 'rules' => []}
-      group_names << group_name
     end
-    return groups, group_names
+    return groups
   end
 
   def sync_security_groups(groups)
@@ -737,8 +736,11 @@ namespace :rubber do
     security_group_defns = env.ec2_security_groups
     if env.auto_security_groups
       hosts = rubber_cfg.instance.collect{|ic| ic.name } + [instance_alias]
-      roles = (rubber_cfg.instance.all_roles + role_names).uniq      
-      security_group_defns, security_groups = inject_auto_security_groups(security_group_defns, security_groups, hosts, roles)
+      roles = (rubber_cfg.instance.all_roles + role_names).uniq
+      security_groups << instance_alias
+      security_groups += role_names
+      security_groups.uniq!
+      security_group_defns = inject_auto_security_groups(security_group_defns, hosts, roles)
       sync_security_groups(security_group_defns)
     else
       sync_security_groups(security_group_defns)
