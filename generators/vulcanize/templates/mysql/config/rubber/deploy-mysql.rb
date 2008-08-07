@@ -58,6 +58,9 @@ namespace :rubber do
             pass = "identified by '#{env.db_pass}'" if env.db_pass
             sudo "mysql -u root -e 'create database #{env.db_name};'"
             sudo "mysql -u root -e \"grant all on *.* to '#{env.db_user}'@'%' #{pass};\""
+            sudo "mysql -u root -e \"grant select on *.* to '#{env.db_slave_user}'@'%' #{pass};\""
+            sudo "mysql -u root -e \"grant replication slave on *.* to '#{env.db_replicator_user}'@'%' #{pass};\""
+            sudo "mysql -u root -e \"flush privileges;\""
           end
         end
         send task_name
@@ -75,11 +78,8 @@ namespace :rubber do
             pass = "identified by '#{env.db_pass}'" if env.db_pass
             master_pass = ", master_password='#{env.db_pass}'" if env.db_pass
             master = rubber_cfg.instance.for_role("db", "primary" => true).first.full_name
-            sudo "mysql -u root -e \"change master to master_host='#{master}', master_user='#{env.db_user}' #{master_pass}\""
+            sudo "mysql -u root -e \"change master to master_host='#{master}', master_user='#{env.db_replicator_user}' #{master_pass}\""
             sudo "mysqldump -u #{env.db_user} #{pass} -h #{master} --all-databases --master-data=1 | mysql -u root"
-            sudo "mysql -u root -e \"revoke all on *.* from '#{env.db_user}'@'%' #{pass};\""
-            sudo "mysql -u root -e \"grant select on *.* to '#{env.db_user}'@'%' #{pass};\""
-            sudo "mysql -u root -e \"flush privileges;\""
             sudo "mysql -u root -e \"start slave;\""
           end
         end

@@ -1,9 +1,12 @@
 
 # REQUIRED: The credentials for creating/accessong your app's database
 #
-db_user: "#{app_name}"
+db_user: "#{app_name[0,16]}"
 db_pass:
 db_name: "#{app_name}_#{RAILS_ENV}"
+
+db_slave_user: "#{('slave_' + db_user)[0,16]}"
+db_replicator_user: "#{('replicator_' + db_user)[0,16]}"
 
 # REQUIRED: The command to use to do a full backup of your database using
 #           "rake rubber:backup_db"
