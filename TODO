@@ -7,3 +7,4 @@
 * add scripted failover to generated configs for:
     * remove web hosts from round robin on web host failure
     * db failover (promote slave replica? master-master replicas?  cluster?)
+* clear out ssh/known_hosts for instance host/ip on create/destroy
