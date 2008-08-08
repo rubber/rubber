@@ -110,6 +110,8 @@ module Rubber
             while val =~ /\#\{[^\}]+\}/
               val = eval('%Q{' + val + '}', binding)
             end
+            val = true if val =="true"
+            val = false if val == "false"
             val
           when Enumerable
             val.collect {|v| expand(v)}

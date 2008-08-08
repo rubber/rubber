@@ -74,7 +74,18 @@ class EnvironmentTest < Test::Unit::TestCase
     assert_equal 'host1val1', e['var1']
     assert_equal 'host1val1', e['var3']
     assert_equal %w[lv1 lv2 host1val1 host1lv1 host1val2], e['list1']
-      
+  end
+
+  def test_bool_expansion
+    env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures/expansion")
+    e = env.bind()
+    assert_equal true, e['truevar']
+    assert_equal false, e['falsevar']
+    assert_equal true, e['truevar_exp']
+    assert 'true' != e['truevar_exp']
+    assert_equal false, e['falsevar_exp']
+    assert 'false' != e['falsevar_exp']
+    assert_equal 'true thing', e['faketruevar_exp']      
   end
 
 end
