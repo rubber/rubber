@@ -330,9 +330,14 @@ namespace :rubber do
           ec2.authorize_security_group_ingress(rule)
         end
       else
-        # delete group
-        answer = Capistrano::CLI.ui.ask("Security group '#{item.groupName}' exists in ec2 but not locally, remove from ec2? [y/N]: ")
-        ec2.delete_security_group(:group_name => item.groupName) if answer =~ /^y/
+        # when using auto groups, get prompted too much to delete when
+        # switching between production/staging since the hosts aren't shared
+        # between the two environments
+        unless env.auto_security_groups
+          # delete group
+          answer = Capistrano::CLI.ui.ask("Security group '#{item.groupName}' exists in ec2 but not locally, remove from ec2? [y/N]: ")
+          ec2.delete_security_group(:group_name => item.groupName) if answer =~ /^y/
+        end
       end
     end
     
