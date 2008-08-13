@@ -1031,16 +1031,16 @@ namespace :rubber do
   # do the task for N (= total/groups) servers at a time
   def serial_task(ns, name, options = {}, &block)
     servers = self.roles[options[:roles]].collect {|server| server.host}.sort
-    slice_size = servers.size / (options[:groups] || 2)
+    slice_size = servers.size / (options.delete(:groups) || 2)
     slice_size = 1 if slice_size == 0
     task_syms = []
     servers.each_slice(slice_size) do |server_group|
       servers = server_group.map{|s| s.gsub(/\..*/, '')}.join("_")
       task_sym = "_serial_task_#{name.to_s}_#{servers}".to_sym
       task_syms << task_sym
-      ns.task task_sym, :hosts => server_group, &block
+      ns.task task_sym, options.merge(:hosts => server_group), &block
     end
-    ns.task name do
+    ns.task name, options do
       task_syms.each do |t|
         ns.send t
       end
