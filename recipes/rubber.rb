@@ -3,6 +3,7 @@ $:.unshift "#{File.dirname(__FILE__)}/../lib"
 
 require "socket"
 require 'resolv'
+require 'enumerator'
 require 'rubber/util'
 require 'rubber/configuration'
 require 'capistrano/hostcmd'
@@ -1025,16 +1026,19 @@ namespace :rubber do
     return local_alias
   end
 
-  # Use instead of task to define a capistrano taks that runs serially instead of in parallel
+  # Use instead of task to define a capistrano task that runs serially instead of in parallel
+  # The :groups option specifies how many groups to partition the servers into so that we can
+  # do the task for N (= total/groups) servers at a time
   def serial_task(ns, name, options = {}, &block)
-    servers = self.roles[options[:roles]].collect {|server| server.host}
+    servers = self.roles[options[:roles]].collect {|server| server.host}.sort
+    slice_size = servers.size / (options[:groups] || 2)
+    slice_size = 1 if slice_size == 0
     task_syms = []
-    servers.each do |hostname|
-      role_sym = "_serial_task_#{name.to_s}_#{hostname}".to_sym
-      task_sym = "_do_task_#{name.to_s}_#{hostname}".to_sym
+    servers.each_slice(slice_size) do |server_group|
+      servers = server_group.map{|s| s.gsub(/\..*/, '')}.join("_")
+      task_sym = "_serial_task_#{name.to_s}_#{servers}".to_sym
       task_syms << task_sym
-      top.role role_sym, hostname
-      ns.task task_sym, :roles => role_sym, &block
+      ns.task task_sym, :hosts => server_group, &block
     end
     ns.task name do
       task_syms.each do |t|
