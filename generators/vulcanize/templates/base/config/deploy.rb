@@ -62,6 +62,7 @@ end
 # deploy:migrations doesn't call update, so we need an additional trigger for
 # it
 after "deploy:update", "rubber:config"
+after "deploy:rollback_code", "rubber:config"
 before "deploy:migrate", "rubber:config"
 
 before "rubber:pre_start", "setup_perms"
