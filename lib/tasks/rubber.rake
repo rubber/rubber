@@ -162,6 +162,55 @@ namespace :rubber do
     end
   end
 
+  desc <<-DESC
+    Restores a database backup from s3.
+    This tries to find the last backup made or the s3 object identified by the
+    key FILENAME
+    The following arguments affect behavior:
+    FILENAME (optional):   key of S3 object to use
+    DBUSER (required)      User to connect to the db as
+    DBPASS (optional):     Pass to connect to the db with
+    DBHOST (required):     Host where the db is
+    DBNAME (required):     Database name to backup
+  DESC
+  task :restore_db_s3 do
+    file = get_env('FILENAME')
+    user = get_env('DBUSER', true)
+    pass = get_env('DBPASS')
+    pass = nil if pass && pass.strip.size == 0
+    host = get_env('DBHOST', true)
+    name = get_env('DBNAME', true)
+    
+    raise "No db_restore_cmd defined in rubber.yml" unless rubber_env.db_restore_cmd
+    db_restore_cmd = rubber_env.db_restore_cmd.gsub(/%([^%]+)%/, '#{\1}')
+    db_restore_cmd = eval('%Q{' + db_restore_cmd + '}')
+
+    # try to fetch a matching file from s3 (if ec2_backup_bucket given)
+    raise "No ec2_backup_bucket defined in rubber.yml" unless rubber_env.ec2_backup_bucket
+    if (init_s3 &&
+        AWS::S3::Bucket.list.find { |b| b.name == rubber_env.ec2_backup_bucket })
+      s3objects = AWS::S3::Bucket.find(rubber_env.ec2_backup_bucket,
+                 :prefix => 'db/') 
+      if file
+        puts "trying to fetch #{file} from s3"
+        data = s3objects.detect { |o| file == o.key }
+      else
+        puts "trying to fetch last modified s3 backup"
+        data = s3objects.max {|a,b| a.about["last-modified"] <=> b.about["last-modified"] }
+      end
+    end
+    raise "could not access backup file via s3" unless data
+
+    puts "piping restore data to command [#{db_restore_cmd}]"
+    IO.popen (db_restore_cmd, mode='w') do |p|
+      data.value do |segment|
+        p.write segment
+      end
+    end
+
+  end
+
+
   def get_env(name, required=false)
     value = ENV[name]
     raise("#{name} is required, pass using environment") if required && ! value
