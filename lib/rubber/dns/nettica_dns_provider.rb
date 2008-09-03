@@ -32,6 +32,16 @@ class NetticaDnsProvider < DynamicDnsBase
 
   def update_host_record(host, ip)
     old_record = @client.list_domain(env.domain).record.find {|r| r.hostName == host }
+    update_record(host, ip, old_record)
+  end
+  
+  # update the top level domain record which has an empty hostName
+  def update_domain_record(ip)
+    old_record = @client.list_domain(env.domain).record.find {|r| r.hostName == '' and r.recordType == 'A' and r.data =~ /\A\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\z/}
+    update_record('', ip, old_record)
+  end
+  
+  def update_record(host, ip, old_record)
     old = @client.create_domain_record(env.domain, host, old_record.recordType, old_record.data, old_record.tTL, old_record.priority)
     new = @client.create_domain_record(env.domain, host, @record_type, ip, @ttl, 0)
     @client.update_record(old, new)
