@@ -892,6 +892,7 @@ namespace :rubber do
   
   # delete from ~/.ssh/known_hosts all lines that begin with ec2- or instance_alias
   def cleanup_known_hosts(instance_alias)
+    logger.info "Cleaning ~/.ssh/known_hosts"
     File.open(File.expand_path('~/.ssh/known_hosts'), 'r+') do |f|   
         out = ""
         f.each do |line|
