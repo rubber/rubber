@@ -188,6 +188,7 @@ namespace :rubber do
     set_timezone
     link_bash
     install_packages
+    add_gem_sources
     install_gems
   end
 
@@ -517,6 +518,17 @@ namespace :rubber do
   DESC
   task :install_gems do
     gem_helper(false)
+  end
+
+  desc <<-DESC
+    Add extra ruby gems sources. Set 'gemsources' in rubber.yml to \
+    be an array of URI strings.
+  DESC
+  task :add_gem_sources do
+    env = rubber_cfg.environment.bind()
+    if env.gemsources
+      env.gemsources.each { |source| sudo "gem sources -a #{source}"}
+    end
   end
 
   desc <<-DESC
