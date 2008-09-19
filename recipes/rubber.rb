@@ -406,6 +406,11 @@ namespace :rubber do
     rubber_cfg.instance.each do |ic|
       env = rubber_cfg.environment.bind(ic.role_names, ic.name)
       if env.use_static_ip
+        # I like to define the static ip I reservered before in rubber.yml
+        if env.static_ip
+          ic.static_ip = env.static_ip
+          rubber_cfg.instance.save()
+        end
         if ! ic.static_ip
           allocate_static_ip(ic)
         end
