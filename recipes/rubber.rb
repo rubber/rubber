@@ -904,6 +904,26 @@ namespace :rubber do
 
     setup_aliases
     destroy_dyndns(instance_item)
+    cleanup_known_hosts(instance_alias) unless env.disable_known_hosts_cleanup
+  end
+  
+  # delete from ~/.ssh/known_hosts all lines that begin with ec2- or instance_alias
+  def cleanup_known_hosts(instance_alias)
+    logger.info "Cleaning ~/.ssh/known_hosts"
+    File.open(File.expand_path('~/.ssh/known_hosts'), 'r+') do |f|   
+        out = ""
+        f.each do |line|
+          line = case line
+            when /^ec2-/; ''
+            when /^#{instance_alias}/; ''
+            else line;
+          end
+          out << line
+        end
+        f.pos = 0                     
+        f.print out
+        f.truncate(f.pos)             
+    end    
   end
 
 
