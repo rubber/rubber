@@ -1,0 +1,7 @@
+<%
+  @read_cmd = 'crontab -l'
+  @write_cmd = 'crontab -'
+  @additive = ["# rubber-sphinx-start", "# rubber-sphinx-end"]
+%>
+
+*/15 * * * * cd <%= RAILS_ROOT %> && rake ts:index
