@@ -58,10 +58,10 @@ ec2_key_file: "#{Dir[(File.expand_path('~') rescue '/root') + '/.ec2/*' + ec2_ke
 
 # REQUIRED: the ami and instance type for creating instances
 # The Ubuntu images at http://alestic.com/ work well
-# Ubuntu 8.04 LTS Hardy	base install	32-bit	2.6.21	ami-26bc584f
-# Ubuntu 8.04 LTS Hardy	base install	64-bit	2.6.21	ami-3ebc5857
+# Ubuntu 8.04 LTS Hardy	base install	32-bit	2.6.21	ami-1cd73375
+# Ubuntu 8.04 LTS Hardy	base install	64-bit	2.6.21	ami-17d7337e
 #
-ec2_instance: ami-26bc584f
+ec2_instance: ami-1cd73375
 # m1.small or m1.large or m1.xlarge
 ec2_instance_type: m1.small
 
