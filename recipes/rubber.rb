@@ -1050,9 +1050,22 @@ namespace :rubber do
   # The :groups option specifies how many groups to partition the servers into so that we can
   # do the task for N (= total/groups) servers at a time
   def serial_task(ns, name, options = {}, &block)
-    servers = self.roles[options[:roles]].collect {|server| server.host}.sort
+    # first figure out server names for the passed in roles - when no roles
+    # are passed in, use all servers
+    serial_roles = Array(options[:roles])
+    servers = []
+    self.roles.each do |rolename, serverdefs|
+      if serial_roles.empty? || serial_roles.include?(rolename)
+        servers += serverdefs.collect {|server| server.host}
+      end
+    end
+    servers = servers.uniq.sort
+    
+    # figure out size of each slice by deviding server count by # of groups
     slice_size = servers.size / (options.delete(:groups) || 2)
     slice_size = 1 if slice_size == 0
+    
+    # for each slice, define a new task sepcific to the hosts in that slice
     task_syms = []
     servers.each_slice(slice_size) do |server_group|
       servers = server_group.map{|s| s.gsub(/\..*/, '')}.join("_")
@@ -1060,6 +1073,8 @@ namespace :rubber do
       task_syms << task_sym
       ns.task task_sym, options.merge(:hosts => server_group), &block
     end
+    
+    # create the top level task that calls all the serial ones
     ns.task name, options do
       task_syms.each do |t|
         ns.send t
