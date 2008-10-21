@@ -188,6 +188,7 @@ namespace :rubber do
     set_timezone
     link_bash
     install_packages
+    add_gem_sources
     install_gems
   end
 
@@ -406,6 +407,11 @@ namespace :rubber do
     rubber_cfg.instance.each do |ic|
       env = rubber_cfg.environment.bind(ic.role_names, ic.name)
       if env.use_static_ip
+        # I like to define the static ip I reservered before in rubber.yml
+        if env.static_ip
+          ic.static_ip = env.static_ip
+          rubber_cfg.instance.save()
+        end
         if ! ic.static_ip
           allocate_static_ip(ic)
         end
@@ -512,6 +518,17 @@ namespace :rubber do
   DESC
   task :install_gems do
     gem_helper(false)
+  end
+
+  desc <<-DESC
+    Add extra ruby gems sources. Set 'gemsources' in rubber.yml to \
+    be an array of URI strings.
+  DESC
+  task :add_gem_sources do
+    env = rubber_cfg.environment.bind()
+    if env.gemsources
+      env.gemsources.each { |source| sudo "gem sources -a #{source}"}
+    end
   end
 
   desc <<-DESC

@@ -6,6 +6,7 @@
 # which then then balances requests between sql nodes in the cluster
 <%= RAILS_ENV %>:
   adapter: mysql
+  encoding: utf8
   database: <%= rubber_env.db_name %>
   username: <%= rubber_env.db_user %>
   password: <%= rubber_env.db_pass %>
