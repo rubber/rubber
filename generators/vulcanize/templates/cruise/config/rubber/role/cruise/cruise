@@ -1,0 +1,40 @@
+<%
+  @path = "/etc/init.d/cruise"
+  @perms = 0755
+%>#!/usr/bin/env ruby
+
+require "fileutils"
+include FileUtils
+
+require "rubygems"
+
+begin
+  gem 'mongrel'
+rescue => e
+  puts "Error: daemon mode of CC.rb requires mongrel installed"
+  exit 1
+end
+
+def cruise_path
+  '<%= env.cruise_dir %>'
+end
+
+command = ARGV.shift
+
+case command
+when 'start'
+  cd cruise_path
+  system "./cruise start -d"
+  exit 0
+when 'stop'
+  system "mongrel_rails stop -P #{cruise_path}/tmp/pids/mongrel.pid"
+  Dir["#{cruise_path}/tmp/pids/builders/*.pid"].each do |pid_file|
+    pid = File.open(pid_file){|f| f.read }
+    system "kill -9 #{pid}"
+    rm pid_file
+  end
+  exit 0
+else
+  p "Usage: /etc/init.d/cruise start|stop"
+  exit 1
+end

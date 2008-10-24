@@ -38,6 +38,9 @@ after "rubber:install_packages", "custom_install_base"
 task :custom_install_base do
   # add the rails user for running app server with
   appuser = "rails"
-  run "if ! id #{appuser} &> /dev/null; then adduser --system --group #{appuser}; fi"
+  sudo "if ! id #{appuser} &> /dev/null; then adduser --system --group #{appuser}; fi"
+  
+  # add ssh keys for root 
+  sudo "if [[ ! -f /root/.ssh/id_dsa ]]; then ssh-keygen -q -t dsa -N '' -f /root/.ssh/id_dsa; fi"
 end
 

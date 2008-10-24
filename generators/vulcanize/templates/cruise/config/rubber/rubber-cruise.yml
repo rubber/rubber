@@ -1,0 +1,14 @@
+
+# These will probably need to be used by the rubber module used for the internal http role
+
+# REQUIRED: This determines where cruisecontrol gets installed
+cruise_dir: /mnt/cruisecontrolrb
+cruise_port: 3333
+
+# REQUIRED: The git repo to fetch your project from
+# cruise_repository: git@github.com:mylogin/myproject.git
+
+roles:
+  cruise:
+    gems: [grit, mime-types]
+
