@@ -3,3 +3,4 @@ dependent_templates:
   - base
   - mongrel
   - nginx
+  - haproxy

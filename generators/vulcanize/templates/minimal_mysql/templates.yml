@@ -4,3 +4,4 @@ dependent_templates:
   - mysql
   - mongrel
   - nginx
+  - haproxy

@@ -43,6 +43,9 @@ namespace :rubber do
       rubber.serial_task self, :serial_restart, :roles => :web do
         run "/etc/init.d/nginx restart"
       end
+      rubber.serial_task self, :serial_reload, :roles => :web do
+        run "/etc/init.d/nginx reload"
+      end
     end
     
     before "deploy:stop", "rubber:nginx:stop"
@@ -59,9 +62,14 @@ namespace :rubber do
       run "/etc/init.d/nginx start"
     end
     
-    desc "Retarts the nginx web server"
+    desc "Restarts the nginx web server"
     task :restart, :roles => :web do
       serial_restart
+    end
+  
+    desc "Reloads the nginx web server"
+    task :reload, :roles => :web do
+      serial_reload
     end
   
   end

@@ -23,4 +23,8 @@ roles:
 # and configures nginx correctly for it - comment this out
 # if you prefer to use the nginx binary from the stock ubuntu nginx package
 #
-nginx_use_fair_proxy: true
+nginx_use_fair_proxy: false
+
+# Uses haproxy instead of fair proxy for nginx - can be better performing.
+#
+nginx_use_haproxy: true
