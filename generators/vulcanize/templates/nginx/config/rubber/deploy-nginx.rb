@@ -8,36 +8,8 @@ namespace :rubber do
     after "rubber:install_packages", "rubber:nginx:custom_install"
     
     task :custom_install, :roles => :web do
-      ver = "0.6.32"
-      # install nginx+fair_proxy over the already installed nginx ubuntu package
-      # this way we get all the system scripts
-      if rubber_cfg.environment.bind().nginx_use_fair_proxy
-        rubber.run_script 'install_nginx', <<-ENDSCRIPT
-          if test -f /usr/sbin/nginx && ! strings /usr/sbin/nginx | grep -c fair > /dev/null; then
-            rm -rf /tmp/*nginx*
-            wget -qP /tmp http://sysoev.ru/nginx/nginx-#{ver}.tar.gz
-            wget -qP /tmp http://github.com/gnosek/nginx-upstream-fair/tarball/master
-            tar -C /tmp -xzf /tmp/nginx-#{ver}.tar.gz
-            tar -C /tmp -xzf /tmp/*nginx-upstream-fair*.tar.gz
-            rm -f /tmp/*nginx*.tar.gz
-            cd /tmp/nginx-#{ver}
-            ./configure --conf-path=/etc/nginx/nginx.conf \
-              --error-log-path=/var/log/nginx/error.log --pid-path=/var/run/nginx.pid \
-              --lock-path=/var/lock/nginx.lock   --http-log-path=/var/log/nginx/access.log \
-              --http-client-body-temp-path=/var/lib/nginx/body --http-proxy-temp-path=/var/lib/nginx/proxy \
-              --http-fastcgi-temp-path=/var/lib/nginx/fastcgi --with-debug --with-http_stub_status_module \
-              --with-http_flv_module --with-http_ssl_module --with-http_dav_module \
-              --prefix=/usr --add-module=/tmp/*nginx-upstream-fair*
-            make
-            test ! -f '/usr/sbin/nginx' || mv '/usr/sbin/nginx' '/usr/sbin/nginx.old'
-            ! killall nginx
-            cp -f objs/nginx /usr/sbin/nginx
-          fi
-        ENDSCRIPT
-      else
-        rubber.custom_package('http://mirrors.kernel.org/ubuntu/pool/universe/n/nginx',
-                              'nginx', '0.6.32-3ubuntu1', '! -f /usr/sbin/nginx')
-      end
+      rubber.custom_package('http://ppa.launchpad.net/calmkelp/ubuntu/pool/main/n/nginx',
+                            'nginx', '0.6.32-1ubuntu1.3~ppa2', '! -f /usr/sbin/nginx')
     end  
   
     # serial_task can only be called after roles defined - not normally a problem, but
