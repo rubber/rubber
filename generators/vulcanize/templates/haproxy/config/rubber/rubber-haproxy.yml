@@ -8,5 +8,5 @@ haproxy_listen_port: 9000
 haproxy_admin_port: 9100
 
 roles:
-  web:
+  haproxy:
     packages: [libpcre3-dev]
