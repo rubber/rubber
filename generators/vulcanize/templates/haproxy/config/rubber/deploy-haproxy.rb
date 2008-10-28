@@ -8,14 +8,8 @@ namespace :rubber do
     after "rubber:install_packages", "rubber:haproxy:custom_install"
     
     task :custom_install, :roles => :haproxy do
-      ver = "1.3.15.2-1_i386"
-      rubber.run_script 'install_haproxy', <<-ENDSCRIPT
-        if [[ ! -f /usr/sbin/haproxy ]]; then
-          rm -rf /tmp/*haproxy*
-          wget -qP /tmp "http://http.us.debian.org/debian/pool/main/h/haproxy/haproxy_#{ver}.deb"
-          dpkg -i /tmp/haproxy_#{ver}.deb
-        fi
-      ENDSCRIPT
+      rubber.custom_package('http://http.us.debian.org/debian/pool/main/h/haproxy',
+                            'haproxy', '1.3.15.2-1', '! -f /usr/sbin/haproxy')
     end
   
     # serial_task can only be called after roles defined - not normally a problem, but

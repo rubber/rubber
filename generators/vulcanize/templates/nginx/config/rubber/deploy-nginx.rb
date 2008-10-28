@@ -34,8 +34,11 @@ namespace :rubber do
             cp -f objs/nginx /usr/sbin/nginx
           fi
         ENDSCRIPT
+      else
+        rubber.custom_package('http://mirrors.kernel.org/ubuntu/pool/universe/n/nginx',
+                              'nginx', '0.6.32-3ubuntu1', '! -f /usr/sbin/nginx')
       end
-    end
+    end  
   
     # serial_task can only be called after roles defined - not normally a problem, but
     # rubber auto-roles don't get defined till after all tasks are defined

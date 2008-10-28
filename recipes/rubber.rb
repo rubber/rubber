@@ -955,6 +955,22 @@ namespace :rubber do
       sudo "/bin/sh -c 'export DEBIAN_FRONTEND=noninteractive; apt-get -q -y --force-yes install $CAPISTRANO:VAR$'", opts
     end
   end
+  
+  def custom_package(url_base, name, ver, install_test)
+    rubber.run_script "install_#{name}", <<-ENDSCRIPT
+      if [[ #{install_test} ]]; then
+        arch=`uname -m`
+        if [ "$arch" = "x86_64" ]; then
+          src="#{url_base}/#{name}_#{ver}_amd64.deb"
+        else
+          src="#{url_base}/#{name}_#{ver}_i386.deb"
+        fi
+        src_file="${src##*/}"
+        wget -qP /tmp ${src}
+        dpkg -i /tmp/${src_file}
+      fi
+    ENDSCRIPT
+  end    
 
   # Helper for installing gems,allows one to respond to prompts
   def gem_helper(update=false)
