@@ -13,7 +13,7 @@ namespace :rubber do
         if [[ ! -f /usr/sbin/haproxy ]]; then
           rm -rf /tmp/*haproxy*
           wget -qP /tmp "http://http.us.debian.org/debian/pool/main/h/haproxy/haproxy_#{ver}.deb"
-          dpkg -i haproxy_#{ver}.deb
+          dpkg -i /tmp/haproxy_#{ver}.deb
         fi
       ENDSCRIPT
     end
