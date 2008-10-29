@@ -24,13 +24,13 @@ namespace :rubber do
         run "/etc/init.d/nginx restart"
       end
       rubber.serial_task self, :serial_reload, :roles => :web do
-        run "/etc/init.d/nginx reload"
+        run "if ! ps ax | grep -v grep | grep -c nginx &> /dev/null; then /etc/init.d/nginx start; else /etc/init.d/nginx reload; fi"
       end
     end
     
     before "deploy:stop", "rubber:nginx:stop"
     after "deploy:start", "rubber:nginx:start"
-    after "deploy:restart", "rubber:nginx:serial_restart"
+    after "deploy:restart", "rubber:nginx:reload"
     
     desc "Stops the nginx web server"
     task :stop, :roles => :web, :on_error => :continue do

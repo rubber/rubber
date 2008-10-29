@@ -19,13 +19,13 @@ namespace :rubber do
         run "/etc/init.d/haproxy restart"
       end
       rubber.serial_task self, :serial_reload, :roles => :haproxy do
-        run "/etc/init.d/haproxy reload"
+        run "if ! ps ax | grep -v grep | grep -c haproxy &> /dev/null; then /etc/init.d/haproxy start; else /etc/init.d/haproxy reload; fi"
       end
     end
     
     before "deploy:stop", "rubber:haproxy:stop"
     after "deploy:start", "rubber:haproxy:start"
-    after "deploy:restart", "rubber:haproxy:serial_restart"
+    after "deploy:restart", "rubber:haproxy:reload"
     
     desc "Stops the haproxy server"
     task :stop, :roles => :haproxy, :on_error => :continue do
