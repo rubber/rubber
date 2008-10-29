@@ -16,8 +16,7 @@ ec2_security_groups:
 
 roles:
   web:
-    # uncomment to use std ubuntu version, othewise ,a newer version will be installed
-    # packages: [nginx, libpcre3-dev, libssl-dev, zlib1g-dev]
+    packages: [nginx]
     security_groups: [web]
 
 # Rebuilds nginx from source including the upstream_fair module
