@@ -696,7 +696,7 @@ namespace :rubber do
 
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
     response = ec2.describe_images(:image_id => ami)
-    image_location = response.imagesSet.item.first.imageLocation
+    image_location = response['DescribeImagesResponse'].imagesSet.item.imageLocation
     bucket = image_location.split('/').first
     image_name = image_location.split('/').last.gsub(/\.manifest\.xml$/, '')
 
