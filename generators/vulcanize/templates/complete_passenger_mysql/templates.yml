@@ -1,0 +1,8 @@
+description: A fairly complete and scalable mysql deployment setup
+dependent_templates:
+  - base
+  - mysql
+  - apache
+  - passenger
+  - munin
+  - memcached
