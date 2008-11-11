@@ -4,10 +4,19 @@ namespace :rubber do
   
     rubber.allow_optional_tasks(self)
     
-    
-    after "rubber:install_gems", "rubber:cruise:custom_install"
-    
+    # want ssh keys to be generated before we try and print it out
+    after "custom_install_base", "rubber:cruise:custom_install"
+
     task :custom_install, :roles => :cruise do
+      env = rubber_cfg.environment.bind()      
+      logger.info("\n#######################################################################\n\n")
+      logger.info("This machine needs access to your source repository for cruise control")
+      logger.info("run 'cap rubber:cruise:setup_cruise' once access has been granted")
+      logger.info("ssh public key:\n#{capture('cat ~/.ssh/id_dsa.pub')}")
+      logger.info("\n#######################################################################\n\n")
+   end
+    
+    task :setup_cruise, :roles => :cruise do
       env = rubber_cfg.environment.bind()      
       rubber.sudo_script 'install_cruise', <<-ENDSCRIPT
       
@@ -26,7 +35,7 @@ namespace :rubber do
           fi
           
           cd $CRUISE_HOME
-          echo "If the following command fails, add this ssh key to your git access list"
+          echo "Cruise needIf the following command fails, add this ssh key to your git access list"
           cat ~/.ssh/id_dsa.pub
           echo "Adding projectrepository to cruise: #{env.cruise_repository}"
           ./cruise add #{env.app_name} #{env.cruise_repository}
