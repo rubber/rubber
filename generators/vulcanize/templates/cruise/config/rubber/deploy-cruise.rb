@@ -35,9 +35,7 @@ namespace :rubber do
           fi
           
           cd $CRUISE_HOME
-          echo "Cruise needIf the following command fails, add this ssh key to your git access list"
-          cat ~/.ssh/id_dsa.pub
-          echo "Adding projectrepository to cruise: #{env.cruise_repository}"
+          echo "Adding project repository to cruise: #{env.cruise_repository}"
           ./cruise add #{env.app_name} #{env.cruise_repository}
           mkdir -p $CRUISE_PROJECT_ROOT/log            
           cd $CRUISE_PROJECT_ROOT && rake db:create RAILS_ENV=test
