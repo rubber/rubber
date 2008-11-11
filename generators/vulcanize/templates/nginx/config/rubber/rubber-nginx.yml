@@ -28,7 +28,7 @@ roles:
   web:
     packages: [nginx]
     security_groups: [web]
-  tools:
+  web_tools:
     security_groups: [web_tools]
 
 # Rebuilds nginx from source including the upstream_fair module
