@@ -16,7 +16,7 @@ rescue => e
 end
 
 def cruise_path
-  '<%= env.cruise_dir %>'
+  '<%= rubber_env.cruise_dir %>'
 end
 
 command = ARGV.shift

@@ -1,5 +1,5 @@
 <%
-  @path = "#{cruise_dir}/config/site_config.rb"
+  @path = "#{rubber_env.cruise_dir}/config/site_config.rb"
 %>
 
 # site_config.rb contains examples of various configuration options for the local installation
