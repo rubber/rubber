@@ -6,7 +6,7 @@
 # appserver_base_port: 8000
 # appserver_count: 8
 
-tools_web_port: 8080
+web_tools_port: 8080
 
 ec2_security_groups:
   web:
@@ -16,12 +16,12 @@ ec2_security_groups:
         from_port: 80
         to_port: 80
         cidr_ip: 0.0.0.0/0
-  tools_web:
-    description: "To open up port #{tools_web_port} for internal/tools http server"
+  web_tools:
+    description: "To open up port #{web_tools_port} for internal/tools http server"
     rules:
       - ip_protocol: tcp
-        from_port: "#{tools_web_port}"
-        to_port: "#{tools_web_port}"
+        from_port: "#{web_tools_port}"
+        to_port: "#{web_tools_port}"
         cidr_ip: 0.0.0.0/0
 
 roles:
@@ -29,7 +29,7 @@ roles:
     packages: [nginx]
     security_groups: [web]
   tools:
-    security_groups: [tools_web]
+    security_groups: [web_tools]
 
 # Rebuilds nginx from source including the upstream_fair module
 # and configures nginx correctly for it - comment this out
