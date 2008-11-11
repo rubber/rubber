@@ -4,6 +4,6 @@ packages: [munin-node]
 ec2_security_groups:
 
 roles:
-  tools:
+  web_tools:
     packages: [munin]
 
