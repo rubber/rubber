@@ -2,16 +2,8 @@
 
 packages: [munin-node]
 ec2_security_groups:
-  internal_web:
-    description: To open up port 8080 for internal/tools http server
-    rules:
-      - ip_protocol: tcp
-        from_port: 8080
-        to_port: 8080
-        cidr_ip: 0.0.0.0/0
 
 roles:
-  web_munin:
+  tools:
     packages: [munin]
-    security_groups: [internal_web]
 
