@@ -20,6 +20,7 @@ namespace :rubber do
       logger.info("\n#######################################################################\n\n")
       logger.info("This machine needs access to your source repository for cruise control")
       logger.info("run 'cap rubber:cruise:setup_project' once access has been granted")
+      logger.info("then run 'cap rubber:cruise:start' to start the cruise web server")
       logger.info("ssh public key:\n#{capture('cat ~/.ssh/id_dsa.pub')}")
       logger.info("\n#######################################################################\n\n")
    end
@@ -55,12 +56,12 @@ namespace :rubber do
 
     desc "Start cruise control daemon"
     task :start do
-      run "/etc/init.d/cruisecontrolrb start"
+      run "/etc/init.d/cruise start"
     end
     
     desc "Stop cruise control daemon"
     task :stop, :on_error => :continue do
-      run "/etc/init.d/cruisecontrolrb stop"
+      run "/etc/init.d/cruise stop"
     end
     
     desc "Restart cruise control daemon"
