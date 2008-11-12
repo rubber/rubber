@@ -8,17 +8,25 @@ namespace :rubber do
     after "custom_install_base", "rubber:cruise:custom_install"
 
     task :custom_install, :roles => :cruise do
-      env = rubber_cfg.environment.bind()      
+      env = rubber_cfg.environment.bind()
+      rubber.sudo_script 'install_cruise', <<-ENDSCRIPT
+        export CRUISE_HOME="#{env.cruise_dir}"
+        
+        if [[ ! -d $CRUISE_HOME ]]; then
+            git clone git://github.com/sml/cruisecontrol.rb.git $CRUISE_HOME
+        fi
+      ENDSCRIPT
+      
       logger.info("\n#######################################################################\n\n")
       logger.info("This machine needs access to your source repository for cruise control")
-      logger.info("run 'cap rubber:cruise:setup_cruise' once access has been granted")
+      logger.info("run 'cap rubber:cruise:setup_project' once access has been granted")
       logger.info("ssh public key:\n#{capture('cat ~/.ssh/id_dsa.pub')}")
       logger.info("\n#######################################################################\n\n")
    end
     
-    task :setup_cruise, :roles => :cruise do
+    task :setup_project, :roles => :cruise do
       env = rubber_cfg.environment.bind()      
-      rubber.sudo_script 'install_cruise', <<-ENDSCRIPT
+      rubber.sudo_script 'setup_project', <<-ENDSCRIPT
       
         export CRUISE_HOME="#{env.cruise_dir}"
         export CRUISE_DATA_ROOT="$HOME/.cruise"
