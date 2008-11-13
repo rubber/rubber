@@ -6,10 +6,11 @@ namespace :rubber do
     #  The ubuntu rubygem package is woefully out of date, so install it manually
     after "rubber:install_packages", "rubber:base:install_rubygems"
     task :install_rubygems do
-      ver = "1.3.0"
+      ver = "1.3.1"
+      src_url = "http://rubyforge.org/frs/download.php/45905/rubygems-#{ver}.tgz"
       rubber.sudo_script 'install_rubygems', <<-ENDSCRIPT
         if [ ! -f /usr/bin/gem ]; then
-          wget -qP /tmp http://rubyforge.org/frs/download.php/38646/rubygems-#{ver}.tgz
+          wget -qP /tmp #{src_url}
           tar -C /tmp -xzf /tmp/rubygems-#{ver}.tgz
           ruby -C /tmp/rubygems-#{ver} setup.rb
           ln -sf /usr/bin/gem1.8 /usr/bin/gem
