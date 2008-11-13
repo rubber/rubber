@@ -53,7 +53,7 @@ Configuration.email_from = 'cruisecontrolrb@<%= rubber_env.domain %>'
 
 # Root URL of the dashboard application. Setting this attribute allows various notifiers to include a link to the
 # build page in the notification message.
-Configuration.dashboard_url = 'http://<%= rubber_instances.for_role('cruise').first.full_name %>/'
+Configuration.dashboard_url = 'http://<%= rubber_instances.for_role('cruise').first.full_name %>/cruise'
 
 # If you don't want to allow triggering builds through dashboard Build Now button. Useful when you host CC.rb as a
 # public web site (such as http://cruisecontrolrb.thoughtworks.com/projects - try clicking on Build Now button there

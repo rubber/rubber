@@ -55,17 +55,17 @@ namespace :rubber do
     
 
     desc "Start cruise control daemon"
-    task :start do
+    task :start, :roles => :cruise do
       run "/etc/init.d/cruise start"
     end
     
     desc "Stop cruise control daemon"
-    task :stop, :on_error => :continue do
+    task :stop, :roles => :cruise, :on_error => :continue do
       run "/etc/init.d/cruise stop"
     end
     
     desc "Restart cruise control daemon"
-    task :restart do
+    task :restart, :roles => :cruise do
       stop
       start
     end
