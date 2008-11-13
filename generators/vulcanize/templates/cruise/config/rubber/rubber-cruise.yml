@@ -10,6 +10,6 @@ cruise_port: 3333
 
 roles:
   cruise:
-    gems: [grit, mime-types]
+    gems: [grit, mime-types, mongrel]
     packages: [mysql-server]
 
