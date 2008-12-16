@@ -15,6 +15,9 @@
 		  <% rubber_instances.for_role('haproxy').each do |ic| %>
 		      <li><a href="/haproxy_<%= ic.name %>/">HAProxy <%= ic.name %></a></li>
 		  <% end %>
+      <% rubber_instances.each do |ic| %>
+          <li><a href="/monit_<%= ic.name %>/">Monit <%= ic.name %></a></li>
+      <% end %>
 		</ul>
 	</body>
 </html>

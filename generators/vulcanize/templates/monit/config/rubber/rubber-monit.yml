@@ -1,4 +1,6 @@
 # Uses admin_email from base
 
+monit_admin_port: 2812
+
 packages: [monit]
 
