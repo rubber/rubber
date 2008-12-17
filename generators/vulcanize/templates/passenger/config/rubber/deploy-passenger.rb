@@ -15,7 +15,7 @@ namespace :rubber do
         echo -en "\n\n\n\n" | passenger-install-apache2-module
         wget -qP /tmp http://rubyforge.org/frs/download.php/41041/ruby-enterprise_1.8.6-20080810-i386.deb
         dpkg -i /tmp/ruby-enterprise_1.8.6-20080810-i386.deb
-      ENDSCRIPT  
+      ENDSCRIPT
     end
   end
 end
