@@ -20,7 +20,7 @@ namespace :rubber do
         dpkg -i ruby-enterprise_1.8.6-20080810-i386.deb
         # enable needed apache modules / disable ubuntu default site
         a2enmod rewrite
-        a2dissite 000-default
+        a2dissite default
       ENDSCRIPT
     end
   end
