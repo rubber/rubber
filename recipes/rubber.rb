@@ -291,6 +291,7 @@ namespace :rubber do
     env = rubber_cfg.environment.bind()
     return unless groups
     
+    groups = Rubber::Util::stringify(groups)
     group_keys = groups.keys.clone()
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
     
@@ -314,7 +315,7 @@ namespace :rubber do
           end if rule.ipRanges
           # For each rule, if it exists, do nothing, otherwise remove it as its no longer defined locally
           rule_maps.each do |rule_map|
-            if rules.delete(rule_map)
+            if rules.delete(Rubber::Util::stringify(rule_map))
               # rules match, don't need to do anything
               # logger.debug "Rule in sync: #{rule_map.inspect}"
             else
