@@ -24,6 +24,11 @@ namespace :rubber do
       alias :required_task :task
       def task(name, options={}, &block)
         required_task(name, options) do
+          # define empty roles for the case when a task has a role that we don't define anywhere
+          [*options[:roles]].each do |r|
+            roles[r] ||= []
+          end
+          
           if find_servers_for_task(current_task).empty?
             logger.info "No servers for task #{name}, skipping"
             next
