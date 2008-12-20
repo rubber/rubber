@@ -75,20 +75,7 @@ ec2_security_groups:
   default:
     description: The default security group
     rules:
-      - ip_protocol: tcp
-        from_port: 0
-        to_port: 65535
-        source_security_group_name: default
-        source_security_group_owner_id: "#{aws_account}"
-      - ip_protocol: udp
-        from_port: 0
-        to_port: 65535
-        source_security_group_name: default
-        source_security_group_owner_id: "#{aws_account}"
-      - ip_protocol: icmp
-        from_port: -1
-        to_port: -1
-        source_security_group_name: default
+      - source_security_group_name: default
         source_security_group_owner_id: "#{aws_account}"
       - ip_protocol: tcp
         from_port: 22

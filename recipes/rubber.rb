@@ -7,6 +7,7 @@ require 'enumerator'
 require 'rubber/util'
 require 'rubber/configuration'
 require 'capistrano/hostcmd'
+require 'pp'
 
 require 'rubygems'
 require 'EC2'
@@ -303,29 +304,40 @@ namespace :rubber do
         logger.debug "Security Group already in ec2, syncing rules: #{item.groupName}"
         group = groups[item.groupName]
         rules = group['rules'].clone
+        rule_maps = []
+        
+        # first collect the rule maps from the request (group/user pairs are duplicated for tcp/udp/icmp, 
+        # so we need to do this up frnot and remove duplicates before checking against the local rubber rules)
         item.ipPermissions.item.each do |rule|
-          rule_maps = []
-          rule_map = {'ip_protocol' => rule.ipProtocol, 'from_port' => rule.fromPort.to_i, 'to_port' => rule.toPort.to_i}
-          # Collect the group and ipRange rules
-          rule.groups.item.each do |rule_group|
-            rule_maps << rule_map.merge('source_security_group_name' => rule_group.groupName, 'source_security_group_owner_id' => rule_group.userId)
-          end if rule.groups
-          rule.ipRanges.item.each do |ip|
-            rule_maps << rule_map.merge('cidr_ip' => ip.cidrIp)
-          end if rule.ipRanges
-          # For each rule, if it exists, do nothing, otherwise remove it as its no longer defined locally
-          rule_maps.each do |rule_map|
-            if rules.delete(Rubber::Util::stringify(rule_map))
-              # rules match, don't need to do anything
-              # logger.debug "Rule in sync: #{rule_map.inspect}"
-            else
-              # rules don't match, remove them from ec2 and re-add below
-              answer = Capistrano::CLI.ui.ask("Rule '#{rule_map.inspect}' exists in ec2, but not locally, remove from ec2? [y/N]?: ")
-              rule = Rubber::Util::symbolize_keys(rule_map.merge(:group_name => item.groupName))
-              ec2.revoke_security_group_ingress(rule) if answer =~ /^y/
+          if rule.groups
+            rule.groups.item.each do |rule_group|
+              rule_map = {'source_security_group_name' => rule_group.groupName, 'source_security_group_owner_id' => rule_group.userId}
+              rule_map = Rubber::Util::stringify(rule_map)
+              rule_maps << rule_map unless rule_maps.include?(rule_map)
             end
+          else
+            rule_map = {'ip_protocol' => rule.ipProtocol, 'from_port' => rule.fromPort.to_i, 'to_port' => rule.toPort.to_i}
+            rule.ipRanges.item.each do |ip|
+              rule_map = rule_map.merge('cidr_ip' => ip.cidrIp)
+              rule_map = Rubber::Util::stringify(rule_map)
+              rule_maps << rule_map unless rule_maps.include?(rule_map)
+            end if rule.ipRanges
           end
         end if item.ipPermissions
+        
+        # For each rule, if it exists, do nothing, otherwise remove it as its no longer defined locally
+        rule_maps.each do |rule_map|
+          if rules.delete(rule_map)
+            # rules match, don't need to do anything
+            # logger.debug "Rule in sync: #{rule_map.inspect}"
+          else
+            # rules don't match, remove them from ec2 and re-add below
+            answer = Capistrano::CLI.ui.ask("Rule '#{rule_map.inspect}' exists in ec2, but not locally, remove from ec2? [y/N]?: ")
+            rule = Rubber::Util::symbolize_keys(rule_map.merge(:group_name => item.groupName))
+            ec2.revoke_security_group_ingress(rule) if answer =~ /^y/
+          end
+        end
+        
         rules.each do |rule|
           # create non-existing rules
           logger.debug "Missing rule, creating: #{rule.inspect}"
@@ -378,7 +390,7 @@ namespace :rubber do
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
     
     response = ec2.describe_security_groups()
-    puts response.xml
+    puts response.securityGroupInfo.item.pretty_inspect
   end
 
   desc <<-DESC
