@@ -41,7 +41,7 @@ namespace :rubber do
     # user could be requiring the rails env inside some of their config
     # templates, which creates a catch 22 situation with the db, so we try and
     # bootstrap the db separate from the rest of the config
-    task :bootstrap do
+    task :bootstrap, :roles => [:mysql_master, :mysql_slave] do
       
       # Conditionaly bootstrap for each node/role only if that node has not
       # been boostrapped for that role before
