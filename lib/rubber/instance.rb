@@ -13,6 +13,10 @@ module Rubber
         LOGGER.debug{"Reading rubber instances from #{file}"}
         @file = file
         @items = {}
+        if ENV['FILTER']
+          @filters = ENV['FILTER'].split(/\s*,\s*/)
+        end
+
         if File.exist?(@file)
           item_list = File.open(@file) { |f| YAML.load(f) }
           if item_list
@@ -34,7 +38,11 @@ module Rubber
       # gets the instances for the given role.  If options is nil, all roles
       # match, otherwise the role has to have options that match exactly
       def for_role(role_name, options=nil)
-        @items.collect {|n, i| i if i.roles.any? {|r| r.name == role_name && (! options || r.options == options)}}.compact
+        @items.values.find_all {|ic| ic.roles.any? {|r| r.name == role_name && (! options || r.options == options)}}
+      end
+
+      def filtered()
+        @items.values.find_all {|ic| ! @filters || @filters.include?(ic.name)}
       end
 
       def all_roles()
@@ -52,7 +60,7 @@ module Rubber
       def each(&block)
         @items.values.each &block
       end
-
+      
       def size
         @items.size
       end

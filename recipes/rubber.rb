@@ -1136,10 +1136,6 @@ namespace :rubber do
   # Automatically load and define capistrano roles from instance config
   def load_roles
     top.roles.clear
-    if ENV['FILTER']
-      filters = ENV['FILTER'].split(/\s*,\s*/)
-      logger.info "Applying filters to auto roles"
-    end
 
     # define empty roles for all known ones so tasks don't fail if a role
     # doesn't exist due to a filter
@@ -1149,15 +1145,13 @@ namespace :rubber do
     all_roles.each {|name| top.roles[name.to_sym] = []}
 
     # define capistrano host => role mapping for all instances
-    rubber_cfg.instance.each do |ic|
-      if ! filters || filters.include?(ic.name)
-        ic.roles.each do |role|
-          opts = Rubber::Util::symbolize_keys(role.options)
-          msg = "Auto role: #{role.name.to_sym} => #{ic.full_name}"
-          msg << ", #{opts.inspect}" if opts.inspect.size > 0
-          logger.info msg
-          top.role role.name.to_sym, ic.full_name, opts
-        end
+    rubber_cfg.instance.filtered.each do |ic|
+      ic.roles.each do |role|
+        opts = Rubber::Util::symbolize_keys(role.options)
+        msg = "Auto role: #{role.name.to_sym} => #{ic.full_name}"
+        msg << ", #{opts.inspect}" if opts.inspect.size > 0
+        logger.info msg
+        top.role role.name.to_sym, ic.full_name, opts
       end
     end
   end
