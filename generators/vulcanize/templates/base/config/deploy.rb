@@ -26,9 +26,9 @@ set :runner,        'rails'
 # How many old releases should be kept around when running "cleanup" task
 set :keep_releases, 3
 
-# Lets us work with staging instances without having to checkin instance file
-# between create and bootstrap, as well as during a deploy.  This gives us the
-# convenience of not having to checking instance file for staging, as wel as 
+# Lets us work with staging instances without having to checkin config files
+# (instance*.yml + rubber*.yml) for a deploy.  This gives us the
+# convenience of not having to checkin files for staging, as well as 
 # the safety of forcing it to be checked in for production.
 set :push_instance_config, rails_env != 'production'
 

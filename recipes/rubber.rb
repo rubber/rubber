@@ -740,8 +740,18 @@ namespace :rubber do
     # Need to do this so we can work with staging instances without having to
     # checkin instance file between create and bootstrap, as well as during a deploy
     if fetch(:push_instance_config, false)
-      dest_instance_file = rubber_cfg.instance.file.sub(/^#{RAILS_ROOT}/, '')
-      put(File.read(rubber_cfg.instance.file), File.join(path, dest_instance_file))
+      push_files = [rubber_cfg.instance.file] + rubber_cfg.environment.config_files
+      push_files.each do |file|
+        dest_file = file.sub(/^#{RAILS_ROOT}\/?/, '')
+        put(File.read(file), File.join(path, dest_file))
+      end
+    end
+    
+    # if the user has defined a secret config file, then push it into RAILS_ROOT/config/rubber
+    secret = rubber_cfg.environment.config_secret
+    if secret && File.exist?(secret)
+      base = rubber_cfg.environment.config_root.sub(/^#{RAILS_ROOT}\/?/, '')
+      put(File.read(secret), File.join(path, base, File.basename(secret)))
     end
     
     sudo "sh -c 'cd #{path} && #{extra_env} rake rubber:config'"

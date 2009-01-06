@@ -8,12 +8,16 @@ module Rubber
     # the host/role passed into bind
     class Environment
       attr_reader :config_root
+      attr_reader :config_files
+      attr_reader :config_secret
 
       def initialize(config_root)
         @config_root = config_root
+        @config_files = ["#{@config_root}/rubber.yml"] + Dir["#{@config_root}/rubber-*.yml"].sort
         @items = {}
-        read_config("#{@config_root}/rubber.yml")
-        Dir["#{@config_root}/rubber-*.yml"].sort.each { |file| read_config(file) }
+        @config_files.each { |file| read_config(file) }
+        @config_secret = bind().rubber_secret
+        read_config(@config_secret) if @config_secret
       end
       
       def read_config(file)
@@ -72,7 +76,7 @@ module Rubber
           @cfg = cfg
           @roles = roles
           @host = host
-        @full_host = host + "." + self['domain'] rescue nil
+          @full_host = host + "." + self['domain'] rescue nil
         end
 
         # get the environment value for the given key

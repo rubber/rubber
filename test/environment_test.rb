@@ -88,4 +88,17 @@ class EnvironmentTest < Test::Unit::TestCase
     assert_equal 'true thing', e['faketruevar_exp']      
   end
 
+  def test_secret_env
+    env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures/basic")
+    e = env.bind()
+    assert_nil e['rubber_secret'], 'env should not have secret set'
+    
+    fixture_dir = File.expand_path("#{File.dirname(__FILE__)}/fixtures/secret")
+    env = Rubber::Configuration::Environment.new(fixture_dir)
+    e = env.bind()
+    assert_equal "#{fixture_dir}/secret.yml", e['rubber_secret'], 'env should have secret set'
+    assert_equal "secret_val", e['secret_key'], 'env should have gotten setting from secret file'    
+    
+  end
+
 end
