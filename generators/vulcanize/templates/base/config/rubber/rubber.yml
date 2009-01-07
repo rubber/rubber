@@ -31,6 +31,11 @@ dns_user:
 dns_password:
 dns_ttl:
 
+# OPTIONAL: Additional rubber file to pull config from if it exists.  This file will
+# also be pushed to remote host at RAILS_ROOT/config/rubber/rubber-secret.yml
+#
+# rubber_secret: "#{File.expand_path('~') + '/.ec2' + (RAILS_ENV == 'production' ? '' : '_dev') + '/rubber-secret.yml' rescue ''}"
+
 # REQUIRED The amazon keys and account ID (digits only, no dashes) used to access the AWS API
 #
 aws_access_key: XXX
