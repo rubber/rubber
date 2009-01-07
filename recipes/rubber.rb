@@ -680,7 +680,7 @@ namespace :rubber do
     arch = case arch when /i\d86/ then "i386" else arch end
     sudo_script "create_bundle", <<-CMD
       export RUBYLIB=/usr/lib/site_ruby/
-      ec2-bundle-vol -d #{mnt_vol} -k #{ec2_pk_dest} -c #{ec2_cert_dest} -u #{aws_account} -p #{image_name} -r #{arch}
+      ec2-bundle-vol --batch -d #{mnt_vol} -k #{ec2_pk_dest} -c #{ec2_cert_dest} -u #{aws_account} -p #{image_name} -r #{arch}
     CMD
   end
 
@@ -689,7 +689,7 @@ namespace :rubber do
     
     sudo_script "register_bundle", <<-CMD
       export RUBYLIB=/usr/lib/site_ruby/
-      ec2-upload-bundle -b #{env.ec2_image_bucket} -m #{mnt_vol}/#{image_name}.manifest.xml -a #{env.aws_access_key} -s #{env.aws_secret_access_key}
+      ec2-upload-bundle --batch -b #{env.ec2_image_bucket} -m #{mnt_vol}/#{image_name}.manifest.xml -a #{env.aws_access_key} -s #{env.aws_secret_access_key}
     CMD
     
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
