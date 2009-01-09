@@ -353,7 +353,7 @@ namespace :rubber do
         # when using auto groups, get prompted too much to delete when
         # switching between production/staging since the hosts aren't shared
         # between the two environments
-        unless env.auto_security_groups
+        if env.force_security_group_cleanup || ! env.auto_security_groups
           # delete group
           answer = Capistrano::CLI.ui.ask("Security group '#{item.groupName}' exists in ec2 but not locally, remove from ec2? [y/N]: ")
           ec2.delete_security_group(:group_name => item.groupName) if answer =~ /^y/
@@ -383,8 +383,15 @@ namespace :rubber do
   DESC
   required_task :setup_security_groups do
     env = rubber_cfg.environment.bind()
-    groups = env.ec2_security_groups
-    sync_security_groups(groups)
+    security_group_defns = env.ec2_security_groups
+    if env.auto_security_groups
+      hosts = rubber_cfg.instance.collect{|ic| ic.name }
+      roles = rubber_cfg.instance.all_roles
+      security_group_defns = inject_auto_security_groups(security_group_defns, hosts, roles)
+      sync_security_groups(security_group_defns)
+    else
+      sync_security_groups(security_group_defns)
+    end
   end
 
   desc <<-DESC
