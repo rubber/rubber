@@ -118,6 +118,9 @@ module Rubber
           open(writer, 'w') do |pipe|
             pipe.write(result)
           end
+          if config.write_cmd && $?.exitstatus != 0
+            raise "Config command failed execution:  #{config.write_cmd}"
+          end
 
           # Set file permissions and owner if needed
           FileUtils.chmod(config.perms, config_path) if config.perms && config_path

@@ -165,6 +165,20 @@ class GeneratorTest < Test::Unit::TestCase
     Generator.new(nil, nil, nil).transform(src)
     assert File.exists?(out_file.path), "transform did not generate to write_cmd"
     assert_equal "#start      \n      hello\n#end\nhi", File.read(out_file.path).strip, "transformed contents are incorrect"
+    
+    FileUtils.rm_f(out_file.path)
+    src = <<-SRC
+      <%
+        @read_cmd = 'echo hi'
+        @write_cmd = 'badcommand'
+      %>
+      hello
+    SRC
+
+    assert_raises RuntimeError do
+      Generator.new(nil, nil, nil).transform(src)
+    end
+    
   end
 
   def list_dir(dir)
