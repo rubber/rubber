@@ -118,7 +118,7 @@ module Rubber
           open(writer, 'w') do |pipe|
             pipe.write(result)
           end
-          if config.write_cmd && $?.exitstatus != 0
+          if config.write_cmd && ! fake_root && $?.exitstatus != 0
             raise "Config command failed execution:  #{config.write_cmd}"
           end
 
