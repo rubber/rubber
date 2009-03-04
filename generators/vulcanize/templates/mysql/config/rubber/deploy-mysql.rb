@@ -82,6 +82,7 @@ namespace :rubber do
             master = rubber_cfg.instance.for_role("db", "primary" => true).first.full_name
             sudo "mysql -u root -e \"change master to master_host='#{master}', master_user='#{env.db_replicator_user}' #{master_pass}\""
             sudo "mysqldump -u #{env.db_user} #{pass} -h #{master} --all-databases --master-data=1 | mysql -u root"
+            sudo "mysql -u root -e \"flush privileges;\""
             sudo "mysql -u root -e \"start slave;\""
           end
         end
