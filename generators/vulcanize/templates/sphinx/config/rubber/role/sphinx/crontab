@@ -4,4 +4,8 @@
   @additive = ["# rubber-sphinx-start", "# rubber-sphinx-end"]
 %>
 
-*/15 * * * * cd <%= RAILS_ROOT %> && rake ts:index
+# incremental index once every 10 minutes
+*/10 * * * * sudo -u rails <%= RAILS_ROOT %>/script/cron-rake RAILS_ENV=<%= RAILS_ENV %> ts:in:delta
+
+# full reindex daily at 4:35
+35 4 * * * sudo -u rails <%= RAILS_ROOT %>/script/cron-rake RAILS_ENV=<%= RAILS_ENV %> ts:index

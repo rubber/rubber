@@ -4,17 +4,6 @@
 # the same userid as mongrel. This is important to allow delta indexes (mongrel
 # has to send a sighup to searchd).
 #
-# This means for you that you assure that runner can write to config/ log/ and
-# db/sphinx. You may achieve this by simly executing a chown during deployment:
-#
-# before "rubber:pre_start", "setup_perms"
-# before "rubber:pre_restart", "setup_perms"
-#
-# task :setup_perms do
-#   run "find #{shared_path} -name cached-copy -prune -o -print | xargs  chown #{runner}:#{runner}"
-#   run "chown -R #{runner}:#{runner} #{current_path}/"
-# end
-#
 # * installation is ubuntu specific
 # * start and stop tasks are using the thinking sphinx plugin
 
@@ -54,17 +43,28 @@ namespace :rubber do
       ENDSCRIPT
     end
   
+    set :sphinx_root, Proc.new {"#{shared_path}/sphinx"}
+    after "deploy:setup", "rubber:sphinx:setup"
+    after "deploy:symlink", "rubber:sphinx:config_dir"
+    
     before "deploy:stop", "rubber:sphinx:stop"
-
-    after "deploy:start", "rubber:sphinx:rebuild"
     after "deploy:start", "rubber:sphinx:start"
+    after "deploy:restart", "rubber:sphinx:restart"
+    before "deploy:cold" do
+      before "rubber:sphinx:start", "rubber:sphinx:index"
+    end
+  
+    desc "Do sphinx setup tasks"
+    task :setup, :roles => :sphinx do
+      # Setup links to sphinx config/index as they need to persist between deploys
+      run "mkdir -p #{sphinx_root} #{sphinx_root}/config #{sphinx_root}/db"
+      run "chown -R #{runner}:#{runner} #{sphinx_root}"
+    end
 
-    # ts:stop needs a valid config file so we have to create that before
-    # restarting
-    after "deploy:restart", "rubber:sphinx:config"
-    after "deploy:restart", "rubber:sphinx:stop"
-    after "deploy:restart", "rubber:sphinx:index"
-    after "deploy:restart", "rubber:sphinx:start"
+    desc "Setup paths for sphinx runtime"
+    task :config_dir, :roles => :sphinx do
+      run "rm -rf #{current_path}/sphinx && ln -sf #{sphinx_root} #{current_path}/sphinx"
+    end
 
     # runs the given ultrasphinx rake tasks
     def run_sphinx task
@@ -89,7 +89,7 @@ namespace :rubber do
       run_sphinx 'start'
     end
     
-    desc "Configures and builds sphinx index"
+    desc "Configures and builds sphinx index.  Not needed in recent sphinx build as index triggers config"
     task :rebuild, :roles => :sphinx do
       run_sphinx 'config'
       run_sphinx 'index'
