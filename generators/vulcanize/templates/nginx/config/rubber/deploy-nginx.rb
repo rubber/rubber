@@ -4,19 +4,7 @@ namespace :rubber do
   namespace :nginx do
   
     rubber.allow_optional_tasks(self)
-  
-    before "rubber:install_packages", "rubber:nginx:custom_install"
     
-    task :custom_install, :roles => :web do
-      # need to add list of sources to get a newer nginx (includes fair balancer)
-      srcs = <<-SOURCES
-        deb http://ppa.launchpad.net/calmkelp/ubuntu hardy main
-        deb-src http://ppa.launchpad.net/calmkelp/ubuntu hardy main
-      SOURCES
-      srcs.gsub!(/^ */, '') # remove leading whitespace
-      put(srcs, '/etc/apt/sources.list.d/nginx.list')      
-    end  
-  
     # serial_task can only be called after roles defined - not normally a problem, but
     # rubber auto-roles don't get defined till after all tasks are defined
     on :load do

@@ -9,4 +9,4 @@ haproxy_admin_port: 9100
 
 roles:
   haproxy:
-    packages: [libpcre3-dev]
+    packages: [haproxy]

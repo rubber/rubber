@@ -5,13 +5,6 @@ namespace :rubber do
   
     rubber.allow_optional_tasks(self)
   
-    after "rubber:install_packages", "rubber:haproxy:custom_install"
-    
-    task :custom_install, :roles => :haproxy do
-      rubber.custom_package('http://http.us.debian.org/debian/pool/main/h/haproxy',
-                            'haproxy', '1.3.15.2-1', '! -f /usr/sbin/haproxy')
-    end
-  
     # serial_task can only be called after roles defined - not normally a problem, but
     # rubber auto-roles don't get defined till after all tasks are defined
     on :load do
