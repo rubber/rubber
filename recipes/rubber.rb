@@ -505,8 +505,7 @@ namespace :rubber do
   required_task :setup_volumes do
     env = rubber_cfg.environment.bind()
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
-    volumes = env.ec2_volumes
-    return unless volumes
+    volumes = env.ec2_volumes || {}
     
     volumes.each do |host, vol_specs|
       ic = rubber_cfg.instance[host]
