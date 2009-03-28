@@ -95,6 +95,20 @@ security_groups: [default]
 # creation, so its good to have some empty ones predefined.
 auto_security_groups: true
 
+# OPTIONAL: The volumes to create/assign to instances
+#  ec2_volumes:
+#    my_host:
+#      - size: 100 # size of vol in GBs
+#        zone: us-east-1a # zone to create volume in, needs to match host's zone
+#        device: /dev/sdh # OS device to attach volume to
+#        mount: /mnt/mysql_data # The directory to mount this volume to
+#        filesystem: ext3 # the filesystem to create on volume
+#      - size: 10 # size of vol in GBs
+#        zone: us-east-1a # zone to create volume in, needs to match host's zone
+#        device: /dev/sdi # OS device to attach volume to
+#        mount: /mnt/logs # The directory to mount this volume to
+#        filesystem: ext3 # the filesystem to create on volume
+
 # OPTIONAL: The packages to install on all instances
 packages: [build-essential, ruby-full, ruby1.8-dev, rake, irb, subversion]
 

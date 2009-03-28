@@ -6,13 +6,14 @@ module Rubber
     # Contains the ec2 instance configuration defined in instance.yml
     #
     class Instance
-      attr_reader :file
+      attr_reader :file, :artifacts
       include Enumerable
 
       def initialize(file)
         LOGGER.debug{"Reading rubber instances from #{file}"}
         @file = file
         @items = {}
+        @artifacts = {'volumes' => {}}
         if ENV['FILTER']
           @filters = ENV['FILTER'].split(/\s*,\s*/)
         end
@@ -21,14 +22,21 @@ module Rubber
           item_list = File.open(@file) { |f| YAML.load(f) }
           if item_list
             item_list.each do |i|
-              @items[i.name] = i
+              if i.is_a? InstanceItem
+                @items[i.name] = i
+              elsif i.is_a? Hash
+                @artifacts.merge!(i)
+              end
             end
           end
         end
       end
 
       def save()
-          File.open(@file, "w") { |f| f.write(YAML.dump(@items.values)) }
+        data = []
+        data.push(*@items.values)
+        data.push(@artifacts)
+        File.open(@file, "w") { |f| f.write(YAML.dump(data)) }
       end
 
       def [](name)
@@ -71,7 +79,7 @@ module Rubber
       attr_reader :name, :domain, :roles, :instance_id
       attr_accessor :external_host, :external_ip
       attr_accessor :internal_host, :internal_ip
-      attr_accessor :static_ip
+      attr_accessor :static_ip, :volumes
 
       def initialize(name, domain, roles, instance_id)
         @name = name

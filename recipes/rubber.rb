@@ -439,7 +439,7 @@ namespace :rubber do
         end
         if ! ic.static_ip
           allocate_static_ip(ic)
-        end
+        end 
         if ic.static_ip && ic.static_ip != ic.external_ip
           associate_static_ip(ic)
         end
@@ -498,6 +498,108 @@ namespace :rubber do
     results.each {|r| logger.info r}
   end
 
+  desc <<-DESC
+    Sets up the ec2 persistent volumes
+    All volumes defined in rubber.yml will be created if neccessary, and attached/mounted on their associated instances
+  DESC
+  required_task :setup_volumes do
+    env = rubber_cfg.environment.bind()
+    ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
+    volumes = env.ec2_volumes
+    return unless volumes
+    
+    volumes.each do |host, vol_specs|
+      ic = rubber_cfg.instance[host]
+      vol_specs.each do |vol_spec|
+        key = "#{host}_#{vol_spec['device']}"
+        artifacts = rubber_cfg.instance.artifacts
+        vol_id = artifacts['volumes'][key]
+
+        # first create the volume if we don't have a global record (artifacts) for it
+        created = false
+        if ! vol_id
+          puts "Creating volume for #{ic.full_name}:#{vol_spec['device']}"
+          vol_id = create_volume(vol_spec['size'], vol_spec['zone'])
+          artifacts['volumes'][key] = vol_id
+          rubber_cfg.instance.save
+          created = true
+        end
+
+        # then, attach it if we don't have a record (on instance) of attachment
+        ic.volumes ||= []
+        if ! ic.volumes.include?(vol_id)
+          puts "Attaching volume #{vol_id} to #{ic.full_name}:#{vol_spec['device']}"
+          attach_volume(vol_id, ic.instance_id, vol_spec['device'])
+          ic.volumes << vol_id
+          rubber_cfg.instance.save
+
+          print "Waiting for volume to attach"
+          while true do
+            print "."
+            sleep 2
+            response = ec2.describe_volumes(:volume_id => vol_id)
+            item = response.volumeSet.item[0]
+            break if item.status == "in-use"
+          end
+
+          # then format/mount/etc if we don't have an entry in hosts file
+          task :_setup_volume, :hosts => ic.external_ip do
+            link_bash
+            rubber.run_script 'setup_volume', <<-ENDSCRIPT
+              if ! grep -q '#{vol_spec['mount']}' /etc/fstab; then
+                if mount | grep -q '#{vol_spec['mount']}'; then
+                  umount '#{vol_spec['mount']}'
+                fi
+                mv /etc/fstab /etc/fstab.bak
+                cat /etc/fstab.bak | grep -v '#{vol_spec['mount']}' > /etc/fstab
+                echo '#{vol_spec['device']} #{vol_spec['mount']} #{vol_spec['filesystem']} noatime 0 0 # rubber volume #{vol_id}' >> /etc/fstab
+
+                #{('yes | mkfs -t ' + vol_spec['filesystem'] + ' ' + vol_spec['device']) if created}
+                mkdir -p '#{vol_spec['mount']}'
+                mount '#{vol_spec['mount']}'
+              fi
+            ENDSCRIPT
+          end
+          _setup_volume
+          
+        end
+      end
+    end
+  end
+
+  desc <<-DESC
+    Shows the configured persistent volumes
+  DESC
+  required_task :describe_volumes do
+    env = rubber_cfg.environment.bind()
+    ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
+
+    response = ec2.describe_volumes()
+    pp response
+  end
+
+  desc <<-DESC
+    Shows the configured persistent volumes
+  DESC
+  required_task :destroy_volume do
+    volume_id = get_env('VOLUME_ID', "Volume ID", true)
+    env = rubber_cfg.environment.bind()
+    ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
+
+    logger.info "Detaching volume #{volume_id}"
+    ec2.detach_volume(:volume_id => volume_id, :force => 'true') rescue logger.info("Volume was not attached")
+
+    logger.info "Deleting volume #{volume_id}"
+    ec2.delete_volume(:volume_id => volume_id) rescue logger.info("Volume does not exist")
+
+    logger.info "Removing volume #{volume_id} from rubber instances file"
+    artifacts = rubber_cfg.instance.artifacts
+    artifacts['volumes'].delete_if {|k,v| v == volume_id}
+    rubber_cfg.instance.each do |ic|
+      ic.volumes.delete(volume_id)
+    end
+    rubber_cfg.instance.save
+  end
 
   desc <<-DESC
     Update to the newest versions of all packages/gems.
@@ -833,7 +935,7 @@ namespace :rubber do
 
         # setup amazon elastic ips if configured to do so
         setup_static_ips
-        
+
         # Need to setup aliases so ssh doesn't give us errors when we
         # later try to connect to same ip but using alias
         setup_local_aliases
@@ -866,6 +968,9 @@ namespace :rubber do
     end
 
     rubber_cfg.instance.save()
+
+    # setup amazon persistent volumes if configured to do so
+    setup_volumes
   end
 
   # Refreshes a ec2 instance with the given alias
@@ -1098,7 +1203,21 @@ namespace :rubber do
     response = ec2.release_address(:public_ip => instance_ip)
     fatal "Failed to deallocate" if response.return != "true"
   end
-    
+
+  def create_volume(size, zone)
+    env = rubber_cfg.environment.bind()
+    ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
+    response = ec2.create_volume(:size => size.to_s, :availability_zone => zone)
+    raise "Failed to create volume" if response.volumeId.nil?
+    return response.volumeId
+  end
+
+  def attach_volume(vol_id, instance_id, device)
+    env = rubber_cfg.environment.bind()
+    ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
+    response = ec2.attach_volume(:volume_id => vol_id, :instance_id => instance_id, :device => device)
+  end
+  
   def find_alias(ip, instance_id, do_connect=true)
     if instance_id
       instance = rubber_cfg.instance.find {|i| i.instance_id == instance_id }
