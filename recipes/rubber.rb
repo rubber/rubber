@@ -505,9 +505,10 @@ namespace :rubber do
   required_task :setup_volumes do
     env = rubber_cfg.environment.bind()
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
-    volumes = env.ec2_volumes || {}
-    
-    volumes.each do |host, vol_specs|
+    host_overrides = env.hosts || {}
+
+    host_overrides.each do |host, config|
+      vol_specs = config['ec2_volumes'] || []
       ic = rubber_cfg.instance[host]
       vol_specs.each do |vol_spec|
         key = "#{host}_#{vol_spec['device']}"

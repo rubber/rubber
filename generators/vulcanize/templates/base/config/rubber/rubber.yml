@@ -95,20 +95,6 @@ security_groups: [default]
 # creation, so its good to have some empty ones predefined.
 auto_security_groups: true
 
-# OPTIONAL: The volumes to create/assign to instances
-#  ec2_volumes:
-#    my_host:
-#      - size: 100 # size of vol in GBs
-#        zone: us-east-1a # zone to create volume in, needs to match host's zone
-#        device: /dev/sdh # OS device to attach volume to
-#        mount: /mnt/mysql_data # The directory to mount this volume to
-#        filesystem: ext3 # the filesystem to create on volume
-#      - size: 10 # size of vol in GBs
-#        zone: us-east-1a # zone to create volume in, needs to match host's zone
-#        device: /dev/sdi # OS device to attach volume to
-#        mount: /mnt/logs # The directory to mount this volume to
-#        filesystem: ext3 # the filesystem to create on volume
-
 # OPTIONAL: The packages to install on all instances
 packages: [build-essential, ruby-full, ruby1.8-dev, rake, irb, subversion]
 
@@ -145,6 +131,26 @@ staging_roles: "web,haproxy,app,mysql_master"
 #           rather than globally.  Use rubber describe:zones to see the list
 #           of zones
 # availability_zone: us-east-1a
+
+# OPTIONAL: If you want t use Elastic Block Store (EBS) persistent
+# volumes, add them to host specific overrides and they will get created
+# and assigned to the instance.  On initial creation, the volume will get
+# attached _and_ formatted, but if your host disapears and you recreate
+# it, the volume will only get remounted thereby preserving your data
+#
+# hosts:
+#   my_host:
+#     ec2_volumes:
+#       - size: 100 # size of vol in GBs
+#         zone: us-east-1a # zone to create volume in, needs to match host's zone
+#         device: /dev/sdh # OS device to attach volume to
+#         mount: /mnt/mysql_data # The directory to mount this volume to
+#         filesystem: ext3 # the filesystem to create on volume
+#       - size: 10 # size of vol in GBs
+#         zone: us-east-1a # zone to create volume in, needs to match host's zone
+#         device: /dev/sdi # OS device to attach volume to
+#         mount: /mnt/logs # The directory to mount this volume to
+#         filesystem: ext3 # the filesystem to create on volume
 
 # OPTIONAL: You can also define your own variables here for use when
 # transforming config files, and they will be available in your config
