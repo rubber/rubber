@@ -77,11 +77,40 @@ namespace :rubber do
             common_bootstrap("mysql_slave")
             sudo "dpkg-reconfigure --frontend=noninteractive mysql-server-5.0"
             sleep 5
+
+            master = rubber_cfg.instance.for_role("mysql_master").first
+
+            # Doing a mysqldump locks the db, so ideally we'd do it against a slave replica thats
+            # not serving traffic (mysql_util role), but if thats not available try a regular
+            # slave (mysql_slave role), and finally default dumping from master (mysql_master role)
+            # TODO: handle simultaneous creating of multi slaves/utils
+            slaves = rubber_cfg.instance.for_role("mysql_slave")
+            slaves.delete(ic) # don't want to try and dump from self
+            source = slaves.find {|sc| sc.role_names.include?("mysql_util")}
+            source = slaves.first unless source
+            source = master unless source
+
             pass = "identified by '#{env.db_pass}'" if env.db_pass
             master_pass = ", master_password='#{env.db_pass}'" if env.db_pass
-            master = rubber_cfg.instance.for_role("db", "primary" => true).first.full_name
-            sudo "mysql -u root -e \"change master to master_host='#{master}', master_user='#{env.db_replicator_user}' #{master_pass}\""
-            sudo "mysqldump -u #{env.db_user} #{pass} -h #{master} --all-databases --master-data=1 | mysql -u root"
+            master_host = master.full_name
+            source_host = source.full_name
+
+            if source == master
+              logger.info "Creating slave from a dump of master #{source_host}"
+              sudo "mysql -u root -e \"change master to master_host='#{master_host}', master_user='#{env.db_replicator_user}' #{master_pass}\""
+              sudo "mysqldump -u #{env.db_user} #{pass} -h #{source_host} --all-databases --master-data=1 | mysql -u root"
+            else
+              logger.info "Creating slave from a dump of slave #{source_host}"
+              sudo "mysql -u #{env.db_user} #{pass} -h #{source_host} -e \"stop slave;\""
+              slave_status = capture("mysql -u #{env.db_user} #{pass} -h #{source_host} -e \"show slave status\\G\"")
+              slave_config = Hash[*slave_status.scan(/([^\s:]+): ([^\s]*)/).flatten]
+              log_file = slave_config['Master_Log_File']
+              log_pos = slave_config['Read_Master_Log_Pos']
+              sudo "mysqldump -u #{env.db_user} #{pass} -h #{source_host} --all-databases --master-data=1 | mysql -u root"
+              sudo "mysql -u root -e \"change master to master_host='#{master_host}', master_user='#{env.db_replicator_user}', master_log_file='#{log_file}', master_log_pos=#{log_pos} #{master_pass}\""
+              sudo "mysql -u #{env.db_user} #{pass} -h #{source_host} -e \"start slave;\""
+            end
+
             sudo "mysql -u root -e \"flush privileges;\""
             sudo "mysql -u root -e \"start slave;\""
           end
