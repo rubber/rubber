@@ -429,48 +429,53 @@ namespace :rubber do
     Sets up static IPs for the instances configured to have them
   DESC
   required_task :setup_static_ips do
+    env = rubber_cfg.environment.bind()
+    ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
     rubber_cfg.instance.each do |ic|
       env = rubber_cfg.environment.bind(ic.role_names, ic.name)
       if env.use_static_ip
-        # I like to define the static ip I reservered before in rubber.yml
-        if env.static_ip
-          ic.static_ip = env.static_ip
-          rubber_cfg.instance.save()
+        artifacts = rubber_cfg.instance.artifacts
+        ip = artifacts['static_ips'][ic.name] rescue nil
+
+        # first allocate the static ip if we don't have a global record (artifacts) for it
+        if ! ip
+          logger.info "Allocating static IP for #{ic.full_name}"
+          ip = allocate_static_ip()
+          artifacts['static_ips'][ic.name] = ip
+          rubber_cfg.instance.save
         end
+
+        # then, associate it if we don't have a record (on instance) of association
         if ! ic.static_ip
-          allocate_static_ip(ic)
-        end 
-        if ic.static_ip && ic.static_ip != ic.external_ip
-          associate_static_ip(ic)
+          logger.info "Associating static ip #{ip} with #{ic.full_name}"
+          associate_static_ip(ip, ic.instance_id)
+
+          response = ec2.describe_instances(:instance_id => ic.instance_id)
+          item = response.reservationSet.item[0].instancesSet.item[0]
+          ic.external_host = item.dnsName
+          ic.internal_host = item.privateDnsName
+          ic.external_ip = ip
+          ic.static_ip = ip
+          rubber_cfg.instance.save()
+
+          logger.info "Waiting for static ip to associate"
+          while true do
+            task :_wait_for_static_ip, :hosts => ip do
+              run "echo"
+            end
+            begin
+              _wait_for_static_ip
+            rescue ConnectionError
+              sleep 2
+              logger.info "Failed to connect to static ip #{ip}, retrying"
+              retry
+            end
+            break
+          end
         end
+        
       end
     end
-  end
-
-  desc <<-DESC
-    Assigns the given static ip to the given host
-  DESC
-  task :assign_static_ip do
-    instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
-    instance_ip = get_env('IP', "Static IP (run rubber:describe_static_ips for a list)", true)
-    
-    ic = rubber_cfg.instance[instance_alias]
-    env = rubber_cfg.environment.bind(ic.role_names, ic.name)
-    
-    fatal "#{instance_alias} is not configured to have a static_ip in rubber.yml" unless env.use_static_ip
-    value = Capistrano::CLI.ui.ask("Static ip already assigned, #{instance_alias}:#{ic.static_ip}, proceed [y/n]?: ")
-    fatal("Exiting", 0) if value !~ /^y/
-
-    ic.static_ip = instance_ip
-    associate_static_ip(ic)
-  end
-
-  desc <<-DESC
-    Deallocates the given static ip
-  DESC
-  required_task :release_static_ip do
-    instance_ip = get_env('IP', "Static IP (run rubber:describe_static_ips for a list)", true)
-    deallocate_static_ip(instance_ip)    
   end
 
   desc <<-DESC
@@ -479,23 +484,31 @@ namespace :rubber do
   required_task :describe_static_ips do
     env = rubber_cfg.environment.bind()
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
-    
-    
+
+
     results = []
     format = "%-10s %-15s %-30s"
     results << format % %w[InstanceID IP Alias]
-    
+
     response = ec2.describe_addresses()
     response.addressesSet.item.each do |item|
       instance_id = item.instanceId
       ip = item.publicIp
-      
+
       local_alias = find_alias(ip, instance_id, false)
-      
+
       results << format % [instance_id || "Unassigned", ip, local_alias || "Unknown"]
     end if response.addressesSet
-    
+
     results.each {|r| logger.info r}
+  end
+
+  desc <<-DESC
+    Deallocates the given static ip
+  DESC
+  required_task :destroy_static_ip do
+    ip = get_env('IP', "Static IP (run rubber:describe_static_ips for a list)", true)
+    destroy_static_ip(ip)
   end
 
   desc <<-DESC
@@ -505,20 +518,19 @@ namespace :rubber do
   required_task :setup_volumes do
     env = rubber_cfg.environment.bind()
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
-    host_overrides = env.hosts || {}
 
-    host_overrides.each do |host, config|
-      vol_specs = config['ec2_volumes'] || []
-      ic = rubber_cfg.instance[host]
+    rubber_cfg.instance.each do |ic|
+      env = rubber_cfg.environment.bind(ic.role_names, ic.name)
+      vol_specs = env.ec2_volumes || []
       vol_specs.each do |vol_spec|
-        key = "#{host}_#{vol_spec['device']}"
+        key = "#{ic.name}_#{vol_spec['device']}"
         artifacts = rubber_cfg.instance.artifacts
         vol_id = artifacts['volumes'][key]
 
         # first create the volume if we don't have a global record (artifacts) for it
         created = false
         if ! vol_id
-          puts "Creating volume for #{ic.full_name}:#{vol_spec['device']}"
+          logger.info "Creating volume for #{ic.full_name}:#{vol_spec['device']}"
           vol_id = create_volume(vol_spec['size'], vol_spec['zone'])
           artifacts['volumes'][key] = vol_id
           rubber_cfg.instance.save
@@ -528,7 +540,7 @@ namespace :rubber do
         # then, attach it if we don't have a record (on instance) of attachment
         ic.volumes ||= []
         if ! ic.volumes.include?(vol_id)
-          puts "Attaching volume #{vol_id} to #{ic.full_name}:#{vol_spec['device']}"
+          logger.info "Attaching volume #{vol_id} to #{ic.full_name}:#{vol_spec['device']}"
           attach_volume(vol_id, ic.instance_id, vol_spec['device'])
           ic.volumes << vol_id
           rubber_cfg.instance.save
@@ -541,6 +553,7 @@ namespace :rubber do
             item = response.volumeSet.item[0]
             break if item.status == "in-use"
           end
+          print "\n"
 
           # then format/mount/etc if we don't have an entry in hosts file
           task :_setup_volume, :hosts => ic.external_ip do
@@ -583,22 +596,7 @@ namespace :rubber do
   DESC
   required_task :destroy_volume do
     volume_id = get_env('VOLUME_ID', "Volume ID", true)
-    env = rubber_cfg.environment.bind()
-    ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
-
-    logger.info "Detaching volume #{volume_id}"
-    ec2.detach_volume(:volume_id => volume_id, :force => 'true') rescue logger.info("Volume was not attached")
-
-    logger.info "Deleting volume #{volume_id}"
-    ec2.delete_volume(:volume_id => volume_id) rescue logger.info("Volume does not exist")
-
-    logger.info "Removing volume #{volume_id} from rubber instances file"
-    artifacts = rubber_cfg.instance.artifacts
-    artifacts['volumes'].delete_if {|k,v| v == volume_id}
-    rubber_cfg.instance.each do |ic|
-      ic.volumes.delete(volume_id)
-    end
-    rubber_cfg.instance.save
+    destroy_volume(volume_id)
   end
 
   desc <<-DESC
@@ -928,16 +926,18 @@ namespace :rubber do
       response = ec2.describe_instances(:instance_id => instance_id)
       item = response.reservationSet.item[0].instancesSet.item[0]
       if item.instanceState.name == "running"
-        logger.info "\nInstance running, fetching hostname/ip data"
+        print "\n"
+        logger.info "Instance running, fetching hostname/ip data"
         instance_item.external_host = item.dnsName
         instance_item.external_ip = IPSocket.getaddress(item.dnsName)
         instance_item.internal_host = item.privateDnsName
+        rubber_cfg.instance.save()
 
         # setup amazon elastic ips if configured to do so
         setup_static_ips
 
         # Need to setup aliases so ssh doesn't give us errors when we
-        # later try to connect to same ip but using alias
+        # later try? to connect to same ip but using alias
         setup_local_aliases
 
         # re-load the roles since we may have just defined new ones
@@ -945,8 +945,9 @@ namespace :rubber do
 
         # Connect to newly created instance and grab its internal ip
         # so that we can update all aliases
-        task :_get_ip, :hosts => instance_item.external_host do
+        task :_get_ip, :hosts => instance_item.external_ip do
           instance_item.internal_ip = capture("curl -s http://169.254.169.254/latest/meta-data/local-ipv4").strip
+          rubber_cfg.instance.save()
         end
 
         # even though instance is running, sometimes ssh hasn't started yet,
@@ -962,12 +963,10 @@ namespace :rubber do
         # Add the aliases for this instance to all other hosts
         setup_remote_aliases
         setup_dns_aliases
-
+        
         break
       end
     end
-
-    rubber_cfg.instance.save()
 
     # setup amazon persistent volumes if configured to do so
     setup_volumes
@@ -999,7 +998,7 @@ namespace :rubber do
 
       # Connect to newly created instance and grab its internal ip
       # so that we can update all aliases
-      task :_get_ip, :hosts => instance_item.full_name do
+      task :_get_ip, :hosts => instance_item.external_ip do
         instance_item.internal_ip = capture("curl -s http://169.254.169.254/latest/meta-data/local-ipv4").strip
       end
       # even though instance is running, we need to give ssh a chance
@@ -1025,12 +1024,21 @@ namespace :rubber do
 
     value = Capistrano::CLI.ui.ask("About to DESTROY #{instance_alias} (#{instance_item.instance_id}) in mode #{ENV['RAILS_ENV']}.  Are you SURE [yes/NO]?: ")
     fatal("Exiting", 0) if value != "yes"
-    
-    if env.use_static_ip && instance_item.static_ip
+
+    if instance_item.static_ip
       value = Capistrano::CLI.ui.ask("Instance has a static ip, do you want to release it? [y/N]?: ")
-      deallocate_static_ip(instance_item.static_ip) if value =~ /^y/
+      destroy_static_ip(instance_item.static_ip) if value =~ /^y/
     end
-    
+
+    if instance_item.volumes
+      value = Capistrano::CLI.ui.ask("Instance has persistent volumes, do you want to destroy them? [y/N]?: ")
+      if value =~ /^y/
+        instance_item.volumes.each do |volume_id|
+          destroy_volume(volume_id)
+        end
+      end
+    end
+
     logger.info "Destroying instance alias=#{instance_alias}, instance_id=#{instance_item.instance_id}"
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
     response = ec2.terminate_instances(:instance_id => instance_item.instance_id)
@@ -1044,18 +1052,20 @@ namespace :rubber do
 
     setup_aliases
     destroy_dyndns(instance_item)
-    cleanup_known_hosts(instance_alias) unless env.disable_known_hosts_cleanup
+    cleanup_known_hosts(instance_item) unless env.disable_known_hosts_cleanup
   end
   
   # delete from ~/.ssh/known_hosts all lines that begin with ec2- or instance_alias
-  def cleanup_known_hosts(instance_alias)
+  def cleanup_known_hosts(instance_item)
     logger.info "Cleaning ~/.ssh/known_hosts"
     File.open(File.expand_path('~/.ssh/known_hosts'), 'r+') do |f|   
         out = ""
         f.each do |line|
           line = case line
             when /^ec2-/; ''
-            when /^#{instance_alias}/; ''
+            when /#{instance_item.full_name}/; ''
+            when /#{instance_item.external_host}/; ''
+            when /#{instance_item.external_ip}/; ''
             else line;
           end
           out << line
@@ -1170,45 +1180,42 @@ namespace :rubber do
     Rubber::Configuration.init_s3(rubber_cfg.environment.bind())
   end
 
-  def allocate_static_ip(ic)
+  def allocate_static_ip()
     env = rubber_cfg.environment.bind()
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
-    logger.info "Allocating static ip for #{ic.full_name}"
     response = ec2.allocate_address()
-    ic.static_ip = response.publicIp
-    rubber_cfg.instance.save()
-  end
-    
-  def associate_static_ip(ic)
-    env = rubber_cfg.environment.bind()
-    ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
-    logger.info "Associating static ip to instance: #{ic.full_name} (#{ic.instance_id}) => #{ic.static_ip}"
-    response = ec2.associate_address(:instance_id => ic.instance_id, :public_ip => ic.static_ip)
-    if response.return == "true"
-      ic.external_ip = ic.static_ip
-      response = ec2.describe_instances(:instance_id => ic.instance_id)
-      item = response.reservationSet.item[0].instancesSet.item[0]
-      ic.external_host = item.dnsName
-      ic.internal_host = item.privateDnsName
-      rubber_cfg.instance.save()
-    else
-      fatal "Failed to associate static ip"
-    end
+    ip = response.publicIp
+    fatal "Failed to allocate static ip" if ip.nil?
+    return ip
   end
 
-  def deallocate_static_ip(instance_ip)
+  def associate_static_ip(ip, instance_id)
     env = rubber_cfg.environment.bind()
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
-    logger.info "DeAllocating static ip: #{instance_ip}"
-    response = ec2.release_address(:public_ip => instance_ip)
-    fatal "Failed to deallocate" if response.return != "true"
+    response = ec2.associate_address(:instance_id => instance_id, :public_ip => ip)
+    fatal "Failed to associate static ip" unless response.return == "true"
+  end
+
+  def destroy_static_ip(ip)
+    env = rubber_cfg.environment.bind()
+    ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
+    logger.info "Releasing static ip: #{ip}"
+    response = ec2.release_address(:public_ip => ip) rescue logger.info("IP was not attached")
+
+    logger.info "Removing ip #{ip} from rubber instances file"
+    artifacts = rubber_cfg.instance.artifacts
+    artifacts['static_ips'].delete_if {|k,v| v == ip}
+    rubber_cfg.instance.each do |ic|
+      ic.static_ip = nil if ic.static_ip == ip
+    end
+    rubber_cfg.instance.save
   end
 
   def create_volume(size, zone)
     env = rubber_cfg.environment.bind()
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
     response = ec2.create_volume(:size => size.to_s, :availability_zone => zone)
-    raise "Failed to create volume" if response.volumeId.nil?
+    fatal "Failed to create volume" if response.volumeId.nil?
     return response.volumeId
   end
 
@@ -1217,7 +1224,37 @@ namespace :rubber do
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
     response = ec2.attach_volume(:volume_id => vol_id, :instance_id => instance_id, :device => device)
   end
-  
+
+  def destroy_volume(volume_id)
+    env = rubber_cfg.environment.bind()
+    ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
+
+    logger.info "Detaching volume #{volume_id}"
+    ec2.detach_volume(:volume_id => volume_id, :force => 'true') rescue logger.info("Volume was not attached")
+
+    print "Waiting for volume to detach"
+    while true do
+      print "."
+      sleep 2
+      response = ec2.describe_volumes(:volume_id => volume_id)
+      attachment = response.volumeSet.item[0].attachmentSet
+      break if !attachment || attachment.item[0].status == "detached"
+    end
+    print "\n"
+
+    logger.info "Deleting volume #{volume_id}"
+    ec2.delete_volume(:volume_id => volume_id)
+
+    logger.info "Removing volume #{volume_id} from rubber instances file"
+    artifacts = rubber_cfg.instance.artifacts
+    artifacts['volumes'].delete_if {|k,v| v == volume_id}
+    rubber_cfg.instance.each do |ic|
+      ic.volumes.delete(volume_id)
+    end
+    rubber_cfg.instance.save
+  end
+
+
   def find_alias(ip, instance_id, do_connect=true)
     if instance_id
       instance = rubber_cfg.instance.find {|i| i.instance_id == instance_id }

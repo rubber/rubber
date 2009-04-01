@@ -13,7 +13,7 @@ module Rubber
         LOGGER.debug{"Reading rubber instances from #{file}"}
         @file = file
         @items = {}
-        @artifacts = {'volumes' => {}}
+        @artifacts = {'volumes' => {}, 'static_ips' => {}}
         if ENV['FILTER']
           @filters = ENV['FILTER'].split(/\s*,\s*/)
         end
