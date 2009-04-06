@@ -3,6 +3,9 @@
 
 # REQUIRED: This determines where cruisecontrol gets installed
 cruise_dir: /mnt/cruisecontrolrb
+cruise_data_dir: /root/.cruise
+cruise_project_dir: "#{cruise_data_dir}/projects/#{app_name}/work"
+
 cruise_port: 3333
 
 # REQUIRED: The git repo to fetch your project from

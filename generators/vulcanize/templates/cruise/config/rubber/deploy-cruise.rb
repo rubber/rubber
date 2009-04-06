@@ -30,8 +30,8 @@ namespace :rubber do
       rubber.sudo_script 'setup_project', <<-ENDSCRIPT
       
         export CRUISE_HOME="#{env.cruise_dir}"
-        export CRUISE_DATA_ROOT="$HOME/.cruise"
-        export CRUISE_PROJECT_ROOT="$CRUISE_DATA_ROOT/projects/#{env.app_name}/work"
+        export CRUISE_DATA_ROOT="#{env.cruise_data_dir}"
+        export CRUISE_PROJECT_ROOT="#{env.cruise_project_dir}"
         
         if [[ ! -d $CRUISE_HOME ]]; then
             git clone git://github.com/sml/cruisecontrol.rb.git #{env.cruise_dir}
