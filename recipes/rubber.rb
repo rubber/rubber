@@ -1090,17 +1090,28 @@ namespace :rubber do
         if block
           cfg_value = block.call(cfg_value)
         end
-        opts["hostvar_#{ic.full_name}"] = cfg_value
+        opts["hostvar_#{ic.full_name}"] = cfg_value if cfg_value && cfg_value.strip.size > 0
       end
     end
     return opts
   end
 
   def package_helper(upgrade=false)
-    opts = get_host_options('packages') { |x| x.join(' ') }
-    sudo "apt-get -q update", opts
+    opts = get_host_options('packages') do |pkg_list|
+      expanded_pkg_list = []
+      pkg_list.each do |pkg_spec|
+        if pkg_spec.is_a?(Array)
+          expanded_pkg_list << "#{pkg_spec[0]}=#{pkg_spec[1]}"
+        else
+          expanded_pkg_list << pkg_spec
+        end
+      end
+      expanded_pkg_list.join(' ')
+    end
+    
+    sudo "apt-get -q update"
     if upgrade
-      sudo "/bin/sh -c 'export DEBIAN_FRONTEND=noninteractive; apt-get -q -y --force-yes dist-upgrade'", opts
+      sudo "/bin/sh -c 'export DEBIAN_FRONTEND=noninteractive; apt-get -q -y --force-yes dist-upgrade'"
     else
       sudo "/bin/sh -c 'export DEBIAN_FRONTEND=noninteractive; apt-get -q -y --force-yes install $CAPISTRANO:VAR$'", opts
     end
@@ -1120,22 +1131,56 @@ namespace :rubber do
         dpkg -i /tmp/${src_file}
       fi
     ENDSCRIPT
-  end    
+  end
+
+  def handle_gem_prompt(ch, data, str)
+    ch[:data] ||= ""
+    ch[:data] << data
+    if data =~ />\s*$/
+      logger.info data
+      logger.info "The gem command is asking for a number:"
+      choice = STDIN.gets
+      ch.send_data(choice)
+    else
+      logger.info data
+    end
+  end
 
   # Helper for installing gems,allows one to respond to prompts
   def gem_helper(update=false)
     cmd = update ? "update" : "install"
-    opts = get_host_options('gems') { |x| x.join(' ') }
-    sudo "gem #{cmd} $CAPISTRANO:VAR$ --no-rdoc --no-ri", opts do |ch, str, data|
-      ch[:data] ||= ""
-      ch[:data] << data
-      if data =~ />\s*$/
-        logger.info data
-        logger.info "The gem command is asking for a number:"
-        choice = STDIN.gets
-        ch.send_data(choice)
-      else
-        logger.info data
+
+    # when versions are provided for a gem, rubygems fails unless versions ae provided for all gems
+    #
+    # first do the gems that the user specified versions for
+    opts = get_host_options('gems') do |gem_list|
+      expanded_gem_list = []
+      gem_list.each do |gem_spec|
+        if gem_spec.is_a?(Array)
+          expanded_gem_list << "#{gem_spec[0]} -v #{gem_spec[1]}"
+        end
+      end
+      expanded_gem_list.join(' ')
+    end
+    if opts.size > 0
+      sudo "gem #{cmd} $CAPISTRANO:VAR$ --no-rdoc --no-ri", opts do |ch, str, data|
+        handle_gem_prompt(ch, data, str)
+      end
+    end
+
+    # then do the gems without versions
+    opts = get_host_options('gems') do |gem_list|
+      expanded_gem_list = []
+      gem_list.each do |gem_spec|
+        if ! gem_spec.is_a?(Array)
+          expanded_gem_list << gem_spec
+        end
+      end
+      expanded_gem_list.join(' ')
+    end
+    if opts.size > 0
+      sudo "gem #{cmd} $CAPISTRANO:VAR$ --no-rdoc --no-ri", opts do |ch, str, data|
+        handle_gem_prompt(ch, data, str)
       end
     end
   end

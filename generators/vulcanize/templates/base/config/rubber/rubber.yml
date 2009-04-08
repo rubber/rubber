@@ -96,9 +96,13 @@ security_groups: [default]
 auto_security_groups: true
 
 # OPTIONAL: The packages to install on all instances
+# You can install a specific version of a package by using a sub-array of pkg, version
+# For example, packages: [[rake, 0.7.1], irb]
 packages: [build-essential, ruby-full, ruby1.8-dev, rake, irb, subversion]
 
 # OPTIONAL: The gems to install on all instances
+# You can install a specific version of a gem by using a sub-array of gem, version
+# For example, gem: [[rails, 2.2.2], open4, aws-s3]
 gems: [rails, open4, aws-s3]
 
 # OPTIONAL: A string prepended to shell command strings that cause multi
