@@ -32,7 +32,7 @@
 # allow_star, enable_star, min_prefix_len, min_infix_len, mem_limit,
 # max_matches, # morphology, charset_type, charset_table, ignore_chars,
 # html_strip, # html_remove_elements. I think you've got the idea.
-# 
+#
 # Each setting in the YAML file is optional - so only put in the ones you
 # want to change.
 
@@ -41,3 +41,6 @@
   mem_limit:          <%= RAILS_ENV == 'production' ? '1024M' : '64M' %>
   config_file:        sphinx/config/<%= RAILS_ENV %>.sphinx.conf
   searchd_file_path:  sphinx/db/<%= RAILS_ENV %>/
+  pid_file:           <%= RAILS_ROOT %>/log/searchd.<%= RAILS_ENV %>.pid
+  searchd_log_file:   <%= RAILS_ROOT %>/log/searchd.log
+  query_log_file:     <%= RAILS_ROOT %>/log/searchd.query.log
