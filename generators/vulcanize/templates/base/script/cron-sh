@@ -1,7 +1,4 @@
-<%
-  @path = "#{RAILS_ROOT}/script/cron-sh"
-  @perms = 0755
-%>#!/usr/bin/env ruby
+#!/usr/bin/env ruby
 
 # For running shell commands through cron - only prints output if there is an error
 #

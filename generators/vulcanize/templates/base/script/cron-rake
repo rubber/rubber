@@ -1,7 +1,4 @@
-<%
-  @path = "#{RAILS_ROOT}/script/cron-rake"
-  @perms = 0755
-%>#!/usr/bin/env ruby
+#!/usr/bin/env ruby
 
 # For running rake jobs through cron - only prints output if there is an error
 #

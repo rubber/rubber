@@ -34,7 +34,12 @@ class VulcanizeGenerator < Rails::Generator::NamedBase
       rel = f.gsub(/#{source_root}\//, '')
       dest_rel = rel.gsub(/^#{name}\//, '')
       m.directory(dest_rel) if File.directory?(f)
-      m.file(rel, dest_rel) if File.file?(f)
+      if File.file?(f)
+        # force scripts to be executable
+        opts = (File.read(f) =~ /^#!/) ? {:chmod => 0755} : {}
+        m.file(rel, dest_rel, opts)
+      end
+
     end
   end
 
