@@ -51,7 +51,7 @@ namespace :rubber do
         task_name = "_bootstrap_mysql_master_#{ic.full_name}".to_sym()
         task task_name, :hosts => ic.full_name do
           env = rubber_cfg.environment.bind("mysql_master", ic.name)
-          exists = capture("echo $(ls -d #{env.db_data_dir} 2> /dev/null)")
+          exists = capture("echo $(ls #{env.db_data_dir}/ 2> /dev/null)")
           if exists.strip.size == 0
             common_bootstrap("mysql_master")
             sudo "dpkg-reconfigure --frontend=noninteractive mysql-server-5.0"
@@ -72,7 +72,7 @@ namespace :rubber do
         task_name = "_bootstrap_mysql_slave_#{ic.full_name}".to_sym()
         task task_name, :hosts => ic.full_name do
           env = rubber_cfg.environment.bind("mysql_slave", ic.name)
-          exists = capture("echo $(ls -d #{env.db_data_dir} 2> /dev/null)")
+          exists = capture("echo $(ls #{env.db_data_dir}/ 2> /dev/null)")
           if exists.strip.size == 0
             common_bootstrap("mysql_slave")
             sudo "dpkg-reconfigure --frontend=noninteractive mysql-server-5.0"
