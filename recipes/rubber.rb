@@ -194,6 +194,7 @@ namespace :rubber do
     set_timezone
     link_bash
     install_packages
+    setup_volumes
     add_gem_sources
     install_gems
   end
@@ -557,7 +558,6 @@ namespace :rubber do
 
           # then format/mount/etc if we don't have an entry in hosts file
           task :_setup_volume, :hosts => ic.external_ip do
-            link_bash
             rubber.run_script 'setup_volume', <<-ENDSCRIPT
               if ! grep -q '#{vol_spec['mount']}' /etc/fstab; then
                 if mount | grep -q '#{vol_spec['mount']}'; then
@@ -967,9 +967,6 @@ namespace :rubber do
         break
       end
     end
-
-    # setup amazon persistent volumes if configured to do so
-    setup_volumes
   end
 
   # Refreshes a ec2 instance with the given alias
@@ -1294,7 +1291,7 @@ namespace :rubber do
     artifacts = rubber_cfg.instance.artifacts
     artifacts['volumes'].delete_if {|k,v| v == volume_id}
     rubber_cfg.instance.each do |ic|
-      ic.volumes.delete(volume_id)
+      ic.volumes.delete(volume_id) if ic.volumes
     end
     rubber_cfg.instance.save
   end
