@@ -19,7 +19,9 @@ db_restore_cmd: "zcat - | mysql -h %host% -u %user% --password=%pass% %name%"
 
 # REQUIRED: The directory to store the db data in
 #
-db_data_dir: /mnt/mysql_data
+db_root_dir: /mnt/mysql
+db_data_dir: "#{db_root_dir}/data"
+db_log_dir: "#{db_root_dir}/log"
 
 packages: [mysql-client, libmysql-ruby]
 
