@@ -517,65 +517,18 @@ namespace :rubber do
     All volumes defined in rubber.yml will be created if neccessary, and attached/mounted on their associated instances
   DESC
   required_task :setup_volumes do
-    env = rubber_cfg.environment.bind()
-    ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
-
     rubber_cfg.instance.each do |ic|
       env = rubber_cfg.environment.bind(ic.role_names, ic.name)
+      created_vols = []
       vol_specs = env.ec2_volumes || []
       vol_specs.each do |vol_spec|
-        key = "#{ic.name}_#{vol_spec['device']}"
-        artifacts = rubber_cfg.instance.artifacts
-        vol_id = artifacts['volumes'][key]
-
-        # first create the volume if we don't have a global record (artifacts) for it
-        created = false
-        if ! vol_id
-          logger.info "Creating volume for #{ic.full_name}:#{vol_spec['device']}"
-          vol_id = create_volume(vol_spec['size'], vol_spec['zone'])
-          artifacts['volumes'][key] = vol_id
-          rubber_cfg.instance.save
-          created = true
-        end
-
-        # then, attach it if we don't have a record (on instance) of attachment
-        ic.volumes ||= []
-        if ! ic.volumes.include?(vol_id)
-          logger.info "Attaching volume #{vol_id} to #{ic.full_name}:#{vol_spec['device']}"
-          attach_volume(vol_id, ic.instance_id, vol_spec['device'])
-          ic.volumes << vol_id
-          rubber_cfg.instance.save
-
-          print "Waiting for volume to attach"
-          while true do
-            print "."
-            sleep 2
-            response = ec2.describe_volumes(:volume_id => vol_id)
-            item = response.volumeSet.item[0]
-            break if item.status == "in-use"
-          end
-          print "\n"
-
-          # then format/mount/etc if we don't have an entry in hosts file
-          task :_setup_volume, :hosts => ic.external_ip do
-            rubber.run_script 'setup_volume', <<-ENDSCRIPT
-              if ! grep -q '#{vol_spec['mount']}' /etc/fstab; then
-                if mount | grep -q '#{vol_spec['mount']}'; then
-                  umount '#{vol_spec['mount']}'
-                fi
-                mv /etc/fstab /etc/fstab.bak
-                cat /etc/fstab.bak | grep -v '#{vol_spec['mount']}' > /etc/fstab
-                echo '#{vol_spec['device']} #{vol_spec['mount']} #{vol_spec['filesystem']} noatime 0 0 # rubber volume #{vol_id}' >> /etc/fstab
-
-                #{('yes | mkfs -t ' + vol_spec['filesystem'] + ' ' + vol_spec['device']) if created}
-                mkdir -p '#{vol_spec['mount']}'
-                mount '#{vol_spec['mount']}'
-              fi
-            ENDSCRIPT
-          end
-          _setup_volume
-          
-        end
+        created_vols << setup_volume(ic, vol_spec)
+      end
+      created_vols = created_vols.compact.uniq
+      raid_specs = env.raid_volumes || []
+      raid_specs.each do |raid_spec|
+        format = raid_spec['source_devices'].all? {|dev| created_vols.include?(dev)}
+        setup_raid_volume(ic, raid_spec, format)
       end
     end
   end
@@ -1030,7 +983,7 @@ namespace :rubber do
     if instance_item.volumes
       value = Capistrano::CLI.ui.ask("Instance has persistent volumes, do you want to destroy them? [y/N]?: ")
       if value =~ /^y/
-        instance_item.volumes.each do |volume_id|
+        instance_item.volumes.clone.each do |volume_id|
           destroy_volume(volume_id)
         end
       end
@@ -1265,6 +1218,106 @@ namespace :rubber do
     env = rubber_cfg.environment.bind()
     ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
     response = ec2.attach_volume(:volume_id => vol_id, :instance_id => instance_id, :device => device)
+  end
+
+  def setup_volume(ic, vol_spec)
+    env = rubber_cfg.environment.bind()
+    ec2 = EC2::Base.new(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
+    
+    created = nil
+    key = "#{ic.name}_#{vol_spec['device']}"
+    artifacts = rubber_cfg.instance.artifacts
+    vol_id = artifacts['volumes'][key]
+
+    # first create the volume if we don't have a global record (artifacts) for it
+    if ! vol_id
+      logger.info "Creating volume for #{ic.full_name}:#{vol_spec['device']}"
+      vol_id = create_volume(vol_spec['size'], vol_spec['zone'])
+      artifacts['volumes'][key] = vol_id
+      rubber_cfg.instance.save
+      created = vol_spec['device']
+    end
+
+    # then, attach it if we don't have a record (on instance) of attachment
+    ic.volumes ||= []
+    if ! ic.volumes.include?(vol_id)
+      logger.info "Attaching volume #{vol_id} to #{ic.full_name}:#{vol_spec['device']}"
+      attach_volume(vol_id, ic.instance_id, vol_spec['device'])
+      ic.volumes << vol_id
+      rubber_cfg.instance.save
+
+      print "Waiting for volume to attach"
+      while true do
+        print "."
+        sleep 2
+        response = ec2.describe_volumes(:volume_id => vol_id)
+        item = response.volumeSet.item[0]
+        break if item.status == "in-use"
+      end
+      print "\n"
+
+      # we don't mount/format at this time if we are doing a RAID array
+      if vol_spec['mount'] && vol_spec['filesystem']
+        # then format/mount/etc if we don't have an entry in hosts file
+        task :_setup_volume, :hosts => ic.external_ip do
+          rubber.run_script 'setup_volume', <<-ENDSCRIPT
+            if ! grep -q '#{vol_spec['mount']}' /etc/fstab; then
+              if mount | grep -q '#{vol_spec['mount']}'; then
+                umount '#{vol_spec['mount']}'
+              fi
+              mv /etc/fstab /etc/fstab.bak
+              cat /etc/fstab.bak | grep -v '#{vol_spec['mount']}' > /etc/fstab
+              echo '#{vol_spec['device']} #{vol_spec['mount']} #{vol_spec['filesystem']} noatime 0 0 # rubber volume #{vol_id}' >> /etc/fstab
+
+              #{('yes | mkfs -t ' + vol_spec['filesystem'] + ' ' + vol_spec['device']) if created}
+              mkdir -p '#{vol_spec['mount']}'
+              mount '#{vol_spec['mount']}'
+            fi
+          ENDSCRIPT
+        end
+        _setup_volume
+      end
+
+    end
+    return created
+  end
+
+  def setup_raid_volume(ic, raid_spec, create=false)
+    if create
+      mdadm_init = "mdadm --create #{raid_spec['device']} --level #{raid_spec['raid_level']} --raid-devices #{raid_spec['source_devices'].size} #{raid_spec['source_devices'].sort.join(' ')}"
+    else
+      mdadm_init = "mdadm --assemble #{raid_spec['device']} #{raid_spec['source_devices'].sort.join(' ')}"
+    end
+
+    task :_setup_raid_volume, :hosts => ic.external_ip do
+      rubber.run_script 'setup_raid_volume', <<-ENDSCRIPT
+        if ! grep -q '#{raid_spec['device']}' /etc/fstab; then
+          if mount | grep -q '#{raid_spec['mount']}'; then
+            umount '#{raid_spec['mount']}'
+          fi
+          mv /etc/fstab /etc/fstab.bak
+          cat /etc/fstab.bak | grep -v '#{raid_spec['mount']}' > /etc/fstab
+          echo '#{raid_spec['device']} #{raid_spec['mount']} #{raid_spec['filesystem']} noatime 0 0 # rubber raid volume' >> /etc/fstab
+
+          # seems to help devices initialize, otherwise mdadm fails because
+          # device not ready even though ec2 says the volume is attached
+          fdisk -l &> /dev/null
+
+          #{mdadm_init}
+
+          # set reconstruction speed
+          echo $((30*1024)) > /proc/sys/dev/raid/speed_limit_min
+
+          echo 'DEVICE /dev/hd*[0-9] /dev/sd*[0-9]' > /etc/mdadm/mdadm.conf
+          mdadm --detail --scan >> /etc/mdadm/mdadm.conf
+
+          #{('yes | mkfs -t ' + raid_spec['filesystem'] + ' ' + raid_spec['device']) if create}
+          mkdir -p '#{raid_spec['mount']}'
+          mount '#{raid_spec['mount']}'
+        fi
+      ENDSCRIPT
+    end
+    _setup_raid_volume
   end
 
   def destroy_volume(volume_id)

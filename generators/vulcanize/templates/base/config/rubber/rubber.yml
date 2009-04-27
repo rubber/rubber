@@ -144,17 +144,36 @@ staging_roles: "web,haproxy,app,mysql_master"
 #
 # hosts:
 #   my_host:
+#     availability_zone: us-east-1a
 #     ec2_volumes:
 #       - size: 100 # size of vol in GBs
 #         zone: us-east-1a # zone to create volume in, needs to match host's zone
 #         device: /dev/sdh # OS device to attach volume to
-#         mount: /mnt/mysql_data # The directory to mount this volume to
+#         mount: /mnt/mysql # The directory to mount this volume to
 #         filesystem: ext3 # the filesystem to create on volume
 #       - size: 10 # size of vol in GBs
 #         zone: us-east-1a # zone to create volume in, needs to match host's zone
 #         device: /dev/sdi # OS device to attach volume to
 #         mount: /mnt/logs # The directory to mount this volume to
 #         filesystem: ext3 # the filesystem to create on volume
+#
+#       # volumes without mount/filesystem can be used in raid arrays
+#
+#       - size: 50 # size of vol in GBs
+#         zone: us-east-1a # zone to create volume in, needs to match host's zone
+#         device: /dev/sdx # OS device to attach volume to
+#       - size: 50 # size of vol in GBs
+#         zone: us-east-1a # zone to create volume in, needs to match host's zone
+#         device: /dev/sdy # OS device to attach volume to
+#
+#     # to do a raid array, you'll need to add mdadm to packages.  Likewise,
+#     # add your filesystem to packages (e.g. xfsprogs for xfs filesystem support)
+#     raid_volumes:
+#       - device: /dev/md0 # OS device to to create raid array on
+#         mount: /mnt/fast # The directory to mount this array to
+#         filesystem: xfs # the filesystem to create on array
+#         raid_level: 0 # the raid level to use for the array
+#         source_devices: [/dev/sdx, /dev/sdy] # the source EBS devices we are creating raid array from
 
 # OPTIONAL: You can also define your own variables here for use when
 # transforming config files, and they will be available in your config
