@@ -28,8 +28,11 @@ packages: [mysql-client, libmysql-ruby]
 roles:
   mysql_master:
     db_server_id: 1
-    packages: [mysql-server]
   mysql_slave:
     db_server_id: 2
-    packages: [mysql-server]
-    
+  db:
+    packages: [
+                mysql-server,
+                maatkit, # useful mysql tools for replication
+                libdbi-perl, libdbd-mysql, libcache-cache-perl # for extended munin plugins
+              ]
