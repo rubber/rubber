@@ -166,8 +166,9 @@ staging_roles: "web,haproxy,app,mysql_master"
 #         zone: us-east-1a # zone to create volume in, needs to match host's zone
 #         device: /dev/sdy # OS device to attach volume to
 #
-#     # to do a raid array, you'll need to add mdadm to packages.  Likewise,
-#     # add your filesystem to packages (e.g. xfsprogs for xfs filesystem support)
+#     # for raid array, you'll need to add mdadm to packages.  Likewise,
+#     # xfsprogs is needed for xfs filesystem support
+#     packages: [xfsprogs, mdadm]
 #     raid_volumes:
 #       - device: /dev/md0 # OS device to to create raid array on
 #         mount: /mnt/fast # The directory to mount this array to
