@@ -53,6 +53,9 @@ namespace :rubber do
     before "deploy:cold" do
       before "rubber:sphinx:start", "rubber:sphinx:index"
     end
+    before "rubber:create_staging" do
+      before "rubber:sphinx:start", "rubber:sphinx:index"
+    end
 
     desc "Do sphinx setup tasks"
     task :setup, :roles => :sphinx do
