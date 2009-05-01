@@ -1,7 +1,6 @@
 # Uses admin_email from base
 
 packages: [munin-node]
-ec2_security_groups:
 
 roles:
   web_tools:

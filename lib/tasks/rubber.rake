@@ -19,7 +19,8 @@ namespace :rubber do
   end
 
   def init_s3()
-    Rubber::Configuration.init_s3(rubber_env)
+    env = rubber_env
+    AWS::S3::Base.establish_connection!(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
   end
 
   desc "Generate system config files by transforming the files in the config tree"

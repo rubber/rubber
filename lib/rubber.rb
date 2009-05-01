@@ -5,6 +5,8 @@ require 'rubber/environment'
 require 'rubber/generator'
 require 'rubber/instance'
 require 'rubber/util'
+require 'rubber/cloud'
+require 'rubber/dns'
 
 module Rubber
   VERSION = '0.1.0'

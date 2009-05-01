@@ -36,6 +36,9 @@ dns_ttl:
 #
 # rubber_secret: "#{File.expand_path('~') + '/.ec2' + (RAILS_ENV == 'production' ? '' : '_dev') + '/rubber-secret.yml' rescue ''}"
 
+# There's only one right now
+cloud_provider: aws
+
 # REQUIRED The amazon keys and account ID (digits only, no dashes) used to access the AWS API
 #
 aws_access_key: XXX
@@ -80,12 +83,12 @@ ec2_security_groups:
   default:
     description: The default security group
     rules:
-      - source_security_group_name: default
-        source_security_group_owner_id: "#{aws_account}"
-      - ip_protocol: tcp
+      - source_group_name: default
+        source_group_account: "#{aws_account}"
+      - protocol: tcp
         from_port: 22
         to_port: 22
-        cidr_ip: 0.0.0.0/0
+        source_ips: [0.0.0.0/0]
 
 # OPTIONAL: The default security groups to create instances with
 security_groups: [default]

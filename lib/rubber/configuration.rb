@@ -2,7 +2,6 @@ require 'logger'
 require 'rubber/environment'
 require 'rubber/instance'
 require 'rubber/generator'
-require 'rubber/dns/dynamic_dns_base'
 
 module Rubber
   module Configuration
@@ -33,14 +32,6 @@ module Rubber
     def self.rubber_instances
       raise "This convenience method needs RAILS_ENV to be set" unless RAILS_ENV
       Rubber::Configuration.get_configuration(RAILS_ENV).instance
-    end
-
-    def self.init_s3(env)
-      require 'aws/s3'
-      AWS::S3::Base.establish_connection!(
-        :access_key_id     => env.aws_access_key,
-        :secret_access_key => env.aws_secret_access_key
-      )
     end
 
     class ConfigHolder
