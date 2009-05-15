@@ -31,7 +31,7 @@ module Rubber
       end
 
       def hostname(host)
-        "#{host}.#{env.domain}"
+        "#{host}.#{@env.domain}"
       end
 
       def up_to_date(host, ip)
