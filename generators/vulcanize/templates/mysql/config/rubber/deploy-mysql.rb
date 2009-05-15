@@ -134,6 +134,24 @@ namespace :rubber do
       rubber.run_config(:RAILS_ENV => rails_env, :FILE => "role/#{role}|role/db/my.cnf", :deploy_path => release_path)
     end
     
+    after "rubber:install_packages", "rubber:mysql:custom_install"
+
+    desc <<-DESC
+      Installs some extra munin graphs
+    DESC
+    task :custom_install, :roles => [:mysql_master, :mysql_slave] do
+      rubber.run_script 'install_munin_mysql', <<-ENDSCRIPT
+        if [ ! -f /etc/munin/plugins/mysql_ ]; then
+          wget -q -O /etc/munin/plugins/mysql_ http://github.com/kjellm/munin-mysql/raw/master/mysql_
+          wget -q -O /etc/munin/plugin-conf.d/mysql_.conf http://github.com/kjellm/munin-mysql/raw/master/mysql_.conf
+
+          cd /etc/munin/plugins
+          chmod +x mysql_
+          ./mysql_ suggest | while read x; do ln -sf mysql_ $x; done
+        fi
+      ENDSCRIPT
+    end
+
     desc <<-DESC
       Starts the mysql daemons
     DESC
