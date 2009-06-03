@@ -517,16 +517,29 @@ namespace :rubber do
     All volumes defined in rubber.yml will be created if neccessary, and attached/mounted on their associated instances
   DESC
   required_task :setup_volumes do
-    rubber_cfg.instance.each do |ic|
+    rubber_cfg.instance.filtered.each do |ic|
       env = rubber_cfg.environment.bind(ic.role_names, ic.name)
       created_vols = []
       vol_specs = env.ec2_volumes || []
       vol_specs.each do |vol_spec|
         created_vols << setup_volume(ic, vol_spec)
       end
+      created_vols.compact!
+
+      created_parts = []
+      partition_specs = env.local_volumes || []
+      partition_specs.each do |partition_spec|
+        created_parts << setup_partition(ic, partition_spec)
+      end
+      created_parts.compact!
+      zero_partitions(ic, created_parts)
+      created_vols += created_parts
+
       created_vols = created_vols.compact.uniq
       raid_specs = env.raid_volumes || []
       raid_specs.each do |raid_spec|
+        # we want to format if we created the ec2 volumes, or if we don't have any
+        # ec2 volumes and are just creating raid array from ephemeral stores
         format = raid_spec['source_devices'].all? {|dev| created_vols.include?(dev)}
         setup_raid_volume(ic, raid_spec, format)
       end
@@ -1282,6 +1295,72 @@ namespace :rubber do
     return created
   end
 
+  def setup_partition(ic, partition_spec)
+    created = nil
+    part_id = partition_spec['partition_device']
+
+    # Only create the partition if we haven't already done so
+    ic.partitions ||= []
+    if ! ic.partitions.include?(part_id)
+      # then format/mount/etc if we don't have an entry in hosts file
+      task :_setup_partition, :hosts => ic.external_ip do
+        rubber.run_script 'setup_partition', <<-ENDSCRIPT
+          if ! fdisk -l 2>&1 | grep -q '#{partition_spec['partition_device']}'; then
+            if grep -q '#{partition_spec['disk_device']}\\b' /etc/fstab; then
+              umount #{partition_spec['disk_device']}
+              mv /etc/fstab /etc/fstab.bak
+              cat /etc/fstab.bak | grep -v '#{partition_spec['disk_device']}\\b' > /etc/fstab
+            fi
+
+            # partition format is: Start (blank is first available),Size(MB due to -uM),Id(83=linux,82=swap,etc),Bootable
+            echo "#{partition_spec['start']},#{partition_spec['size']},#{partition_spec['type']},#{partition_spec['bootable']}" | sfdisk -L -uM #{partition_spec['disk_device']}
+          fi
+        ENDSCRIPT
+      end
+      _setup_partition
+
+      ic.partitions << part_id
+      rubber_cfg.instance.save
+      created = part_id
+
+    end
+
+    return created
+  end
+
+  def zero_partitions(ic, partitions)
+    env = rubber_cfg.environment.bind(ic.role_names, ic.name)
+
+    # don't zero out the ones that we weren't told to
+    partitions.delete_if do |part|
+      spec = env.local_volumes.find {|s| s['partition_device'] == part}
+      ! spec['zero']
+    end
+
+    if partitions.size > 0
+      zero_script = ""
+      partitions.each do |partition|
+        zero_script << "nohup dd if=/dev/zero bs=1M of=#{partition} &> /dev/null &\n"
+      end
+      # then format/mount/etc if we don't have an entry in hosts file
+      task :_zero_partitions, :hosts => ic.external_ip do
+        rubber.run_script 'zero_partitions', <<-ENDSCRIPT
+          # zero out parition for performance (see amazon DevGuide)
+          echo "Zeroing out raid partitions to improve performance, this way take a while"
+          #{zero_script}
+
+          echo "Waiting for partitions to zero out"
+          while true; do
+            if ! ps ax | grep -q "[d]d.*/dev/zero"; then exit; fi
+            echo -n .
+            sleep 1
+          done
+        ENDSCRIPT
+      end
+      _zero_partitions
+    end
+  end
+
   def setup_raid_volume(ic, raid_spec, create=false)
     if create
       mdadm_init = "mdadm --create #{raid_spec['device']} --level #{raid_spec['raid_level']} --raid-devices #{raid_spec['source_devices'].size} #{raid_spec['source_devices'].sort.join(' ')}"
@@ -1310,6 +1389,7 @@ namespace :rubber do
 
           echo 'DEVICE /dev/hd*[0-9] /dev/sd*[0-9]' > /etc/mdadm/mdadm.conf
           mdadm --detail --scan >> /etc/mdadm/mdadm.conf
+          #echo "mdadm --assemble --scan" >> /etc/rc
 
           #{('yes | mkfs -t ' + raid_spec['filesystem'] + ' ' + raid_spec['device']) if create}
           mkdir -p '#{raid_spec['mount']}'
