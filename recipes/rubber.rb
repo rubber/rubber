@@ -1473,10 +1473,11 @@ namespace :rubber do
           servers[rolename] += serverdefs.collect {|server| server.host}
         end
       end
-
+      
       # Remove duplication of servers - roles which come first in list
       # have precedence, so the servers show up in that group
       serial_roles.each_with_index do |rolename, i|
+        servers[rolename] ||= []
         serial_roles[i+1..-1].each do |r|
           servers[r] -= servers[rolename]
         end
