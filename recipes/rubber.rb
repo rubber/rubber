@@ -197,6 +197,7 @@ namespace :rubber do
     setup_volumes
     add_gem_sources
     install_gems
+    deploy.setup
   end
 
   desc <<-DESC
@@ -1447,32 +1448,58 @@ namespace :rubber do
 
   # Use instead of task to define a capistrano task that runs serially instead of in parallel
   # The :groups option specifies how many groups to partition the servers into so that we can
-  # do the task for N (= total/groups) servers at a time
+  # do the task for N (= total/groups) servers at a time.  When multiple roles are supplied,
+  # this tries to be intelligent and slice up each role independently, but runs the slices together
+  # so that things don't take too long, e.g. adding an :api role to some :app servers, when restarting
+  # you don't want to do the api first, then the others as this would take a long time, so instead
+  # it does some :api and some :app, then some more of each
+
   def serial_task(ns, name, options = {}, &block)
     # first figure out server names for the passed in roles - when no roles
     # are passed in, use all servers
     serial_roles = Array(options[:roles])
-    servers = []
+    servers = {}
     self.roles.each do |rolename, serverdefs|
       if serial_roles.empty? || serial_roles.include?(rolename)
-        servers += serverdefs.collect {|server| server.host}
+        servers[rolename] ||= []
+        servers[rolename] += serverdefs.collect {|server| server.host}
       end
     end
-    servers = servers.uniq.sort
-    
-    # figure out size of each slice by deviding server count by # of groups
-    slice_size = servers.size / (options.delete(:groups) || 2)
-    slice_size = 1 if slice_size == 0
-    
-    # for each slice, define a new task sepcific to the hosts in that slice
+
+    # Remove duplication of servers - roles which come first in list
+    # have precedence, so the servers show up in that group
+    slices = []
+    serial_roles.each_with_index do |rolename, i|
+      serial_roles[i+1..-1].each do |r|
+        servers[r] -= servers[rolename]
+      end
+      servers[rolename] = servers[rolename].uniq.sort
+    end
+
+    # group each role's servers into slices, but combine slices across roles
+    slices = []
+    servers.each do |rolename, svrs|
+      next if svrs.size == 0
+      # figure out size of each slice by deviding server count by # of groups
+      slice_size = svrs.size / (options.delete(:groups) || 2)
+      slice_size = 1 if slice_size == 0
+      slice_idx = 0
+      svrs.each_slice(slice_size) do |srv_slice|
+        slices[slice_idx] ||= []
+        slices[slice_idx] += srv_slice
+        slice_idx += 1
+      end
+    end
+
+    # for each slice, define a new task specific to the hosts in that slice
     task_syms = []
-    servers.each_slice(slice_size) do |server_group|
+    slices.each do |server_group|
       servers = server_group.map{|s| s.gsub(/\..*/, '')}.join("_")
       task_sym = "_serial_task_#{name.to_s}_#{servers}".to_sym
       task_syms << task_sym
       ns.task task_sym, options.merge(:hosts => server_group), &block
     end
-    
+
     # create the top level task that calls all the serial ones
     ns.task name, options do
       task_syms.each do |t|
