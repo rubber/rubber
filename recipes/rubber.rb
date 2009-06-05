@@ -1453,27 +1453,35 @@ namespace :rubber do
   # so that things don't take too long, e.g. adding an :api role to some :app servers, when restarting
   # you don't want to do the api first, then the others as this would take a long time, so instead
   # it does some :api and some :app, then some more of each
-
+  #
   def serial_task(ns, name, options = {}, &block)
     # first figure out server names for the passed in roles - when no roles
     # are passed in, use all servers
     serial_roles = Array(options[:roles])
     servers = {}
-    self.roles.each do |rolename, serverdefs|
-      if serial_roles.empty? || serial_roles.include?(rolename)
-        servers[rolename] ||= []
-        servers[rolename] += serverdefs.collect {|server| server.host}
+    if serial_roles.empty?
+      all_servers = []  
+      self.roles.each do |rolename, serverdefs|
+        all_servers += serverdefs.collect {|server| server.host}
       end
-    end
+      servers[:_serial_all] = all_servers.uniq.sort
+    else
+      # get servers for each role
+      self.roles.each do |rolename, serverdefs|
+        if serial_roles.include?(rolename)
+          servers[rolename] ||= []
+          servers[rolename] += serverdefs.collect {|server| server.host}
+        end
+      end
 
-    # Remove duplication of servers - roles which come first in list
-    # have precedence, so the servers show up in that group
-    slices = []
-    serial_roles.each_with_index do |rolename, i|
-      serial_roles[i+1..-1].each do |r|
-        servers[r] -= servers[rolename]
+      # Remove duplication of servers - roles which come first in list
+      # have precedence, so the servers show up in that group
+      serial_roles.each_with_index do |rolename, i|
+        serial_roles[i+1..-1].each do |r|
+          servers[r] -= servers[rolename]
+        end
+        servers[rolename] = servers[rolename].uniq.sort
       end
-      servers[rolename] = servers[rolename].uniq.sort
     end
 
     # group each role's servers into slices, but combine slices across roles
@@ -1490,7 +1498,6 @@ namespace :rubber do
         slice_idx += 1
       end
     end
-
     # for each slice, define a new task specific to the hosts in that slice
     task_syms = []
     slices.each do |server_group|
