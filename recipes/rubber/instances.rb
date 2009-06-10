@@ -101,6 +101,8 @@ namespace :rubber do
   end
 
 
+  set :print_ip_command, "ifconfig eth0 | awk 'NR==2 {print $2}' | awk -F: '{print $2}'"
+
   # Creates a new ec2 instance with the given alias and roles
   # Configures aliases (/etc/hosts) on local and remote machines
   def create_instance(instance_alias, instance_roles)
@@ -110,8 +112,8 @@ namespace :rubber do
     env = rubber_cfg.environment.bind(role_names, instance_alias)
 
     # We need to use security_groups during create, so create them up front
-    security_groups = env.security_groups
-    security_group_defns = env.ec2_security_groups
+    security_groups = env.assigned_security_groups
+    security_group_defns = env.security_groups
     if env.auto_security_groups
       hosts = rubber_cfg.instance.collect{|ic| ic.name } + [instance_alias]
       roles = (rubber_cfg.instance.all_roles + role_names).uniq
@@ -163,8 +165,9 @@ namespace :rubber do
 
         # Connect to newly created instance and grab its internal ip
         # so that we can update all aliases
-        task :_get_ip, :hosts => instance_item.external_ip do
-          instance_item.internal_ip = capture("curl -s http://169.254.169.254/latest/meta-data/local-ipv4").strip
+
+        task :_get_Ip, :hosts => instance_item.external_ip do
+          instance_item.internal_ip = capture(print_ip_command).strip
           rubber_cfg.instance.save()
         end
 
@@ -214,7 +217,7 @@ namespace :rubber do
       # Connect to newly created instance and grab its internal ip
       # so that we can update all aliases
       task :_get_ip, :hosts => instance_item.external_ip do
-        instance_item.internal_ip = capture("curl -s http://169.254.169.254/latest/meta-data/local-ipv4").strip
+        instance_item.internal_ip = capture(print_ip_command).strip
       end
       # even though instance is running, we need to give ssh a chance
       # to get started
@@ -237,7 +240,7 @@ namespace :rubber do
 
     env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
 
-    value = Capistrano::CLI.ui.ask("About to DESTROY #{instance_alias} (#{instance_item.instance_id}) in mode #{ENV['RAILS_ENV']}.  Are you SURE [yes/NO]?: ")
+    value = Capistrano::CLI.ui.ask("About to DESTROY #{instance_alias} (#{instance_item.instance_id}) in mode #{ENV['RUBBER_ENV']}.  Are you SURE [yes/NO]?: ")
     fatal("Exiting", 0) if value != "yes"
 
     if instance_item.static_ip

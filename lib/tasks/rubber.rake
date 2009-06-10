@@ -1,11 +1,11 @@
 # Since the rake task is typically done outside rails env, we setup load
 # path to include the lib dir
 $:.unshift "#{File.dirname(__FILE__)}/.."
-ENV['RAILS_ENV'] ||= 'development'
 
 require 'fileutils'
 require 'date'
 require 'time'
+require 'rubber'
 require 'rubber/configuration'
 
 namespace :rubber do
@@ -26,14 +26,14 @@ namespace :rubber do
   desc "Generate system config files by transforming the files in the config tree"
   task :config do
     require 'rubber/configuration'
-    cfg = Rubber::Configuration.get_configuration(ENV['RAILS_ENV'])
+    cfg = Rubber::Configuration.get_configuration(ENV['RUBBER_ENV'])
     instance_alias = cfg.environment.current_host
     instance = cfg.instance[instance_alias]
     if instance
       roles = instance.role_names
       env = cfg.environment.bind(roles, instance_alias)
-      gen = Rubber::Configuration::Generator.new("#{RAILS_ROOT}/config/rubber", roles, instance_alias)
-    elsif RAILS_ENV == 'development'
+      gen = Rubber::Configuration::Generator.new("#{PROJECT_ROOT}/config/rubber", roles, instance_alias)
+    elsif RUBBER_ENV == 'development'
       roles = cfg.environment.known_roles
       role_items = roles.collect do |r|
         Rubber::Configuration::RoleItem.new(r, r == "db" ? {'primary' => true} : {})
@@ -46,8 +46,8 @@ namespace :rubber do
       instance.internal_host = instance.full_name
       instance.internal_ip = "127.0.0.1"
       cfg.instance.add(instance)
-      gen = Rubber::Configuration::Generator.new("#{RAILS_ROOT}/config/rubber", roles, instance_alias)
-      gen.fake_root ="#{RAILS_ROOT}/tmp/rubber"
+      gen = Rubber::Configuration::Generator.new("#{PROJECT_ROOT}/config/rubber", roles, instance_alias)
+      gen.fake_root ="#{PROJECT_ROOT}/tmp/rubber"
     else
       puts "Instance not found for host: #{instance_alias}"
       exit 1
@@ -114,7 +114,7 @@ namespace :rubber do
     dir = get_env('BACKUP_DIR', true)
     age = (get_env('BACKUP_AGE') || 3).to_i
     time_stamp = Time.now.strftime("%Y-%m-%d_%H-%M")
-    backup_file = "#{dir}/#{RAILS_ENV}_dump_#{time_stamp}.sql.gz"
+    backup_file = "#{dir}/#{RUBBER_ENV}_dump_#{time_stamp}.sql.gz"
     FileUtils.mkdir_p(File.dirname(backup_file))
 
     user = get_env('DBUSER', true)
@@ -203,7 +203,7 @@ namespace :rubber do
     raise "could not access backup file via s3" unless data
 
     puts "piping restore data to command [#{db_restore_cmd}]"
-    IO.popen (db_restore_cmd, mode='w') do |p|
+    IO.popen(db_restore_cmd, mode='w') do |p|
       data.value do |segment|
         p.write segment
       end

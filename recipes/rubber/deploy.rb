@@ -31,7 +31,7 @@ namespace :rubber do
     opts = {}
     opts['NO_POST'] = true if ENV['NO_POST']
     opts['FILE'] = ENV['FILE'] if ENV['FILE']
-    opts['RAILS_ENV'] = ENV['RAILS_ENV'] if ENV['RAILS_ENV']
+    opts['RUBBER_ENV'] = ENV['RUBBER_ENV'] if ENV['RUBBER_ENV']
 
     # when running deploy:migrations, we need to run config against release_path
     opts[:deploy_path] = current_release if fetch(:migrate_target, :current).to_sym == :latest
@@ -48,15 +48,15 @@ namespace :rubber do
     if fetch(:push_instance_config, false)
       push_files = [rubber_cfg.instance.file] + rubber_cfg.environment.config_files
       push_files.each do |file|
-        dest_file = file.sub(/^#{RAILS_ROOT}\/?/, '')
+        dest_file = file.sub(/^#{PROJECT_ROOT}\/?/, '')
         put(File.read(file), File.join(path, dest_file))
       end
     end
 
-    # if the user has defined a secret config file, then push it into RAILS_ROOT/config/rubber
+    # if the user has defined a secret config file, then push it into RUBBER_ROOT/config/rubber
     secret = rubber_cfg.environment.config_secret
     if secret && File.exist?(secret)
-      base = rubber_cfg.environment.config_root.sub(/^#{RAILS_ROOT}\/?/, '')
+      base = rubber_cfg.environment.config_root.sub(/^#{PROJECT_ROOT}\/?/, '')
       put(File.read(secret), File.join(path, base, File.basename(secret)))
     end
 

@@ -8,7 +8,7 @@
 
 web_tools_port: 8080
 
-ec2_security_groups:
+security_groups:
   web:
     description: To open up port 80 for http server on web role
     rules:

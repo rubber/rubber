@@ -51,6 +51,7 @@ module Rubber
       # dest_file (if not nil) before returning it
       def transform(src_data, options={})
         config = ConfigDescriptor.new
+        return if config.skip
 
         # for development/test, if we have a fake root, echo any
         # calls to system
@@ -170,6 +171,8 @@ module Rubber
       attr_accessor :perms
       # Sets transformation to be additive, only replaces between given delimiters, e/g/ additive = ["## start", "## end"]
       attr_accessor :additive
+      # Lets one dynamically determine if a given file gets skipped during transformation
+      attr_accessor :skip
       # use sudo to write the output file
       # attr_accessor :sudo
       # options passed in through code

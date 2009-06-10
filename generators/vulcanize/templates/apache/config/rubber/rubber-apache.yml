@@ -1,6 +1,6 @@
 web_aliases: [www.foo.com *.foo.com]
 
-ec2_security_groups:
+security_groups:
   web:
     description: To open up port 80 for http server on web role
     rules:

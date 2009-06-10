@@ -305,4 +305,18 @@ def test_file_pattern
     assert_equal Etc.getpwnam(user).uid, File.stat(out_file.path).uid, "transformed owner is incorrect"
     assert_equal Etc.getgrnam(group).gid,  File.stat(out_file.path).gid, "transformed group is incorrect"
   end
+
+  def test_skip
+    out_file = Tempfile.new('testskip')
+    src = <<-SRC
+      <%
+        @skip = true
+        @path = '#{out_file.path}'
+      %>
+      hello
+    SRC
+
+    Generator.new(nil, nil, nil).transform(src)
+    assert ! File.exists?(out_file.path), "transform didn't skip generation of an output file"
+  end
 end

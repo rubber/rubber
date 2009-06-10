@@ -3,8 +3,11 @@ module Rubber
 
     class Base
 
-      def initialize(env)
+      attr_reader :env, :capistrano
+
+      def initialize(env, capistrano)
         @env = env
+        @capistrano = capistrano
       end
 
     end

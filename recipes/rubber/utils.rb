@@ -1,22 +1,26 @@
 namespace :rubber do
     
   desc <<-DESC
-    Convenience task for creating a staging instance for the given RAILS_ENV.
+    Convenience task for creating a staging instance for the given RUBBER_ENV/RAILS_ENV.
     By default this task assigns all known roles when creating the instance,
     but you can specify a different default in rubber.yml:staging_roles
     At the end, the instance will be up and running
-    e.g. RAILS_ENV=matt cap create_staging
+    e.g. RUBBER_ENV=matt cap create_staging
   DESC
   required_task :create_staging do
     if rubber_cfg.instance.size > 0
-      value = Capistrano::CLI.ui.ask("The #{rails_env} environment already has instances, Are you SURE you want to create a staging instance that may interact with them [y/N]?: ")
+      value = Capistrano::CLI.ui.ask("The #{RUBBER_ENV} environment already has instances, Are you SURE you want to create a staging instance that may interact with them [y/N]?: ")
       fatal("Exiting", 0) if value !~ /^y/
     end
-    ENV['ALIAS'] = rubber.get_env("ALIAS", "Hostname to use for staging instance", true, rails_env)
+    ENV['ALIAS'] = rubber.get_env("ALIAS", "Hostname to use for staging instance", true, RUBBER_ENV)
     default_roles = rubber_cfg.environment.bind().staging_roles || "*"
     roles = rubber.get_env("ROLES", "Roles to use for staging instance", true, default_roles)
     ENV['ROLES'] = roles
-    rubber.create
+    if rubber_cfg.instance[instance_alias]
+      logger.info "Instance already existsm skipping to bootstrap"
+    else
+      rubber.create
+    end
     rubber.bootstrap
     # stop everything in case we have a bundled instance with monit, etc starting at boot
     deploy.stop rescue nil
@@ -29,20 +33,20 @@ namespace :rubber do
   end
 
   desc <<-DESC
-    Destroy the staging instance for the given RAILS_ENV.
+    Destroy the staging instance for the given RUBBER_ENV.
   DESC
   task :destroy_staging do
-    ENV['ALIAS'] = rubber.get_env("ALIAS", "Hostname of staging instance to be destroyed", true, rails_env)
+    ENV['ALIAS'] = rubber.get_env("ALIAS", "Hostname of staging instance to be destroyed", true, RUBBER_ENV)
     rubber.destroy
   end
 
   desc <<-DESC
     Live tail of rails log files for all machines
-    By default tails the rails logs for the current RAILS_ENV, but one can
+    By default tails the rails logs for the current RUBBER_ENV, but one can
     set FILE=/path/file.*.glob to tails a different set
   DESC
   task :tail_logs, :roles => :app do
-    log_file_glob = rubber.get_env("FILE", "Log files to tail", true, "#{current_path}/log/#{rails_env}*.log")
+    log_file_glob = rubber.get_env("FILE", "Log files to tail", true, "#{current_path}/log/#{RUBBER_ENV}*.log")
     run "tail -qf #{log_file_glob}" do |channel, stream, data|
       puts  # for an extra line break before the host name
       puts data

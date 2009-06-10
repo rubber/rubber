@@ -87,7 +87,7 @@ namespace :rubber do
   end
 
   def associate_static_ip(ip, instance_id)
-    success = cloud.associate_address(ip, instance_id)
+    success = cloud.attach_static_ip(ip, instance_id)
     fatal "Failed to associate static ip" unless success
   end
 

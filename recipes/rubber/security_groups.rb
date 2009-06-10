@@ -7,7 +7,7 @@ namespace :rubber do
   DESC
   required_task :setup_security_groups do
     env = rubber_cfg.environment.bind()
-    security_group_defns = env.ec2_security_groups
+    security_group_defns = env.security_groups
     if env.auto_security_groups
       hosts = rubber_cfg.instance.collect{|ic| ic.name }
       roles = rubber_cfg.instance.all_roles

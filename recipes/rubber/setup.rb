@@ -32,7 +32,7 @@ namespace :rubber do
 
     # Generate /etc/hosts contents for the local machine from instance config
     env = rubber_cfg.environment.bind()
-    delim = "## rubber config #{env.domain} #{ENV['RAILS_ENV']}"
+    delim = "## rubber config #{env.domain} #{ENV['RUBBER_ENV']}"
     local_hosts = delim + "\n"
     rubber_cfg.instance.each do |ic|
       # don't add unqualified hostname in local hosts file since user may be
@@ -67,9 +67,9 @@ namespace :rubber do
   task :setup_remote_aliases do
     hosts_file = '/etc/hosts'
 
-    # Generate /etc/hosts contents for the remote( ec2) instance from instance config
+    # Generate /etc/hosts contents for the remote instance from instance config
     delim = "## rubber config"
-    delim = "#{delim} #{ENV['RAILS_ENV']}" if ENV['RAILS_ENV']
+    delim = "#{delim} #{ENV['RUBBER_ENV']}" if ENV['RUBBER_ENV']
     remote_hosts = delim + "\n"
     rubber_cfg.instance.each do |ic|
       hosts_data = [ic.name, ic.full_name, ic.external_host, ic.internal_host].join(' ')

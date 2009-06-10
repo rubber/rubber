@@ -36,50 +36,57 @@ dns_ttl:
 #
 # rubber_secret: "#{File.expand_path('~') + '/.ec2' + (RAILS_ENV == 'production' ? '' : '_dev') + '/rubber-secret.yml' rescue ''}"
 
-# There's only one right now
+# REQUIRED All known cloud providers with the settings needed to configure them
+# There's only one coud provider right now - Amazon Web Services
+# To implement another, clone lib/rubber/cloud/aws.rb
+#
+cloud_providers:
+  aws:
+    # REQUIRED The amazon keys and account ID (digits only, no dashes) used to access the AWS API
+    #
+    access_key: XXX
+    secret_access_key: YYY
+    account: ZZZ
+
+    # REQUIRED:  The name of the amazon keypair and location of its private key
+    #
+    # NOTE: for some reason Capistrano requires you to have both the public and
+    # the private key in the same folder, the public key should have the
+    # extension ".pub".  The easiest (only?) way to get your hand on this is to
+    # create an instance, ssh into it, and copy the file /mnt/openssh_id.pub
+    #
+    key_name: gsg-keypair
+    key_file: "#{Dir[(File.expand_path('~') rescue '/root') + '/.ec2/*' + key_name].first}"
+
+    # OPTIONAL: Needed for bundling a running instance using rubber:bundle
+    #
+    # pk_file: "#{Dir[(File.expand_path('~') rescue '/root') + '/.ec2/pk-*'].first}"
+    # cert_file: "#{Dir[(File.expand_path('~') rescue '/root') + '/.ec2/cert-*'].first}"
+    # image_bucket: "#{app_name}_images"
+
+    # OPTIONAL: Needed for backing up database to s3
+    # backup_bucket: "#{app_name}_backups"
+
+    # REQUIRED: the ami and instance type for creating instances
+    # The Ubuntu images at http://alestic.com/ work well
+    # Ubuntu 9.04 Jaunty	base install	32-bit	2.6.21.7-2.fc8xen	ami-bf5eb9d6
+    # Ubuntu 9.04 Jaunty	base install	64-bit	2.6.21.7-2.fc8xen	ami-bc5eb9d5
+    #
+    image_id: ami-bf5eb9d6
+    # m1.small or m1.large or m1.xlarge
+    image_type: m1.small
+
+# REQUIRED the cloud provider to use
+#
 cloud_provider: aws
 
-# REQUIRED The amazon keys and account ID (digits only, no dashes) used to access the AWS API
-#
-aws_access_key: XXX
-aws_secret_access_key: YYY
-aws_account: ZZZ
-
-# REQUIRED:  The name of the amazon keypair and location of its private key
-#
-# NOTE: for some reason Capistrano requires you to have both the public and
-# the private key in the same folder, the public key should have the
-# extension ".pub".  The easiest (only?) way to get your hand on this is to
-# create an instance, ssh into it, and copy the file /mnt/openssh_id.pub
-#
-ec2_key_name: gsg-keypair
-ec2_key_file: "#{Dir[(File.expand_path('~') rescue '/root') + '/.ec2/*' + ec2_key_name].first}"
-
-# OPTIONAL: Needed for bundling a running instance using rubber:bundle
-#
-# ec2_pk_file: "#{Dir[(File.expand_path('~') rescue '/root') + '/.ec2/pk-*'].first}"
-# ec2_cert_file: "#{Dir[(File.expand_path('~') rescue '/root') + '/.ec2/cert-*'].first}"
-# ec2_image_bucket: "#{app_name}_images"
-
-# OPTIONAL: Needed for backing up database to s3
-# ec2_backup_bucket: "#{app_name}_backups"
-
-# REQUIRED: the ami and instance type for creating instances
-# The Ubuntu images at http://alestic.com/ work well
-# Ubuntu 9.04 Jaunty	base install	32-bit	2.6.21.7-2.fc8xen	ami-bf5eb9d6
-# Ubuntu 9.04 Jaunty	base install	64-bit	2.6.21.7-2.fc8xen	ami-bc5eb9d5
-#
-ec2_instance: ami-bf5eb9d6
-# m1.small or m1.large or m1.xlarge
-ec2_instance_type: m1.small
-
-# OPTIONAL: Define ec2 security groups
+# OPTIONAL: Define security groups
 # Each security group is a name associated with a sequence of maps where the
 # keys are the parameters to the ec2 AuthorizeSecurityGroupIngress API
 # source_security_group_name, source_security_group_owner_id
 # ip_protocol, from_port, to_port, cidr_ip
 #
-ec2_security_groups:
+security_groups:
   default:
     description: The default security group
     rules:
@@ -91,7 +98,7 @@ ec2_security_groups:
         source_ips: [0.0.0.0/0]
 
 # OPTIONAL: The default security groups to create instances with
-security_groups: [default]
+assigned_security_groups: [default]
 
 # OPTIONAL: Automatically create security groups for each host and role
 # EC2 doesn't allow one to change what groups an instance belongs to after
@@ -148,7 +155,7 @@ staging_roles: "web,haproxy,app,mysql_master"
 # hosts:
 #   my_host:
 #     availability_zone: us-east-1a
-#     ec2_volumes:
+#     volumes:
 #       - size: 100 # size of vol in GBs
 #         zone: us-east-1a # zone to create volume in, needs to match host's zone
 #         device: /dev/sdh # OS device to attach volume to

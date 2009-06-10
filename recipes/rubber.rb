@@ -41,28 +41,16 @@ namespace :rubber do
   on :load, "rubber:init"
     
   required_task :init do
-    # pull in basic rails env.  rubber only needs RAILS_ROOT and RAILS_ENV.
-    # We actually do NOT want the entire rails environment because it
-    # complicates bootstrap (i.e. can't run config to create db because full
-    # rails env needs db to exist as some plugin accesses model or something)
-    if ! defined?(RAILS_ROOT)
-      if File.dirname(__FILE__) =~ /vendor\/plugins/
-        require(File.join(File.dirname(__FILE__), '../../../../config/boot'))
-      else
-        fatal "Cannot load rails env because rubber is not being used as a rails plugin"
-      end
-    end
-    
     # Require cap 2.4 since we depend on bugs that have been fixed
     require 'capistrano/version'
     if Capistrano::Version::MAJOR < 2 || Capistrano::Version::MINOR < 4
       fatal "rubber requires capistrano 2.4.0 or greater"
     end
     
-    set :rubber_cfg, Rubber::Configuration.get_configuration(ENV['RAILS_ENV'])
+    set :rubber_cfg, Rubber::Configuration.get_configuration(ENV['RUBBER_ENV'])
     env = rubber_cfg.environment.bind()
 
-    set :cloud, Rubber::Cloud::get_provider(env.cloud_provider || "aws", env)
+    set :cloud, Rubber::Cloud::get_provider(env.cloud_provider || "aws", env, self)
 
     load_roles() unless rubber_cfg.environment.bind().disable_auto_roles
     # NOTE: for some reason Capistrano requires you to have both the public and

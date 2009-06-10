@@ -1,14 +1,14 @@
 namespace :rubber do
 
   desc <<-DESC
-    Sets up the ec2 persistent volumes
+    Sets up persistent volumes in the cloud
     All volumes defined in rubber.yml will be created if neccessary, and attached/mounted on their associated instances
   DESC
   required_task :setup_volumes do
     rubber_cfg.instance.each do |ic|
       env = rubber_cfg.environment.bind(ic.role_names, ic.name)
       created_vols = []
-      vol_specs = env.ec2_volumes || []
+      vol_specs = env.volumes || []
       vol_specs.each do |vol_spec|
         created_vols << setup_volume(ic, vol_spec)
       end
