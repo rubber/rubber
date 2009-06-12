@@ -1,13 +1,8 @@
-# Since the rake task is typically done outside rails env, we setup load
-# path to include the lib dir
-$:.unshift "#{File.dirname(__FILE__)}/.."
-
 require 'fileutils'
 require 'date'
 require 'time'
 
 require 'rubber'
-Rubber::initialize(File.dirname(__FILE__), (ENV['RAILS_ENV'] ||= 'production'))
 
 namespace :rubber do
 
