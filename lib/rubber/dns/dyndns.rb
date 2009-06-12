@@ -5,8 +5,9 @@ module Rubber
 
       def initialize(env)
         super(env)
-        @user, @pass = env.dns_user, env.dns_password
-        @update_url = env.dns_update_url || 'https://members.dyndns.org/nic/update?hostname=%host%&myip=%ip%'
+        @dyndns_env = env.dns_providers.dyndns
+        @user, @pass = @dyndns_env.user, @dyndns_env.password
+        @update_url = @dyndns_env.update_url || 'https://members.dyndns.org/nic/update?hostname=%host%&myip=%ip%'
         @update_url = @update_url.gsub(/%([^%]+)%/, '#{\1}')
       end
 

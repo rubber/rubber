@@ -6,9 +6,10 @@ module Rubber
 
       def initialize(env)
         super(env)
-        @client = Nettica::Client.new(env.dns_user, env.dns_password)
-        @ttl = (env.dns_ttl || 300).to_i
-        @record_type = env.dns_record_type || "A"
+        @nettica_env = @env.dns_providers.nettica
+        @client = Nettica::Client.new(@nettica_env.user, @nettica_env.password)
+        @ttl = (@nettica_env.ttl || 300).to_i
+        @record_type = @nettica_env.record_type || "A"
       end
 
       def nameserver

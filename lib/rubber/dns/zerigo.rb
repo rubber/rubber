@@ -71,13 +71,14 @@ module Rubber
       
     end
     
-    class Nettica < Base
+    class Zerigo < Base
 
       def initialize(env)
         super(env)
-        @ttl = (env.dns_ttl || 300).to_i
-        @record_type = env.dns_record_type || "A"
-        @zone = Zone.new(env.dns_id, env.dns_user, env.dns_password, env.domain)
+        @zerigo_env = env.dns_providers.zerigo
+        @ttl = (@zerigo_env.ttl || 300).to_i
+        @record_type = @zerigo_env.record_type || "A"
+        @zone = Zone.new(@zerigo_env.customer_id, @zerigo_env.email, @zerigo_env.token, env.domain)
       end
 
       def nameserver
