@@ -1,6 +1,6 @@
 require 'test/unit'
-require 'rubber/configuration'
 require 'tempfile'
+require 'test_helper'
 
 class GeneratorTest < Test::Unit::TestCase
   include Rubber::Configuration
@@ -308,6 +308,7 @@ def test_file_pattern
 
   def test_skip
     out_file = Tempfile.new('testskip')
+    File.delete(out_file.path)
     src = <<-SRC
       <%
         @skip = true

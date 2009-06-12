@@ -5,8 +5,9 @@ $:.unshift "#{File.dirname(__FILE__)}/.."
 require 'fileutils'
 require 'date'
 require 'time'
+
 require 'rubber'
-require 'rubber/configuration'
+Rubber::initialize(File.dirname(__FILE__), (ENV['RAILS_ENV'] ||= 'production'))
 
 namespace :rubber do
 

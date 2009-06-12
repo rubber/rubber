@@ -5,10 +5,9 @@ require 'rubygems'
 require "socket"
 require 'resolv'
 require 'enumerator'
-require 'rubber'
 require 'capistrano/hostcmd'
 require 'pp'
-
+require 'rubber'
 
 namespace :rubber do
 

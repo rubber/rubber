@@ -9,14 +9,14 @@ module Rubber
 
       def initialize(env, capistrano)
         super(env, capistrano)
-        @aws_env = env.cloud_providers['aws']
-        @ec2 = EC2::Base.new(:access_key_id => @aws_env['access_key'], :secret_access_key => @aws_env['secret_access_key'])
-        AWS::S3::Base.establish_connection!(:access_key_id => @aws_env['access_key'], :secret_access_key => @aws_env['secret_access_key'])
+        @aws_env = env.cloud_providers.aws
+        @ec2 = EC2::Base.new(:access_key_id => @aws_env.access_key, :secret_access_key => @aws_env.secret_access_key)
+        AWS::S3::Base.establish_connection!(:access_key_id => @aws_env.access_key, :secret_access_key => @aws_env.secret_access_key)
       end
 
 
       def create_instance(ami, ami_type, security_groups, availability_zone)
-        response = @ec2.run_instances(:image_id => ami, :key_name => @aws_env['key_name'], :instance_type => ami_type, :group_id => security_groups, :availability_zone => availability_zone)
+        response = @ec2.run_instances(:image_id => ami, :key_name => @aws_env.key_name, :instance_type => ami_type, :group_id => security_groups, :availability_zone => availability_zone)
         instance_id = response.instancesSet.item[0].instanceId
         return instance_id
       end
@@ -197,10 +197,10 @@ module Rubber
       end
 
       def create_image(image_name)
-        ec2_key = @aws_env['key_file']
-        ec2_pk = @aws_env['pk_file']
-        ec2_cert = @aws_env['cert_file']
-        aws_account = @aws_env['account']
+        ec2_key = @aws_env.key_file
+        ec2_pk = @aws_env.pk_file
+        ec2_cert = @aws_env.cert_file
+        aws_account = @aws_env.account
         ec2_key_dest = "/mnt/#{File.basename(ec2_key)}"
         ec2_pk_dest = "/mnt/#{File.basename(ec2_pk)}"
         ec2_cert_dest = "/mnt/#{File.basename(ec2_cert)}"
@@ -218,10 +218,10 @@ module Rubber
 
         capistrano.sudo_script "register_bundle", <<-CMD
           export RUBYLIB=/usr/lib/site_ruby/
-          ec2-upload-bundle --batch -b #{@aws_env['image_bucket']} -m /mnt/#{image_name}.manifest.xml -a #{@aws_env['access_key']} -s #{@aws_env['secret_access_key']}
+          ec2-upload-bundle --batch -b #{@aws_env.image_bucket} -m /mnt/#{image_name}.manifest.xml -a #{@aws_env.access_key} -s #{@aws_env.secret_access_key}
         CMD
 
-        image_location = "#{@aws_env['image_bucket']}/#{image_name}.manifest.xml"
+        image_location = "#{@aws_env.image_bucket}/#{image_name}.manifest.xml"
         response = @ec2.register_image(:image_location => image_location)
         return response.imageId
       end

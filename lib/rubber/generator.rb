@@ -51,7 +51,6 @@ module Rubber
       # dest_file (if not nil) before returning it
       def transform(src_data, options={})
         config = ConfigDescriptor.new
-        return if config.skip
 
         # for development/test, if we have a fake root, echo any
         # calls to system
@@ -76,6 +75,8 @@ module Rubber
         config.options = options
         template = ERB.new(src_data)
         result = template.result(config.get_binding())
+        
+        return if config.skip
 
         config_path = config.path
 

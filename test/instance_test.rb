@@ -1,6 +1,6 @@
 require 'test/unit'
-require 'rubber/configuration'
 require 'tempfile'
+require 'test_helper'
 
 class InstanceTest < Test::Unit::TestCase
   include Rubber::Configuration

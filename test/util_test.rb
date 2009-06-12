@@ -1,5 +1,5 @@
 require 'test/unit'
-require 'rubber/util'
+require 'test_helper'
 
 class UtilTest < Test::Unit::TestCase
 

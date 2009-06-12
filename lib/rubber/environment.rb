@@ -103,7 +103,17 @@ module Rubber
         end
 
         def [](name)
-          get(name, true, true)
+          val = get(name, true, true)
+
+          # so we can keep using dot syntax for nested maps
+          if val.instance_of? Hash
+            def val.method_missing(method_id)
+              key = method_id.id2name
+              self[key]
+            end
+          end
+          
+          return val
         end
 
         def expand(val)

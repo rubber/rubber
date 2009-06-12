@@ -1,6 +1,6 @@
 require 'test/unit'
-require 'rubber/configuration'
 require 'tempfile'
+require 'test_helper'
 
 class EnvironmentTest < Test::Unit::TestCase
   include Rubber::Configuration
@@ -98,7 +98,15 @@ class EnvironmentTest < Test::Unit::TestCase
     e = env.bind()
     assert_equal "#{fixture_dir}/secret.yml", e['rubber_secret'], 'env should have secret set'
     assert_equal "secret_val", e['secret_key'], 'env should have gotten setting from secret file'    
-    
+  end
+
+  def test_nested_ref
+    env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures/nested")
+    e = env.bind()
+    assert_equal 'val1', e.var1, 'env not retrieving right val'
+    assert_equal 'val3', e.var2.var3, 'env not retrieving right val'
+    assert_equal({'var5' => 'val5'}, e.var2.var4, 'env not retrieving right val')
+    assert_equal ['val6a', 'val6b'], e.var2.var6, 'env not retrieving right val'
   end
 
 end
