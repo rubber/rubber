@@ -58,7 +58,10 @@ class EnvironmentTest < Test::Unit::TestCase
     assert_equal '4 is val2', e['var4']
     assert_equal 'val1', e['var5']
     assert_equal %w[lv1 lv2 val1], e['list1']
-    assert_equal({'mk1' => 'mv1', 'mk2' => 'mv2', 'mk3' => 'val2'}, e['map1'])
+    expected = {'mk1' => 'mv1', 'mk2' => 'mv2', 'mk3' => 'val2'}
+    e.map1.each do |k, v|
+      assert_equal expected[k], v
+    end
       
     e = env.bind('role1', 'nohost')
     assert_equal 'role1val1', e['var1']
@@ -107,9 +110,9 @@ class EnvironmentTest < Test::Unit::TestCase
     assert_equal 'val3', e.var2.var3, 'env not retrieving right val'
     assert_equal({'var5' => 'val5'}, e.var2.var4, 'env not retrieving right val')
     assert_equal ['val6a', 'val6b'], e.var2.var6, 'env not retrieving right val'
-    assert_equal 'val1', e.var7, 'env not retrieving right val'
-    assert_equal 'val3', e.var9, 'env not retrieving right val'
-    assert_equal 'val5', e.var9, 'env not retrieving right val'
+    assert_equal 'val1', e.var2.var7, 'env not retrieving right val'
+    assert_equal 'val3', e.var2.var8, 'env not retrieving right val'
+    assert_equal 'val5', e.var2.var9, 'env not retrieving right val'
   end
 
 end

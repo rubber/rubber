@@ -67,79 +67,93 @@ module Rubber
         return value
       end
 
-      class BoundEnv
-        attr_reader :roles
-        attr_reader :host
-        attr_reader :full_host
+      class HashValueProxy < DelegateClass(Hash)
+        attr_reader :global
+        attr_reader :receiver
 
-        def initialize(cfg, roles, host)
-          @cfg = cfg
-          @roles = roles
-          @host = host
-          @full_host = host + "." + self['domain'] rescue nil
-        end
-
-        # get the environment value for the given key
-        # if combine is true, value are cmobined for role/host overrides
-        # if combine is false, host overrides roles overrides global
-        def get(name, combine=false, expand=false)
-          if combine
-            value = @cfg[name]
-            @roles.to_a.each do |role|
-              value = Environment.combine(value, (@cfg["roles"][role][name] rescue nil))
-            end
-            value = Environment.combine(value, (@cfg["hosts"][@host][name] rescue nil))
-          else
-            value = @cfg[name]
-            @roles.to_a.each do |role|
-              v = @cfg["roles"][role][name] rescue nil
-              value = v if v
-            end
-            v = @cfg["hosts"][@host][name] rescue nil
-            value = v if v
-          end
-          
-          return (expand ? self.expand(value) : value)
+        def initialize(global, receiver)
+          @global = global
+          @receiver = receiver
+          super(@receiver)
         end
 
         def [](name)
-          val = get(name, true, true)
-
-          # so we can keep using dot syntax for nested maps
-          if val.instance_of? Hash
-            def val.method_missing(method_id)
-              key = method_id.id2name
-              v = val[name]
-              v = get(name, true, true) unless v
-              return v
-            end
-          end
-          
-          return val
+          value = receiver[name]
+          value = global[name] if global && !value
+          return expand(value)
         end
 
-        def expand(val)
-          case val
-          when Hash
-            val.inject({}) {|h, a| h[a[0]] = expand(a[1]); h}
-          when String
-            while val =~ /\#\{[^\}]+\}/
-              val = eval('%Q{' + val + '}', binding)
-            end
-            val = true if val =="true"
-            val = false if val == "false"
-            val
-          when Enumerable
-            val.collect {|v| expand(v)}
-          else
-            val
+        def each
+          @receiver.each_key do |key|
+            yield key, self[key]
           end
         end
 
         def method_missing(method_id)
           key = method_id.id2name
-          self[key]
+          return self[key]
         end
+
+        def expand_string(val)
+          while val =~ /\#\{[^\}]+\}/
+            val = eval('%Q{' + val + '}', binding)
+          end
+          val = true if val =="true"
+          val = false if val == "false"
+          return val
+        end
+
+        def expand(value)
+          val = case value
+            when Hash
+              HashValueProxy.new(global || self, value)
+            when String
+              expand_string(value)
+            when Enumerable
+              value.collect {|v| expand(v) }
+            else
+              value
+          end
+          return val
+        end
+
+      end
+
+      class BoundEnv < DelegateClass(Hash)
+        attr_reader :roles
+        attr_reader :host
+        attr_reader :full_host
+
+        def initialize(global, roles, host)
+          @roles = roles
+          @host = host
+          @full_host = host + "." + self['domain'] rescue nil
+          bound_global = bind_config(global)
+          @global = HashValueProxy.new(nil, bound_global)
+          super(@global)
+        end
+
+        # Forces role/host overrides into config
+        def bind_config(global)
+          global = global.clone()
+          role_overrides = global.delete("roles") || {}
+          host_overrides = global.delete("hosts") || {}
+          roles.to_a.each do |role|
+            role_overrides[role].each do |k, v|
+              global[k] = Environment.combine(global[k], v)
+            end if role_overrides[role]
+          end
+          host_overrides[host].each do |k, v|
+            global[k] = Environment.combine(global[k], v)
+          end if host_overrides[host]
+          return global
+        end
+        
+        def method_missing(method_id)
+          key = method_id.id2name
+          return self[key]
+        end
+
       end
 
     end
