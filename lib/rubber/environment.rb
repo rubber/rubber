@@ -1,5 +1,6 @@
 require 'yaml'
 require 'socket'
+require 'delegate'
 
 module Rubber
   module Configuration
@@ -67,24 +68,23 @@ module Rubber
         return value
       end
 
-      class HashValueProxy < DelegateClass(Hash)
+      class HashValueProxy < Hash
         attr_reader :global
-        attr_reader :receiver
 
         def initialize(global, receiver)
           @global = global
-          @receiver = receiver
-          super(@receiver)
+          super()
+          replace(receiver)
         end
 
         def [](name)
-          value = receiver[name]
+          value = super(name)
           value = global[name] if global && !value
           return expand(value)
         end
 
         def each
-          @receiver.each_key do |key|
+          each_key do |key|
             yield key, self[key]
           end
         end
@@ -119,7 +119,7 @@ module Rubber
 
       end
 
-      class BoundEnv < DelegateClass(Hash)
+      class BoundEnv < HashValueProxy
         attr_reader :roles
         attr_reader :host
         attr_reader :full_host
@@ -129,8 +129,7 @@ module Rubber
           @host = host
           @full_host = host + "." + self['domain'] rescue nil
           bound_global = bind_config(global)
-          @global = HashValueProxy.new(nil, bound_global)
-          super(@global)
+          super(nil, bound_global)
         end
 
         # Forces role/host overrides into config

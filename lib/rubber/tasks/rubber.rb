@@ -21,8 +21,7 @@ namespace :rubber do
 
   desc "Generate system config files by transforming the files in the config tree"
   task :config do
-    require 'rubber/configuration'
-    cfg = Rubber::Configuration.get_configuration(ENV['RUBBER_ENV'])
+    cfg = Rubber::Configuration.get_configuration(RUBBER_ENV)
     instance_alias = cfg.environment.current_host
     instance = cfg.instance[instance_alias]
     if instance
@@ -128,14 +127,15 @@ namespace :rubber do
     puts "Created backup: #{backup_file}"
     
     s3_prefix = "db/"
-    if rubber_env.ec2_backup_bucket
+    backup_bucket = rubber_env.cloud_providers[env.cloud_provider].backup_bucket
+    if backup_bucket
       init_s3
-      unless AWS::S3::Bucket.list.find { |b| b.name == rubber_env.ec2_backup_bucket }
-        AWS::S3::Bucket.create(rubber_env.ec2_backup_bucket)
+      unless AWS::S3::Bucket.list.find { |b| b.name == backup_bucket }
+        AWS::S3::Bucket.create(backup_bucket)
       end
       dest = "#{s3_prefix}#{File.basename(backup_file)}"
-      puts "Saving db backup to S3: #{rubber_env.ec2_backup_bucket}:#{dest}"
-      AWS::S3::S3Object.store(dest, open(backup_file), rubber_env.ec2_backup_bucket)
+      puts "Saving db backup to S3: #{backup_bucket}:#{dest}"
+      AWS::S3::S3Object.store(dest, open(backup_file), backup_bucket)
     end
 
     tdate = Date.today - age
@@ -148,9 +148,9 @@ namespace :rubber do
       end
     end
     
-    if rubber_env.ec2_backup_bucket
-      puts "Cleaning S3 backups older than #{age} days from: #{rubber_env.ec2_backup_bucket}:#{s3_prefix}"
-      AWS::S3::Bucket.objects(rubber_env.ec2_backup_bucket, :prefix => s3_prefix).clone.each do |obj|
+    if backup_bucket
+      puts "Cleaning S3 backups older than #{age} days from: #{backup_bucket}:#{s3_prefix}"
+      AWS::S3::Bucket.objects(backup_bucket, :prefix => s3_prefix).clone.each do |obj|
         if Time.parse(obj.about["last-modified"]) < threshold
           puts "Deleting #{obj.key}"
           obj.delete
@@ -182,11 +182,12 @@ namespace :rubber do
     db_restore_cmd = rubber_env.db_restore_cmd.gsub(/%([^%]+)%/, '#{\1}')
     db_restore_cmd = eval('%Q{' + db_restore_cmd + '}')
 
-    # try to fetch a matching file from s3 (if ec2_backup_bucket given)
-    raise "No ec2_backup_bucket defined in rubber.yml" unless rubber_env.ec2_backup_bucket
+    # try to fetch a matching file from s3 (if backup_bucket given)
+    backup_bucket = rubber_env.cloud_providers[env.cloud_provider].backup_bucket
+    raise "No backup_bucket defined in rubber.yml" unless backup_bucket
     if (init_s3 &&
-        AWS::S3::Bucket.list.find { |b| b.name == rubber_env.ec2_backup_bucket })
-      s3objects = AWS::S3::Bucket.find(rubber_env.ec2_backup_bucket,
+        AWS::S3::Bucket.list.find { |b| b.name == backup_bucket })
+      s3objects = AWS::S3::Bucket.find(backup_bucket,
                  :prefix => 'db/') 
       if file
         puts "trying to fetch #{file} from s3"

@@ -12,12 +12,11 @@ namespace :rubber do
       value = Capistrano::CLI.ui.ask("The #{RUBBER_ENV} environment already has instances, Are you SURE you want to create a staging instance that may interact with them [y/N]?: ")
       fatal("Exiting", 0) if value !~ /^y/
     end
-    ENV['ALIAS'] = rubber.get_env("ALIAS", "Hostname to use for staging instance", true, RUBBER_ENV)
+    instance_alias = ENV['ALIAS'] = rubber.get_env("ALIAS", "Hostname to use for staging instance", true, RUBBER_ENV)
     default_roles = rubber_cfg.environment.bind().staging_roles || "*"
-    roles = rubber.get_env("ROLES", "Roles to use for staging instance", true, default_roles)
-    ENV['ROLES'] = roles
+    roles = ENV['ROLES'] = rubber.get_env("ROLES", "Roles to use for staging instance", true, default_roles)
     if rubber_cfg.instance[instance_alias]
-      logger.info "Instance already existsm skipping to bootstrap"
+      logger.info "Instance already exists, skipping to bootstrap"
     else
       rubber.create
     end

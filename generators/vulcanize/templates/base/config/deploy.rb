@@ -1,6 +1,6 @@
 # This is a sample Capistrano config file for rubber
 
-set :rails_env, (ENV["RAILS_ENV"] ||= 'production')
+set :rails_env, RUBBER_ENV
 
 on :load do
   set :application, rubber_cfg.environment.bind().app_name

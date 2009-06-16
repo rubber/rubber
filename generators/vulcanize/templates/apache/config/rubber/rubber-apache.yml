@@ -12,4 +12,4 @@ security_groups:
 roles:
   web:
     packages: [apache2]
-    security_groups: [web]
+    assigned_security_groups: [web]

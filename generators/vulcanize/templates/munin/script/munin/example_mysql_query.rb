@@ -11,10 +11,12 @@ exit 0
 
 # load just rubber config without loading rails (you can load rails
 # if you want, but may be slow if your app loads a lot of plugins)
-ENV["RAILS_ENV"] ||= "development"
+
+require "rubber"
+RAILS_ENV = ENV["RAILS_ENV"] ||= "development"
 RAILS_ROOT = File.join(File.dirname(__FILE__), '../..')
-require "#{RAILS_ROOT}/vendor/plugins/rubber/lib/rubber"
-RUBBER_ENV = Rubber::Configuration.rubber_env
+Rubber::initialize(RAILS_ROOT, RAILS_ENV)
+RUBBER_CONFIG = Rubber::Configuration.rubber_env
 RUBBER_INSTANCES = Rubber::Configuration.rubber_instances
 
 # Print config info need by munin for generating graphs

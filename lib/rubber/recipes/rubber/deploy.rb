@@ -31,7 +31,7 @@ namespace :rubber do
     opts = {}
     opts['NO_POST'] = true if ENV['NO_POST']
     opts['FILE'] = ENV['FILE'] if ENV['FILE']
-    opts['RUBBER_ENV'] = ENV['RUBBER_ENV'] if ENV['RUBBER_ENV']
+    opts['RUBBER_ENV'] = RUBBER_ENV
 
     # when running deploy:migrations, we need to run config against release_path
     opts[:deploy_path] = current_release if fetch(:migrate_target, :current).to_sym == :latest

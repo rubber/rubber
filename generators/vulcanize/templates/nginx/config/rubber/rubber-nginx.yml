@@ -27,7 +27,7 @@ security_groups:
 roles:
   web:
     packages: [nginx]
-    security_groups: [web]
+    assigned_security_groups: [web]
   web_tools:
     packages: [nginx]
-    security_groups: [web_tools]
+    assigned_security_groups: [web_tools]

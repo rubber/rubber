@@ -46,7 +46,7 @@ namespace :rubber do
       fatal "rubber requires capistrano 2.4.0 or greater"
     end
     
-    set :rubber_cfg, Rubber::Configuration.get_configuration(ENV['RUBBER_ENV'])
+    set :rubber_cfg, Rubber::Configuration.get_configuration(RUBBER_ENV)
     env = rubber_cfg.environment.bind()
 
     set :cloud, Rubber::Cloud::get_provider(env.cloud_provider || "aws", env, self)
@@ -55,7 +55,7 @@ namespace :rubber do
     # NOTE: for some reason Capistrano requires you to have both the public and
     # the private key in the same folder, the public key should have the
     # extension ".pub".
-    ssh_options[:keys] = env.ec2_key_file
+    ssh_options[:keys] = env.cloud_providers[env.cloud_provider].key_file
   end
 
 

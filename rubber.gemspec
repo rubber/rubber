@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Matt Conway"]
-  s.date = %q{2009-06-12}
+  s.date = %q{2009-06-16}
   s.description = %q{The rubber plugin enables relatively complex multi-instance deployments of RubyOnRails applications to Amazon’s Elastic Compute Cloud (EC2).  Like capistrano, rubber is role based, so you can define a set of configuration files for a role and then assign that role to as many concrete instances as needed. One can also assign multiple roles to a single instance. This lets one start out with a single ec2 instance (belonging to all roles), and add new instances into the mix as needed to scale specific facets of your deployment, e.g. adding in instances that serve only as an 'app' role to handle increased app server load.}
   s.email = %q{matt@conwaysplace.com}
   s.extra_rdoc_files = [
@@ -130,6 +130,7 @@ Gem::Specification.new do |s|
      "generators/vulcanize/vulcanize_generator.rb",
      "lib/capistrano/hostcmd.rb",
      "lib/rubber.rb",
+     "lib/rubber/capistrano.rb",
      "lib/rubber/cloud.rb",
      "lib/rubber/cloud/aws.rb",
      "lib/rubber/cloud/base.rb",
@@ -142,23 +143,23 @@ Gem::Specification.new do |s|
      "lib/rubber/environment.rb",
      "lib/rubber/generator.rb",
      "lib/rubber/instance.rb",
-     "lib/rubber/tasks/rubber.rake",
-     "lib/rubber/util.rb",
-     "recipes/rubber.rb",
-     "recipes/rubber/bundles.rb",
-     "recipes/rubber/deploy.rb",
-     "recipes/rubber/instances.rb",
-     "recipes/rubber/security_groups.rb",
-     "recipes/rubber/setup.rb",
-     "recipes/rubber/static_ips.rb",
-     "recipes/rubber/utils.rb",
-     "recipes/rubber/volumes.rb"
+     "lib/rubber/recipes/rubber.rb",
+     "lib/rubber/recipes/rubber/bundles.rb",
+     "lib/rubber/recipes/rubber/deploy.rb",
+     "lib/rubber/recipes/rubber/instances.rb",
+     "lib/rubber/recipes/rubber/security_groups.rb",
+     "lib/rubber/recipes/rubber/setup.rb",
+     "lib/rubber/recipes/rubber/static_ips.rb",
+     "lib/rubber/recipes/rubber/utils.rb",
+     "lib/rubber/recipes/rubber/volumes.rb",
+     "lib/rubber/tasks/rubber.rb",
+     "lib/rubber/util.rb"
   ]
   s.homepage = %q{http://github.com/wr0ngway/rubber}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{rubber}
-  s.rubygems_version = %q{1.3.3}
+  s.rubygems_version = %q{1.3.4}
   s.summary = %q{A capistrano plugin for managing multi-instance deployments to the cloud (ec2)}
   s.test_files = [
     "test/environment_test.rb",

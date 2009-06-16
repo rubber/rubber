@@ -126,8 +126,8 @@ namespace :rubber do
       sync_security_groups(security_group_defns)
     end
 
-    ami = env.ec2_instance
-    ami_type = env.ec2_instance_type
+    ami = env.cloud_providers[env.cloud_provider].image_id
+    ami_type = env.cloud_providers[env.cloud_provider].image_type
     availability_zone = env.availability_zone
     logger.info "Creating instance #{ami}/#{ami_type}/#{security_groups.join(',') rescue 'Default'}/#{availability_zone || 'Default'}"
     instance_id = cloud.create_instance(ami, ami_type, security_groups, availability_zone)
@@ -166,7 +166,7 @@ namespace :rubber do
         # Connect to newly created instance and grab its internal ip
         # so that we can update all aliases
 
-        task :_get_Ip, :hosts => instance_item.external_ip do
+        task :_get_ip, :hosts => instance_item.external_ip do
           instance_item.internal_ip = capture(print_ip_command).strip
           rubber_cfg.instance.save()
         end
@@ -240,7 +240,7 @@ namespace :rubber do
 
     env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
 
-    value = Capistrano::CLI.ui.ask("About to DESTROY #{instance_alias} (#{instance_item.instance_id}) in mode #{ENV['RUBBER_ENV']}.  Are you SURE [yes/NO]?: ")
+    value = Capistrano::CLI.ui.ask("About to DESTROY #{instance_alias} (#{instance_item.instance_id}) in mode #{RUBBER_ENV}.  Are you SURE [yes/NO]?: ")
     fatal("Exiting", 0) if value != "yes"
 
     if instance_item.static_ip
