@@ -24,7 +24,7 @@ module Rubber
       def describe_instances(instance_id=nil)
         instances = []
 
-        response = @ec2.describe_instances(instance_id => instance_id)
+        response = @ec2.describe_instances(:instance_id => instance_id)
         response.reservationSet.item.each do |ritem|
           ritem.instancesSet.item.each do |item|
             instance = {}
