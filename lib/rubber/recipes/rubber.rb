@@ -1,6 +1,6 @@
 # add this plugins lib dir to load path for capistrano
 $:.unshift "#{File.dirname(__FILE__)}/../lib"
-
+puts 'hi'
 require 'rubygems'
 require "socket"
 require 'resolv'

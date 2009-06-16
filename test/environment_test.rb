@@ -107,6 +107,9 @@ class EnvironmentTest < Test::Unit::TestCase
     assert_equal 'val3', e.var2.var3, 'env not retrieving right val'
     assert_equal({'var5' => 'val5'}, e.var2.var4, 'env not retrieving right val')
     assert_equal ['val6a', 'val6b'], e.var2.var6, 'env not retrieving right val'
+    assert_equal 'val1', e.var7, 'env not retrieving right val'
+    assert_equal 'val3', e.var9, 'env not retrieving right val'
+    assert_equal 'val5', e.var9, 'env not retrieving right val'
   end
 
 end

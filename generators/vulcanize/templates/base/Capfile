@@ -2,6 +2,7 @@ load 'deploy' if respond_to?(:namespace) # cap2 differentiator
 
 require 'rubber'
 Rubber::initialize(File.dirname(__FILE__), (ENV['RAILS_ENV'] ||= 'production'))
-Dir['vendor/plugins/*/recipes/*.rb'].each { |plugin| load(plugin) }
+require 'rubber/capistrano'
 
+Dir['vendor/plugins/*/recipes/*.rb'].each { |plugin| load(plugin) }
 load 'config/deploy'

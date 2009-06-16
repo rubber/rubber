@@ -72,7 +72,7 @@ cloud_providers:
     # create an instance, ssh into it, and copy the file /mnt/openssh_id.pub
     #
     key_name: gsg-keypair
-    key_file: "#{Dir[(File.expand_path('~') rescue '/root') + '/.ec2/*' + key_name].first}"
+    key_file: "#{Dir[(File.expand_path('~') rescue '/root') + '/.ec2/*' + cloud_providers.aws.key_name].first}"
 
     # OPTIONAL: Needed for bundling a running instance using rubber:bundle
     #

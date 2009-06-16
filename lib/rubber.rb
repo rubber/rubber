@@ -1,9 +1,10 @@
 $:.unshift(File.dirname(__FILE__))
 
 module Rubber
-  VERSION = '0.9.0'
-  
+
   def self.initialize(project_root, project_env)
+    return if defined?(PROJECT_ROOT) && defined?(RUBBER_ENV)
+    
     Object.const_set('RUBBER_ENV', project_env)
     Object.const_set('PROJECT_ROOT', project_root)
 
@@ -22,6 +23,8 @@ module Rubber
       LOGGER.formatter = lambda {|severity, time, progname, msg| "Rubber[%s]: %s\n" % [severity, msg.to_s.lstrip]}
     end
   end
+
+  VERSION = File.read(File.join(File.dirname(__FILE__), '..', 'VERSION')).chomp
 end
 
 

@@ -109,7 +109,9 @@ module Rubber
           if val.instance_of? Hash
             def val.method_missing(method_id)
               key = method_id.id2name
-              self[key]
+              v = val[name]
+              v = get(name, true, true) unless v
+              return v
             end
           end
           

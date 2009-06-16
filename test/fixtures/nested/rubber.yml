@@ -4,3 +4,6 @@ var2:
   var4:
     var5: val5
   var6: [val6a, val6b]
+  var7: "#{var1}"
+  var8: "#{var3}"
+  var9: "#{var2.var4.var5}"
