@@ -3,7 +3,7 @@
 #
 db_user: "#{app_name[0,16]}"
 db_pass:
-db_name: "#{app_name}_#{RAILS_ENV}"
+db_name: "#{app_name}_#{RUBBER_ENV}"
 
 db_slave_user: "#{('slave_' + db_user)[0,16]}"
 db_replicator_user: "#{('replicator_' + db_user)[0,16]}"

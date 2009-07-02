@@ -3,7 +3,7 @@
 # Example munin plugin.
 # See munin plugin docs http://munin.projects.linpro.no/wiki/Documentation#Plugins
 #
-# Scripts added to RAILS_ROOT/script/munin automatically
+# Scripts added to RUBBER_ROOT/script/munin automatically
 # get installed as munin plugins by rubber
 
 # remove this line to enable

@@ -61,7 +61,7 @@ namespace :rubber do
         task task_name, :hosts => ic.full_name do
           exists = capture("if grep -c rubber.*mysql_mgm /etc/mysql/ndb_mgmd.cnf &> /dev/null; then echo exists; fi")
           if exists.strip.size == 0
-            rubber.run_config(:RAILS_ENV => rails_env, :FILE => "role/mysql_mgm", :deploy_path => release_path)
+            rubber.run_config(:RUBBER_ENV => rails_env, :FILE => "role/mysql_mgm", :deploy_path => release_path)
             sudo "/etc/init.d/mysql-ndb-mgm start"
           end
         end
@@ -73,7 +73,7 @@ namespace :rubber do
         task task_name, :hosts => ic.full_name do
           exists = capture("if grep -c rubber.*mysql_data /etc/mysql/my.cnf &> /dev/null; then echo exists; fi")
           if exists.strip.size == 0
-            rubber.run_config(:RAILS_ENV => rails_env, :FILE => "role/mysql_data", :deploy_path => release_path)
+            rubber.run_config(:RUBBER_ENV => rails_env, :FILE => "role/mysql_data", :deploy_path => release_path)
             sudo "/etc/init.d/mysql-ndb start-initial"
           end
         end
@@ -85,7 +85,7 @@ namespace :rubber do
         task task_name, :hosts => ic.full_name do
           exists = capture("if grep -c rubber.*mysql_sql /etc/mysql/my.cnf &> /dev/null; then echo exists; fi")
           if exists.strip.size == 0
-            rubber.run_config(:RAILS_ENV => rails_env, :FILE => "role/mysql_sql", :deploy_path => release_path)
+            rubber.run_config(:RUBBER_ENV => rails_env, :FILE => "role/mysql_sql", :deploy_path => release_path)
             sudo "/etc/init.d/mysql start"
             env = rubber_cfg.environment.bind()
             # For mysql 5.0 cluster, need to create users and database for EVERY sql node

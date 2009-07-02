@@ -1,8 +1,8 @@
 <%
-  @path = "#{RAILS_ROOT}/config/database.yml"
+  @path = "#{RUBBER_ROOT}/config/database.yml"
 %>
 
-<%= RAILS_ENV %>:
+<%= RUBBER_ENV %>:
   adapter: mysql
   encoding: utf8
   database: <%= rubber_env.db_name %>

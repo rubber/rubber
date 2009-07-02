@@ -28,7 +28,7 @@ module Rubber
 
     class ConfigHolder
       def initialize(env=nil, root=nil)
-        root = "#{PROJECT_ROOT}/config/rubber" unless root
+        root = "#{RUBBER_ROOT}/config/rubber" unless root
         instance_cfg =  "#{root}/instance" + (env ? "-#{env}.yml" : ".yml")
         @environment = Environment.new("#{root}")
         @instance = Instance.new(instance_cfg)

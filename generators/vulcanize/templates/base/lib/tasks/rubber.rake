@@ -1,6 +1,7 @@
 require 'rubber'
 
-env = ENV['RAILS_ENV'] || ENV['RUBBER_ENV'] || 'development'
-Rubber::initialize(File.dirname(__FILE__) + '/../..', env)
+env = ENV['RUBBER_ENV'] ||= (ENV['RAILS_ENV'] || 'development')
+root = File.dirname(__FILE__) + '/../..'
+Rubber::initialize(root, env
 
 require 'rubber/tasks/rubber'

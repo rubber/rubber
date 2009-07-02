@@ -3,16 +3,16 @@ $:.unshift(File.dirname(__FILE__))
 module Rubber
 
   def self.initialize(project_root, project_env)
-    return if defined?(PROJECT_ROOT) && defined?(RUBBER_ENV)
+    return if defined?(RUBBER_ROOT) && defined?(RUBBER_ENV)
     
     Object.const_set('RUBBER_ENV', project_env)
-    Object.const_set('PROJECT_ROOT', project_root)
+    Object.const_set('RUBBER_ROOT', project_root)
 
     # pull in basic rails env.  rubber only needs RAILS_ROOT and RAILS_ENV.
     # We actually do NOT want the entire rails environment because it
     # complicates bootstrap (i.e. can't run config to create db because full
     # rails env needs db to exist as some plugin accesses model or something)
-    rails_boot_file = File.join(PROJECT_ROOT, 'config', 'boot')
+    rails_boot_file = File.join(RUBBER_ROOT, 'config', 'boot')
     require(rails_boot_file) if File.exists? rails_boot_file
 
     if defined?(RAILS_DEFAULT_LOGGER) && RAILS_DEFAULT_LOGGER

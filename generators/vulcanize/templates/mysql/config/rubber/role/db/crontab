@@ -4,16 +4,11 @@
   @additive = ["# rubber-mysql-start", "# rubber-mysql-end"]
 %>
 
-PATH=/usr/local/bin:/usr/local/sbin:/usr/local/mysql/bin:/usr/bin:/bin:/sbin:/usr/sbin
-MAILTO=<%= rubber_env.admin_email %>
-# don't need to set RAILS_ENV for each script since we set it for all cron here
-RAILS_ENV=<%= RAILS_ENV %>
-
 <%
   # Backup db every 3 hours to secondary db if available, else primary db
   backup_db_host = rubber_instances.for_role('db', {}).first rescue nil
   backup_db_host ||= rubber_instances.for_role('db', 'primary' => true).first
   if backup_db_host.name == rubber_env.host
 %>
-0 */3 * * * BACKUP_DIR=/mnt/db_backups DBUSER=<%= rubber_env.db_user %> DBPASS=<%= rubber_env.db_pass %> DBNAME=<%= rubber_env.db_name %> DBHOST=<%= backup_db_host.full_name %> <%= RAILS_ROOT %>/script/cron-rake rubber:backup_db
+0 */3 * * * BACKUP_DIR=/mnt/db_backups DBUSER=<%= rubber_env.db_user %> DBPASS=<%= rubber_env.db_pass %> DBNAME=<%= rubber_env.db_name %> DBHOST=<%= backup_db_host.full_name %> <%= RUBBER_ROOT %>/script/cron-rake rubber:backup_db
 <% end %>

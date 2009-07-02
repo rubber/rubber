@@ -3,7 +3,7 @@
 %>
 
 check process mysql with pidfile /var/run/mysqld/mysqld.pid
-   group mysql-<%= RAILS_ENV %>
+   group mysql-<%= RUBBER_ENV %>
    start program = "/etc/init.d/mysql start"
    stop program = "/etc/init.d/mysql stop"
    if failed host 127.0.0.1 port 3306 protocol mysql then alert

@@ -1,10 +1,10 @@
 <%
-  @path = "#{RAILS_ROOT}/config/sphinx.yml"
+  @path = "#{RUBBER_ROOT}/config/sphinx.yml"
 %>
 
 # Taken from: http://ts.freelancing-gods.com/rdoc/classes/ThinkingSphinx/Configuration.html
 #
-# Here are the default settings, relative to RAILS_ROOT where relevant:
+# Here are the default settings, relative to RUBBER_ROOT where relevant:
 #
 # config file::           config/#{environment}.sphinx.conf
 # searchd log file::      log/searchd.log
@@ -36,11 +36,11 @@
 # Each setting in the YAML file is optional - so only put in the ones you
 # want to change.
 
-<%= RAILS_ENV %>:
+<%= RUBBER_ENV %>:
   address:            <%= rubber_instances.for_role('sphinx').first.full_name rescue 'localhost' %>
-  mem_limit:          <%= RAILS_ENV == 'production' ? '1024M' : '64M' %>
-  config_file:        sphinx/config/<%= RAILS_ENV %>.sphinx.conf
-  searchd_file_path:  sphinx/db/<%= RAILS_ENV %>/
-  pid_file:           <%= RAILS_ROOT %>/log/searchd.<%= RAILS_ENV %>.pid
-  searchd_log_file:   <%= RAILS_ROOT %>/log/searchd.log
-  query_log_file:     <%= RAILS_ROOT %>/log/searchd.query.log
+  mem_limit:          <%= RUBBER_ENV == 'production' ? '1024M' : '64M' %>
+  config_file:        sphinx/config/<%= RUBBER_ENV %>.sphinx.conf
+  searchd_file_path:  sphinx/db/<%= RUBBER_ENV %>/
+  pid_file:           <%= RUBBER_ROOT %>/log/searchd.<%= RUBBER_ENV %>.pid
+  searchd_log_file:   <%= RUBBER_ROOT %>/log/searchd.log
+  query_log_file:     <%= RUBBER_ROOT %>/log/searchd.query.log

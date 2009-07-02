@@ -4,7 +4,7 @@
 #
 db_user: "#{app_name}"
 db_pass:
-db_name: "#{app_name}_#{RAILS_ENV}"
+db_name: "#{app_name}_#{RUBBER_ENV}"
 
 # REQUIRED: The command to use to do a full backup of your database using
 #           "rake rubber:backup_db"

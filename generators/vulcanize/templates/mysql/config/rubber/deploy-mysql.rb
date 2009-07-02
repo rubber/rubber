@@ -131,7 +131,7 @@ namespace :rubber do
       deploy.update_code
       
       # Gen just the conf for the given mysql role
-      rubber.run_config(:RAILS_ENV => rails_env, :FILE => "role/#{role}|role/db/my.cnf", :deploy_path => release_path)
+      rubber.run_config(:RUBBER_ENV => rails_env, :FILE => "role/#{role}|role/db/my.cnf", :deploy_path => release_path)
     end
     
     after "rubber:install_packages", "rubber:mysql:custom_install"

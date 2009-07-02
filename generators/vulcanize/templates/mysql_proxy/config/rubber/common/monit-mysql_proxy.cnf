@@ -3,7 +3,7 @@
 %>
 
 check process mysql_proxy with pidfile /var/run/mysql-proxy.pid
-   group mysql_proxy-<%= RAILS_ENV %>
+   group mysql_proxy-<%= RUBBER_ENV %>
    start program = "/etc/init.d/mysql-proxy start"
    stop program = "/etc/init.d/mysql-proxy stop"
    if failed host 127.0.0.1 port 4040 protocol mysql then alert

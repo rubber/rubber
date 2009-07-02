@@ -48,9 +48,9 @@ dns_providers:
 # dns_provider: nettica
 
 # OPTIONAL: Additional rubber file to pull config from if it exists.  This file will
-# also be pushed to remote host at RAILS_ROOT/config/rubber/rubber-secret.yml
+# also be pushed to remote host at RUBBER_ROOT/config/rubber/rubber-secret.yml
 #
-# rubber_secret: "#{File.expand_path('~') + '/.ec2' + (RAILS_ENV == 'production' ? '' : '_dev') + '/rubber-secret.yml' rescue ''}"
+# rubber_secret: "#{File.expand_path('~') + '/.ec2' + (RUBBER_ENV == 'production' ? '' : '_dev') + '/rubber-secret.yml' rescue ''}"
 
 # REQUIRED All known cloud providers with the settings needed to configure them
 # There's only one coud provider right now - Amazon Web Services

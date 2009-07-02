@@ -71,7 +71,7 @@ namespace :rubber do
 
     # runs the given ultrasphinx rake tasks
     def run_sphinx task
-      cmd = "cd #{current_path} && sudo -u #{runner} RAILS_ENV=#{RAILS_ENV} rake #{task}"
+      cmd = "cd #{current_path} && sudo -u #{runner} RAILS_ENV=#{RUBBER_ENV} rake #{task}"
       run cmd
     end
 

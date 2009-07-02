@@ -3,7 +3,7 @@
 # Example munin plugin for querying stats out of db
 # See munin plugin docs http://munin.projects.linpro.no/wiki/Documentation#Plugins
 #
-# Scripts added to RAILS_ROOT/script/munin automatically
+# Scripts added to RUBBER_ROOT/script/munin automatically
 # get installed as munin plugins by rubber
 
 # remove this line to enable
@@ -13,9 +13,9 @@ exit 0
 # if you want, but may be slow if your app loads a lot of plugins)
 
 require "rubber"
-RAILS_ENV = ENV["RAILS_ENV"] ||= "development"
-RAILS_ROOT = File.join(File.dirname(__FILE__), '../..')
-Rubber::initialize(RAILS_ROOT, RAILS_ENV)
+env = ENV["RUBBER_ENV"] ||= "development"
+root = File.join(File.dirname(__FILE__), '../..')
+Rubber::initialize(root, env)
 RUBBER_CONFIG = Rubber::Configuration.rubber_env
 RUBBER_INSTANCES = Rubber::Configuration.rubber_instances
 
