@@ -10,6 +10,7 @@ namespace :rubber do
     setup_volumes
     add_gem_sources
     install_gems
+    deploy.setup
   end
 
   desc <<-DESC

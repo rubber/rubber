@@ -79,7 +79,7 @@ module Rubber
       attr_reader :name, :domain, :roles, :instance_id
       attr_accessor :external_host, :external_ip
       attr_accessor :internal_host, :internal_ip
-      attr_accessor :static_ip, :volumes
+      attr_accessor :static_ip, :volumes, :partitions
 
       def initialize(name, domain, roles, instance_id)
         @name = name

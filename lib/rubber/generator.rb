@@ -73,7 +73,7 @@ module Rubber
         end
 
         config.options = options
-        template = ERB.new(src_data)
+        template = ERB.new(src_data, nil, "-")
         result = template.result(config.get_binding())
         
         return if config.skip
