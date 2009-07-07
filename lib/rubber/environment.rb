@@ -127,9 +127,9 @@ module Rubber
         def initialize(global, roles, host)
           @roles = roles
           @host = host
-          @full_host = host + "." + self['domain'] rescue nil
           bound_global = bind_config(global)
           super(nil, bound_global)
+          @full_host = "#{host}.#{domain}" rescue nil
         end
 
         # Forces role/host overrides into config

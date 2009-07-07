@@ -2,7 +2,14 @@ load 'deploy' if respond_to?(:namespace) # cap2 differentiator
 
 env = ENV['RUBBER_ENV'] ||= (ENV['RAILS_ENV'] || 'production')
 root = File.dirname(__FILE__)
-require 'rubber'
+
+begin
+  # first try as a rails plugin
+  require 'vendor/plugins/rubber/lib/rubber.rb'
+rescue LoadError
+  # then try as a gem
+  require 'rubber'
+end
 Rubber::initialize(root, env)
 require 'rubber/capistrano'
 

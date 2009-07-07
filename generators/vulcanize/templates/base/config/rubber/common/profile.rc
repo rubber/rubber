@@ -4,4 +4,6 @@
 %>
 
 # convenience to simply running rails console, etc with correct env
-export RAILS_ENV=<%= RAILS_ENV %>
+export RUBBER_ENV=<%= RUBBER_ENV %>
+export RAILS_ENV=<%= RUBBER_ENV %>
+alias current="cd <%= RUBBER_ROOT %>"

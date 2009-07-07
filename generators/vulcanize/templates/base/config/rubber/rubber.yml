@@ -107,7 +107,7 @@ security_groups:
     description: The default security group
     rules:
       - source_group_name: default
-        source_group_account: "#{aws_account}"
+        source_group_account: "#{cloud_providers.aws.account}"
       - protocol: tcp
         from_port: 22
         to_port: 22
