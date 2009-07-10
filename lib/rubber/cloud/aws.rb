@@ -23,8 +23,10 @@ module Rubber
 
       def describe_instances(instance_id=nil)
         instances = []
+        opts = {}
+        opts[:instance_id] = instance_id if instance_id
 
-        response = @ec2.describe_instances(:instance_id => instance_id)
+        response = @ec2.describe_instances(opts)
         response.reservationSet.item.each do |ritem|
           ritem.instancesSet.item.each do |item|
             instance = {}
