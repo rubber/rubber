@@ -2,10 +2,11 @@
 if __FILE__ !~ /rubber\/generators\/vulcanize/
 
   begin
-    # first try as a rails plugin
-    require "#{File.dirname(__FILE__)}/../../vendor/plugins/rubber/lib/rubber.rb"
+    # first try as a gem
+    require 'rubber'
   rescue LoadError
-    # then try as a gem
+    # then try as a rails plugin
+    $:.unshift "#{File.dirname(__FILE__)}/../../vendor/plugins/rubber/lib/"
     require 'rubber'
   end
 
