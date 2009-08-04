@@ -1,4 +1,4 @@
 roles:
   web:
     packages: [apache2-mpm-prefork apache2-prefork-dev]
-    gems: [fastthread rack [passenger, '2.2.4']]
+    gems: [fastthread, rack, [passenger, 2.2.4]]
