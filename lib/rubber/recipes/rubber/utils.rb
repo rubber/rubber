@@ -15,6 +15,15 @@ namespace :rubber do
     instance_alias = ENV['ALIAS'] = rubber.get_env("ALIAS", "Hostname to use for staging instance", true, RUBBER_ENV)
     default_roles = rubber_cfg.environment.bind().staging_roles || "*"
     roles = ENV['ROLES'] = rubber.get_env("ROLES", "Roles to use for staging instance", true, default_roles)
+
+    # some bootstraps update code (bootstrap_db) but if you don't have that role, need to do it here
+    # Since release directory variable gets reused by cap, we have to just do the symlink here - doing
+    # a update again will fail
+    set :rubber_code_was_updated, false
+    after "deploy:update_code" do
+      set :rubber_code_was_updated, true
+    end
+
     if rubber_cfg.instance[instance_alias]
       logger.info "Instance already exists, skipping to bootstrap"
     else
@@ -23,9 +32,9 @@ namespace :rubber do
     rubber.bootstrap
     # stop everything in case we have a bundled instance with monit, etc starting at boot
     deploy.stop rescue nil
-    # bootstrap_db does setup/update_code, so since release directory
-    # variable gets reused by cap, we have to just do the symlink here - doing
-    # a update again will fail
+    if ! rubber_code_was_updated
+      deploy.update_code
+    end
     deploy.symlink
     deploy.migrate
     deploy.start
