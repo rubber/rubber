@@ -1,4 +1,14 @@
+security_groups:
+  web:
+    description: To open up port 80 for http server on web role
+    rules:
+      - protocol: tcp
+        from_port: 80
+        to_port: 80
+        source_ips: [0.0.0.0/0]
+
 roles:
   web:
     packages: [apache2-mpm-prefork apache2-prefork-dev]
     gems: [fastthread, rack, [passenger, 2.2.4]]
+    assigned_security_groups: [web]
