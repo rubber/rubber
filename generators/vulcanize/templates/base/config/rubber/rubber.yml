@@ -121,10 +121,13 @@ assigned_security_groups: [default]
 # creation, so its good to have some empty ones predefined.
 auto_security_groups: true
 
+# OPTIONAL: Set if you want to use Ruby Enterprise Edition instead of the standard ubuntu one
+use_enterprise_ruby: false
+
 # OPTIONAL: The packages to install on all instances
 # You can install a specific version of a package by using a sub-array of pkg, version
 # For example, packages: [[rake, 0.7.1], irb]
-packages: [build-essential, ruby-full, ruby1.8-dev, rake, irb, subversion]
+packages: [build-essential, ruby-full, ruby1.8-dev, rake, irb]
 
 # OPTIONAL: The gems to install on all instances
 # You can install a specific version of a gem by using a sub-array of gem, version

@@ -5,30 +5,17 @@ namespace :rubber do
   
     rubber.allow_optional_tasks(self)
   
-    #before "rubber:install_gems", "rubber:passenger:install_enterprise_ruby"
     after "rubber:install_gems", "rubber:passenger:custom_install"
     
     task :custom_install, :roles => :web do
-      #if [[ ! -f /opt/ruby-enterprise/lib/ruby/gems/1.8/gems/passenger-2.2.4/ext/apache2/mod_passenger.so ]]; then
-      rubber.sudo_script 'install_passenger', <<-ENDSCRIPT      
-        echo -en "\n\n\n\n" | passenger-install-apache2-module
-        # disable ubuntu default site
-        a2dissite default
-      ENDSCRIPT
-    end
-    
-    task :install_enterprise_ruby, :roles => :web do
-      rubber.sudo_script 'install_enterprise_ruby', <<-ENDSCRIPT
-        if [[ ! -d /opt/ruby-enterprise ]]; then
-          wget -q http://rubyforge.org/frs/download.php/58679/ruby-enterprise_1.8.6-20090610_i386.deb
-          dpkg -i ruby-enterprise_1.8.6-20090610_i386.deb
-          echo "export PATH=/opt/ruby-enterprise/bin:$PATH" >> /etc/environment
+      rubber.sudo_script 'install_passenger', <<-ENDSCRIPT
+        if [[ ! -f /usr/lib/ruby/gems/*/gems/passenger-*/ext/apache2/mod_passenger.so ]]; then
+          echo -en "\n\n\n\n" | passenger-install-apache2-module
+          # disable ubuntu default site
+          a2dissite default
         fi
       ENDSCRIPT
-      
-      # Force Capistrano to reconnect and load our new environment
-      teardown_connections_to(sessions.keys)
-    end
+    end  
     
     # serial_task can only be called after roles defined - not normally a problem, but
     # rubber auto-roles don't get defined till after all tasks are defined
