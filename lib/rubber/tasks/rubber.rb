@@ -1,7 +1,7 @@
 require 'fileutils'
 require 'date'
 require 'time'
-
+require 'aws/s3'
 require 'rubber'
 
 namespace :rubber do
@@ -14,9 +14,12 @@ namespace :rubber do
     Rubber::Configuration.rubber_instances
   end
 
+  def cloud_provider
+    rubber_env.cloud_providers[rubber_env.cloud_provider]
+  end
+
   def init_s3()
-    env = rubber_env
-    AWS::S3::Base.establish_connection!(:access_key_id => env.aws_access_key, :secret_access_key => env.aws_secret_access_key)
+    AWS::S3::Base.establish_connection!(:access_key_id => cloud_provider.access_key, :secret_access_key => cloud_provider.secret_access_key)
   end
 
   desc "Generate system config files by transforming the files in the config tree"
@@ -127,7 +130,7 @@ namespace :rubber do
     puts "Created backup: #{backup_file}"
     
     s3_prefix = "db/"
-    backup_bucket = rubber_env.cloud_providers[env.cloud_provider].backup_bucket
+    backup_bucket = cloud_provider.backup_bucket
     if backup_bucket
       init_s3
       unless AWS::S3::Bucket.list.find { |b| b.name == backup_bucket }
@@ -183,7 +186,7 @@ namespace :rubber do
     db_restore_cmd = eval('%Q{' + db_restore_cmd + '}')
 
     # try to fetch a matching file from s3 (if backup_bucket given)
-    backup_bucket = rubber_env.cloud_providers[env.cloud_provider].backup_bucket
+    backup_bucket = cloud_provider.backup_bucket
     raise "No backup_bucket defined in rubber.yml" unless backup_bucket
     if (init_s3 &&
         AWS::S3::Bucket.list.find { |b| b.name == backup_bucket })
