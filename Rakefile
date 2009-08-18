@@ -18,6 +18,7 @@ begin
     s.add_dependency 'aws-s3'
     s.add_dependency 'nettica'
     s.add_dependency 'httparty'
+    s.add_dependency 'rails'
   end
   Jeweler::RubyforgeTasks.new
 rescue LoadError
