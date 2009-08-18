@@ -85,10 +85,10 @@ cloud_providers:
 
     # REQUIRED: the ami and instance type for creating instances
     # The Ubuntu images at http://alestic.com/ work well
-    # Ubuntu 9.04 Jaunty	base install	32-bit	2.6.21.7-2.fc8xen	ami-bf5eb9d6
-    # Ubuntu 9.04 Jaunty	base install	64-bit	2.6.21.7-2.fc8xen	ami-bc5eb9d5
+    # Ubuntu 9.04 Jaunty	base install	32-bit	2.6.21.7-2.fc8xen	ami-ed46a784
+    # Ubuntu 9.04 Jaunty	base install	64-bit	2.6.21.7-2.fc8xen	ami-5b46a732
     #
-    image_id: ami-bf5eb9d6
+    image_id: ami-ed46a784
     # m1.small or m1.large or m1.xlarge
     image_type: m1.small
 
