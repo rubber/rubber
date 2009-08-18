@@ -8,7 +8,7 @@ module Rubber
     return if defined?(RUBBER_ROOT) && defined?(RUBBER_ENV)
 
     Object.const_set('RUBBER_ENV', project_env)
-    Object.const_set('RUBBER_ROOT', project_root)
+    Object.const_set('RUBBER_ROOT', File.expand_path(project_root))
 
     # pull in basic rails env.  rubber only needs RAILS_ROOT and RAILS_ENV.
     # We actually do NOT want the entire rails environment because it
