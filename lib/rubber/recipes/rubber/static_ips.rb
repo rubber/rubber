@@ -24,7 +24,7 @@ namespace :rubber do
           logger.info "Associating static ip #{ip} with #{ic.full_name}"
           associate_static_ip(ip, ic.instance_id)
 
-          instance = cloud.describe_instances(:instance_id => ic.instance_id).first
+          instance = cloud.describe_instances(ic.instance_id).first
           ic.external_host = instance[:external_host]
           ic.internal_host = instance[:internal_host]
           ic.external_ip = ip
