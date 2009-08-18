@@ -244,7 +244,8 @@ namespace :rubber do
       print "."
       sleep 2
       volume = cloud.describe_volumes(volume_id).first
-      break if !volume || volume[:attachment_status] == "detached"
+      status = volume && volume[:attachment_status]
+      break if !status || status == "detached"
     end
     print "\n"
 

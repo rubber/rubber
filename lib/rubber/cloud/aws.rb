@@ -187,7 +187,8 @@ module Rubber
           volume = {}
           volume[:id] = item.volumeId
           volume[:status] = item.status
-          if attach = item.attachmentSet.item[0]
+          if item.attachmentSet
+            attach = item.attachmentSet.item[0]
             volume[:attachment_instance_id] = attach.instanceId
             volume[:attachment_status] = attach.status
           end
