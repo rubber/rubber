@@ -49,7 +49,7 @@ namespace :rubber do
       push_files = [rubber_cfg.instance.file] + rubber_cfg.environment.config_files
       push_files.each do |file|
         dest_file = file.sub(/^#{RUBBER_ROOT}\/?/, '')
-        put(File.read(file), File.join(path, dest_file))
+        put(File.read(file), File.join(path, dest_file), :mode => "+r")
       end
     end
 
@@ -57,7 +57,7 @@ namespace :rubber do
     secret = rubber_cfg.environment.config_secret
     if secret && File.exist?(secret)
       base = rubber_cfg.environment.config_root.sub(/^#{RUBBER_ROOT}\/?/, '')
-      put(File.read(secret), File.join(path, base, File.basename(secret)))
+      put(File.read(secret), File.join(path, base, File.basename(secret)), :mode => "+r")
     end
 
     sudo "sh -c 'cd #{path} && #{extra_env} rake rubber:config'"
