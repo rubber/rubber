@@ -204,7 +204,6 @@ module Rubber
         ec2_key = @aws_env.key_file
         ec2_pk = @aws_env.pk_file
         ec2_cert = @aws_env.cert_file
-        aws_account = @aws_env.account
         ec2_key_dest = "/mnt/#{File.basename(ec2_key)}"
         ec2_pk_dest = "/mnt/#{File.basename(ec2_pk)}"
         ec2_cert_dest = "/mnt/#{File.basename(ec2_cert)}"
@@ -215,13 +214,21 @@ module Rubber
 
         arch = capistrano.capture "uname -m"
         arch = case arch when /i\d86/ then "i386" else arch end
+
         capistrano.sudo_script "create_bundle", <<-CMD
           export RUBYLIB=/usr/lib/site_ruby/
-          ec2-bundle-vol --batch -d /mnt -k #{ec2_pk_dest} -c #{ec2_cert_dest} -u #{account} -p #{image_name} -r #{arch}
+          nohup ec2-bundle-vol --batch -d /mnt -k #{ec2_pk_dest} -c #{ec2_cert_dest} -u #{@aws_env.account} -p #{image_name} -r #{arch}  &> /tmp/ec2-bundle-vol.log &
+          echo "Creating image from instance volume..."
+          while true; do
+            if ! ps ax | grep -q "[e]c2-bundle-vol"; then exit; fi
+            echo -n .
+            sleep 1
+          done
         CMD
 
         capistrano.sudo_script "register_bundle", <<-CMD
           export RUBYLIB=/usr/lib/site_ruby/
+          echo "Uploading image to S3..."
           ec2-upload-bundle --batch -b #{@aws_env.image_bucket} -m /mnt/#{image_name}.manifest.xml -a #{@aws_env.access_key} -s #{@aws_env.secret_access_key}
         CMD
 
