@@ -75,3 +75,10 @@ task :setup_perms do
   run "find #{shared_path} -name cached-copy -prune -o -print | xargs chown #{runner}:#{runner}"
   run "chown -R #{runner}:#{runner} #{current_path}/tmp"
 end
+
+# Uncomment this is you want to install gems defined in the rails environment.rb
+# after "deploy:update", "install_rails_gems"
+task :install_rails_gems do
+  sudo "sh -c 'cd #{current_path} && rake gems:install'"
+end
+
