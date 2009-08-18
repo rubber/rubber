@@ -32,6 +32,9 @@ namespace :rubber do
     opts['NO_POST'] = true if ENV['NO_POST']
     opts['FILE'] = ENV['FILE'] if ENV['FILE']
     opts['RUBBER_ENV'] = RUBBER_ENV
+    # we need to set rails env as well because when running rake
+    # in a rails project, rails gets loaded before the rubber hook gets run
+    opts['RAILS_ENV'] = RUBBER_ENV
 
     # when running deploy:migrations, we need to run config against release_path
     opts[:deploy_path] = current_release if fetch(:migrate_target, :current).to_sym == :latest
