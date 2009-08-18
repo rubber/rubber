@@ -147,7 +147,9 @@ module Rubber
 
       def describe_static_ips(ip=nil)
         ips = []
-        response = @ec2.describe_addresses()
+        opts = {}
+        opts[:public_ip] = ip if ip
+        response = @ec2.describe_addresses(opts)
         response.addressesSet.item.each do |item|
           ip = {}
           ip[:instance_id] = item.instanceId
@@ -230,7 +232,9 @@ module Rubber
 
       def describe_images(image_id=nil)
         images = []
-        response = @ec2.describe_images(:owner_id => 'self', :image_id => image_id)
+        opts = {:owner_id => 'self'}
+        opts[:image_id] = image_id if image_id
+        response = @ec2.describe_images(opts)
         response.imagesSet.item.each do |item|
           image = {}
           image[:id] = item.imageId

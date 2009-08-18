@@ -59,7 +59,7 @@ namespace :rubber do
     format = "%-10s %-15s %-30s"
     results << format % %w[InstanceID IP Alias]
 
-    ips = cloud.describe_addresses()
+    ips = cloud.describe_static_ips()
     ips.each do |ip_data|
       instance_id = ip_data[:instance_id]
       ip = ip_data[:ip]
