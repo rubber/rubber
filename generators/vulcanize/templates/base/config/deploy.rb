@@ -79,6 +79,6 @@ end
 # Uncomment this is you want to install gems defined in the rails environment.rb
 # after "deploy:update", "install_rails_gems"
 task :install_rails_gems do
-  sudo "sh -c 'cd #{current_path} && rake gems:install'"
+  sudo "sh -c 'cd #{current_path} && RAILS_ENV=#{rails_env} rake gems:install'"
 end
 
