@@ -121,6 +121,12 @@ assigned_security_groups: [default]
 # creation, so its good to have some empty ones predefined.
 auto_security_groups: true
 
+# OPTIONAL: Automatically isolate security groups for each appname/environment
+# by mangling their names to be appname_env_groupname
+# This makes it safer to have staging and production coexist on the same EC2
+# account, or even multiple apps
+isolate_security_groups: true
+
 # OPTIONAL: Set if you want to use Ruby Enterprise Edition instead of the standard ubuntu one
 use_enterprise_ruby: false
 

@@ -112,19 +112,8 @@ namespace :rubber do
     env = rubber_cfg.environment.bind(role_names, instance_alias)
 
     # We need to use security_groups during create, so create them up front
-    security_groups = env.assigned_security_groups
-    security_group_defns = env.security_groups
-    if env.auto_security_groups
-      hosts = rubber_cfg.instance.collect{|ic| ic.name } + [instance_alias]
-      roles = (rubber_cfg.instance.all_roles + role_names).uniq
-      security_groups << instance_alias
-      security_groups += role_names
-      security_groups.uniq!
-      security_group_defns = inject_auto_security_groups(security_group_defns, hosts, roles)
-      sync_security_groups(security_group_defns)
-    else
-      sync_security_groups(security_group_defns)
-    end
+    setup_security_groups(instance_alias, role_names)
+    security_groups = get_assigned_security_groups(instance_alias, role_names)
 
     ami = env.cloud_providers[env.cloud_provider].image_id
     ami_type = env.cloud_providers[env.cloud_provider].image_type

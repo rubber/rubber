@@ -6,16 +6,7 @@ namespace :rubber do
     Likewise, rules within a group will get created, and those not will be removed
   DESC
   required_task :setup_security_groups do
-    env = rubber_cfg.environment.bind()
-    security_group_defns = env.security_groups
-    if env.auto_security_groups
-      hosts = rubber_cfg.instance.collect{|ic| ic.name }
-      roles = rubber_cfg.instance.all_roles
-      security_group_defns = inject_auto_security_groups(security_group_defns, hosts, roles)
-      sync_security_groups(security_group_defns)
-    else
-      sync_security_groups(security_group_defns)
-    end
+    setup_security_groups()
   end
 
   desc <<-DESC
@@ -38,6 +29,31 @@ namespace :rubber do
   end
 
 
+  def get_assigned_security_groups(host=nil, roles=[])
+    env = rubber_cfg.environment.bind(roles, host)
+    security_groups = env.assigned_security_groups
+    if env.auto_security_groups
+      security_groups << host
+      security_groups += roles
+    end
+    security_groups = security_groups.uniq.compact
+    security_groups = security_groups.collect {|x| isolate_group_name(x) } if env.isolate_security_groups
+    return security_groups
+  end
+
+  def setup_security_groups(host=nil, roles=[])
+    env = rubber_cfg.environment.bind(roles, host)
+    security_group_defns = env.security_groups
+    if env.auto_security_groups
+      sghosts = (rubber_cfg.instance.collect{|ic| ic.name } + [host]).uniq.compact
+      sgroles = (rubber_cfg.instance.all_roles + roles).uniq.compact
+      security_group_defns = inject_auto_security_groups(security_group_defns, sghosts, sgroles)
+      sync_security_groups(security_group_defns)
+    else
+      sync_security_groups(security_group_defns)
+    end
+  end
+
   def inject_auto_security_groups(groups, hosts, roles)
     hosts.each do |name|
       group_name = name
@@ -50,17 +66,48 @@ namespace :rubber do
     return groups
   end
 
+  def isolate_prefix
+    env = rubber_cfg.environment.bind()
+    return "#{env.app_name}_#{RUBBER_ENV}_"
+  end
+
+  def isolate_group_name(group_name)
+    new_name = "#{isolate_prefix}#{group_name}"
+    return new_name
+  end
+
+  def isolate_groups(groups)
+    renamed = {}
+    groups.each do |name, group|
+      new_name = name =~ /^#{isolate_prefix}/ ? name : isolate_group_name(name)
+      new_group =  Marshal.load(Marshal.dump(group))
+      new_group['rules'].each do |rule|
+        old_ref_name = rule['source_group_name']
+        if old_ref_name && old_ref_name !~ /^#{isolate_prefix}/
+          rule['source_group_name'] = isolate_group_name(old_ref_name)
+        end
+      end
+      renamed[new_name] = new_group
+    end
+    return renamed
+  end
+
   def sync_security_groups(groups)
     env = rubber_cfg.environment.bind()
     return unless groups
 
     groups = Rubber::Util::stringify(groups)
+    groups = isolate_groups(groups) if env.isolate_security_groups
     group_keys = groups.keys.clone()
-
+    
     # For each group that does already exist in ec2
     cloud_groups = cloud.describe_security_groups()
     cloud_groups.each do |cloud_group|
       group_name = cloud_group[:name]
+
+      # skip those groups that don't belong to this project/env
+      next if env.isolate_security_groups && group_name !~ /^#{isolate_prefix}/
+
       if group_keys.delete(group_name)
         # sync rules
         logger.debug "Security Group already in ec2, syncing rules: #{group_name}"
@@ -114,14 +161,9 @@ namespace :rubber do
           end
         end
       else
-        # when using auto groups, get prompted too much to delete when
-        # switching between production/staging since the hosts aren't shared
-        # between the two environments
-        if env.force_security_group_cleanup || ! env.auto_security_groups
-          # delete group
-          answer = Capistrano::CLI.ui.ask("Security group '#{group_name}' exists in ec2 but not locally, remove from ec2? [y/N]: ")
-          cloud.destroy_security_group(group_name) if answer =~ /^y/
-        end
+        # delete group
+        answer = Capistrano::CLI.ui.ask("Security group '#{group_name}' exists in ec2 but not locally, remove from ec2? [y/N]: ")
+        cloud.destroy_security_group(group_name) if answer =~ /^y/
       end
     end
 
