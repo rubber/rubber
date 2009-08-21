@@ -247,36 +247,71 @@ namespace :rubber do
   def gem_helper(update=false)
     cmd = update ? "update" : "install"
 
-    # when versions are provided for a gem, rubygems fails unless versions ae provided for all gems
-    #
-    # first do the gems that the user specified versions for
+
     opts = get_host_options('gems') do |gem_list|
       expanded_gem_list = []
       gem_list.each do |gem_spec|
         if gem_spec.is_a?(Array)
-          expanded_gem_list << "#{gem_spec[0]} -v #{gem_spec[1]}"
-        end
-      end
-      expanded_gem_list.join(' ')
-    end
-    if opts.size > 0
-      sudo "gem #{cmd} $CAPISTRANO:VAR$ --no-rdoc --no-ri", opts do |ch, str, data|
-        handle_gem_prompt(ch, data, str)
-      end
-    end
-
-    # then do the gems without versions
-    opts = get_host_options('gems') do |gem_list|
-      expanded_gem_list = []
-      gem_list.each do |gem_spec|
-        if ! gem_spec.is_a?(Array)
+          expanded_gem_list << "#{gem_spec[0]}:#{gem_spec[1]}"
+        else
           expanded_gem_list << gem_spec
         end
       end
       expanded_gem_list.join(' ')
     end
+    
     if opts.size > 0
-      sudo "gem #{cmd} $CAPISTRANO:VAR$ --no-rdoc --no-ri", opts do |ch, str, data|
+      # Rubygems always installs even if the gem is already installed
+      # When providing versions, rubygems fails unless versions are provided for all gems
+      # This helper script works around these issues by installing gems only if they
+      # aren't already installed, and separates versioned/unversioned into two separate
+      # calls to rubygems
+      script = prepare_script 'gem_helper', <<-'ENDSCRIPT'
+        ruby - $@ <<-'EOF'
+
+        gem_cmd = ARGV[0]
+        gems = ARGV[1..-1]
+        cmd = "gem #{gem_cmd} --no-rdoc --no-ri"
+
+        to_install = {}
+        to_install_ver = {}
+        # gem list passed in, possibly with versions, as "gem1 gem2:1.2 gem3"
+        gems.each do |gem_spec|
+          parts = gem_spec.split(':')
+          if parts[1]
+            to_install_ver[parts[0]] = parts[1]
+          else
+            to_install[parts[0]] = true
+          end
+        end
+
+        installed = {}
+        `gem list --local`.each do |line|
+            parts = line.scan(/(.*) \((.*)\)/).first
+            next unless parts && parts.size == 2
+            installed[parts[0]] = parts[1].split(",")
+        end
+
+        to_install.delete_if {|g, v| installed.has_key?(g) }
+        to_install_ver.delete_if {|g, v| installed.has_key?(g) && installed[g].include?(v) } 
+
+        # when versions are provided for a gem, rubygems fails unless versions
+        # are provided for all gems so we need to do the two groups separately
+        if to_install.size > 0
+          gem_list = to_install.keys.join(' ')
+          system "#{cmd} #{gem_list}"
+          fail "Unable to install gems" if $?.exitstatus > 0
+        end
+        if to_install_ver.size > 0
+          gem_list = to_install_ver.collect {|g, v| "#{g} -v #{v}"}.join(' ')
+          system "#{cmd} #{gem_list}"
+          fail "Unable to install versioned gems" if $?.exitstatus > 0
+        end
+
+        'EOF'
+      ENDSCRIPT
+
+      sudo "sh #{script} #{cmd} $CAPISTRANO:VAR$", opts do |ch, str, data|
         handle_gem_prompt(ch, data, str)
       end
     end
