@@ -1,10 +1,8 @@
 # This is a sample Capistrano config file for rubber
 
-set :rails_env, RUBBER_ENV
-
 on :load do
   set :application, rubber_cfg.environment.bind().app_name
-  set :deploy_to,     "/mnt/#{application}-#{rails_env}"
+  set :deploy_to,     "/mnt/#{application}-#{RUBBER_ENV}"
 end
 
 # Use a simple directory tree copy here to make demo easier.
@@ -30,7 +28,7 @@ set :keep_releases, 3
 # (instance*.yml + rubber*.yml) for a deploy.  This gives us the
 # convenience of not having to checkin files for staging, as well as 
 # the safety of forcing it to be checked in for production.
-set :push_instance_config, rails_env != 'production'
+set :push_instance_config, RUBBER_ENV != 'production'
 
 # Allows the tasks defined to fail gracefully if there are no hosts for them.
 # Comment out or use "required_task" for default cap behavior of a hard failure
@@ -79,6 +77,6 @@ end
 # Uncomment this is you want to install gems defined in the rails environment.rb
 # after "deploy:update", "install_rails_gems"
 task :install_rails_gems do
-  sudo "sh -c 'cd #{current_path} && RAILS_ENV=#{rails_env} rake gems:install'"
+  sudo "sh -c 'cd #{current_path} && RAILS_ENV=#{RUBBER_ENV} rake gems:install'"
 end
 
