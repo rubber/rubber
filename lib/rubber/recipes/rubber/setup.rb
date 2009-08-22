@@ -292,7 +292,7 @@ namespace :rubber do
             installed[parts[0]] = parts[1].split(",")
         end
 
-        to_install.delete_if {|g, v| installed.has_key?(g) }
+        to_install.delete_if {|g, v| installed.has_key?(g) } if gem_cmd == 'install'
         to_install_ver.delete_if {|g, v| installed.has_key?(g) && installed[g].include?(v) } 
 
         # when versions are provided for a gem, rubygems fails unless versions
