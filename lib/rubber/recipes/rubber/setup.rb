@@ -6,6 +6,7 @@ namespace :rubber do
   task :bootstrap do
     set_timezone
     link_bash
+    upgrade_packages
     install_packages
     setup_volumes
     add_gem_sources
