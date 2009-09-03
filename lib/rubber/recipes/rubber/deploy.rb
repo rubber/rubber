@@ -49,7 +49,7 @@ namespace :rubber do
     # Need to do this so we can work with staging instances without having to
     # checkin instance file between create and bootstrap, as well as during a deploy
     if fetch(:push_instance_config, false)
-      push_files = [rubber_cfg.instance.file] + rubber_cfg.environment.config_files
+      push_files = [rubber_instances.file] + rubber_cfg.environment.config_files
       push_files.each do |file|
         dest_file = file.sub(/^#{RUBBER_ROOT}\/?/, '')
         put(File.read(file), File.join(path, dest_file), :mode => "+r")

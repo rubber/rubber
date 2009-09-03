@@ -45,8 +45,8 @@ namespace :rubber do
     env = rubber_cfg.environment.bind(roles, host)
     security_group_defns = env.security_groups
     if env.auto_security_groups
-      sghosts = (rubber_cfg.instance.collect{|ic| ic.name } + [host]).uniq.compact
-      sgroles = (rubber_cfg.instance.all_roles + roles).uniq.compact
+      sghosts = (rubber_instances.collect{|ic| ic.name } + [host]).uniq.compact
+      sgroles = (rubber_instances.all_roles + roles).uniq.compact
       security_group_defns = inject_auto_security_groups(security_group_defns, sghosts, sgroles)
       sync_security_groups(security_group_defns)
     else
@@ -67,8 +67,7 @@ namespace :rubber do
   end
 
   def isolate_prefix
-    env = rubber_cfg.environment.bind()
-    return "#{env.app_name}_#{RUBBER_ENV}_"
+    return "#{rubber_env.app_name}_#{RUBBER_ENV}_"
   end
 
   def isolate_group_name(group_name)
@@ -93,11 +92,10 @@ namespace :rubber do
   end
 
   def sync_security_groups(groups)
-    env = rubber_cfg.environment.bind()
     return unless groups
 
     groups = Rubber::Util::stringify(groups)
-    groups = isolate_groups(groups) if env.isolate_security_groups
+    groups = isolate_groups(groups) if rubber_env.isolate_security_groups
     group_keys = groups.keys.clone()
     
     # For each group that does already exist in ec2
@@ -106,7 +104,7 @@ namespace :rubber do
       group_name = cloud_group[:name]
 
       # skip those groups that don't belong to this project/env
-      next if env.isolate_security_groups && group_name !~ /^#{isolate_prefix}/
+      next if rubber_env.isolate_security_groups && group_name !~ /^#{isolate_prefix}/
 
       if group_keys.delete(group_name)
         # sync rules

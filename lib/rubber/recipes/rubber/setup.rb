@@ -33,10 +33,9 @@ namespace :rubber do
     hosts_file = '/etc/hosts'
 
     # Generate /etc/hosts contents for the local machine from instance config
-    env = rubber_cfg.environment.bind()
-    delim = "## rubber config #{env.domain} #{RUBBER_ENV}"
+    delim = "## rubber config #{rubber_env.domain} #{RUBBER_ENV}"
     local_hosts = delim + "\n"
-    rubber_cfg.instance.each do |ic|
+    rubber_instances.each do |ic|
       # don't add unqualified hostname in local hosts file since user may be
       # managing multiple domains with same aliases
       hosts_data = [ic.full_name, ic.external_host, ic.internal_host].join(' ')
@@ -57,7 +56,7 @@ namespace :rubber do
     Sets up aliases in dynamic dns provider for instance hostnames based on contents of instance.yml.
   DESC
   required_task :setup_dns_aliases do
-    rubber_cfg.instance.each do |ic|
+    rubber_instances.each do |ic|
       update_dyndns(ic)
     end
   end
@@ -73,12 +72,12 @@ namespace :rubber do
     delim = "## rubber config"
     delim = "#{delim} #{RUBBER_ENV}"
     remote_hosts = delim + "\n"
-    rubber_cfg.instance.each do |ic|
+    rubber_instances.each do |ic|
       hosts_data = [ic.name, ic.full_name, ic.external_host, ic.internal_host].join(' ')
       remote_hosts << ic.internal_ip << ' ' << hosts_data << "\n"
     end
     remote_hosts << delim << "\n"
-    if rubber_cfg.instance.size > 0
+    if rubber_instances.size > 0
       # write out the hosts file for the remote instances
       # NOTE that we use "capture" to get the existing hosts
       # file, which only grabs the hosts file from the first host
@@ -147,9 +146,8 @@ namespace :rubber do
     be an array of URI strings.
   DESC
   task :add_gem_sources do
-    env = rubber_cfg.environment.bind()
-    if env.gemsources
-      env.gemsources.each { |source| sudo "gem sources -a #{source}"}
+    if rubber_env.gemsources
+      rubber_env.gemsources.each { |source| sudo "gem sources -a #{source}"}
     end
   end
 

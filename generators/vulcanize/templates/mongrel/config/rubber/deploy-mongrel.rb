@@ -28,7 +28,7 @@ namespace :rubber do
     
     def mongrel_start
         run "cd #{current_path} && mongrel_rails cluster::start --clean"
-        pid_cnt = rubber_cfg.environment.bind().appserver_count
+        pid_cnt = rubber_env.appserver_count
         logger.info "Waiting for mongrel pid files to show up"
         run "while ((`ls #{current_path}/tmp/pids/mongrel.*.pid 2> /dev/null | wc -l` < #{pid_cnt})); do sleep 1; done"
     end

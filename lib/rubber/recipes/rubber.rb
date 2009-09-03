@@ -46,15 +46,16 @@ namespace :rubber do
     end
     
     set :rubber_cfg, Rubber::Configuration.get_configuration(RUBBER_ENV)
-    env = rubber_cfg.environment.bind()
+    set :rubber_env, rubber_cfg.environment.bind()
+    set :rubber_instances, rubber_cfg.instance
 
-    set :cloud, Rubber::Cloud::get_provider(env.cloud_provider || "aws", env, self)
+    set :cloud, Rubber::Cloud::get_provider(rubber_env.cloud_provider || "aws", rubber_env, self)
 
-    load_roles() unless rubber_cfg.environment.bind().disable_auto_roles
+    load_roles() unless rubber_env.disable_auto_roles
     # NOTE: for some reason Capistrano requires you to have both the public and
     # the private key in the same folder, the public key should have the
     # extension ".pub".
-    ssh_options[:keys] = env.cloud_providers[env.cloud_provider].key_file
+    ssh_options[:keys] = rubber_env.cloud_providers[rubber_env.cloud_provider].key_file
   end
 
 
@@ -64,13 +65,13 @@ namespace :rubber do
 
     # define empty roles for all known ones so tasks don't fail if a role
     # doesn't exist due to a filter
-    all_roles = rubber_cfg.instance.all_roles
+    all_roles = rubber_instances.all_roles
     all_roles += rubber_cfg.environment.known_roles
     all_roles.uniq!
     all_roles.each {|name| top.roles[name.to_sym] = []}
 
     # define capistrano host => role mapping for all instances
-    rubber_cfg.instance.filtered.each do |ic|
+    rubber_instances.filtered.each do |ic|
       ic.roles.each do |role|
         opts = Rubber::Util::symbolize_keys(role.options)
         msg = "Auto role: #{role.name.to_sym} => #{ic.full_name}"

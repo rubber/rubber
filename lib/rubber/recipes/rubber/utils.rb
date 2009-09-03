@@ -8,12 +8,12 @@ namespace :rubber do
     e.g. RUBBER_ENV=matt cap create_staging
   DESC
   required_task :create_staging do
-    if rubber_cfg.instance.size > 0
+    if rubber_instances.size > 0
       value = Capistrano::CLI.ui.ask("The #{RUBBER_ENV} environment already has instances, Are you SURE you want to create a staging instance that may interact with them [y/N]?: ")
       fatal("Exiting", 0) if value !~ /^y/
     end
     instance_alias = ENV['ALIAS'] = rubber.get_env("ALIAS", "Hostname to use for staging instance", true, RUBBER_ENV)
-    default_roles = rubber_cfg.environment.bind().staging_roles || "*"
+    default_roles = rubber_env.staging_roles || "*"
     roles = ENV['ROLES'] = rubber.get_env("ROLES", "Roles to use for staging instance", true, default_roles)
 
     # some bootstraps update code (bootstrap_db) but if you don't have that role, need to do it here
@@ -24,7 +24,7 @@ namespace :rubber do
       set :rubber_code_was_updated, true
     end
 
-    if rubber_cfg.instance[instance_alias]
+    if rubber_instances[instance_alias]
       logger.info "Instance already exists, skipping to bootstrap"
     else
       rubber.create
@@ -134,7 +134,7 @@ namespace :rubber do
 
   def find_alias(ip, instance_id, do_connect=true)
     if instance_id
-      instance = rubber_cfg.instance.find {|i| i.instance_id == instance_id }
+      instance = rubber_instances.find {|i| i.instance_id == instance_id }
       local_alias = instance.full_name if instance
     end
     local_alias ||= File.read("/etc/hosts").grep(/#{ip}/).first.split[1] rescue nil
@@ -150,8 +150,7 @@ namespace :rubber do
   def prepare_script(name, contents)
     script = "/tmp/#{name}"
     # this lets us abort a script if a command in the middle of it errors out
-    env = rubber_cfg.environment.bind()
-    contents = "#{env.stop_on_error_cmd}\n#{contents}" if env.stop_on_error_cmd
+    contents = "#{rubber_env.stop_on_error_cmd}\n#{contents}" if rubber_env.stop_on_error_cmd
     put(contents, script)
     return script
   end
@@ -188,7 +187,7 @@ namespace :rubber do
   # be installed.
   def get_host_options(cfg_name, &block)
     opts = {}
-    rubber_cfg.instance.each do | ic|
+    rubber_instances.each do | ic|
       env = rubber_cfg.environment.bind(ic.role_names, ic.name)
       cfg_value = env[cfg_name]
       if cfg_value

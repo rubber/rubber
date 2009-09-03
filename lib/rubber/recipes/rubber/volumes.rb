@@ -5,7 +5,7 @@ namespace :rubber do
     All volumes defined in rubber.yml will be created if neccessary, and attached/mounted on their associated instances
   DESC
   required_task :setup_volumes do
-    rubber_cfg.instance.filtered.each do |ic|
+    rubber_instances.filtered.each do |ic|
       env = rubber_cfg.environment.bind(ic.role_names, ic.name)
       created_vols = []
       vol_specs = env.volumes || []
@@ -71,7 +71,7 @@ namespace :rubber do
   def setup_volume(ic, vol_spec)
     created = nil
     key = "#{ic.name}_#{vol_spec['device']}"
-    artifacts = rubber_cfg.instance.artifacts
+    artifacts = rubber_instances.artifacts
     vol_id = artifacts['volumes'][key]
 
     # first create the volume if we don't have a global record (artifacts) for it
@@ -79,7 +79,7 @@ namespace :rubber do
       logger.info "Creating volume for #{ic.full_name}:#{vol_spec['device']}"
       vol_id = create_volume(vol_spec['size'], vol_spec['zone'])
       artifacts['volumes'][key] = vol_id
-      rubber_cfg.instance.save
+      rubber_instances.save
       created = vol_spec['device']
     end
 
@@ -89,7 +89,7 @@ namespace :rubber do
       logger.info "Attaching volume #{vol_id} to #{ic.full_name}:#{vol_spec['device']}"
       attach_volume(vol_id, ic.instance_id, vol_spec['device'])
       ic.volumes << vol_id
-      rubber_cfg.instance.save
+      rubber_instances.save
 
       print "Waiting for volume to attach"
       while true do
@@ -151,7 +151,7 @@ namespace :rubber do
       _setup_partition
 
       ic.partitions << part_id
-      rubber_cfg.instance.save
+      rubber_instances.save
       created = part_id
 
     end
@@ -253,12 +253,12 @@ namespace :rubber do
     cloud.destroy_volume(volume_id)
 
     logger.info "Removing volume #{volume_id} from rubber instances file"
-    artifacts = rubber_cfg.instance.artifacts
+    artifacts = rubber_instances.artifacts
     artifacts['volumes'].delete_if {|k,v| v == volume_id}
-    rubber_cfg.instance.each do |ic|
+    rubber_instances.each do |ic|
       ic.volumes.delete(volume_id) if ic.volumes
     end
-    rubber_cfg.instance.save
+    rubber_instances.save
   end
   
 end

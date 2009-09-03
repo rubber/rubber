@@ -5,10 +5,10 @@ namespace :rubber do
     Sets up static IPs for the instances configured to have them
   DESC
   required_task :setup_static_ips do
-    rubber_cfg.instance.each do |ic|
+    rubber_instances.each do |ic|
       env = rubber_cfg.environment.bind(ic.role_names, ic.name)
       if env.use_static_ip
-        artifacts = rubber_cfg.instance.artifacts
+        artifacts = rubber_instances.artifacts
         ip = artifacts['static_ips'][ic.name] rescue nil
 
         # first allocate the static ip if we don't have a global record (artifacts) for it
@@ -16,7 +16,7 @@ namespace :rubber do
           logger.info "Allocating static IP for #{ic.full_name}"
           ip = allocate_static_ip()
           artifacts['static_ips'][ic.name] = ip
-          rubber_cfg.instance.save
+          rubber_instances.save
         end
 
         # then, associate it if we don't have a record (on instance) of association
@@ -29,7 +29,7 @@ namespace :rubber do
           ic.internal_host = instance[:internal_host]
           ic.external_ip = ip
           ic.static_ip = ip
-          rubber_cfg.instance.save()
+          rubber_instances.save()
 
           logger.info "Waiting for static ip to associate"
           while true do
@@ -96,12 +96,12 @@ namespace :rubber do
     cloud.destroy_static_ip(ip) rescue logger.info("IP was not attached")
 
     logger.info "Removing ip #{ip} from rubber instances file"
-    artifacts = rubber_cfg.instance.artifacts
+    artifacts = rubber_instances.artifacts
     artifacts['static_ips'].delete_if {|k,v| v == ip}
-    rubber_cfg.instance.each do |ic|
+    rubber_instances.each do |ic|
       ic.static_ip = nil if ic.static_ip == ip
     end
-    rubber_cfg.instance.save
+    rubber_instances.save
   end
 
 end

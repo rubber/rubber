@@ -9,17 +9,17 @@ namespace :rubber do
       
     # Capistrano needs db:primary role for migrate to work
     task :set_db_role do
-      sql_instances = rubber_cfg.instance.for_role("mysql_sql")
+      sql_instances = rubber_instances.for_role("mysql_sql")
       sql_instances.each do |instance|
         if ! instance.role_names.find {|n| n == 'db'}
           role = Rubber::Configuration::RoleItem.new('db')
-          primary_exists = rubber_cfg.instance.for_role("db", "primary" => true).size > 0
+          primary_exists = rubber_instances.for_role("db", "primary" => true).size > 0
           role.options["primary"] = true  unless primary_exists
           instance.roles << role
         end
       end
-      rubber_cfg.instance.save()
-      load_roles() unless rubber_cfg.environment.bind().disable_auto_roles
+      rubber_instances.save()
+      load_roles() unless rubber_env.disable_auto_roles
     end
     
     before "rubber:install_packages", "rubber:mysql_cluster:install"
@@ -56,7 +56,7 @@ namespace :rubber do
       # Conditionaly bootstrap for each node/role only if that node has not
       # been boostrapped for that role before
       
-      rubber_cfg.instance.for_role("mysql_mgm").each do |ic|
+      rubber_instances.for_role("mysql_mgm").each do |ic|
         task_name = "_bootstrap_mysql_mgm_#{ic.full_name}".to_sym()
         task task_name, :hosts => ic.full_name do
           exists = capture("if grep -c rubber.*mysql_mgm /etc/mysql/ndb_mgmd.cnf &> /dev/null; then echo exists; fi")
@@ -68,7 +68,7 @@ namespace :rubber do
         send task_name
       end
     
-      rubber_cfg.instance.for_role("mysql_data").each do |ic|
+      rubber_instances.for_role("mysql_data").each do |ic|
         task_name = "_bootstrap_mysql_data_#{ic.full_name}".to_sym()
         task task_name, :hosts => ic.full_name do
           exists = capture("if grep -c rubber.*mysql_data /etc/mysql/my.cnf &> /dev/null; then echo exists; fi")
@@ -80,7 +80,7 @@ namespace :rubber do
         send task_name
       end
       
-      rubber_cfg.instance.for_role("mysql_sql").each do |ic|
+      rubber_instances.for_role("mysql_sql").each do |ic|
         task_name = "_bootstrap_mysql_sql_#{ic.full_name}".to_sym()
         task task_name, :hosts => ic.full_name do
           exists = capture("if grep -c rubber.*mysql_sql /etc/mysql/my.cnf &> /dev/null; then echo exists; fi")

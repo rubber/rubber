@@ -3,7 +3,7 @@
 set :rails_env, RUBBER_ENV
 
 on :load do
-  set :application, rubber_cfg.environment.bind().app_name
+  set :application, rubber_env.app_name
   set :deploy_to,     "/mnt/#{application}-#{RUBBER_ENV}"
 end
 

@@ -8,9 +8,8 @@ namespace :rubber do
     after "custom_install_base", "rubber:cruise:custom_install"
 
     task :custom_install, :roles => :cruise do
-      env = rubber_cfg.environment.bind()
       rubber.sudo_script 'install_cruise', <<-ENDSCRIPT
-        export CRUISE_HOME="#{env.cruise_dir}"
+        export CRUISE_HOME="#{rubber_env.cruise_dir}"
         
         if [[ ! -d $CRUISE_HOME ]]; then
             git clone git://github.com/sml/cruisecontrol.rb.git $CRUISE_HOME
@@ -26,26 +25,25 @@ namespace :rubber do
    end
     
     task :setup_project, :roles => :cruise do
-      env = rubber_cfg.environment.bind()      
       rubber.sudo_script 'setup_project', <<-ENDSCRIPT
       
-        export CRUISE_HOME="#{env.cruise_dir}"
-        export CRUISE_DATA_ROOT="#{env.cruise_data_dir}"
-        export CRUISE_PROJECT_ROOT="#{env.cruise_project_dir}"
+        export CRUISE_HOME="#{rubber_env.cruise_dir}"
+        export CRUISE_DATA_ROOT="#{rubber_env.cruise_data_dir}"
+        export CRUISE_PROJECT_ROOT="#{rubber_env.cruise_project_dir}"
         
         if [[ ! -d $CRUISE_HOME ]]; then
-            git clone git://github.com/sml/cruisecontrol.rb.git #{env.cruise_dir}
+            git clone git://github.com/sml/cruisecontrol.rb.git #{rubber_env.cruise_dir}
         fi
         
         if [[ ! -d $CRUISE_PROJECT_ROOT ]]; then
-          if [[ -z "#{env.cruise_repository}" ]]; then
+          if [[ -z "#{rubber_env.cruise_repository}" ]]; then
             echo "cruise_repository must be set in rubber env"
             exit 1
           fi
           
           cd $CRUISE_HOME
-          echo "Adding project repository to cruise: #{env.cruise_repository}"
-          ./cruise add #{env.app_name} #{env.cruise_repository}
+          echo "Adding project repository to cruise: #{rubber_env.cruise_repository}"
+          ./cruise add #{rubber_env.app_name} #{rubber_env.cruise_repository}
           mkdir -p $CRUISE_PROJECT_ROOT/log            
           cd $CRUISE_PROJECT_ROOT && rake db:create RAILS_ENV=test
         fi

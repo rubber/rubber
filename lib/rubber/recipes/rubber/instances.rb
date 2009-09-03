@@ -29,7 +29,7 @@ namespace :rubber do
       end
 
       # If user doesn't setup a primary db, then be nice and do it
-      if role.name == "db" && role.options["primary"] == nil && rubber_cfg.instance.for_role("db").size == 0
+      if role.name == "db" && role.options["primary"] == nil && rubber_instances.for_role("db").size == 0
         value = Capistrano::CLI.ui.ask("You do not have a primary db role, should #{instance_alias} be it [y/n]?: ")
         role.options["primary"] = true if value =~ /^y/
       end
@@ -63,7 +63,7 @@ namespace :rubber do
     Destroy ALL the EC2 instances for the current env
   DESC
   task :destroy_all do
-    rubber_cfg.instance.each do |ic|
+    rubber_instances.each do |ic|
       destroy_instance(ic.name)
     end
   end
@@ -106,7 +106,7 @@ namespace :rubber do
   # Creates a new ec2 instance with the given alias and roles
   # Configures aliases (/etc/hosts) on local and remote machines
   def create_instance(instance_alias, instance_roles)
-    fatal "Instance already exists: #{instance_alias}" if rubber_cfg.instance[instance_alias]
+    fatal "Instance already exists: #{instance_alias}" if rubber_instances[instance_alias]
 
     role_names = instance_roles.collect{|x| x.name}
     env = rubber_cfg.environment.bind(role_names, instance_alias)
@@ -124,8 +124,8 @@ namespace :rubber do
     logger.info "Instance #{instance_id} created"
 
     instance_item = Rubber::Configuration::InstanceItem.new(instance_alias, env.domain, instance_roles, instance_id)
-    rubber_cfg.instance.add(instance_item)
-    rubber_cfg.instance.save()
+    rubber_instances.add(instance_item)
+    rubber_instances.save()
 
 
     print "Waiting for instance to start"
@@ -140,7 +140,7 @@ namespace :rubber do
         instance_item.external_host = instance[:external_host]
         instance_item.external_ip = instance[:external_ip]
         instance_item.internal_host = instance[:internal_host]
-        rubber_cfg.instance.save()
+        rubber_instances.save()
 
         # setup amazon elastic ips if configured to do so
         setup_static_ips
@@ -157,7 +157,7 @@ namespace :rubber do
 
         task :_get_ip, :hosts => instance_item.external_ip do
           instance_item.internal_ip = capture(print_ip_command).strip
-          rubber_cfg.instance.save()
+          rubber_instances.save()
         end
 
         # even though instance is running, sometimes ssh hasn't started yet,
@@ -182,7 +182,7 @@ namespace :rubber do
   # Refreshes a ec2 instance with the given alias
   # Configures aliases (/etc/hosts) on local and remote machines
   def refresh_instance(instance_alias)
-    instance_item = rubber_cfg.instance[instance_alias]
+    instance_item = rubber_instances[instance_alias]
 
     fatal "Instance does not exist: #{instance_alias}" if ! instance_item
 
@@ -218,13 +218,13 @@ namespace :rubber do
       setup_dns_aliases
     end
 
-    rubber_cfg.instance.save()
+    rubber_instances.save()
   end
 
 
   # Destroys the given ec2 instance
   def destroy_instance(instance_alias)
-    instance_item = rubber_cfg.instance[instance_alias]
+    instance_item = rubber_instances[instance_alias]
     fatal "Instance does not exist: #{instance_alias}" if ! instance_item
 
     env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
@@ -250,8 +250,8 @@ namespace :rubber do
 
     cloud.destroy_instance(instance_item.instance_id)
 
-    rubber_cfg.instance.remove(instance_alias)
-    rubber_cfg.instance.save()
+    rubber_instances.remove(instance_alias)
+    rubber_instances.save()
 
     # re-load the roles since we just removed some and setup_remote_aliases
     # shouldn't hit removed ones

@@ -9,16 +9,16 @@ namespace :rubber do
       
     # Capistrano needs db:primary role for migrate to work
     task :set_db_role do
-      db_instances = rubber_cfg.instance.for_role("mysql_master")
+      db_instances = rubber_instances.for_role("mysql_master")
       db_instances.each do |instance|
         if ! instance.role_names.find {|n| n == 'db'}
           role = Rubber::Configuration::RoleItem.new('db')
-          primary_exists = rubber_cfg.instance.for_role("db", "primary" => true).size > 0
+          primary_exists = rubber_instances.for_role("db", "primary" => true).size > 0
           role.options["primary"] = true  unless primary_exists
           instance.roles << role
         end
       end
-      db_instances = rubber_cfg.instance.for_role("mysql_slave")
+      db_instances = rubber_instances.for_role("mysql_slave")
       db_instances.each do |instance|
         if instance.role_names.find {|n| n == 'mysql_master'}
           logger.info "Cannot have a mysql slave and master on the same instance, removing slave role"
@@ -30,8 +30,8 @@ namespace :rubber do
           instance.roles << role
         end
       end
-      rubber_cfg.instance.save()
-      load_roles() unless rubber_cfg.environment.bind().disable_auto_roles
+      rubber_instances.save()
+      load_roles() unless rubber_env.disable_auto_roles
     end
   
     after "rubber:bootstrap", "rubber:mysql:bootstrap"
@@ -46,7 +46,7 @@ namespace :rubber do
       # Conditionaly bootstrap for each node/role only if that node has not
       # been boostrapped for that role before
       
-      master_instances = rubber_cfg.instance.for_role("mysql_master") & rubber_cfg.instance.filtered  
+      master_instances = rubber_instances.for_role("mysql_master") & rubber_instances.filtered  
       master_instances.each do |ic|
         task_name = "_bootstrap_mysql_master_#{ic.full_name}".to_sym()
         task task_name, :hosts => ic.full_name do
@@ -67,7 +67,7 @@ namespace :rubber do
         send task_name
       end
     
-      slave_instances = rubber_cfg.instance.for_role("mysql_slave") & rubber_cfg.instance.filtered  
+      slave_instances = rubber_instances.for_role("mysql_slave") & rubber_instances.filtered  
       slave_instances.each do |ic|
         task_name = "_bootstrap_mysql_slave_#{ic.full_name}".to_sym()
         task task_name, :hosts => ic.full_name do
@@ -78,13 +78,13 @@ namespace :rubber do
             sudo "dpkg-reconfigure --frontend=noninteractive mysql-server-5.0"
             sleep 5
 
-            master = rubber_cfg.instance.for_role("mysql_master").first
+            master = rubber_instances.for_role("mysql_master").first
 
             # Doing a mysqldump locks the db, so ideally we'd do it against a slave replica thats
             # not serving traffic (mysql_util role), but if thats not available try a regular
             # slave (mysql_slave role), and finally default dumping from master (mysql_master role)
             # TODO: handle simultaneous creating of multi slaves/utils
-            slaves = rubber_cfg.instance.for_role("mysql_slave")
+            slaves = rubber_instances.for_role("mysql_slave")
             slaves.delete(ic) # don't want to try and dump from self
             source = slaves.find {|sc| sc.role_names.include?("mysql_util")}
             source = slaves.first unless source
