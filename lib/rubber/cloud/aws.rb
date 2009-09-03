@@ -11,6 +11,7 @@ module Rubber
         super(env, capistrano)
         @aws_env = env.cloud_providers.aws
         @ec2 = AWS::EC2::Base.new(:access_key_id => @aws_env.access_key, :secret_access_key => @aws_env.secret_access_key)
+        @ec2elb = AWS::ELB::Base.new(:access_key_id => @aws_env.access_key, :secret_access_key => @aws_env.secret_access_key)
         AWS::S3::Base.establish_connection!(:access_key_id => @aws_env.access_key, :secret_access_key => @aws_env.secret_access_key)
       end
 
@@ -267,6 +268,35 @@ module Rubber
         if s3_bucket.empty?
           s3_bucket.delete
         end
+      end
+
+      def describe_load_balancers(name=nil)
+        lbs = []
+        opts = {}
+        opts[:load_balancer_names] = name if name
+        response = @ec2elb.describe_load_balancers(opts)
+        response.describeLoadBalancersResult.member.each do |member|
+          lb = {}
+          lb[:name] = member.loadBalancerName
+          lb[:dns_name] = member.dNSName
+
+          member.availabilityZones.member.each do |zone|
+            lb[:zones] ||= []
+            lb[:zones] << zone
+          end
+
+          member.listeners.member.each do |member|
+            listener = {}
+            listener[:protocol] = member.protocol
+            listener[:port] = member.loadBalancerPort
+            listener[:instance_port] = member.instancePort
+            lb[:listeners] ||= []
+            lb[:listeners] << listener
+          end
+
+          lbs << lb
+        end if response.describeLoadBalancersResult
+        return lbs
       end
 
     end
