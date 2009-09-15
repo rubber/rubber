@@ -63,7 +63,7 @@ namespace :rubber do
   desc <<-DESC
     Adds the given ROLES to the instance named ALIAS
   DESC
-  task :add_role do
+  required_task :add_role do
     instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
     r = get_env('ROLES', "Instance roles (e.g. web,app,db:primary=true)", true)
 
@@ -88,7 +88,7 @@ namespace :rubber do
   desc <<-DESC
     Removes the given ROLES from the instance named ALIAS
   DESC
-  task :remove_role do
+  required_task :remove_role do
     instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
     r = get_env('ROLES', "Instance roles (e.g. web,app,db:primary=true)", true)
 
