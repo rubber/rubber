@@ -2,11 +2,11 @@
   @path = "#{RUBBER_ROOT}/config/mongrel_cluster.yml"
 %>
 ---
-user: rails
-group: rails
+user: <%= rubber_env.app_user %>
+group: <%= rubber_env.app_user %>
 cwd: <%= RUBBER_ROOT %>
-port: "<%= rubber_env.appserver_base_port %>"
+port: "<%= rubber_env.mongrel_base_port %>"
 environment: <%= RUBBER_ENV %>
 address: <%= rubber_env.host %>
 pid_file: tmp/pids/mongrel.pid
-servers: <%= rubber_env.appserver_count %>
+servers: <%= rubber_env.mongrel_count %>

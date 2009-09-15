@@ -60,7 +60,6 @@ namespace :rubber do
           ln -sf /usr/bin/gem1.8 /usr/bin/gem
           rm -rf /tmp/rubygems*
           gem source -l > /dev/null
-          gem sources -a http://gems.github.com
         fi
       ENDSCRIPT
     end
@@ -93,9 +92,8 @@ namespace :rubber do
     after "rubber:install_packages", "rubber:base:custom_install"
     task :custom_install do
       rubber.sudo_script 'custom_install', <<-ENDSCRIPT
-        # add the rails user for running app server with
-        appuser="rails"
-        if ! id ${appuser} &> /dev/null; then adduser --system --group ${appuser}; fi
+        # add the user for running app server with
+        if ! id #{rubber_env.app_user} &> /dev/null; then adduser --system --group #{rubber_env.app_user}; fi
           
         # add ssh keys for root 
         if [[ ! -f /root/.ssh/id_dsa ]]; then ssh-keygen -q -t dsa -N '' -f /root/.ssh/id_dsa; fi

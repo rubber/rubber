@@ -29,5 +29,9 @@ module Rubber
       open("|sudo tee #{path} > /dev/null", perms, &block)
     end
 
+    def self.is_rails?
+      File.exist?(File.join(RUBBER_ROOT, 'config', 'environment.rb'))
+    end
+
   end
 end

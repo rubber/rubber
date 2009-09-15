@@ -1,15 +1,7 @@
-web_aliases: [www.foo.com *.foo.com]
-
-security_groups:
-  web:
-    description: To open up port 80 for http server on web role
-    rules:
-      - protocol: tcp
-        from_port: 80
-        to_port: 80
-        source_ips: [0.0.0.0/0]
 
 roles:
-  web:
+  apache:
     packages: [apache2]
-    assigned_security_groups: [web]
+roles:
+  web_tools:
+    packages: [libapache2-mod-proxy-html]

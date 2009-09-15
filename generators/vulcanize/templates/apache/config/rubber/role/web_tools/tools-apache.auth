@@ -1,0 +1,7 @@
+<%
+  @path = "#{RUBBER_ROOT}/config/#{rubber_env.app_name}.auth"
+  user = rubber_env.web_tools_user || 'admin'
+  pass = rubber_env.web_tools_password || rand(1000000000).to_s
+%>
+
+<%= `htpasswd -nb #{user} #{pass}` %>

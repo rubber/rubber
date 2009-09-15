@@ -2,11 +2,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rubber}
-  s.version = "0.9.9"
+  s.version = "0.9.10"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Matt Conway"]
-  s.date = %q{2009-09-03}
+  s.date = %q{2009-09-15}
   s.default_executable = %q{vulcanize}
   s.description = %q{The rubber plugin enables relatively complex multi-instance deployments of RubyOnRails applications to Amazon’s Elastic Compute Cloud (EC2).  Like capistrano, rubber is role based, so you can define a set of configuration files for a role and then assign that role to as many concrete instances as needed. One can also assign multiple roles to a single instance. This lets one start out with a single ec2 instance (belonging to all roles), and add new instances into the mix as needed to scale specific facets of your deployment, e.g. adding in instances that serve only as an 'app' role to handle increased app server load.}
   s.email = %q{matt@conwaysplace.com}
@@ -22,11 +22,15 @@ Gem::Specification.new do |s|
      "bin/vulcanize",
      "generators/vulcanize/USAGE",
      "generators/vulcanize/templates/apache/config/rubber/deploy-apache.rb",
-     "generators/vulcanize/templates/apache/config/rubber/role/web/deflate.conf",
-     "generators/vulcanize/templates/apache/config/rubber/role/web/expires.conf",
-     "generators/vulcanize/templates/apache/config/rubber/role/web/headers.conf",
-     "generators/vulcanize/templates/apache/config/rubber/role/web/setenvif.conf",
-     "generators/vulcanize/templates/apache/config/rubber/role/web/vhost.conf",
+     "generators/vulcanize/templates/apache/config/rubber/role/apache/deflate.conf",
+     "generators/vulcanize/templates/apache/config/rubber/role/apache/expires.conf",
+     "generators/vulcanize/templates/apache/config/rubber/role/apache/headers.conf",
+     "generators/vulcanize/templates/apache/config/rubber/role/apache/monit-apache.conf",
+     "generators/vulcanize/templates/apache/config/rubber/role/apache/ports.conf",
+     "generators/vulcanize/templates/apache/config/rubber/role/apache/setenvif.conf",
+     "generators/vulcanize/templates/apache/config/rubber/role/web_tools/tools-apache-vhost.conf",
+     "generators/vulcanize/templates/apache/config/rubber/role/web_tools/tools-apache.auth",
+     "generators/vulcanize/templates/apache/config/rubber/role/web_tools/tools-index.html",
      "generators/vulcanize/templates/apache/config/rubber/rubber-apache.yml",
      "generators/vulcanize/templates/apache/templates.yml",
      "generators/vulcanize/templates/base/Capfile",
@@ -40,7 +44,12 @@ Gem::Specification.new do |s|
      "generators/vulcanize/templates/base/script/cron-runner",
      "generators/vulcanize/templates/base/script/cron-sh",
      "generators/vulcanize/templates/base/templates.yml",
-     "generators/vulcanize/templates/complete_mysql/templates.yml",
+     "generators/vulcanize/templates/complete_mongrel_mysql/config/rubber/role/haproxy/haproxy-mongrel.conf",
+     "generators/vulcanize/templates/complete_mongrel_mysql/config/rubber/role/nginx/nginx-mongrel.conf",
+     "generators/vulcanize/templates/complete_mongrel_mysql/config/rubber/rubber-complete.yml",
+     "generators/vulcanize/templates/complete_mongrel_mysql/templates.yml",
+     "generators/vulcanize/templates/complete_passenger_mysql/config/rubber/role/haproxy/haproxy-passenger.conf",
+     "generators/vulcanize/templates/complete_passenger_mysql/config/rubber/rubber-complete.yml",
      "generators/vulcanize/templates/complete_passenger_mysql/templates.yml",
      "generators/vulcanize/templates/cruise/config/rubber/deploy-cruise.rb",
      "generators/vulcanize/templates/cruise/config/rubber/role/cruise/cruise",
@@ -51,8 +60,8 @@ Gem::Specification.new do |s|
      "generators/vulcanize/templates/cruise/config/rubber/rubber-cruise.yml",
      "generators/vulcanize/templates/cruise/templates.yml",
      "generators/vulcanize/templates/haproxy/config/rubber/deploy-haproxy.rb",
+     "generators/vulcanize/templates/haproxy/config/rubber/role/haproxy/haproxy-base.conf",
      "generators/vulcanize/templates/haproxy/config/rubber/role/haproxy/haproxy-default.conf",
-     "generators/vulcanize/templates/haproxy/config/rubber/role/haproxy/haproxy.conf",
      "generators/vulcanize/templates/haproxy/config/rubber/role/haproxy/monit-haproxy.conf",
      "generators/vulcanize/templates/haproxy/config/rubber/role/haproxy/syslog-haproxy.conf",
      "generators/vulcanize/templates/haproxy/config/rubber/role/haproxy/syslogd-default.conf",
@@ -68,8 +77,8 @@ Gem::Specification.new do |s|
      "generators/vulcanize/templates/minimal_mysql/templates.yml",
      "generators/vulcanize/templates/minimal_nodb/templates.yml",
      "generators/vulcanize/templates/mongrel/config/rubber/deploy-mongrel.rb",
-     "generators/vulcanize/templates/mongrel/config/rubber/role/app/mongrel_cluster.yml",
-     "generators/vulcanize/templates/mongrel/config/rubber/role/app/monit-mongrel.conf",
+     "generators/vulcanize/templates/mongrel/config/rubber/role/mongrel/mongrel_cluster.yml",
+     "generators/vulcanize/templates/mongrel/config/rubber/role/mongrel/monit-mongrel.conf",
      "generators/vulcanize/templates/mongrel/config/rubber/rubber-mongrel.yml",
      "generators/vulcanize/templates/mongrel/templates.yml",
      "generators/vulcanize/templates/monit/config/rubber/common/monit-default.conf",
@@ -113,16 +122,18 @@ Gem::Specification.new do |s|
      "generators/vulcanize/templates/mysql_proxy/config/rubber/rubber-mysql_proxy.yml",
      "generators/vulcanize/templates/mysql_proxy/templates.yml",
      "generators/vulcanize/templates/nginx/config/rubber/deploy-nginx.rb",
-     "generators/vulcanize/templates/nginx/config/rubber/role/web/crontab",
-     "generators/vulcanize/templates/nginx/config/rubber/role/web/monit-nginx.conf",
-     "generators/vulcanize/templates/nginx/config/rubber/role/web/nginx.conf",
-     "generators/vulcanize/templates/nginx/config/rubber/role/web_tools/index.html",
+     "generators/vulcanize/templates/nginx/config/rubber/role/nginx/crontab",
+     "generators/vulcanize/templates/nginx/config/rubber/role/nginx/monit-nginx.conf",
+     "generators/vulcanize/templates/nginx/config/rubber/role/nginx/nginx.conf",
      "generators/vulcanize/templates/nginx/config/rubber/role/web_tools/nginx-tools.conf",
+     "generators/vulcanize/templates/nginx/config/rubber/role/web_tools/tools-index.html",
      "generators/vulcanize/templates/nginx/config/rubber/rubber-nginx.yml",
      "generators/vulcanize/templates/nginx/templates.yml",
      "generators/vulcanize/templates/passenger/config/rubber/deploy-passenger.rb",
-     "generators/vulcanize/templates/passenger/config/rubber/role/web/passenger.conf",
-     "generators/vulcanize/templates/passenger/config/rubber/role/web/vhost.conf",
+     "generators/vulcanize/templates/passenger/config/rubber/role/passenger/munin-passenger-sudoers.conf",
+     "generators/vulcanize/templates/passenger/config/rubber/role/passenger/munin-passenger.conf",
+     "generators/vulcanize/templates/passenger/config/rubber/role/passenger/passenger-apache-vhost.conf",
+     "generators/vulcanize/templates/passenger/config/rubber/role/passenger/passenger.conf",
      "generators/vulcanize/templates/passenger/config/rubber/rubber-passenger.yml",
      "generators/vulcanize/templates/passenger/templates.yml",
      "generators/vulcanize/templates/sphinx/config/rubber/common/sphinx.yml",

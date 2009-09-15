@@ -7,9 +7,9 @@ namespace :rubber do
     
     after "rubber:install_gems", "rubber:mongrel:custom_install"
     
-    task :custom_install, :roles => :app do
+    task :custom_install, :roles => :mongrel do
       # Setup system to restart mongrel_cluster on reboot
-      rubber.sudo_script 'install_app', <<-ENDSCRIPT
+      rubber.sudo_script 'setup_mongrel_init', <<-ENDSCRIPT
         mkdir -p /etc/mongrel_cluster
         rm -f /etc/mongrel_cluster/#{application}-#{RUBBER_ENV}.yml && ln -s /mnt/#{application}-#{RUBBER_ENV}/current/config/mongrel_cluster.yml /etc/mongrel_cluster/#{application}-#{RUBBER_ENV}.yml
         find /usr/lib/ruby/gems -path "*/resources/mongrel_cluster" -exec cp {} /etc/init.d/ \\;
@@ -28,7 +28,7 @@ namespace :rubber do
     
     def mongrel_start
         run "cd #{current_path} && mongrel_rails cluster::start --clean"
-        pid_cnt = rubber_env.appserver_count
+        pid_cnt = rubber_env.mongrel_count
         logger.info "Waiting for mongrel pid files to show up"
         run "while ((`ls #{current_path}/tmp/pids/mongrel.*.pid 2> /dev/null | wc -l` < #{pid_cnt})); do sleep 1; done"
     end
@@ -36,7 +36,7 @@ namespace :rubber do
     # serial_task can only be called after roles defined - not normally a problem, but
     # rubber auto-roles don't get defined till after all tasks are defined
     on :load do
-      rubber.serial_task self, :serial_restart, :roles => :app do
+      rubber.serial_task self, :serial_restart, :roles => :mongrel do
         teardown_connections_to(sessions.keys)
         mongrel_stop
         mongrel_start
@@ -44,17 +44,17 @@ namespace :rubber do
     end
     
     desc "Restarts the mongrel app server"
-    task :restart, :roles => :app do
+    task :restart, :roles => :mongrel do
       serial_restart
     end
     
     desc "Stops the mongrel app server"
-    task :stop, :roles => :app do
+    task :stop, :roles => :mongrel do
       mongrel_stop
     end
     
     desc "Starts the mongrel app server"
-    task :start, :roles => :app do
+    task :start, :roles => :mongrel do
       mongrel_start
     end
     

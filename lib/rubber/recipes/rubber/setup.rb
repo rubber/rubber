@@ -9,7 +9,7 @@ namespace :rubber do
     upgrade_packages
     install_packages
     setup_volumes
-    add_gem_sources
+    setup_gem_sources
     install_gems
     deploy.setup
   end
@@ -126,7 +126,7 @@ namespace :rubber do
   end
 
   desc <<-DESC
-    Install extra Ubuntu packages. Set 'packages' in rubber.yml to \
+    Install Ubuntu packages. Set 'packages' in rubber.yml to \
     be an array of strings.
   DESC
   task :install_packages do
@@ -134,7 +134,7 @@ namespace :rubber do
   end
 
   desc <<-DESC
-    Install extra ruby gems. Set 'gems' in rubber.yml to \
+    Install ruby gems. Set 'gems' in rubber.yml to \
     be an array of strings.
   DESC
   task :install_gems do
@@ -142,12 +142,50 @@ namespace :rubber do
   end
 
   desc <<-DESC
-    Add extra ruby gems sources. Set 'gemsources' in rubber.yml to \
+    Install ruby gems defined in the rails environment.rb
+  DESC
+  after "deploy:symlink", "rubber:install_rails_gems" if Rubber::Util.is_rails?
+  task :install_rails_gems do
+    sudo "sh -c 'cd #{current_path} && RAILS_ENV=#{RUBBER_ENV} rake gems:install'"
+  end
+
+  desc <<-DESC
+    Setup ruby gems sources. Set 'gemsources' in rubber.yml to \
     be an array of URI strings.
   DESC
-  task :add_gem_sources do
+  task :setup_gem_sources do
     if rubber_env.gemsources
-      rubber_env.gemsources.each { |source| sudo "gem sources -a #{source}"}
+      script = prepare_script 'gem_sources_helper', <<-'ENDSCRIPT'
+        ruby - $@ <<-'EOF'
+
+        sources = ARGV
+
+        installed = []
+        `gem sources -l`.grep(/^[^*]/) do |line|
+            line = line.strip
+            installed << line if line.size > 0
+        end
+
+        to_install = sources - installed
+        to_remove = installed - sources
+
+        if to_install.size > 0
+          to_install.each do |source|
+            system "gem sources -a #{source}"
+            fail "Unable to add gem sources" if $?.exitstatus > 0
+          end
+        end
+        if to_remove.size > 0
+          to_remove.each do |source|
+            system "gem sources -r #{source}"
+            fail "Unable to remove gem sources" if $?.exitstatus > 0
+          end
+        end
+
+        'EOF'
+      ENDSCRIPT
+
+      sudo "sh #{script} #{rubber_env.gemsources.join(' ')}"
     end
   end
 

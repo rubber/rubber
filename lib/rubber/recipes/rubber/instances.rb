@@ -15,18 +15,7 @@ namespace :rubber do
 
     ir = []
     instance_roles.each do |r|
-      data = r.split(':');
-      role = Rubber::Configuration::RoleItem.new(data[0])
-      if data[1]
-        data[1].split(';').each do |pair|
-          p = pair.split('=')
-          val = case p[1]
-                  when 'true' then true
-                  when 'false' then false
-                  else p[1] end
-          role.options[p[0]] = val
-        end
-      end
+      role = Rubber::Configuration::RoleItem.parse(r)
 
       # If user doesn't setup a primary db, then be nice and do it
       if role.name == "db" && role.options["primary"] == nil && rubber_instances.for_role("db").size == 0
@@ -36,6 +25,9 @@ namespace :rubber do
 
       ir << role
     end
+
+    # Add in roles that the given set of roles depends on
+    ir = Rubber::Configuration::RoleItem.expand_role_dependencies(ir, get_role_dependencies)
 
     create_instance(instance_alias, ir)
   end
@@ -66,6 +58,53 @@ namespace :rubber do
     rubber_instances.each do |ic|
       destroy_instance(ic.name)
     end
+  end
+
+  desc <<-DESC
+    Adds the given ROLES to the instance named ALIAS
+  DESC
+  task :add_role do
+    instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
+    r = get_env('ROLES', "Instance roles (e.g. web,app,db:primary=true)", true)
+
+    instance_roles = r.split(",")
+
+    ir = []
+    instance_roles.each do |r|
+      role = Rubber::Configuration::RoleItem.parse(r)
+      ir << role
+    end
+
+    # Add in roles that the given set of roles depends on
+    ir = Rubber::Configuration::RoleItem.expand_role_dependencies(ir, get_role_dependencies)
+
+    instance = rubber_instances[instance_alias]
+    fatal "Instance does not exist: #{instance_alias}" unless instance
+
+    instance.roles = (instance.roles + ir).uniq
+    rubber_instances.save()
+  end
+
+  desc <<-DESC
+    Removes the given ROLES from the instance named ALIAS
+  DESC
+  task :remove_role do
+    instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
+    r = get_env('ROLES', "Instance roles (e.g. web,app,db:primary=true)", true)
+
+    instance_roles = r.split(",")
+
+    ir = []
+    instance_roles.each do |r|
+      role = Rubber::Configuration::RoleItem.parse(r)
+      ir << role
+    end
+
+    instance = rubber_instances[instance_alias]
+    fatal "Instance does not exist: #{instance_alias}" unless instance
+
+    instance.roles = (instance.roles - ir).uniq
+    rubber_instances.save()
   end
 
   desc <<-DESC
@@ -284,4 +323,15 @@ namespace :rubber do
     end
   end
 
+  def get_role_dependencies
+    # convert string format of role_dependencies from rubber.yml into
+    # objects for use by expand_role_dependencies
+    deps = {}
+    rubber_env.role_dependencies.each do |k, v|
+      rhs = Array(v).collect {|r| Rubber::Configuration::RoleItem.parse(r)}
+      deps[Rubber::Configuration::RoleItem.parse(k)] = rhs
+    end
+    return deps
+  end
+  
 end

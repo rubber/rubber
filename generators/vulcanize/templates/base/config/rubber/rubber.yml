@@ -13,9 +13,17 @@
 # REQUIRED: The name of your application
 app_name: your_app_name
 
+# REQUIRED: The system user to run your app servers as
+app_user: app
+
 # REQUIRED: Notification emails (e.g. monit) get sent to this address
 #
 admin_email: root@localhost
+
+# OPTIONAL: If not set, you won't be able to access web_tools
+# server (munin stats, monit status, etc)
+# web_tools_user: admin
+# web_tools_password: sekret
 
 # REQUIRED: The timezone the server should be in
 timezone: US/Eastern
@@ -148,7 +156,10 @@ use_enterprise_ruby: false
 # OPTIONAL: The packages to install on all instances
 # You can install a specific version of a package by using a sub-array of pkg, version
 # For example, packages: [[rake, 0.7.1], irb]
-packages: [build-essential, ruby-full, ruby1.8-dev, rake, irb]
+packages: [postfix, build-essential, ruby-full, ruby1.8-dev, rake, irb]
+
+# OPTIONAL: gem sources to setup for rubygems
+gemsources: ["http://gems.rubyforge.org/", "http://gems.github.com"]
 
 # OPTIONAL: The gems to install on all instances
 # You can install a specific version of a gem by using a sub-array of gem, version
@@ -166,7 +177,7 @@ stop_on_error_cmd: "function error_exit { exit 99; }; trap error_exit ERR"
 # but this is not always desired for staging, so you can specify a different
 # set here
 #
-staging_roles: "web,haproxy,app,mysql_master"
+staging_roles: "web,app,db:primary=true"
 
 
 # OPTIONAL: Lets one assign amazon elastic IPs (static IPs) to your instances

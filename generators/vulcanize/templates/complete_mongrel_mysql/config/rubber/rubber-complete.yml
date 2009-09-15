@@ -1,0 +1,34 @@
+
+role_dependencies:
+  web: [nginx, haproxy]
+  app: [mongrel]
+  web_tools: [nginx]
+
+haproxy_listen_port: 9000
+web_tools_port: 8080
+
+security_groups:
+  web:
+    description: To open up port 80/443 for http server on web role
+    rules:
+      - protocol: tcp
+        from_port: 80
+        to_port: 80
+        source_ips: [0.0.0.0/0]
+      - protocol: tcp
+        from_port: 443
+        to_port: 443
+        source_ips: [0.0.0.0/0]
+  web_tools:
+    description: "To open up port #{web_tools_port} for internal/tools http server"
+    rules:
+      - protocol: tcp
+        from_port: "#{web_tools_port}"
+        to_port: "#{web_tools_port}"
+        source_ips: [0.0.0.0/0]
+
+roles:
+  web:
+    assigned_security_groups: [web]
+  web_tools:
+    assigned_security_groups: [web_tools]

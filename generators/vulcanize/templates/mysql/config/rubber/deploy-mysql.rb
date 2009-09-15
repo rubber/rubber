@@ -5,35 +5,17 @@ namespace :rubber do
     
     rubber.allow_optional_tasks(self)
     
-    after "rubber:create", "rubber:mysql:set_db_role"
-      
-    # Capistrano needs db:primary role for migrate to work
-    task :set_db_role do
-      db_instances = rubber_instances.for_role("mysql_master")
-      db_instances.each do |instance|
-        if ! instance.role_names.find {|n| n == 'db'}
-          role = Rubber::Configuration::RoleItem.new('db')
-          primary_exists = rubber_instances.for_role("db", "primary" => true).size > 0
-          role.options["primary"] = true  unless primary_exists
-          instance.roles << role
-        end
-      end
+    after "rubber:create", "rubber:mysql:validate_db_roles"
+
+    task :validate_db_roles do
       db_instances = rubber_instances.for_role("mysql_slave")
       db_instances.each do |instance|
         if instance.role_names.find {|n| n == 'mysql_master'}
-          logger.info "Cannot have a mysql slave and master on the same instance, removing slave role"
-          instance.roles.delete_if {|r| r.name == 'mysql_slave'}
-          next
-        end
-        if ! instance.role_names.find {|n| n == 'db'}
-          role = Rubber::Configuration::RoleItem.new('db')
-          instance.roles << role
+          fatal "Cannot have a mysql slave and master on the same instance, please removing slave role for #{instance.name}"
         end
       end
-      rubber_instances.save()
-      load_roles() unless rubber_env.disable_auto_roles
     end
-  
+
     after "rubber:bootstrap", "rubber:mysql:bootstrap"
   
     
@@ -141,13 +123,12 @@ namespace :rubber do
     DESC
     task :custom_install, :roles => [:mysql_master, :mysql_slave] do
       rubber.run_script 'install_munin_mysql', <<-ENDSCRIPT
-        if [ ! -f /etc/munin/plugins/mysql_ ]; then
-          wget -q -O /etc/munin/plugins/mysql_ http://github.com/kjellm/munin-mysql/raw/master/mysql_
+        if [ ! -f /usr/share/munin/plugins/mysql_ ]; then
+          wget -q -O /usr/share/munin/plugins/mysql_ http://github.com/kjellm/munin-mysql/raw/master/mysql_
           wget -q -O /etc/munin/plugin-conf.d/mysql_.conf http://github.com/kjellm/munin-mysql/raw/master/mysql_.conf
 
-          cd /etc/munin/plugins
-          chmod +x mysql_
-          ./mysql_ suggest | while read x; do ln -sf mysql_ $x; done
+          chmod +x /usr/share/munin/plugins/mysql_
+          /usr/share/munin/plugins/mysql_ suggest | while read x; do ln -sf /usr/share/munin/plugins/mysql_ /etc/munin/plugins/$x; done
         fi
       ENDSCRIPT
     end

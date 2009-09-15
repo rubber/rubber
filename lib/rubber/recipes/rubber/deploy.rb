@@ -24,6 +24,15 @@ namespace :rubber do
   task :post_stop do
   end
 
+  # Don't want to do rubber:config for update_code as that tree isn't official
+  # until it is 'committed' by the symlink task (and doing so causes it to run
+  # for bootstrap_db which should only config the db config file).  However,
+  # deploy:migrations doesn't call update, so we need an additional trigger for
+  # it
+  after "deploy:update", "rubber:config"
+  after "deploy:rollback_code", "rubber:config"
+  before "deploy:migrate", "rubber:config"
+
   desc <<-DESC
     Configures the deployed rails application by running the rubber configuration process
   DESC
@@ -40,6 +49,18 @@ namespace :rubber do
     opts[:deploy_path] = current_release if fetch(:migrate_target, :current).to_sym == :latest
 
     run_config(opts)
+  end
+
+  # because we start server as appserver user, but migrate as root, server needs to be able to write logs, etc.
+  before "rubber:pre_start", "rubber:setup_app_permissions"
+  before "rubber:pre_restart", "rubber:setup_app_permissions"
+
+  desc <<-DESC
+    Sets permissions of files in application directory to be owned by app_user.
+  DESC
+  task :setup_app_permissions do
+    run "find #{shared_path} -name cached-copy -prune -o -print | xargs chown #{rubber_env.app_user}:#{rubber_env.app_user}"
+    run "chown -R #{rubber_env.app_user}:#{rubber_env.app_user} #{current_path}/tmp"
   end
 
   def run_config(options={})
