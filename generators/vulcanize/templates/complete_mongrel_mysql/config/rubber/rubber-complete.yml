@@ -5,26 +5,33 @@ role_dependencies:
   web_tools: [nginx]
 
 haproxy_listen_port: 9000
+web_port: 80
+web_ssl_port: 443
 web_tools_port: 8080
+web_tools_ssl_port: 8443
 
 security_groups:
   web:
-    description: To open up port 80/443 for http server on web role
+    description: "To open up port #{web_port}/#{web_ssl_port} for http server on web role"
     rules:
       - protocol: tcp
-        from_port: 80
-        to_port: 80
+        from_port: "#{web_port}"
+        to_port: "#{web_port}"
         source_ips: [0.0.0.0/0]
       - protocol: tcp
-        from_port: 443
-        to_port: 443
+        from_port: "#{web_ssl_port}"
+        to_port: "#{web_ssl_port}"
         source_ips: [0.0.0.0/0]
   web_tools:
-    description: "To open up port #{web_tools_port} for internal/tools http server"
+    description: "To open up port #{web_tools_port}/#{web_tools_ssl_port} for internal/tools http server"
     rules:
       - protocol: tcp
         from_port: "#{web_tools_port}"
         to_port: "#{web_tools_port}"
+        source_ips: [0.0.0.0/0]
+      - protocol: tcp
+        from_port: "#{web_tools_ssl_port}"
+        to_port: "#{web_tools_ssl_port}"
         source_ips: [0.0.0.0/0]
 
 roles:
