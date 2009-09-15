@@ -11,8 +11,6 @@ namespace :rubber do
       rubber.sudo_script 'install_passenger', <<-ENDSCRIPT
         if [[ -z `ls /usr/lib/ruby/gems/*/gems/passenger-*/ext/apache2/mod_passenger.so 2> /dev/null` ]]; then
           echo -en "\n\n\n\n" | passenger-install-apache2-module
-          # disable ubuntu default site
-          a2dissite default
         fi
       ENDSCRIPT
     end

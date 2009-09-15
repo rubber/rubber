@@ -116,19 +116,16 @@ namespace :rubber do
       rubber.run_config(:RUBBER_ENV => RUBBER_ENV, :FILE => "role/#{role}|role/db/my.cnf", :deploy_path => release_path)
     end
     
-    after "rubber:install_packages", "rubber:mysql:custom_install"
+    before "rubber:munin:custom_install", "rubber:mysql:custom_install_munin"
 
     desc <<-DESC
       Installs some extra munin graphs
     DESC
-    task :custom_install, :roles => [:mysql_master, :mysql_slave] do
+    task :custom_install_munin, :roles => [:mysql_master, :mysql_slave] do
       rubber.run_script 'install_munin_mysql', <<-ENDSCRIPT
         if [ ! -f /usr/share/munin/plugins/mysql_ ]; then
           wget -q -O /usr/share/munin/plugins/mysql_ http://github.com/kjellm/munin-mysql/raw/master/mysql_
           wget -q -O /etc/munin/plugin-conf.d/mysql_.conf http://github.com/kjellm/munin-mysql/raw/master/mysql_.conf
-
-          chmod +x /usr/share/munin/plugins/mysql_
-          /usr/share/munin/plugins/mysql_ suggest | while read x; do ln -sf /usr/share/munin/plugins/mysql_ /etc/munin/plugins/$x; done
         fi
       ENDSCRIPT
     end

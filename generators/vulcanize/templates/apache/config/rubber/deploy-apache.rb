@@ -4,7 +4,13 @@ namespace :rubber do
   namespace :apache do
   
     rubber.allow_optional_tasks(self)
-  
+
+    after "rubber:install_packages", "rubber:apache:custom_install"
+
+    task :custom_install, :roles => :apache do
+      sudo "a2dissite default"
+    end
+
     # serial_task can only be called after roles defined - not normally a problem, but
     # rubber auto-roles don't get defined till after all tasks are defined
     on :load do

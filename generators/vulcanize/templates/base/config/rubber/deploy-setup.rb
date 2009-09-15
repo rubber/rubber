@@ -54,7 +54,7 @@ namespace :rubber do
       src_url = "http://rubyforge.org/frs/download.php/60718/rubygems-#{ver}.tgz"
       rubber.sudo_script 'install_rubygems', <<-ENDSCRIPT
         if [[ `gem --version 2>&1` != "#{ver}" ]]; then
-          wget -qP /tmp #{src_url}
+          wget -qNP /tmp #{src_url}
           tar -C /tmp -xzf /tmp/rubygems-#{ver}.tgz
           ruby -C /tmp/rubygems-#{ver} setup.rb
           ln -sf /usr/bin/gem1.8 /usr/bin/gem

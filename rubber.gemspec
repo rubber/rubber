@@ -127,6 +127,7 @@ Gem::Specification.new do |s|
      "generators/vulcanize/templates/nginx/config/rubber/role/nginx/nginx.conf",
      "generators/vulcanize/templates/nginx/config/rubber/role/web_tools/nginx-tools.conf",
      "generators/vulcanize/templates/nginx/config/rubber/role/web_tools/tools-index.html",
+     "generators/vulcanize/templates/nginx/config/rubber/role/web_tools/tools-nginx.auth",
      "generators/vulcanize/templates/nginx/config/rubber/rubber-nginx.yml",
      "generators/vulcanize/templates/nginx/templates.yml",
      "generators/vulcanize/templates/passenger/config/rubber/deploy-passenger.rb",

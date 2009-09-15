@@ -32,7 +32,7 @@ namespace :rubber do
         TMPDIR=`mktemp -d` || exit 1
         cd $TMPDIR
         echo 'Downloading'
-        wget -q http://www.sphinxsearch.com/downloads/sphinx-#{ver}.tar.gz
+        wget -qN http://www.sphinxsearch.com/downloads/sphinx-#{ver}.tar.gz
         echo 'Unpacking'
         tar xf sphinx-#{ver}.tar.gz
         cd sphinx-#{ver}
