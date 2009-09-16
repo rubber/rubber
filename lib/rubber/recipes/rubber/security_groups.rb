@@ -98,7 +98,7 @@ namespace :rubber do
     groups = isolate_groups(groups) if rubber_env.isolate_security_groups
     group_keys = groups.keys.clone()
     
-    # For each group that does already exist in ec2
+    # For each group that does already exist in cloud
     cloud_groups = cloud.describe_security_groups()
     cloud_groups.each do |cloud_group|
       group_name = cloud_group[:name]
@@ -108,7 +108,7 @@ namespace :rubber do
 
       if group_keys.delete(group_name)
         # sync rules
-        logger.debug "Security Group already in ec2, syncing rules: #{group_name}"
+        logger.debug "Security Group already in cloud, syncing rules: #{group_name}"
         group = groups[group_name]
         rules = group['rules'].clone
         rule_maps = []
@@ -133,8 +133,8 @@ namespace :rubber do
             # rules match, don't need to do anything
             # logger.debug "Rule in sync: #{rule_map.inspect}"
           else
-            # rules don't match, remove them from ec2 and re-add below
-            answer = Capistrano::CLI.ui.ask("Rule '#{rule_map.inspect}' exists in ec2, but not locally, remove from ec2? [y/N]?: ")
+            # rules don't match, remove them from cloud and re-add below
+            answer = Capistrano::CLI.ui.ask("Rule '#{rule_map.inspect}' exists in cloud, but not locally, remove from cloud? [y/N]?: ")
             rule_map = Rubber::Util::symbolize_keys(rule_map)
             if rule_map[:source_group_name]
               cloud.remove_security_group_rule(group_name, nil, nil, nil, {:name => rule_map[:source_group_name], :account => rule_map[:source_group_account]})
@@ -160,12 +160,12 @@ namespace :rubber do
         end
       else
         # delete group
-        answer = Capistrano::CLI.ui.ask("Security group '#{group_name}' exists in ec2 but not locally, remove from ec2? [y/N]: ")
+        answer = Capistrano::CLI.ui.ask("Security group '#{group_name}' exists in cloud but not locally, remove from cloud? [y/N]: ")
         cloud.destroy_security_group(group_name) if answer =~ /^y/
       end
     end
 
-    # For each group that didnt already exist in ec2
+    # For each group that didnt already exist in cloud
     group_keys.each do |group_name|
       group = groups[group_name]
       logger.debug "Creating new security group: #{group_name}"
