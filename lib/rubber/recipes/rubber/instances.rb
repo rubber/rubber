@@ -162,7 +162,7 @@ namespace :rubber do
 
     logger.info "Instance #{instance_id} created"
 
-    instance_item = Rubber::Configuration::InstanceItem.new(instance_alias, env.domain, instance_roles, instance_id)
+    instance_item = Rubber::Configuration::InstanceItem.new(instance_alias, env.domain, instance_roles, instance_id, security_groups)
     rubber_instances.add(instance_item)
     rubber_instances.save()
 
@@ -179,6 +179,7 @@ namespace :rubber do
         instance_item.external_host = instance[:external_host]
         instance_item.external_ip = instance[:external_ip]
         instance_item.internal_host = instance[:internal_host]
+        instance_item.zone = instance[:zone]
         rubber_instances.save()
 
         # setup amazon elastic ips if configured to do so
@@ -234,6 +235,7 @@ namespace :rubber do
       instance_item.external_host = instance[:external_host]
       instance_item.external_ip = instance[:external_ip]
       instance_item.internal_host = instance[:internal_host]
+      instance_item.zone = instance[:zone]
 
       # setup amazon elastic ips if configured to do so
       setup_static_ips

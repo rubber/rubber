@@ -76,17 +76,18 @@ module Rubber
 
     # The configuration for a single instance
     class InstanceItem
-      attr_reader :name, :domain, :instance_id
-      attr_accessor :roles
+      attr_reader :name, :domain, :instance_id, :security_groups
+      attr_accessor :roles, :zone
       attr_accessor :external_host, :external_ip
       attr_accessor :internal_host, :internal_ip
       attr_accessor :static_ip, :volumes, :partitions
 
-      def initialize(name, domain, roles, instance_id)
+      def initialize(name, domain, roles, instance_id, security_group_list=[])
         @name = name
         @domain = domain
         @roles = roles
         @instance_id = instance_id
+        @security_groups = security_group_list
       end
 
       def full_name
