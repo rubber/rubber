@@ -135,21 +135,6 @@ auto_security_groups: true
 # account, or even multiple apps
 isolate_security_groups: true
 
-# OPTIONAL: Automatically provision and assign instances to a Cloud provided
-# load balancer.
-load_balancers:
-  my_lb_name:
-    listeners:
-      - protocol: http
-        port: 80
-        instance_port: 8080
-      - protocol: tcp
-        port: 443
-        instance_port: 8080
-    target_roles: [app]
-
-isolate_load_balancers: true
-
 # OPTIONAL: Set if you want to use Ruby Enterprise Edition instead of the standard ubuntu one
 use_enterprise_ruby: false
 
