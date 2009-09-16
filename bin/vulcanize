@@ -2,31 +2,40 @@
 
 env = ENV['RUBBER_ENV'] || ENV['RAILS_ENV'] || 'development'
 root = '.'
-RAILS_ENV = ENV['RAILS_ENV'] = env
-RAILS_ROOT = ENV['RAILS_ROOT'] = root
 
-# need a minimal rails environment for generators to run
-require 'rubygems'
-gem 'rails'
-module Rails
-  class << self
-    def vendor_rails?
-      false
+# if in a rails project, then use standard generate, otherwise
+# we need a minimal rails environment for generators to run
+ #
+if File.exist?(File.join(root, 'config', 'environment.rb'))
+  ARGV.insert(0, 'vulcanize')
+  require File.join(root, 'config', 'boot')
+  require 'commands/generate'
+else
+  RAILS_ENV = ENV['RAILS_ENV'] = env
+  RAILS_ROOT = ENV['RAILS_ROOT'] = root
+
+  require 'rubygems'
+  gem 'rails'
+  module Rails
+    class << self
+      def vendor_rails?
+        false
+      end
     end
   end
+
+  require 'initializer'
+  class Rails::Initializer
+    def load_environment; end
+  end
+
+  Rails::Initializer.run do |config|
+    config.frameworks -= [:active_record, :action_controller]
+  end
+
+  require 'rails_generator'
+  require 'rails_generator/scripts/generate'
+
+  ARGV.shift if ['--help', '-h'].include?(ARGV[0])
+  Rails::Generator::Scripts::Generate.new.run(['vulcanize'] + ARGV)
 end
-
-require 'initializer'
-class Rails::Initializer
-  def load_environment; end
-end
-
-Rails::Initializer.run do |config|
-  config.frameworks -= [:active_record, :action_controller]
-end
-
-require 'rails_generator'
-require 'rails_generator/scripts/generate'
-
-ARGV.shift if ['--help', '-h'].include?(ARGV[0])
-Rails::Generator::Scripts::Generate.new.run(['vulcanize'] + ARGV)
