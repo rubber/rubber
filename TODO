@@ -5,4 +5,3 @@
 * add scripted failover to generated configs for:
     * remove web hosts from round robin on web host failure
     * db failover (promote slave replica? master-master replicas?  cluster?)
-* make passenger default template instead of mongrel
