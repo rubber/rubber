@@ -330,7 +330,7 @@ namespace :rubber do
     rubber_env.role_dependencies.each do |k, v|
       rhs = Array(v).collect {|r| Rubber::Configuration::RoleItem.parse(r)}
       deps[Rubber::Configuration::RoleItem.parse(k)] = rhs
-    end
+    end if rubber_env.role_dependencies
     return deps
   end
   
