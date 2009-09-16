@@ -332,17 +332,17 @@ namespace :rubber do
         to_install.delete_if {|g, v| installed.has_key?(g) } if gem_cmd == 'install'
         to_install_ver.delete_if {|g, v| installed.has_key?(g) && installed[g].include?(v) } 
 
-        # when versions are provided for a gem, rubygems fails unless versions
-        # are provided for all gems so we need to do the two groups separately
+        # rubygems can only do asingle versioned gem at a time so we need
+        # to do the two groups separately
+        # install versioned ones first so unversioned don't pull in a newer version
+        to_install_ver.each do |g, v|
+          system "#{cmd} #{g} -v #{v}"
+          fail "Unable to install versioned gem #{g}:#{v}" if $?.exitstatus > 0
+        end
         if to_install.size > 0
           gem_list = to_install.keys.join(' ')
           system "#{cmd} #{gem_list}"
           fail "Unable to install gems" if $?.exitstatus > 0
-        end
-        if to_install_ver.size > 0
-          gem_list = to_install_ver.collect {|g, v| "#{g} -v #{v}"}.join(' ')
-          system "#{cmd} #{gem_list}"
-          fail "Unable to install versioned gems" if $?.exitstatus > 0
         end
 
         'EOF'
