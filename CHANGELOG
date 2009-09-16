@@ -1,0 +1,34 @@
+1.0
+---
+
+Force depedency on amazon-ec2 v0.5.0
+Prevent ec2 disconnect while bundling a custom AMI
+Add some extra metadata to instance config
+Guess appname in rubber.yml (project root dirname)
+Configure https by default (snakeoil certs) for nginx, apache, web_tools
+Added role_dependencies to make it easier to aggregate modules/roles into a coherent whole
+Added apache version of webtools for people using passenger
+Added add/remove_role to cap tasks
+Added gemsource to rubber.yml and made task for it add/remove as neccessary
+Many other cleanups and refactorings
+Upgrade system packages on bootstrap
+Use a rubygems helper script to skip installing gems that are already installed
+Added isolation of security groups (multiple apps/environments in single account isolated from each other with security groups
+Added hook for installing gems configured in rails environment.rb
+Added support for Ruby Enterprise Edition
+Full working, consistent support for Passenger (complete_passenger_mysql)
+Fix variable interpolation (relative paths to other variables from within nested data structures in rubber*.yml)
+Consistent config (breaking config changes, many rubber*.yml variables renamed/moved)
+Added vulcanize helper script for running vulcanize generator outside of rails
+Use rubber with non-rails projects (RUBBER_* instead of RAILS_*)
+Use rubber as a gem (or as a plugin still)
+Add zerigo as a dns provider - has a free plan with rest api
+Massive refactoring and cleanup.
+  broke up recipes into multiple files.
+  Extracted ec2 logic into its own class (allows rubber to work with other cloud providers like maybe slicehost)
+
+Pre 1.0
+-------
+
+You probably shouldn't be using these versions
+
