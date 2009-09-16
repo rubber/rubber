@@ -15,7 +15,8 @@ Gem::Specification.new do |s|
     "README"
   ]
   s.files = [
-    "COPYING",
+    "CHANGELOG",
+     "COPYING",
      "README",
      "TODO",
      "VERSION",
