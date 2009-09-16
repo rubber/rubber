@@ -227,7 +227,7 @@ namespace :rubber do
 
     env = rubber_cfg.environment.bind(instance_item.role_names, instance_alias)
     
-    instance = cloud.describe_instance(instance_item.instance_id).first
+    instance = cloud.describe_instances(instance_item.instance_id).first
 
     if instance[:state] == "running"
       logger.info "\nInstance running, fetching hostname/ip data"
@@ -235,6 +235,9 @@ namespace :rubber do
       instance_item.external_ip = instance[:external_ip]
       instance_item.internal_host = instance[:internal_host]
 
+      # setup amazon elastic ips if configured to do so
+      setup_static_ips
+      
       # Need to setup aliases so ssh doesn't give us errors when we
       # later try to connect to same ip but using alias
       setup_local_aliases
@@ -246,18 +249,24 @@ namespace :rubber do
       # so that we can update all aliases
       task :_get_ip, :hosts => instance_item.external_ip do
         instance_item.internal_ip = capture(print_ip_command).strip
+        rubber_instances.save()
       end
-      # even though instance is running, we need to give ssh a chance
-      # to get started
-      sleep 5
-      _get_ip
+
+      # even though instance is running, sometimes ssh hasn't started yet,
+      # so retry on connect failure
+      begin
+        _get_ip
+      rescue ConnectionError
+        sleep 2
+        logger.info "Failed to connect to #{instance_alias} (#{instance_item.external_ip}), retrying"
+        retry
+      end
+
 
       # Add the aliases for this instance to all other hosts
       setup_remote_aliases
       setup_dns_aliases
     end
-
-    rubber_instances.save()
   end
 
 
