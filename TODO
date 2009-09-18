@@ -5,3 +5,7 @@
 * add scripted failover to generated configs for:
     * remove web hosts from round robin on web host failure
     * db failover (promote slave replica? master-master replicas?  cluster?)
+* Add in support for ELB
+* Add in support for reserved instances
+* Add in live DB backups (xtrabackup)
+* Add in support for zabbix monitoring/notifications (others?)
