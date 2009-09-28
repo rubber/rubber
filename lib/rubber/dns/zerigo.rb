@@ -89,11 +89,11 @@ module Rubber
         @zone.host(host)
       end
 
-      def create_host_record(host, ip)
+      def create_host_record(hostname, ip)
         host = @zone.new_host()
         host['host-type'] =  @record_type
         host['ttl'] = @ttl
-        host['hostname'] = host
+        host['hostname'] = hostname
         host['data'] = ip
         @zone.create_host(host)
       end
