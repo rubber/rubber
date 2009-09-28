@@ -50,6 +50,11 @@ module Rubber
           @zone = self.class.get("/zones/#{zone_id}.xml")
         else
           zones = self.class.get('/zones.xml')
+          if zones.code < 200 ||zones.code > 299
+            msg = "Failed to access zerigo api (http_status=#{zones.code})"
+            msg += ", check customer_id/email/token in rubber.yml" if zones.code == 401
+            raise msg
+          end
           @zone = zones["zones"].find {|z| z["domain"] == @domain }
         end
       end
