@@ -16,45 +16,50 @@ module Rubber
         refresh()
       end
 
+      def check_status(response)
+        code = response.code
+        if code < 200 || code > 299
+          msg = "Failed to access zerigo api (http_status=#{code})"
+          msg += ", check dns_providers.zerigo.customer_id/email/token in rubber.yml" if code == 401
+          raise msg
+        end
+        return response
+      end
+
       def hosts
-        hosts = self.class.get("/zones/#{@zone['id']}/hosts.xml")
+        hosts = check_status self.class.get("/zones/#{@zone['id']}/hosts.xml")
         return hosts['hosts']
       end
 
       def host(hostname)
-        hosts = self.class.get("/zones/#{@zone['id']}/hosts.xml?fqdn=#{hostname}.#{@domain}")
+        hosts = check_status self.class.get("/zones/#{@zone['id']}/hosts.xml?fqdn=#{hostname}.#{@domain}")
         return (hosts['hosts'] || []).first
       end
 
       def new_host
-        self.class.get("/zones/#{@zone['id']}/hosts/new.xml")['host']
+        check_status(self.class.get("/zones/#{@zone['id']}/hosts/new.xml"))['host']
       end
 
       def create_host(host)
-        self.class.post("/zones/#{@zone['id']}/hosts.xml", :body => {:host => host})
+        check_status self.class.post("/zones/#{@zone['id']}/hosts.xml", :body => {:host => host})
       end
 
       def update_host(host)
         host_id = host['id']
-        self.class.put("/zones/#{@zone['id']}/hosts/#{host_id}.xml", :body => {:host => host})
+        check_status self.class.put("/zones/#{@zone['id']}/hosts/#{host_id}.xml", :body => {:host => host})
       end
 
       def delete_host(hostname)
         host_id = host(hostname)['id']
-        self.class.delete("/zones/#{@zone['id']}/hosts/#{host_id}.xml")
+        check_status self.class.delete("/zones/#{@zone['id']}/hosts/#{host_id}.xml")
       end
 
       def refresh
         zone_id = @zone['id'] rescue nil
         if zone_id
-          @zone = self.class.get("/zones/#{zone_id}.xml")
+          @zone = check_status self.class.get("/zones/#{zone_id}.xml")
         else
-          zones = self.class.get('/zones.xml')
-          if zones.code < 200 ||zones.code > 299
-            msg = "Failed to access zerigo api (http_status=#{zones.code})"
-            msg += ", check customer_id/email/token in rubber.yml" if zones.code == 401
-            raise msg
-          end
+          zones = check_status self.class.get('/zones.xml')
           @zone = zones["zones"].find {|z| z["domain"] == @domain }
         end
       end
@@ -66,7 +71,7 @@ module Rubber
       protected
 
       def zones()
-        self.class.get('/zones.xml')
+        check_status self.class.get('/zones.xml')
       end
 
       def zone(domain_name)
