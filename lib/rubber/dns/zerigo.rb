@@ -32,7 +32,8 @@ module Rubber
       end
 
       def host(hostname)
-        hosts = check_status self.class.get("/zones/#{@zone['id']}/hosts.xml?fqdn=#{hostname}.#{@domain}")
+        # returns 404 on not found, so don't check status
+        hosts = self.class.get("/zones/#{@zone['id']}/hosts.xml?fqdn=#{hostname}.#{@domain}")
         return (hosts['hosts'] || []).first
       end
 
