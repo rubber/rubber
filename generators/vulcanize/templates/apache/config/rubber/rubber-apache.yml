@@ -2,6 +2,5 @@
 roles:
   apache:
     packages: [apache2]
-roles:
   web_tools:
     packages: [libapache2-mod-proxy-html]
