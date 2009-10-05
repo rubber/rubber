@@ -4,10 +4,9 @@ module Rubber
     class Dyndns < Base
 
       def initialize(env)
-        super(env)
-        @dyndns_env = env.dns_providers.dyndns
-        @user, @pass = @dyndns_env.user, @dyndns_env.password
-        @update_url = @dyndns_env.update_url || 'https://members.dyndns.org/nic/update?hostname=%host%&myip=%ip%'
+        super(env, 'dyndns')
+        @user, @pass = provider_env.user, provider_env.password
+        @update_url = provider_env.update_url || 'https://members.dyndns.org/nic/update?hostname=%host%&myip=%ip%'
         @update_url = @update_url.gsub(/%([^%]+)%/, '#{\1}')
       end
 
@@ -15,10 +14,22 @@ module Rubber
         "ns1.mydyndns.org"
       end
 
-      def host_exists?(host)
+      def up_to_date(host, ip)
+        # This queries dns server directly instead of using hosts file
+        current_ip = nil
+        Resolv::DNS.open(:nameserver => [nameserver], :search => [], :ndots => 1) do |dns|
+          current_ip = dns.getaddress("#{host}.#{provider_env.domain}").to_s rescue nil
+        end
+        return ip == current_ip
+      end
+      
+      def find_host_records(opts={})
+        opts = setup_opts(opts, [:host, :domain])
+        hostname = "#{opts[:host]}.#{opts[:domain]}"
         begin
           Resolv::DNS.open(:nameserver => [nameserver], :search => [], :ndots => 1) do |dns|
-            dns.getresource(hostname(host), Resolv::DNS::Resource::IN::A)
+            r = dns.getresource(hostname, Resolv::DNS::Resource::IN::A)
+            result = [{:host =>host, :data => r.address}]
           end
         rescue
           raise "Domain needs to exist in dyndns as an A record before record can be updated"
@@ -26,16 +37,20 @@ module Rubber
         return true
       end
 
-      def create_host_record(host, ip)
+      def create_host_record(opts={})
         puts "WARNING: No create record available for dyndns, you need to do so manually"
       end
 
-      def destroy_host_record(host)
+      def destroy_host_record(opts={})
         puts "WARNING: No destroy record available for dyndns, you need to do so manually"
       end
 
-      def update_host_record(host, ip)
-        host = hostname(host)
+      def update_host_record(old_opts={}, new_opts={})
+        old_opts = setup_opts(opts, [:host, :domain])
+        new_opts = setup_opts(opts, [:data])
+        
+        host = hostname(old_opts[:host])
+        ip = new_opts[:data]
         update_url = eval('%Q{' + @update_url + '}')
 
         # This header is required by dyndns.org

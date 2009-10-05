@@ -3,65 +3,68 @@ module Rubber
 
     class Base
 
-      attr_reader :env
+      attr_reader :env, :provider_env, :provider_name
 
-      def initialize(env)
+      def initialize(env, provider_name)
         @env = env
+        @provider_name = provider_name
+        @provider_env = @env.dns_providers[provider_name]
       end
 
       def update(host, ip)
         if up_to_date(host, ip)
           puts "IP has not changed for #{host}, not updating dynamic DNS"
         else
-          if ! host_exists?(host)
+          if find_host_records(:host => host).size == 0
             puts "Creating dynamic DNS: #{host} => #{ip}"
-            create_host_record(host, ip)
+            create_host_record(:host => host, :data => ip)
           else
             puts "Updating dynamic DNS: #{host} => #{ip}"
-            update_host_record(host, ip)
+            update_host_record({:host => host}, {:host => host, :data => ip})
           end
         end
       end
 
       def destroy(host)
-        if host_exists?(host)
+        if find_host_records(:host => host).size != 0
           puts "Destroying dynamic DNS record: #{host}"
-          destroy_host_record(host)
+          destroy_host_record(:host => host)
         end
-      end
-
-      def hostname(host)
-        "#{host}.#{@env.domain}"
       end
 
       def up_to_date(host, ip)
-        # This queries dns server directly instead of using hosts file
-        current_ip = nil
-        Resolv::DNS.open(:nameserver => [nameserver], :search => [], :ndots => 1) do |dns|
-          current_ip = dns.getaddress(hostname(host)).to_s rescue nil
-        end
-        return ip == current_ip
+        find_host_records(:host => host).any? {|host| host[:data] == ip}
       end
 
-      def nameserver()
-        raise "nameserver not implemented"
-      end
-
-      def host_exists?(host)
-        raise "host_exists? not implemented"
-      end
-
-      def create_host_record(host, ip)
+      def create_host_record(opts = {})
         raise "create_host_record not implemented"
       end
 
-      def destroy_host_record(host)
+      def find_host_records(opts = {})
+        raise "find_host_records not implemented"
+      end
+
+      def update_host_record(old_opts={}, new_opts={})
+        raise "update_host_record not implemented"
+      end
+
+      def destroy_host_record(opts = {})
         raise "destroy_host_record not implemented"
       end
 
-      def update_host_record(host, ip)
-        raise "update_host_record not implemented"
+      protected
+
+      def setup_opts(opts, required =[])
+        default_opts = {:domain => @provider_env.domain,
+                        :type => @provider_env['type'] || @provider_env.record_type,
+                        :ttl => @provider_env.ttl}
+        actual_opts = default_opts.merge(Rubber::Util::symbolize_keys(opts))
+        required.each do |r|
+          raise "Missing required options: #{r}" unless actual_opts[r]
+        end
+        return actual_opts
       end
+      
 
     end
 

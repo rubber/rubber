@@ -9,6 +9,11 @@ module Rubber
       include HTTParty
       format :xml
 
+      @@zones = {}
+      def self.get_zone(domain, provider_env)
+       @@zones[domain] ||= Zone.new(provider_env.customer_id, provider_env.email, provider_env.token, domain)
+      end
+
       def initialize(customer_id, email, token, domain)
         self.class.basic_auth email, token
         self.class.base_uri "https://ns.zerigo.com/accounts/#{customer_id}"
@@ -26,32 +31,49 @@ module Rubber
         return response
       end
 
-      def hosts
-        hosts = check_status self.class.get("/zones/#{@zone['id']}/hosts.xml")
-        return hosts['hosts']
-      end
-
-      def host(hostname)
-        # returns 404 on not found, so don't check status
-        hosts = self.class.get("/zones/#{@zone['id']}/hosts.xml?fqdn=#{hostname}.#{@domain}")
-        return (hosts['hosts'] || []).first
-      end
-
-      def new_host
-        check_status(self.class.get("/zones/#{@zone['id']}/hosts/new.xml"))['host']
-      end
-
-      def create_host(host)
+      def create_host(opts)
+        host = opts_to_host(opts, new_host())
         check_status self.class.post("/zones/#{@zone['id']}/hosts.xml", :body => {:host => host})
       end
 
-      def update_host(host)
-        host_id = host['id']
+      def find_host_records(opts={})
+        result = []
+        hn = opts[:host]
+        ht = opts[:type]
+        hd = opts[:data]
+        has_host = hn && hn != '*'
+
+        url = "/zones/#{@zone['id']}/hosts.xml"
+        if has_host
+          url << "?fqdn="
+          url << "#{hn}." if hn.strip.size > 0
+          url << "#{@domain}"
+        end
+        hosts = self.class.get(url)
+
+        # returns 404 on not found, so don't check status
+        hosts = check_status hosts unless has_host
+
+        hosts['hosts'].each do |h|
+          keep = true
+          if ht && h['host_type'] != ht && ht != '*'
+            keep = false
+          end
+          if hd && h['data'] != hd
+            keep = false
+          end
+          result << host_to_opts(h) if keep
+        end if hosts['hosts']
+
+        return result
+      end
+
+      def update_host(host_id, opts)
+        host = opts_to_host(opts, new_host())
         check_status self.class.put("/zones/#{@zone['id']}/hosts/#{host_id}.xml", :body => {:host => host})
       end
 
-      def delete_host(hostname)
-        host_id = host(hostname)['id']
+      def delete_host(host_id)
         check_status self.class.delete("/zones/#{@zone['id']}/hosts/#{host_id}.xml")
       end
 
@@ -63,67 +85,84 @@ module Rubber
           zones = check_status self.class.get('/zones.xml')
           @zone = zones["zones"].find {|z| z["domain"] == @domain }
         end
+        if ! @zone
+          zone = new_zone()
+          zone['domain'] = @domain
+          @zone = check_status self.class.post('/zones.xml', :body => {:zone => zone})
+        end
       end
 
-      def data
+      def zone_record
         return @zone
       end
 
-      protected
+      private
 
-      def zones()
-        check_status self.class.get('/zones.xml')
+      def new_host
+        check_status(self.class.get("/zones/#{@zone['id']}/hosts/new.xml"))['host']
       end
 
-      def zone(domain_name)
-        zone =  zones
-        return zone
+      def new_zone
+        check_status(self.class.get("/zones/new.xml"))['zone']
       end
-      
+
+      def opts_to_host(opts, host={})
+        host['hostname'] = opts[:host]
+        host['host_type'] =  opts[:type]
+        host['data'] = opts[:data]
+        host['ttl'] = opts[:ttl]
+        host['priority'] = opts[:priority]
+        return host
+      end
+
+      def host_to_opts(host)
+        opts = {}
+        opts[:id] = host['id'] 
+        opts[:host] = host['hostname']
+        opts[:type] = host['host_type']
+        opts[:data] = host['data']
+        opts[:ttl] = host['ttl']
+        opts[:priority] = host['priority']
+        return opts
+      end
     end
     
     class Zerigo < Base
 
       def initialize(env)
-        super(env)
-        @zerigo_env = env.dns_providers.zerigo
-        @ttl = (@zerigo_env.ttl || 300).to_i
-        @record_type = @zerigo_env.record_type || "A"
-        @zone = Zone.new(@zerigo_env.customer_id, @zerigo_env.email, @zerigo_env.token, env.domain)
+        super(env, "zerigo")
       end
 
-      def nameserver
-        "a.ns.zerigo.net"
+      def find_host_records(opts = {})
+        opts = setup_opts(opts, [:host, :domain])
+        zone = Zone.get_zone(opts[:domain], provider_env)
+
+        zone.find_host_records(opts)
       end
 
-      def host_exists?(host)
-        @zone.host(host)
+      def create_host_record(opts = {})
+        opts = setup_opts(opts, [:host, :data, :domain, :type, :ttl])
+        zone = Zone.get_zone(opts[:domain], provider_env)
+
+        zone.create_host(opts)
       end
 
-      def create_host_record(hostname, ip)
-        host = @zone.new_host()
-        host['host-type'] =  @record_type
-        host['ttl'] = @ttl
-        host['hostname'] = hostname
-        host['data'] = ip
-        @zone.create_host(host)
+      def destroy_host_record(opts = {})
+        opts = setup_opts(opts, [:host, :domain])
+        zone = Zone.get_zone(opts[:domain], provider_env)
+
+        find_host_records(opts).each do |h|
+          zone.delete_host(h[:id])
+        end
       end
 
-      def destroy_host_record(host)
-        @zone.delete_host(host)
-      end
+      def update_host_record(old_opts={}, new_opts={})
+        old_opts = setup_opts(old_opts, [:host, :domain])
+        zone = Zone.get_zone(old_opts[:domain], provider_env)
 
-      def update_host_record(host, ip)
-        old = @zone.host(host)
-        old['data'] = ip
-        @zone.update_host(old)
-      end
-
-      # update the top level domain record which has an empty hostName
-      def update_domain_record(ip)
-        old = @zone.hosts.find {|h| h['hostname'].nil? }
-        old['data'] = ip
-        @zone.update_host(old)
+        find_host_records(old_opts).each do |h|
+          zone.update_host(h[:id], h.merge(new_opts))
+        end
       end
 
     end

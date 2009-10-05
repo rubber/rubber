@@ -32,6 +32,8 @@ module Rubber
         roles_dir = File.join(@config_root, "role")
         roles = Dir.entries(roles_dir)
         roles.delete_if {|d| d =~ /(^\..*)/}
+        roles += @items['roles'].keys
+        return roles.compact.uniq
       end
 
       def current_host
@@ -41,7 +43,7 @@ module Rubber
       def current_full_host
         Socket::gethostname
       end
-
+      
       def bind(roles = nil, host = nil)
         BoundEnv.new(@items, roles, host)
       end
@@ -95,6 +97,7 @@ module Rubber
         end
 
         def expand_string(val)
+          rubber_instances = Rubber::Configuration::rubber_instances
           while val =~ /\#\{[^\}]+\}/
             val = eval('%Q{' + val + '}', binding)
           end
