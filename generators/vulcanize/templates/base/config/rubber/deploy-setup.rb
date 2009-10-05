@@ -20,26 +20,9 @@ namespace :rubber do
       if ent_ruby_hosts.size > 0
 
         task :_install_enterprise_ruby, :hosts => ent_ruby_hosts do
-
-          # preferences to pick up specific Ruby packages from brightbox
-          prefs = <<-DATA
-            Package: *
-            Pin: release l=brightbox
-            Pin-Priority: 1001
-
-            Package: ruby1.8-elisp
-            Pin: release l=Ubuntu
-            Pin-Priority: 1001
-          DATA
-
-          prefs.gsub!(/^ */, '') # remove leading whitespace
-          put(prefs, '/etc/apt/preferences')
-
-          rubber.sudo_script 'install_enterprise_ruby', <<-ENDSCRIPT
-            wget http://apt.brightbox.net/release.asc -O - | apt-key add -
-            echo "deb http://apt.brightbox.net/ hardy rubyee" > /etc/apt/sources.list.d/brightbox-rubyee.list
-          ENDSCRIPT
-
+          custom_package('http://rubyforge.org/frs/download.php/64479',
+                         'ruby-enterprise', '1.8.7-20090928',
+                         '! `ruby --version 2> /dev/null` =~ "Ruby Enterprise Edition 20090928"')
         end
 
         _install_enterprise_ruby
