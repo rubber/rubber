@@ -98,11 +98,70 @@ namespace :rubber do
     end
   end
 
+
+  desc <<-DESC
+    Backup database to given backup directory
+    The following arguments affect behavior:
+    BACKUP_DIR (required):  Directory where backups will be stored
+    BACKUP_NAME (required): What to name the backup
+    BACKUP_CMD (required):  Command used to backup
+    BACKUP_AGE (3):         Delete rotated logs older than this many days in the past
+  DESC
+  task :backup do
+    dir = get_env('BACKUP_DIR', true)
+    name = get_env('BACKUP_NAME', true)
+    cmd = get_env('BACKUP_CMD', true)
+    age = (get_env('BACKUP_AGE') || 3).to_i
+
+    time_stamp = Time.now.strftime("%Y-%m-%d_%H-%M")
+    FileUtils.mkdir_p(dir)
+
+    backup_cmd = cmd.gsub(/%([^%]+)%/, '#{\1}')
+    backup_cmd = eval('%Q{' + backup_cmd + '}')
+
+    puts "Backing up with command:"
+    sh backup_cmd
+    puts "Backup created"
+
+    s3_prefix = "#{name}/"
+    backup_bucket = cloud_provider.backup_bucket
+    if backup_bucket
+      init_s3
+      unless AWS::S3::Bucket.list.find { |b| b.name == backup_bucket }
+        AWS::S3::Bucket.create(backup_bucket)
+      end
+      newest = Dir.entries(dir).sort_by {|f| File.mtime(File.join(dir,f))}.last
+      dest = "#{s3_prefix}#{newest}"
+      puts "Saving backup to S3: #{backup_bucket}:#{dest}"
+      AWS::S3::S3Object.store(dest, open(File.join(dir, newest)), backup_bucket)
+    end
+
+    tdate = Date.today - age
+    threshold = Time.local(tdate.year, tdate.month, tdate.day)
+    puts "Cleaning backups older than #{age} days"
+    Dir["#{dir}/*"].each do |file|
+      if File.mtime(file) < threshold
+        puts "Deleting #{file}"
+        FileUtils.rm_f(file)
+      end
+    end
+
+    if backup_bucket
+      puts "Cleaning S3 backups older than #{age} days from: #{backup_bucket}:#{s3_prefix}"
+      AWS::S3::Bucket.objects(backup_bucket, :prefix => s3_prefix).clone.each do |obj|
+        if Time.parse(obj.about["last-modified"]) < threshold
+          puts "Deleting #{obj.key}"
+          obj.delete
+        end
+      end
+    end
+  end
+
   desc <<-DESC
     Backup database to given backup directory
     The following arguments affect behavior:
     BACKUP_DIR (required): Directory where db backups will be stored
-    BACKUP_AGE (7):        Delete rotated logs older than this many days in the past
+    BACKUP_AGE (3):        Delete rotated logs older than this many days in the past
     DBUSER (required)      User to connect to the db as
     DBPASS (optional):     Pass to connect to the db with
     DBHOST (required):     Host where the db is
@@ -120,15 +179,15 @@ namespace :rubber do
     pass = nil if pass.strip.size == 0
     host = get_env('DBHOST', true)
     name = get_env('DBNAME', true)
-    
+
     raise "No db_backup_cmd defined in rubber.yml, cannot backup!" unless rubber_env.db_backup_cmd
     db_backup_cmd = rubber_env.db_backup_cmd.gsub(/%([^%]+)%/, '#{\1}')
     db_backup_cmd = eval('%Q{' + db_backup_cmd + '}')
-    
+
     puts "Backing up database with command:"
     sh db_backup_cmd
     puts "Created backup: #{backup_file}"
-    
+
     s3_prefix = "db/"
     backup_bucket = cloud_provider.backup_bucket
     if backup_bucket
@@ -150,7 +209,7 @@ namespace :rubber do
         FileUtils.rm_f(file)
       end
     end
-    
+
     if backup_bucket
       puts "Cleaning S3 backups older than #{age} days from: #{backup_bucket}:#{s3_prefix}"
       AWS::S3::Bucket.objects(backup_bucket, :prefix => s3_prefix).clone.each do |obj|
@@ -210,7 +269,6 @@ namespace :rubber do
     end
 
   end
-
 
   def get_env(name, required=false)
     value = ENV[name]
