@@ -25,6 +25,9 @@ rescue LoadError
   puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
 end
 
+task :release => :changelog
+task :gemcutter => :release
+
 task :gemcutter do
   rubber_yml = 'generators/vulcanize/templates/base/config/rubber/rubber.yml'
   yml = File.join(File.dirname(__FILE__), rubber_yml)
@@ -36,6 +39,50 @@ task :gemcutter do
   sh "gem push rubber-*.gem"
   sh "git co #{rubber_yml}"
   sh "rm -f rubber-*.gem"
+end
+
+task :changelog do
+
+  tags = `git tag -l`.split
+
+  out_file = ENV['OUTPUT'] || 'CHANGELOG'
+  if out_file.size > 0
+    entries = File.read(out_file)
+    head = entries.split.first
+    if head =~ /\d\.\d\.\d/
+      last_tag = "v#{head}"
+      idx = tags.index(last_tag)
+      current_tag = tags[idx + 1] rescue nil
+    end
+  else
+    entries = ""
+    out_file=$stdout
+  end
+
+  last_tag = ENV['LAST_TAG'] || last_tag || tags[-2]
+  current_tag = ENV['CURRENT_TAG'] || current_tag || tags[-1]
+
+  if last_tag == current_tag
+    puts "Nothing to do for equal revisions: #{last_tag}..#{current_tag}"
+    exit
+  end
+  
+  log=`git log --pretty='format:%s <%h> [%cn]' #{last_tag}..#{current_tag}`
+  log = log.to_a.delete_if {|l| l =~ /^Regenerated gemspec/ || l =~ /^Version bump/ || l =~ /^Updated changelog/ }
+
+  out = File.open(out_file, 'w')
+  
+  out.puts current_tag.gsub(/^v/, '')
+  out.puts "-----"
+  out.puts "\n"
+  out.puts log
+  out.puts "\n"
+  out.puts entries
+
+  if out_file != $stdout
+    sh "git ci -m'Updated changelog' #{out_file}"
+    sh "git push #{out_file}"
+  end
 end
 
 desc 'Test the rubber plugin.'
