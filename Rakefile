@@ -29,12 +29,13 @@ task :gemcutter do
   rubber_yml = 'generators/vulcanize/templates/base/config/rubber/rubber.yml'
   yml = File.join(File.dirname(__FILE__), rubber_yml)
   gcyml = File.read(yml).gsub('wr0ngway-rubber', 'rubber')
-  File.open(yml) do |f|
+  File.open(yml, 'w') do |f|
     f.write(gcyml)
   end
   sh "gem build rubber.gemspec"
   sh "gem push rubber-*.gem"
-  sh "git co #{rubber_yml}`"
+  sh "git co #{rubber_yml}"
+  sh "rm -f rubber-*.gem"
 end
 
 desc 'Test the rubber plugin.'
