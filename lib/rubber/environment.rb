@@ -125,14 +125,20 @@ module Rubber
       class BoundEnv < HashValueProxy
         attr_reader :roles
         attr_reader :host
-        attr_reader :full_host
 
         def initialize(global, roles, host)
           @roles = roles
           @host = host
           bound_global = bind_config(global)
           super(nil, bound_global)
-          @full_host = "#{host}.#{domain}" rescue nil
+        end
+
+        def full_host
+          @full_host ||= "#{host}.#{domain}" rescue nil
+        end
+
+        def rubber_instances
+          @rubber_instances ||= Rubber::Configuration::rubber_instances
         end
 
         # Forces role/host overrides into config
