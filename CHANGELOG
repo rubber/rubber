@@ -1,3 +1,44 @@
+1.1.2
+-----
+
+fix ver <e32a665> [Matt Conway]
+fix ver <f5c5172> [Matt Conway]
+remove bad code <16306dc> [Matt Conway]
+
+1.1.1
+-----
+
+prevent reading from env before it is created (infinite loop) <b3255cb> [Matt Conway]
+fix gemcutter task <7372e7b> [Matt Conway]
+ignore gems <a879638> [Matt Conway]
+
+1.1.0
+-----
+
+add setup of arbitrary dns records via nettica or zerigo apis <61ca87e> [Matt Conway]
+command for backing up arbitrary directories <d984451> [Matt Conway]
+helper for installing rubber gems locally <51e926b> [Matt Conway]
+add lib for rails initiliazer, fix bad char in description for gemcutter, add task for pushing to gemcutter <0ab8d80> [Matt Conway]
+refactor dns classes to allow setting up other dns records from rubber.yml <937629c> [Matt Conway]
+add rails/init.rb to gemspec, automate gemcutter gem creation <c9c3e52> [Matt Conway]
+update REE to 1.8.7-20090928 <59888ec> [Matt Conway]
+add gemcutter source <ae8aabb> [Matt Conway]
+add forwarded ip address <735c9c7> [Matt Conway]
+Merge branch 'master' of git@github.com:wr0ngway/rubber <4b1159b> [Matt Conway]
+fix apache roles <83f602c> [Matt Conway]
+better error message for missing image on destroy <53e8cf2> [Matt Conway]
+don't check status when getting single host <d01a79c> [Matt Conway]
+fix bad encoding char for gemcutter <c5290c2> [Matt Conway]
+
+1.0.2
+-----
+
+add some error checking <ad2c6a3> [Matt Conway]
+add error msg for auth failure <7ca7bec> [Matt Conway]
+fix setting of ip in zerigo <8ca947a> [Matt Conway]
+more todos <a13e97a> [Matt Conway]
+version bump <6c80a34> [Matt Conway]
+
 1.0.1
 -----
 
