@@ -97,7 +97,6 @@ module Rubber
         end
 
         def expand_string(val)
-          rubber_instances = Rubber::Configuration::rubber_instances
           while val =~ /\#\{[^\}]+\}/
             val = eval('%Q{' + val + '}', binding)
           end
