@@ -3,3 +3,5 @@
 .idea
 *.swp
 pkg
+*.gem
+
