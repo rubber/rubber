@@ -62,6 +62,83 @@ namespace :rubber do
   end
 
   desc <<-DESC
+    Sets up the additional dns records supplied in the dns_records config in rubber.yml
+  DESC
+  required_task :setup_dns_records do
+    records = rubber_env.dns_records
+    if records && rubber_env.dns_provider
+      provider = Rubber::Dns::get_provider(rubber_env.dns_provider, rubber_env)
+
+      # collect the round robin records (those with the same host/domain/type)
+      rr_records = []
+      records.each_with_index do |record, i|
+        m = records.find_all {|r| record['host'] == r['host'] && record['domain'] == r['domain'] && record['type'] == r['type']}
+        m = m.sort {|a,b| a.object_id <=> b.object_id}
+        rr_records << m if m.size > 1 && ! rr_records.include?(m)
+      end
+
+      # simple records are those that aren't round robin ones
+      simple_records = records - rr_records.flatten
+      
+      # for each simple record, create or update as necessary
+      simple_records.each do |record|
+        matching = provider.find_host_records(:host => record['host'], :domain =>record['domain'], :type => record['type'])
+        if matching.size > 1
+          msg =  "Multiple records in dns provider, but not in rubber.yml\n"
+          msg << "Round robin records need to be in both, or neither.\n"
+          msg << "Please fix manually:\n"
+          msg << matching.pretty_inspect
+          fatal(msg)
+        end
+
+        record = provider.setup_opts(record)
+        if matching.size == 1
+          match = matching.first
+          if  provider.host_records_equal?(record, match)
+            logger.info "Simple dns record already up to date: #{record[:host]}.#{record[:domain]}:#{record[:type]} => #{record[:data]}"
+          else
+            logger.info "Updating simple dns record: #{record[:host]}.#{record[:domain]}:#{record[:type]} => #{record[:data]}"
+            provider.update_host_record(match, record)
+          end
+        else
+          logger.info "Creating simple dns record: #{record[:host]}.#{record[:domain]}:#{record[:type]} => #{record[:data]}"
+          provider.create_host_record(record)
+        end
+      end
+
+      # group round robin records
+      rr_records.each do |rr_group|
+        host = rr_group.first['host']
+        domain = rr_group.first['domain']
+        type = rr_group.first['type']
+        matching = provider.find_host_records(:host => host, :domain => domain, :type => type)
+
+        # remove from consideration the local records that are the same as remote ones
+        matching.clone.each do |r|
+          rr_group.delete_if {|rg| provider.host_records_equal?(r, rg) }
+          matching.delete_if {|rg| provider.host_records_equal?(r, rg) }
+        end
+        if rr_group.size == 0 && matching.size == 0
+          logger.info "Round robin dns records already up to date: #{host}.#{domain}:#{type}"
+        end
+
+        # create the local records that don't exist remotely
+        rr_group.each do |r|
+          r = provider.setup_opts(r)
+          logger.info "Creating round robin dns record: #{r[:host]}.#{r[:domain]}:#{r[:type]} => #{r[:data]}"
+          provider.create_host_record(r)
+        end
+        
+        # remove the remote records that don't exist locally
+        matching.each do |r|
+          logger.info "Removing round robin dns record: #{r[:host]}.#{r[:domain]}:#{r[:type]} => #{r[:data]}"
+          provider.destroy_host_record(r)
+        end
+      end
+    end
+  end
+
+  desc <<-DESC
     Sets up aliases for instance hostnames based on contents of instance.yml.
     Generates /etc/hosts for remote machines and sets hostname on remote instances
   DESC

@@ -32,83 +32,10 @@ timezone: US/Eastern
 #
 domain: foo.com
 
-# OPTIONAL: The configuration for each dns provider (nettica|zerigo|dyndns)
-#          This lets rubber updatea dynamic dns service with the instance alias and ip
-#
-dns_providers:
-  nettica:
-    user: joe
-    password: sekret
-    type: A
-    ttl: 300
-  zerigo:
-    customer_id: 1234
-    email: foo@bar.com
-    token: hexxy
-    type: A
-    ttl: 300
-  dyndns:
-    user: joe
-    password: sekret
-    update_url: https://members.dyndns.org/nic/update?hostname=%host%&myip=%ip%'
-
-# OPTIONAL: The dns provider to use
-# dns_provider: nettica
-
-# OPTIONAL: Lets you configure your dns service, for example to add other CNAMES
-#           or setup dns round robin, etc.
-#
-#  dns_records:
-#    # simple A record
-#    - host: bar
-#      data: 1.1.1.1
-#
-#    # more detailed A record
-#    - host: bar
-#      domain: otherdomain.com
-#      data: 1.1.1.1
-#      type: A
-#      ttl: 300
-#
-#    # tld A record
-#    - host: ''
-#      data: 1.1.1.1
-#      type: A
-#
-#    # simple CNAME record
-#    - host: otherbar
-#      domain: foo.com
-#      data: bar.foo.com
-#      type: CNAME
-#      ttl: 300
-#
-#    # 2 of the same A records is a round robin dns
-#    - host: rr
-#      domain: foo.com
-#      data: 1.1.1.1
-#      type: A
-#      ttl: 300
-#    - host: rr
-#      domain: foo.com
-#      data: 1.1.1.2
-#      type: A
-#      ttl: 300
-#
-#    # A record, grabbing ip from instance config
-#    - host: baz
-#      domain: foo.com
-#      data: "#{rubber_instances.for_role('web').first.external_ip}"
-#      type: A
-#      ttl: 300
-#
-#    # MX record
-#    - host: mail
-#      domain: foo.com
-#      data: 1.1.1.1
-#      type: MX
-#      ttl: 300
-#      priority: 10
-    
+# OPTIONAL: See rubber-dns.yml for dns configuration
+# This lets rubber update a dynamic dns service with the instance alias
+# and ip when they are created.  It also allows setting up arbitrary
+# dns records (CNAME, MX, Round Robin DNS, etc)
 
 # OPTIONAL: Additional rubber file to pull config from if it exists.  This file will
 # also be pushed to remote host at RUBBER_ROOT/config/rubber/rubber-secret.yml

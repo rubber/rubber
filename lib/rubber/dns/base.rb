@@ -52,16 +52,28 @@ module Rubber
         raise "destroy_host_record not implemented"
       end
 
-      protected
+      def host_records_equal?(lhs_opts = {}, rhs_opts = {})
+        lhs = setup_opts(lhs_opts)
+        rhs = setup_opts(rhs_opts)
+        [lhs, rhs].each {|h| h.delete(:id); h.delete(:priority) if h[:priority] == 0}
+        lhs == rhs
+      end
 
-      def setup_opts(opts, required =[])
-        default_opts = {:domain => @provider_env.domain,
-                        :type => @provider_env['type'] || @provider_env.record_type,
-                        :ttl => @provider_env.ttl}
-        actual_opts = default_opts.merge(Rubber::Util::symbolize_keys(opts))
+      def setup_opts(opts, required=[])
+        default_opts = {:domain => @env.domain,
+                        :type => @provider_env['type'] || @provider_env.record_type || 'A',
+                        :ttl => @provider_env.ttl || 300}
+        
+        if opts.delete(:no_defaults)
+          actual_opts = Rubber::Util::symbolize_keys(opts)
+        else
+          actual_opts = default_opts.merge(Rubber::Util::symbolize_keys(opts))
+        end
+
         required.each do |r|
           raise "Missing required options: #{r}" unless actual_opts[r]
         end
+
         return actual_opts
       end
       

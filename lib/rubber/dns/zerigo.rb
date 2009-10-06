@@ -88,7 +88,8 @@ module Rubber
         if ! @zone
           zone = new_zone()
           zone['domain'] = @domain
-          @zone = check_status self.class.post('/zones.xml', :body => {:zone => zone})
+          zones = check_status self.class.post('/zones.xml', :body => {:zone => zone})
+          @zone = zones['zone']
         end
       end
 
@@ -109,20 +110,21 @@ module Rubber
       def opts_to_host(opts, host={})
         host['hostname'] = opts[:host]
         host['host_type'] =  opts[:type]
-        host['data'] = opts[:data]
-        host['ttl'] = opts[:ttl]
-        host['priority'] = opts[:priority]
+        host['data'] = opts[:data] if opts[:data]
+        host['ttl'] = opts[:ttl] if opts[:ttl]
+        host['priority'] = opts[:priority] if opts[:priority]
         return host
       end
 
       def host_to_opts(host)
         opts = {}
         opts[:id] = host['id'] 
-        opts[:host] = host['hostname']
+        opts[:domain] = @domain
+        opts[:host] = host['hostname'] || ''
         opts[:type] = host['host_type']
-        opts[:data] = host['data']
-        opts[:ttl] = host['ttl']
-        opts[:priority] = host['priority']
+        opts[:data] = host['data'] if host['data']
+        opts[:ttl] = host['ttl'] if host['ttl']
+        opts[:priority] = host['priority'] if host['priority']
         return opts
       end
     end
@@ -158,6 +160,7 @@ module Rubber
 
       def update_host_record(old_opts={}, new_opts={})
         old_opts = setup_opts(old_opts, [:host, :domain])
+        new_opts = setup_opts(new_opts.merge(:no_defaults =>true), [])
         zone = Zone.get_zone(old_opts[:domain], provider_env)
 
         find_host_records(old_opts).each do |h|

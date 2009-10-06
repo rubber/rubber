@@ -34,8 +34,7 @@ module Rubber
         ht = opts[:type]
         hd = opts[:data]
 
-        domain_info = check_status @client.list_domain(opts[:domain])
-        raise "Domain needs to exist in nettica before records can be updated" unless domain_info.record
+        domain_info = find_or_create_zone(opts[:domain])
 
         domain_info.record.each do |h|
           keep = true
@@ -56,6 +55,7 @@ module Rubber
 
       def create_host_record(opts = {})
         opts = setup_opts(opts, [:host, :data, :domain, :type, :ttl])
+        find_or_create_zone(opts[:domain])
         record = opts_to_record(opts)
         check_status @client.add_record(record)
       end
@@ -69,6 +69,7 @@ module Rubber
 
       def update_host_record(old_opts = {}, new_opts = {})
         old_opts = setup_opts(old_opts, [:host, :domain])
+        new_opts = setup_opts(new_opts.merge(:no_defaults =>true), [])
         find_host_records(old_opts).each do |h|
           old_record = opts_to_record(h)
           new_record = opts_to_record(h.merge(new_opts))
@@ -77,6 +78,18 @@ module Rubber
       end
 
       private
+
+      def find_or_create_zone(domain)
+        domain_info = @client.list_domain(domain)
+        if domain_info.record
+          check_status domain_info
+        else
+          check_status @client.create_zone(domain)
+          domain_info = check_status @client.list_domain(domain)
+          raise "Could not create zone in nettica: #{domain}" unless domain_info.record
+        end
+        return domain_info
+      end
 
       def opts_to_record(opts)
         record = @client.create_domain_record(opts[:domain],
@@ -90,12 +103,12 @@ module Rubber
 
       def record_to_opts(record)
         opts = {}
-        opts[:host] = record.hostName
+        opts[:host] = record.hostName || ''
         opts[:domain] = record.domainName
         opts[:type] = record.recordType
-        opts[:data] = record.data
-        opts[:ttl] = record.tTL
-        opts[:priority] = record.priority
+        opts[:data] = record.data if record.data
+        opts[:ttl] = record.tTL if record.tTL
+        opts[:priority] = record.priority if record.priority
         return opts
       end
     end
