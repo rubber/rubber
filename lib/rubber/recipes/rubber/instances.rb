@@ -5,7 +5,11 @@ namespace :rubber do
   DESC
   required_task :create do
     instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
-    r = get_env('ROLES', "Instance roles (e.g. web,app,db:primary=true)", true)
+
+    env = rubber_cfg.environment.bind(nil, instance_alias)
+    default_roles = env.instance_roles
+    r = get_env("ROLES", "Instance roles (e.g. web,app,db:primary=true)", true, default_roles)
+
     if r == '*'
       instance_roles = rubber_cfg.environment.known_roles
       instance_roles = instance_roles.collect {|role| role == "db" ? "db:primary=true" : role }
