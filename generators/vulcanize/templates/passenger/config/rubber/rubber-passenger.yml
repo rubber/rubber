@@ -1,4 +1,8 @@
 passenger_version: 2.2.5
+ruby_prefix: "#{use_enterprise_ruby ? '/usr/local' : '/usr'}"
+passenger_root: "#{ruby_prefix}/lib/ruby/gems/1.8/gems/passenger-#{passenger_version}"
+passenger_ruby: "#{ruby_prefix}/bin/ruby"
+passenger_lib: "#{passenger_root}/ext/apache2/mod_passenger.so"
 passenger_listen_port: 7000
 passenger_listen_ssl_port: 7001
 max_app_connections: 20

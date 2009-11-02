@@ -9,7 +9,7 @@ namespace :rubber do
     
     task :custom_install, :roles => :passenger do
       rubber.sudo_script 'install_passenger', <<-ENDSCRIPT
-        if [[ -z `ls /usr/local/lib/ruby/gems/*/gems/passenger-#{rubber_env.passenger_version}/ext/apache2/mod_passenger.so 2> /dev/null` ]]; then
+        if [[ -z `ls #{rubber_env.passenger_lib} 2> /dev/null` ]]; then
           echo -en "\n\n\n\n" | passenger-install-apache2-module
         fi
       ENDSCRIPT
