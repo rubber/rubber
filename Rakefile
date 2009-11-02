@@ -25,22 +25,6 @@ rescue LoadError
   puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
 end
 
-task :release => :changelog
-task :gemcutter => :release
-
-task :gemcutter do
-  rubber_yml = 'generators/vulcanize/templates/base/config/rubber/rubber.yml'
-  yml = File.join(File.dirname(__FILE__), rubber_yml)
-  gcyml = File.read(yml).gsub('wr0ngway-rubber', 'rubber')
-  File.open(yml, 'w') do |f|
-    f.write(gcyml)
-  end
-  sh "gem build rubber.gemspec"
-  sh "gem push rubber-*.gem"
-  sh "git co #{rubber_yml}"
-  sh "rm -f rubber-*.gem"
-end
-
 task :changelog do
 
   tags = `git tag -l`.split

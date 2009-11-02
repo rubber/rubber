@@ -131,7 +131,7 @@ gemsources: ["http://gemcutter.org", "http://gems.rubyforge.org/", "http://gems.
 # OPTIONAL: The gems to install on all instances
 # You can install a specific version of a gem by using a sub-array of gem, version
 # For example, gem: [[rails, 2.2.2], open4, aws-s3]
-gems: [wr0ngway-rubber, rails, open4, aws-s3]
+gems: [rubber, rails, open4, aws-s3]
 
 # OPTIONAL: A string prepended to shell command strings that cause multi
 # statement shell commands to fail fast.  You may need to comment this out
