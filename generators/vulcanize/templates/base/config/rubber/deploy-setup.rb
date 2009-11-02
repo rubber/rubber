@@ -18,11 +18,10 @@ namespace :rubber do
       end
 
       if ent_ruby_hosts.size > 0
-
         task :_install_enterprise_ruby, :hosts => ent_ruby_hosts do
-          custom_package('http://rubyforge.org/frs/download.php/64479',
-                         'ruby-enterprise', '1.8.7-20090928',
-                         '! `ruby --version 2> /dev/null` =~ "Ruby Enterprise Edition 20090928"')
+          custom_package('http://rubyforge.org/frs/download.php/66164',
+                         'ruby-enterprise', '1.8.7-2009.10',
+                         '! `ruby --version 2> /dev/null` =~ "Ruby Enterprise Edition 2009.10"')
         end
 
         _install_enterprise_ruby
