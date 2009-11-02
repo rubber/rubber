@@ -1,3 +1,15 @@
+1.1.3
+-----
+
+use correct path for passenger when using enterprise ruby or not <20a8542> [Matt Conway]
+add ability to grab default roles from rubber.yml at instance creation time <8817d78> [Matt Conway]
+add gemcutter, simplify changelog <44d989b> [Matt Conway]
+update to latest 9.04 ami <5043937> [Matt Conway]
+initial redis module <bb3a6b2> [Matt Conway]
+monitor postfix <6303745> [Matt Conway]
+switch to gemcutter <aead58a> [Matt Conway]
+add changelog generation <06475d9> [Matt Conway]
+
 1.1.2
 -----
 
