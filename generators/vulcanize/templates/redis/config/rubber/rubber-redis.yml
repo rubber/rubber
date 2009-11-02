@@ -1,0 +1,4 @@
+
+redis_db_dir: /mnt/redis
+
+gems: [redis]
