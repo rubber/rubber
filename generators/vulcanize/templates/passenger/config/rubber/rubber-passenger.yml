@@ -11,6 +11,6 @@ role_dependencies:
   passenger: [apache]
 
 roles:
-  app:
+  passenger:
     packages: [apache2-mpm-prefork, apache2-prefork-dev]
     gems: [fastthread, rack, [passenger, "#{passenger_version}"]]
