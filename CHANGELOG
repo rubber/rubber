@@ -1,3 +1,9 @@
+1.1.4
+-----
+
+role should be passenger, role dependencies handle the association from app -> passenger <fc9472f> [Matt Conway]
+new version of REE <e347a82> [Matt Conway]
+
 1.1.3
 -----
 
