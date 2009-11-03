@@ -1,1 +1,3 @@
 description: Phusion Passenger module (Apache2)
+dependent_templates:
+  - apache
