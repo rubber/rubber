@@ -130,7 +130,7 @@ namespace :rubber do
       unless AWS::S3::Bucket.list.find { |b| b.name == backup_bucket }
         AWS::S3::Bucket.create(backup_bucket)
       end
-      newest = Dir.entries(dir).sort_by {|f| File.mtime(File.join(dir,f))}.last
+      newest = Dir.entries(dir).grep(/^[^.]/).sort_by {|f| File.mtime(File.join(dir,f))}.last
       dest = "#{s3_prefix}#{newest}"
       puts "Saving backup to S3: #{backup_bucket}:#{dest}"
       AWS::S3::S3Object.store(dest, open(File.join(dir, newest)), backup_bucket)
