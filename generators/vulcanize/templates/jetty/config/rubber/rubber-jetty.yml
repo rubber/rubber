@@ -1,0 +1,8 @@
+jetty_version: 7.0.0.v20091005
+jetty_prefix: /opt
+jetty_dir: "#{jetty_prefix}/jetty"
+jetty_port: 8080
+
+roles:
+  jetty:
+    packages: [openjdk-6-jdk]
