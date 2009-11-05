@@ -46,26 +46,13 @@ namespace :rubber do
       ENDSCRIPT
     end
     
-    # git in ubuntu 7.0.4 is very out of date and doesn't work well with capistrano
-    after "rubber:install_packages", "rubber:base:install_git" if scm == "git"
-    task :install_git do
-      rubber.run_script 'install_git', <<-ENDSCRIPT
-        if ! git --version &> /dev/null; then
-          arch=`uname -m`
-          if [ "$arch" = "x86_64" ]; then
-            src="http://mirrors.kernel.org/ubuntu/pool/main/g/git-core/git-core_1.5.4.5-1~dapper1_amd64.deb"
-          else
-            src="http://mirrors.kernel.org/ubuntu/pool/main/g/git-core/git-core_1.5.4.5-1~dapper1_i386.deb"
-          fi
-          apt-get install liberror-perl libdigest-sha1-perl
-          wget -qO /tmp/git.deb ${src}
-          dpkg -i /tmp/git.deb
-
-          if [[ "#{repository}" =~ "@" ]]; then
-            # Get host key for src machine to prevent ssh from failing
-            rm -f ~/.ssh/known_hosts
-            ! ssh -o 'StrictHostKeyChecking=no' #{repository.gsub(/:.*/, '')} &> /dev/null
-          fi
+    after "rubber:install_packages", "rubber:base:configure_git" if scm == "git"
+    task :configure_git do
+      rubber.run_script 'configure_git', <<-ENDSCRIPT
+        if [[ "#{repository}" =~ "@" ]]; then
+          # Get host key for src machine to prevent ssh from failing
+          rm -f ~/.ssh/known_hosts
+          ! ssh -o 'StrictHostKeyChecking=no' #{repository.gsub(/:.*/, '')} &> /dev/null
         fi
       ENDSCRIPT
     end
