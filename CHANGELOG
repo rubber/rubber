@@ -1,3 +1,11 @@
+1.1.5
+-----
+
+strip out blank security_groups to make it easier to conditionally define them in rubber.yml <f75f1a3> [Matt Conway]
+add some feedback for add/remove role <bafe1bb> [Matt Conway]
+prevent backup from sometimes trying to upload a directory to s3 <f8c7951> [Matt Conway]
+make passenger template depend on apache <b970183> [Matt Conway]
+
 1.1.4
 -----
 
