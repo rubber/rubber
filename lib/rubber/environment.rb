@@ -79,6 +79,10 @@ module Rubber
           replace(receiver)
         end
 
+        def rubber_instances
+          @rubber_instances ||= Rubber::Configuration::rubber_instances
+        end
+
         def [](name)
           value = super(name)
           value = global[name] if global && !value
@@ -134,10 +138,6 @@ module Rubber
 
         def full_host
           @full_host ||= "#{host}.#{domain}" rescue nil
-        end
-
-        def rubber_instances
-          @rubber_instances ||= Rubber::Configuration::rubber_instances
         end
 
         # Forces role/host overrides into config
