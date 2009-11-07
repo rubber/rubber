@@ -7,3 +7,6 @@
 export RUBBER_ENV=<%= RUBBER_ENV %>
 export RAILS_ENV=<%= RUBBER_ENV %>
 alias current="cd <%= RUBBER_ROOT %>"
+
+# Always use rubygems
+export RUBYOPT="rubygems"
