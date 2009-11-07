@@ -43,10 +43,10 @@ source ||= RUBBER_INSTANCES.for_role("mysql_slave").first
 source ||= RUBBER_INSTANCES.for_role("mysql_master").first
 db_host = source ? source.full_name : 'localhost'
 
-command = "mysql -u #{RUBBER_ENV.db_slave_user}"
-command << " --password=#{RUBBER_ENV.db_pass}"
+command = "mysql -u #{RUBBER_CONFIG.db_slave_user}"
+command << " --password=#{RUBBER_CONFIG.db_pass}"
 command << " -h #{db_host}"
-command << " #{RUBBER_ENV.db_name} --skip-column-names"
+command << " #{RUBBER_CONFIG.db_name} --skip-column-names"
 
 # execute a sql query to get some data
 data = `echo "#{query}" | #{command}`
