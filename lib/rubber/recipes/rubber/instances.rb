@@ -87,6 +87,8 @@ namespace :rubber do
 
     instance.roles = (instance.roles + ir).uniq
     rubber_instances.save()
+    logger.info "Roles for #{instance_alias} are now:"
+    logger.info instance.role_names.sort.join("\n")
   end
 
   desc <<-DESC
@@ -109,6 +111,8 @@ namespace :rubber do
 
     instance.roles = (instance.roles - ir).uniq
     rubber_instances.save()
+    logger.info "Roles for #{instance_alias} are now:"
+    logger.info instance.role_names.sort.join("\n")
   end
 
   desc <<-DESC

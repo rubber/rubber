@@ -36,7 +36,7 @@ namespace :rubber do
       security_groups << host
       security_groups += roles
     end
-    security_groups = security_groups.uniq.compact
+    security_groups = security_groups.uniq.compact.reject {|x| x.empty? }
     security_groups = security_groups.collect {|x| isolate_group_name(x) } if env.isolate_security_groups
     return security_groups
   end
