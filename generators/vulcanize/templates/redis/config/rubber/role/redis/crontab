@@ -5,4 +5,4 @@
 %>
 
 # backup redis DBs every hour
-0 * * * * BACKUP_DIR=/mnt/redis_backups BACKUP_NAME=redis BACKUP_CMD="tar -czf %dir%/redis_%time_stamp%.tgz <%= rubber_env.redis_db_dir %>" <%= RUBBER_ROOT %>/script/cron-rake rubber:backup
+0 * * * * BACKUP_DIR=/mnt/redis_backups BACKUP_NAME=redis BACKUP_CMD="tar -czf \%dir\%/redis_\%time_stamp\%.tgz <%= rubber_env.redis_db_dir %>" <%= RUBBER_ROOT %>/script/cron-rake rubber:backup
