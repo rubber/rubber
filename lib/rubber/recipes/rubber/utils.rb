@@ -105,8 +105,8 @@ namespace :rubber do
     slices = []
     servers.each do |rolename, svrs|
       next if svrs.size == 0
-      # figure out size of each slice by deviding server count by # of groups
-      slice_size = svrs.size / (options.delete(:groups) || 2)
+      # figure out size of each slice by dividing server count by # of groups
+      slice_size = (Float(svrs.size) / (options.delete(:groups) || 2)).round
       slice_size = 1 if slice_size == 0
       slice_idx = 0
       svrs.each_slice(slice_size) do |srv_slice|
