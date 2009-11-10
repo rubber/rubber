@@ -120,6 +120,10 @@ isolate_security_groups: true
 # OPTIONAL: Set if you want to use Ruby Enterprise Edition instead of the standard ubuntu one
 use_enterprise_ruby: false
 
+# REE installs into /usr/local, so this lets us setup environment to use it globally
+# instead of system ruby
+ruby_prefix: "#{use_enterprise_ruby ? '/usr/local' : '/usr'}"
+
 # OPTIONAL: The packages to install on all instances
 # You can install a specific version of a package by using a sub-array of pkg, version
 # For example, packages: [[rake, 0.7.1], irb]

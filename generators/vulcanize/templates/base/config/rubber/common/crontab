@@ -3,7 +3,7 @@
   @write_cmd = 'crontab -'
 %>
 
-PATH=/usr/local/bin:/usr/local/sbin:/usr/local/mysql/bin:/usr/bin:/bin:/sbin:/usr/sbin
+PATH=/sbin:/usr/sbin:/usr/local/sbin:<%= rubber_env.ruby_prefix %>/bin:/usr/local/bin:/usr/bin:/bin
 MAILTO=<%= rubber_env.admin_email %>
 # don't need to set RUBBER_ENV for each script since we set it for all cron here
 RUBBER_ENV=<%= RUBBER_ENV %>
