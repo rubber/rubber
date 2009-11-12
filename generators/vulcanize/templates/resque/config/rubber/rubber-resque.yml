@@ -1,0 +1,8 @@
+resque_web_dir: /opt/resque
+
+role_dependencies:
+  css_validator: [redis]
+
+roles:
+  resque:
+    gems: [redis redis-namespace yajl-ruby sinatra resque]
