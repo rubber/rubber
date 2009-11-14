@@ -89,6 +89,8 @@ namespace :rubber do
     rubber_instances.save()
     logger.info "Roles for #{instance_alias} are now:"
     logger.info instance.role_names.sort.join("\n")
+    logger.info ''
+    logger.info "Run 'cap rubber:bootstrap' if done adding roles"
   end
 
   desc <<-DESC
