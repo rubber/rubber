@@ -1,3 +1,28 @@
+1.1.6
+-----
+
+stop using helper method to install ree as it uses different path for 64bit pkg <fbdeab3> [Matt Conway]
+remind about bootstrap <fd2e593> [Matt Conway]
+fix setting of rails vars <cd7206d> [Matt Conway]
+Merge remote branch 'nirvdrum/master' into pull <b902618> [Matt Conway]
+add passenger memory stats munin plugin <de6bb9a> [Matt Conway]
+setup path so that we select correct ruby globally <8365a70> [Matt Conway]
+sort display order of tools <4a7a9a0> [Matt Conway]
+fix arithmetic for server slicing in serial_task <4bbd9e7> [Matt Conway]
+Upgraded to the latest version of redis. <a62955f> [Kevin Menard]
+Merge branch 'wr0ngway/master' <09046af> [Kevin Menard]
+escape percents in crontab <a299c3b> [Matt Conway]
+fix ruby prefix path for passenger munin plugin <af9488d> [Matt Conway]
+fix config reference in munin example <50e563d> [Matt Conway]
+enable rubygems at system level for munin plugins <df32e3e> [Matt Conway]
+env should use rubygems by default <c2467cc> [Matt Conway]
+make default bucket name be dns friendly <b58fbbe> [Matt Conway]
+fix sphinx crontab to sudo using configured user <3fe8b6f> [Matt Conway]
+fix being able to reference cluster config (instance.yml) from within rubber.yml <08fecec> [Matt Conway]
+Fixed monit conf file. <d84d287> [Kevin Menard]
+git-core is fine on modern Ubuntu AMIs. <16eda00> [Kevin Menard]
+Added a jetty generator. <5c18774> [Kevin Menard]
+
 1.1.5
 -----
 
