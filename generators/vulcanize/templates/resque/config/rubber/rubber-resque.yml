@@ -1,5 +1,7 @@
 resque_web_dir: /opt/resque
 
+resque_worker_default_count: 5
+
 role_dependencies:
   css_validator: [redis]
 

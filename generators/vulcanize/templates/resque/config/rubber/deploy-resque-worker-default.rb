@@ -12,14 +12,19 @@ namespace :rubber do
     task :start, :roles => :resque_worker_default do
       as = fetch(:runner, "app")
       via = fetch(:run_method, :sudo)
-      invoke_command "sh -c 'cd #{current_path}; RAILS_ENV=#{rails_env} QUEUE=* nohup rake resque:work &> log/resque_worker_default.log & echo $! > tmp/pids/resque_worker_default.pid'", :via => via, :as => as
+      rubber_env.resque_worker_default_count.times do |i|
+        invoke_command "sh -c 'cd #{current_path}; RAILS_ENV=#{rails_env} QUEUE=* nohup rake resque:work &> log/resque_worker_default_#{i}.log & echo $! > tmp/pids/resque_worker_default_#{i}.pid'", :via => via, :as => as
+      end
     end
 
     desc "Stops default resque worker"
     task :stop, :roles => :resque_worker_default do
       as = fetch(:runner, "app")
       via = fetch(:run_method, :sudo)
-      invoke_command "sh -c 'cd #{current_path} && kill `cat tmp/pids/resque_worker_default.pid` && rm -f tmp/pids/resque_worker_default.pid; exit 0;'", :via => via, :as => as
+      rubber_env.resque_worker_default_count.times do |i|
+        invoke_command "sh -c 'cd #{current_path} && kill `cat tmp/pids/resque_worker_default_#{i}.pid` && rm -f tmp/pids/resque_worker_default_#{i}.pid; exit 0;'", :via => via, :as => as
+      end
+
       sleep 11 #wait for process to finish
     end
 
