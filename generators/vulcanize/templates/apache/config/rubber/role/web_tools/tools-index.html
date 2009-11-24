@@ -24,6 +24,10 @@
       <% rubber_instances.sort {|a,b| a.name <=> b.name }.each do |ic| %>
           <li><a href="/monit_<%= ic.name %>/">Monit <%= ic.name %></a></li>
       <% end %>
+      
+      <% if resque_host = rubber_instances.for_role('resque').first %>
+          <li><a href="/resque/">Resque</a></li>
+      <% end %>
 
 		</ul>
 	</body>
