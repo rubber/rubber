@@ -9,23 +9,26 @@ namespace :rubber do
     
     task :custom_install, :roles => :jetty do
       rubber.sudo_script 'install_jetty', <<-ENDSCRIPT
-        if [[ -z `ls #{rubber_env.jetty_dir} 2> /dev/null` ]]; then
-          wget -q http://ftp.osuosl.org/pub/eclipse/jetty/#{rubber_env.jetty_version}/dist/jetty-distribution-#{rubber_env.jetty_version}.tar.gz
-          tar -zxf jetty-distribution-#{rubber_env.jetty_version}.tar.gz
+        if [[ -z `ls #{rubber_env.jetty_prefix}/jetty-hightide-#{rubber_env.jetty_version} 2> /dev/null` ]]; then
+          wget -q http://dist.codehaus.org/jetty/jetty-hightide-7.0.0/jetty-hightide-#{rubber_env.jetty_version}.tar.gz
+          tar -zxf jetty-hightide-#{rubber_env.jetty_version}.tar.gz
           
           # Install to appropriate location.
-          mv jetty-distribution-#{rubber_env.jetty_version} #{rubber_env.jetty_prefix}
-          ln -s #{rubber_env.jetty_prefix}/jetty-distribution-#{rubber_env.jetty_version} #{rubber_env.jetty_dir}
+          mv jetty-hightide-#{rubber_env.jetty_version} #{rubber_env.jetty_prefix}
+          rm -f #{rubber_env.jetty_dir}
+          ln -s #{rubber_env.jetty_prefix}/jetty-hightide-#{rubber_env.jetty_version} #{rubber_env.jetty_dir}
           chmod 744 #{rubber_env.jetty_dir}/bin/*.sh
           
           # Cleanup the jetty distribution
-          rm #{rubber_env.jetty_dir}/webapps/*
+          rm -r #{rubber_env.jetty_dir}/webapps/*
           rm -r #{rubber_env.jetty_dir}/contexts/test.d/
-          mv #{rubber_env.jetty_dir}/contexts/demo.xml #{rubber_env.jetty_dir}/contexts/demo.xml.example
-          mv #{rubber_env.jetty_dir}/contexts/javadoc.xml #{rubber_env.jetty_dir}/contexts/javadoc.xml.example
-          
+
+          for file in #{rubber_env.jetty_dir}/contexts/*.xml; do
+            mv $file $file.example
+          done
+
           # Cleanup after ourselves.
-          rm jetty-distribution-#{rubber_env.jetty_version}.tar.gz
+          rm jetty-hightide-#{rubber_env.jetty_version}.tar.gz
         fi
       ENDSCRIPT
     end
