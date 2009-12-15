@@ -255,7 +255,7 @@ module Rubber
 
       def destroy_image(image_id)
         image = describe_images(image_id).first
-        raise "Could not find image: #{image_id}, aborting destroy_image"
+        raise "Could not find image: #{image_id}, aborting destroy_image" if image.nil?
         image_location = image[:location]
         bucket = image_location.split('/').first
         image_name = image_location.split('/').last.gsub(/\.manifest\.xml$/, '')
