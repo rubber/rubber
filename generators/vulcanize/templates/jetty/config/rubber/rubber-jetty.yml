@@ -3,6 +3,8 @@ jetty_prefix: /opt
 jetty_dir: "#{jetty_prefix}/jetty"
 jetty_port: 8080
 
+jetty_jvm_options: -XX:MaxPermSize=128m
+
 roles:
   jetty:
     packages: [openjdk-6-jdk]
