@@ -17,7 +17,7 @@ module Rubber
 
 
       def create_instance(ami, ami_type, security_groups, availability_zone)
-        response = @ec2.run_instances(:image_id => ami, :key_name => @aws_env.key_name, :instance_type => ami_type, :group_id => security_groups, :availability_zone => availability_zone)
+        response = @ec2.run_instances(:image_id => ami, :key_name => @aws_env.key_name, :instance_type => ami_type, :security_group => security_groups, :availability_zone => availability_zone)
         instance_id = response.instancesSet.item[0].instanceId
         return instance_id
       end
@@ -255,7 +255,7 @@ module Rubber
 
       def destroy_image(image_id)
         image = describe_images(image_id).first
-        raise "Could not find image: #{image_id}, aborting destroy_image"
+        raise "Could not find image: #{image_id}, aborting destroy_image" if image.nil?
         image_location = image[:location]
         bucket = image_location.split('/').first
         image_name = image_location.split('/').last.gsub(/\.manifest\.xml$/, '')

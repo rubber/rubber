@@ -1,3 +1,18 @@
+1.1.7
+-----
+
+Merge branch 'master' of github.com:wr0ngway/rubber <cb39353> [Matt Conway]
+fix for new security group param name in amazon-ec2 <a9f9b19> [Matt Conway]
+Only raise an exception if there's a problem. <890837b> [nirvdrum]
+Merge remote branch 'nirvdrum/resque2' <09fd5b8> [Matt Conway]
+Merge remote branch 'nirvdrum/master' <0c99d7d> [Matt Conway]
+use rubygems for crontab too <08d1d51> [Matt Conway]
+munin needs a mailer for notifications <d933a8c> [Matt Conway]
+Switched to the Jetty Hightide distribution to get JSP, JTA, and a few other niceties. <6d1b1a9> [Kevin Menard]
+Bumped passenger version. <79feda0> [Kevin Menard]
+Allow a configurable number of resque workers. <0587b40> [Kevin Menard]
+Added support for resque. <67ae003> [Kevin Menard]
+
 1.1.6
 -----
 
