@@ -82,6 +82,19 @@ cloud_providers:
     # m1.small or m1.large or m1.xlarge
     image_type: m1.small
 
+    # OPTIONAL: EC2 spot instance request support.
+    #
+    # Enables the creation of spot instance requests.  Rubber will wait synchronously until the request is fulfilled,
+    # at which point it will begin initializing the instance, unless spot_instance_request_timeout is set.
+    # spot_instance: true
+    #
+    # The maximum price you would like to pay for your spot instance.
+    # spot_price: "0.085"
+    #
+    # If a spot instance request can't be fulfilled in 3 minutes, fallback to on-demand instance creation.  If not set,
+    # the default is infinite.
+    # spot_instance_request_timeout: 180
+
 # REQUIRED the cloud provider to use
 #
 cloud_provider: aws
