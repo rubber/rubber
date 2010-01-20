@@ -1,3 +1,6 @@
+require 'rubygems'
+gem 'test-unit'
+
 require 'test/unit'
 require 'tempfile'
 require 'test_helper'
