@@ -80,6 +80,89 @@ namespace :rubber do
     destroy_static_ip(ip)
   end
 
+  desc 'Move a static IP address from DONOR machine to RECEIVER machine.'
+  task :move_static_ip do
+    donor_alias = get_env 'DONOR', 'Instance alias to get the IP from (e.g., web01)', true
+    receiver_alias = get_env 'RECEIVER', 'Instance alias to assign the IP to (e.g., web02)', true
+
+    # Sanity checks
+    donor = rubber_instances[donor_alias]
+    fatal "Instance does not exist: #{donor_alias}" unless donor
+
+    static_ip = donor.static_ip
+    fatal 'No static IP address to move exists' unless static_ip && static_ip != ''
+
+    receiver = rubber_instances[receiver_alias]
+    fatal "Instance does not exist: #{receiver_alias}" unless receiver
+
+    # Temporary removal of the instances.
+    old_donor = rubber_instances.remove(donor_alias)
+    old_receiver = rubber_instances.remove(receiver_alias)
+
+    rubber_instances.save
+
+    # Getting rid of alias->IP mappings and SSH's known_hosts records.
+    load_roles
+    setup_aliases
+    cleanup_known_hosts(old_donor)
+    cleanup_known_hosts(old_receiver)
+
+    # Detachment of EIPA.
+    success = cloud.detach_static_ip(static_ip)
+    fatal "Failed to detach static IP address #{static_ip}" unless success
+    rubber_instances.artifacts['static_ips'].delete(old_donor.name)
+
+    rubber_instances.save
+
+    # Attachment of EIPA.
+    success = cloud.attach_static_ip(static_ip, old_receiver.instance_id)
+    fatal "Failed to associate static IP address #{static_ip}" unless success
+
+    print "Waiting for #{receiver_alias} to get the address"
+    while true do
+      print '.'
+      sleep 3
+      instance = cloud.describe_instances(old_receiver.instance_id).first
+      break if instance[:external_ip] == static_ip
+    end
+
+    # Partial cleanup of static IP records.
+    rubber_instances.artifacts['static_ips'][old_receiver.name] = static_ip
+
+    rubber_instances.save
+
+    # First half of the sync.
+    new_receiver = Rubber::Configuration::InstanceItem.new(old_receiver.name,
+      old_receiver.domain, old_receiver.roles, old_receiver.instance_id,
+      old_receiver.security_groups)
+    new_receiver.static_ip = static_ip
+    rubber_instances.add(new_receiver)
+
+    rubber_instances.save
+
+    refresh_instance(receiver_alias)
+
+    print "Waiting for #{donor_alias} to get a new address"
+    while true do
+      print '.'
+      sleep 3
+      instance = cloud.describe_instances(old_donor.instance_id).first
+      break if instance[:external_ip] && instance[:external_ip] != ''
+    end
+
+    # Second half of the sync.
+    new_donor = Rubber::Configuration::InstanceItem.new(old_donor.name,
+      old_donor.domain, old_donor.roles, old_donor.instance_id,
+      old_donor.security_groups)
+    rubber_instances.add(new_donor)
+
+    rubber_instances.save
+
+    refresh_instance(donor_alias)
+
+    logger.info "Run 'cap rubber:describe_static_ips' to check the allocated ones"
+  end
+
   def allocate_static_ip()
     ip = cloud.create_static_ip()
     fatal "Failed to allocate static ip" if ip.nil?
