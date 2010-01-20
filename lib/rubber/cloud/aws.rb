@@ -15,11 +15,16 @@ module Rubber
         AWS::S3::Base.establish_connection!(:access_key_id => @aws_env.access_key, :secret_access_key => @aws_env.secret_access_key)
       end
 
-
       def create_instance(ami, ami_type, security_groups, availability_zone)
         response = @ec2.run_instances(:image_id => ami, :key_name => @aws_env.key_name, :instance_type => ami_type, :security_group => security_groups, :availability_zone => availability_zone)
         instance_id = response.instancesSet.item[0].instanceId
         return instance_id
+      end
+
+      def create_spot_instance_request(spot_price, ami, ami_type, security_groups, availability_zone)
+        response = @ec2.request_spot_instances(:spot_price => spot_price, :image_id => ami, :key_name => @aws_env.key_name, :instance_type => ami_type, :security_group => security_groups, :availability_zone => availability_zone)
+        request_id = response.spotInstanceRequestSet.item[0].spotInstanceRequestId
+        return request_id
       end
 
       def describe_instances(instance_id=nil)
@@ -271,6 +276,10 @@ module Rubber
         end
       end
 
+      def destroy_spot_instance_request(request_id)
+        @ec2.cancel_spot_instance_requests :spot_instance_request_id => request_id
+      end
+
       def describe_load_balancers(name=nil)
         lbs = []
         opts = {}
@@ -298,6 +307,25 @@ module Rubber
           lbs << lb
         end if response.describeLoadBalancersResult
         return lbs
+      end
+
+      def describe_spot_instance_requests(request_id=nil)
+        requests = []
+        opts = {}
+        opts[:spot_instance_request_id] = request_id if request_id
+        response = @ec2.describe_spot_instance_requests(opts)
+        response.spotInstanceRequestSet.item.each do |item|
+          request = {}
+          request[:id] = item.spotInstanceRequestId
+          request[:spot_price] = item.spotPrice
+          request[:state] = item.state
+          request[:created_at] = item.createTime
+          request[:type] = item.launchSpecification.instanceType
+          request[:image_id] = item.launchSpecification.imageId
+          request[:instance_id] = item.instanceId
+          requests << request
+        end if response.spotInstanceRequestSet
+        return requests
       end
 
     end

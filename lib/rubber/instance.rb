@@ -81,6 +81,7 @@ module Rubber
       attr_accessor :external_host, :external_ip
       attr_accessor :internal_host, :internal_ip
       attr_accessor :static_ip, :volumes, :partitions
+      attr_accessor :spot_instance_request_id
 
       def initialize(name, domain, roles, instance_id, security_group_list=[])
         @name = name

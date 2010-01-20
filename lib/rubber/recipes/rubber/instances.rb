@@ -10,6 +10,8 @@ namespace :rubber do
     default_roles = env.instance_roles
     r = get_env("ROLES", "Instance roles (e.g. web,app,db:primary=true)", true, default_roles)
 
+    create_spot_instance = ENV.delete("SPOT_INSTANCE") || env.cloud_providers[env.cloud_provider].spot_instance
+
     if r == '*'
       instance_roles = rubber_cfg.environment.known_roles
       instance_roles = instance_roles.collect {|role| role == "db" ? "db:primary=true" : role }
@@ -33,7 +35,7 @@ namespace :rubber do
     # Add in roles that the given set of roles depends on
     ir = Rubber::Configuration::RoleItem.expand_role_dependencies(ir, get_role_dependencies)
 
-    create_instance(instance_alias, ir)
+    create_instance(instance_alias, ir, create_spot_instance)
   end
 
   desc <<-DESC
@@ -154,7 +156,7 @@ namespace :rubber do
 
   # Creates a new ec2 instance with the given alias and roles
   # Configures aliases (/etc/hosts) on local and remote machines
-  def create_instance(instance_alias, instance_roles)
+  def create_instance(instance_alias, instance_roles, create_spot_instance=false)
     fatal "Instance already exists: #{instance_alias}" if rubber_instances[instance_alias]
 
     role_names = instance_roles.collect{|x| x.name}
@@ -167,12 +169,45 @@ namespace :rubber do
     ami = env.cloud_providers[env.cloud_provider].image_id
     ami_type = env.cloud_providers[env.cloud_provider].image_type
     availability_zone = env.availability_zone
-    logger.info "Creating instance #{ami}/#{ami_type}/#{security_groups.join(',') rescue 'Default'}/#{availability_zone || 'Default'}"
-    instance_id = cloud.create_instance(ami, ami_type, security_groups, availability_zone)
+
+    if create_spot_instance
+      spot_price = env.cloud_providers[env.cloud_provider].spot_price.to_s
+
+      logger.info "Creating spot instance request for instance #{ami}/#{ami_type}/#{security_groups.join(',') rescue 'Default'}/#{availability_zone || 'Default'}"
+      request_id = cloud.create_spot_instance_request(spot_price, ami, ami_type, security_groups, availability_zone)
+
+      print "Waiting for spot instance request to be fulfilled"
+      max_wait_time = env.cloud_providers[env.cloud_provider].spot_instance_request_timeout || (1.0 / 0) # Use the specified timeout value or default to infinite.
+      instance_id = nil
+      while instance_id.nil? do
+        print "."
+        sleep 2
+        max_wait_time -= 2
+
+        request = cloud.describe_spot_instance_requests(request_id).first
+        instance_id = request[:instance_id]
+
+        if max_wait_time < 0 && instance_id.nil?
+          cloud.destroy_spot_instance_request(request[:id])
+
+          print "\n"
+          print "Failed to fulfill spot instance in the time specified. Falling back to on-demand instance creation."
+          break
+        end
+      end
+
+      print "\n"
+    end
+
+    if !create_spot_instance || (create_spot_instance && max_wait_time < 0)
+      logger.info "Creating instance #{ami}/#{ami_type}/#{security_groups.join(',') rescue 'Default'}/#{availability_zone || 'Default'}"
+      instance_id = cloud.create_instance(ami, ami_type, security_groups, availability_zone)
+    end
 
     logger.info "Instance #{instance_id} created"
 
     instance_item = Rubber::Configuration::InstanceItem.new(instance_alias, env.domain, instance_roles, instance_id, security_groups)
+    instance_item.spot_instance_request_id = request_id if create_spot_instance
     rubber_instances.add(instance_item)
     rubber_instances.save()
 
