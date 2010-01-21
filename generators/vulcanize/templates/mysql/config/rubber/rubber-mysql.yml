@@ -32,6 +32,7 @@ role_dependencies:
   db: [mysql_slave]
 
 packages: [mysql-client, libmysql-ruby]
+gems: [mysql]
 
 roles:
   mysql_master:
