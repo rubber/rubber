@@ -19,14 +19,14 @@ namespace :rubber do
 
       if ent_ruby_hosts.size > 0
         task :_install_enterprise_ruby, :hosts => ent_ruby_hosts do
-          ver = "1.8.7-2009.10"
+          ver = "1.8.7-2010.01"
           rubber.run_script "install_ruby-enterprise", <<-ENDSCRIPT
-            if [[ ! `ruby --version 2> /dev/null` =~ "Ruby Enterprise Edition 2009.10" ]]; then
+            if [[ ! `ruby --version 2> /dev/null` =~ "Ruby Enterprise Edition 2010.01" ]]; then
               arch=`uname -m`
               if [ "$arch" = "x86_64" ]; then
-                src="http://rubyforge.org/frs/download.php/66163/ruby-enterprise_#{ver}_amd64.deb"
+                src="http://rubyforge.org/frs/download.php/68720/ruby-enterprise_#{ver}_amd64.deb"
               else
-                src="http://rubyforge.org/frs/download.php/66164/ruby-enterprise_#{ver}_i386.deb"
+                src="http://rubyforge.org/frs/download.php/68718/ruby-enterprise_#{ver}_i386.deb"
               fi
               src_file="${src##*/}"
               wget -qP /tmp ${src}
