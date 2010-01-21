@@ -82,6 +82,7 @@ module Rubber
       attr_accessor :internal_host, :internal_ip
       attr_accessor :static_ip, :volumes, :partitions
       attr_accessor :spot_instance_request_id
+      attr_accessor :platform
 
       def initialize(name, domain, roles, instance_id, security_group_list=[])
         @name = name
@@ -97,6 +98,15 @@ module Rubber
 
       def role_names()
         roles.collect {|r| r.name}
+      end
+
+      def platform
+        # Deal with old instance configurations that don't have a platform value persisted.
+        @platform || 'linux'
+      end
+
+      def windows?
+        platform == 'windows'
       end
     end
 

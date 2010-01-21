@@ -1,5 +1,8 @@
 namespace :rubber do
 
+  # Disable connecting to any Windows instance.
+  set :default_run_options, :except => { :platform => 'windows' }
+
   desc <<-DESC
     Bootstraps instances by setting timezone, installing packages and gems
   DESC

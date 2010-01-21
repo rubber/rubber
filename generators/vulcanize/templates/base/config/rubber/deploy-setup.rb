@@ -13,7 +13,7 @@ namespace :rubber do
       rubber_instances.filtered.each do |ic|
         env = rubber_cfg.environment.bind(ic.role_names, ic.name)
         if env.use_enterprise_ruby
-          ent_ruby_hosts << ic.full_name
+          ent_ruby_hosts << ic.full_name unless ic.windows?
         end
       end
 

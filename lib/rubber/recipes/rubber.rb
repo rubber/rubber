@@ -10,7 +10,13 @@ require 'rubber'
 
 namespace :rubber do
 
-  # advise capistrano's task method so that tasks for non-existant roles don't
+  # Disable connecting to any Windows instance.
+  alias :original_task :task
+  def task(name, options={}, &block)
+    original_task(name, options.merge(:except => { :platform => 'windows' }), &block)
+  end
+
+  # advise capistrano's task method so that tasks for non-existent roles don't
   # fail when roles isn't defined due to using a FILTER for load_roles
   # If you have a task you need to execute even when there are no
   # roles, you have to use required_task instead of task - see rubber:create
@@ -19,7 +25,8 @@ namespace :rubber do
     class << ns
       alias :required_task :task
       def task(name, options={}, &block)
-        required_task(name, options) do
+        # Disable connecting to any Windows instance.
+        required_task(name, options.merge(:except => { :platform => 'windows' })) do
           # define empty roles for the case when a task has a role that we don't define anywhere
           [*options[:roles]].each do |r|
             roles[r] ||= []
@@ -73,7 +80,7 @@ namespace :rubber do
     # define capistrano host => role mapping for all instances
     rubber_instances.filtered.each do |ic|
       ic.roles.each do |role|
-        opts = Rubber::Util::symbolize_keys(role.options)
+        opts = Rubber::Util::symbolize_keys(role.options).merge(:platform => ic.platform)
         msg = "Auto role: #{role.name.to_sym} => #{ic.full_name}"
         msg << ", #{opts.inspect}" if opts.inspect.size > 0
         logger.info msg

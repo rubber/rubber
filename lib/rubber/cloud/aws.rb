@@ -42,6 +42,7 @@ module Rubber
             instance[:internal_host] = item.privateDnsName
             instance[:state] = item.instanceState.name
             instance[:zone] = item.placement.availabilityZone
+            instance[:platform] = item.platform || 'linux'
             instances << instance
           end
         end if response.reservationSet
