@@ -1,3 +1,20 @@
+1.2.0
+-----
+
+Added Windows support. <e3c883e> [Kevin Menard]
+The libmysql-ruby package seems to not work with the latest Ruby enterprise edition, so re-install the gem to be safe. <931b19d> [Kevin Menard]
+Bumped to the latest ruby enterprise edition. <0ab3557> [Kevin Menard]
+Added example spot instance request configuration. <239b2f4> [Kevin Menard]
+Updated to the latest version of redis. <9723864> [Kevin Menard]
+Updated to the latest version of passenger. <5f152fc> [Kevin Menard]
+Fixed rake failing due to Test::Unit 2.0 being installed. <a579dc2> [Kevin Menard]
+Jeweler is available on gemcutter. <b5539b5> [Kevin Menard]
+Merge branch 'master' of github.com:wr0ngway/rubber <5efd21d> [Kevin Menard]
+Added support for spot instances. <a995d14> [Kevin Menard]
+Task to move around static IP addresses. <9612eb9> [Matt Conway]
+Merge branch 'master' of github.com:wr0ngway/rubber <3d66204> [Kevin Menard]
+Make it easier to override jetty options. <96d566e> [Kevin Menard]
+
 1.1.7
 -----
 
