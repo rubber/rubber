@@ -5,17 +5,18 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rubber}
-  s.version = "1.1.7"
+  s.version = "1.2.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Matt Conway"]
-  s.date = %q{2009-12-22}
+  s.date = %q{2010-01-22}
   s.default_executable = %q{vulcanize}
   s.description = %q{The rubber plugin enables relatively complex multi-instance deployments of RubyOnRails applications to Amazon's Elastic Compute Cloud (EC2).  Like capistrano, rubber is role based, so you can define a set of configuration files for a role and then assign that role to as many concrete instances as needed. One can also assign multiple roles to a single instance. This lets one start out with a single ec2 instance (belonging to all roles), and add new instances into the mix as needed to scale specific facets of your deployment, e.g. adding in instances that serve only as an 'app' role to handle increased app server load.}
   s.email = %q{matt@conwaysplace.com}
   s.executables = ["vulcanize"]
   s.extra_rdoc_files = [
-    "README"
+    "README",
+     "TODO"
   ]
   s.files = [
     "CHANGELOG",
@@ -75,6 +76,7 @@ Gem::Specification.new do |s|
      "generators/vulcanize/templates/haproxy/config/rubber/rubber-haproxy.yml",
      "generators/vulcanize/templates/haproxy/templates.yml",
      "generators/vulcanize/templates/jetty/config/rubber/deploy-jetty.rb",
+     "generators/vulcanize/templates/jetty/config/rubber/role/jetty/jetty.sh",
      "generators/vulcanize/templates/jetty/config/rubber/role/jetty/jetty.xml",
      "generators/vulcanize/templates/jetty/config/rubber/role/jetty/monit-jetty.conf",
      "generators/vulcanize/templates/jetty/config/rubber/rubber-jetty.yml",
@@ -190,6 +192,7 @@ Gem::Specification.new do |s|
      "lib/rubber/recipes/rubber/load_balancers.rb",
      "lib/rubber/recipes/rubber/security_groups.rb",
      "lib/rubber/recipes/rubber/setup.rb",
+     "lib/rubber/recipes/rubber/spot_requests.rb",
      "lib/rubber/recipes/rubber/static_ips.rb",
      "lib/rubber/recipes/rubber/utils.rb",
      "lib/rubber/recipes/rubber/volumes.rb",
@@ -217,14 +220,14 @@ Gem::Specification.new do |s|
 
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
       s.add_runtime_dependency(%q<capistrano>, [">= 0"])
-      s.add_runtime_dependency(%q<amazon-ec2>, [">= 0.7.8"])
+      s.add_runtime_dependency(%q<amazon-ec2>, [">= 0.9.0"])
       s.add_runtime_dependency(%q<aws-s3>, [">= 0"])
       s.add_runtime_dependency(%q<nettica>, [">= 0"])
       s.add_runtime_dependency(%q<httparty>, [">= 0"])
       s.add_runtime_dependency(%q<rails>, [">= 0"])
     else
       s.add_dependency(%q<capistrano>, [">= 0"])
-      s.add_dependency(%q<amazon-ec2>, [">= 0.7.8"])
+      s.add_dependency(%q<amazon-ec2>, [">= 0.9.0"])
       s.add_dependency(%q<aws-s3>, [">= 0"])
       s.add_dependency(%q<nettica>, [">= 0"])
       s.add_dependency(%q<httparty>, [">= 0"])
@@ -232,7 +235,7 @@ Gem::Specification.new do |s|
     end
   else
     s.add_dependency(%q<capistrano>, [">= 0"])
-    s.add_dependency(%q<amazon-ec2>, [">= 0.7.8"])
+    s.add_dependency(%q<amazon-ec2>, [">= 0.9.0"])
     s.add_dependency(%q<aws-s3>, [">= 0"])
     s.add_dependency(%q<nettica>, [">= 0"])
     s.add_dependency(%q<httparty>, [">= 0"])
