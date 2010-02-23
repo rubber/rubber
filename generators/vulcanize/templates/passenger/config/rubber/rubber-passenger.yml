@@ -1,4 +1,4 @@
-passenger_version: 2.2.9
+passenger_version: 2.2.10
 passenger_root: "#{ruby_prefix}/lib/ruby/gems/1.8/gems/passenger-#{passenger_version}"
 passenger_ruby: "#{ruby_prefix}/bin/ruby"
 passenger_lib: "#{passenger_root}/ext/apache2/mod_passenger.so"
