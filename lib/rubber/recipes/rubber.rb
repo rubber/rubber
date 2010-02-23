@@ -46,12 +46,6 @@ namespace :rubber do
   on :load, "rubber:init"
     
   required_task :init do
-    # Require cap 2.4 since we depend on bugs that have been fixed
-    require 'capistrano/version'
-    if Capistrano::Version::MAJOR < 2 || Capistrano::Version::MINOR < 4
-      fatal "rubber requires capistrano 2.4.0 or greater"
-    end
-    
     set :rubber_cfg, Rubber::Configuration.get_configuration(RUBBER_ENV)
     set :rubber_env, rubber_cfg.environment.bind()
     set :rubber_instances, rubber_cfg.instance
