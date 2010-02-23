@@ -1,3 +1,11 @@
+1.2.1
+-----
+
+Jeweler will release to gemcutter. <5ab598f> [Kevin Menard]
+Work around issue with capistrano 2.5.16. <ce9617b> [Kevin Menard]
+Bumped to the latest version of redis. <e32f072> [Kevin Menard]
+Bumped to latest version of passenger. <251f2ee> [Kevin Menard]
+
 1.2.0
 -----
 
