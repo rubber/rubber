@@ -31,7 +31,7 @@ role_dependencies:
   db:primary=true: [mysql_master]
   db: [mysql_slave]
 
-packages: [mysql-client, libmysql-ruby]
+packages: [mysql-client, libmysqlclient15-dev, libmysql-ruby]
 gems: [mysql]
 
 roles:
