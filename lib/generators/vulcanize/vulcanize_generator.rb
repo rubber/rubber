@@ -14,7 +14,7 @@ class VulcanizeGenerator < Rails::Generators::NamedBase
    protected
 
     def apply_template(name)
-      template_dir = File.join(self.class.source_root, name)
+      template_dir = File.join(self.class.source_root, name, '')
       unless File.directory?(template_dir)
         raise Rails::Generators::Error.new("Invalid template #{name}, use one of #{valid_templates.join(', ')}")
       end
@@ -25,8 +25,10 @@ class VulcanizeGenerator < Rails::Generators::NamedBase
         apply_template(dep)
       end
 
-      Find.find(File.join(template_dir, 'config')) do |f|
-       source_rel = f.gsub(/#{self.class.source_root}\//, '')
+      Find.find(template_dir) do |f|
+        Find.prune if f == File.join(template_dir, 'templates.yml')  # don't copy over templates.yml
+
+        source_rel = f.gsub(/#{self.class.source_root}\//, '')
         dest_rel   = source_rel.gsub(/^#{name}\//, '')
         if File.directory?(f)
           empty_directory(dest_rel)
