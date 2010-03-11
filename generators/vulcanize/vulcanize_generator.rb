@@ -3,7 +3,7 @@ require 'find'
 
 class VulcanizeGenerator < Rails::Generator::NamedBase
   
-  TEMPLATE_ROOT = File.dirname(__FILE__) + "/templates"
+  TEMPLATE_ROOT = File.expand_path("../../lib/generators/vulcanize/templates", __FILE__)
   TEMPLATE_FILE = "templates.yml"
     
   def manifest
