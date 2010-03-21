@@ -11,7 +11,6 @@ dns_providers:
     type: A
     ttl: 300
   zerigo:
-    customer_id: 1234
     email: foo@bar.com
     token: hexxy
     type: A
