@@ -10,7 +10,7 @@ module Rubber
         super(env, "zerigo")
 
         ::Zerigo::DNS::Base.user = provider_env.email
-        ::  Zerigo::DNS::Base.password = provider_env.token
+        ::Zerigo::DNS::Base.password = provider_env.token
       end
 
       def host_to_opts(host)
@@ -37,7 +37,7 @@ module Rubber
         opts = setup_opts(opts, [:host, :domain])
         result = []
         zone = ::Zerigo::DNS::Zone.find_or_create(opts[:domain])
-        params = { :zone_id => zone }
+        params = { :zone_id => zone.id }
 
         hn = opts[:host]
         ht = opts[:type]
@@ -50,18 +50,21 @@ module Rubber
           params[:fqdn] = url
         end
 
-        hosts = ::Zerigo::DNS::Host.find(:all, :params=> params)
+        begin
+          hosts = ::Zerigo::DNS::Host.find(:all, :params=> params)
 
-        hosts.each do |h|
-          keep = true
-          if ht && h.host_type != ht && ht != '*'
-            keep = false
-          end
-          if hd && h.data != hd
-            keep = false
-          end
-          result << h if keep
-        end if hosts
+          hosts.each do |h|
+            keep = true
+            if ht && h.host_type != ht && ht != '*'
+              keep = false
+            end
+            if hd && h.data != hd
+              keep = false
+            end
+            result << h if keep
+          end if hosts
+        rescue ActiveResource::ResourceNotFound => e
+        end
 
         return result
       end
