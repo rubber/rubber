@@ -80,7 +80,7 @@ namespace :rubber do
             if source == master
               logger.info "Creating slave from a dump of master #{source_host}"
               sudo "mysql -u root -e \"change master to master_host='#{master_host}', master_user='#{env.db_replicator_user}' #{master_pass}\""
-              sudo "mysqldump -u #{env.db_user} #{pass} -h #{source_host} --all-databases --master-data=1 | mysql -u root"
+              sudo "sh -c 'mysqldump -u #{env.db_user} #{pass} -h #{source_host} --all-databases --master-data=1 | mysql -u root'"
             else
               logger.info "Creating slave from a dump of slave #{source_host}"
               sudo "mysql -u #{env.db_user} #{pass} -h #{source_host} -e \"stop slave;\""
@@ -88,7 +88,7 @@ namespace :rubber do
               slave_config = Hash[*slave_status.scan(/([^\s:]+): ([^\s]*)/).flatten]
               log_file = slave_config['Master_Log_File']
               log_pos = slave_config['Read_Master_Log_Pos']
-              sudo "mysqldump -u #{env.db_user} #{pass} -h #{source_host} --all-databases --master-data=1 | mysql -u root"
+              sudo "sh -c 'mysqldump -u #{env.db_user} #{pass} -h #{source_host} --all-databases --master-data=1 | mysql -u root'"
               sudo "mysql -u root -e \"change master to master_host='#{master_host}', master_user='#{env.db_replicator_user}', master_log_file='#{log_file}', master_log_pos=#{log_pos} #{master_pass}\""
               sudo "mysql -u #{env.db_user} #{pass} -h #{source_host} -e \"start slave;\""
             end
@@ -122,7 +122,7 @@ namespace :rubber do
       Installs some extra munin graphs
     DESC
     task :custom_install_munin, :roles => [:mysql_master, :mysql_slave] do
-      rubber.run_script 'install_munin_mysql', <<-ENDSCRIPT
+      rubber.sudo_script 'install_munin_mysql', <<-ENDSCRIPT
         if [ ! -f /usr/share/munin/plugins/mysql_ ]; then
           wget -q -O /usr/share/munin/plugins/mysql_ http://github.com/kjellm/munin-mysql/raw/master/mysql_
           wget -q -O /etc/munin/plugin-conf.d/mysql_.conf http://github.com/kjellm/munin-mysql/raw/master/mysql_.conf

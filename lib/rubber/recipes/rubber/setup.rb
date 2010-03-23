@@ -194,7 +194,7 @@ namespace :rubber do
       put filtered, hosts_file
 
       # Setup hostname on instance so shell, etcs have nice display
-      sudo "echo $CAPISTRANO:HOST$ > /etc/hostname && hostname $CAPISTRANO:HOST$"
+      sudo "sh -c 'echo $CAPISTRANO:HOST$ > /etc/hostname && hostname $CAPISTRANO:HOST$'"
     end
 
     # TODO
@@ -323,7 +323,7 @@ namespace :rubber do
     You can override this task if you don't want this to happen
   DESC
   task :link_bash do
-    sudo("ln -sf /bin/bash /bin/sh")
+    sudo "ln -sf /bin/bash /bin/sh"
   end
 
   desc <<-DESC
@@ -337,7 +337,7 @@ namespace :rubber do
   DESC
   task :set_timezone do
     opts = get_host_options('timezone')
-    sudo "bash -c 'echo $CAPISTRANO:VAR$ > /etc/timezone'", opts
+    sudo "sh -c 'echo $CAPISTRANO:VAR$ > /etc/timezone'", opts
     sudo "cp /usr/share/zoneinfo/$CAPISTRANO:VAR$ /etc/localtime", opts
     # restart syslog so that times match timezone
     sudo_script 'restart_syslog', <<-ENDSCRIPT
@@ -387,7 +387,7 @@ namespace :rubber do
   end
 
   def custom_package(url_base, name, ver, install_test)
-    rubber.run_script "install_#{name}", <<-ENDSCRIPT
+    rubber.sudo_script "install_#{name}", <<-ENDSCRIPT
       if [[ #{install_test} ]]; then
         arch=`uname -m`
         if [ "$arch" = "x86_64" ]; then

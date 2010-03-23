@@ -20,7 +20,7 @@ namespace :rubber do
       if ent_ruby_hosts.size > 0
         task :_install_enterprise_ruby, :hosts => ent_ruby_hosts do
           ver = "1.8.7-2010.01"
-          rubber.run_script "install_ruby-enterprise", <<-ENDSCRIPT
+          rubber.sudo_script "install_ruby-enterprise", <<-ENDSCRIPT
             if [[ ! `ruby --version 2> /dev/null` =~ "Ruby Enterprise Edition 2010.01" ]]; then
               arch=`uname -m`
               if [ "$arch" = "x86_64" ]; then
@@ -59,7 +59,7 @@ namespace :rubber do
     
     after "rubber:install_packages", "rubber:base:configure_git" if scm == "git"
     task :configure_git do
-      rubber.run_script 'configure_git', <<-ENDSCRIPT
+      rubber.sudo_script 'configure_git', <<-ENDSCRIPT
         if [[ "#{repository}" =~ "@" ]]; then
           # Get host key for src machine to prevent ssh from failing
           rm -f ~/.ssh/known_hosts

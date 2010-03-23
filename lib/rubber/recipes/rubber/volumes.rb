@@ -104,7 +104,7 @@ namespace :rubber do
       if vol_spec['mount'] && vol_spec['filesystem']
         # then format/mount/etc if we don't have an entry in hosts file
         task :_setup_volume, :hosts => ic.external_ip do
-          rubber.run_script 'setup_volume', <<-ENDSCRIPT
+          rubber.sudo_script 'setup_volume', <<-ENDSCRIPT
             if ! grep -q '#{vol_spec['mount']}' /etc/fstab; then
               if mount | grep -q '#{vol_spec['mount']}'; then
                 umount '#{vol_spec['mount']}'
@@ -135,7 +135,7 @@ namespace :rubber do
     if ! ic.partitions.include?(part_id)
       # then format/mount/etc if we don't have an entry in hosts file
       task :_setup_partition, :hosts => ic.external_ip do
-        rubber.run_script 'setup_partition', <<-ENDSCRIPT
+        rubber.sudo_script 'setup_partition', <<-ENDSCRIPT
           if ! fdisk -l 2>&1 | grep -q '#{partition_spec['partition_device']}'; then
             if grep -q '#{partition_spec['disk_device']}\\b' /etc/fstab; then
               umount #{partition_spec['disk_device']}
@@ -175,7 +175,7 @@ namespace :rubber do
       end
       # then format/mount/etc if we don't have an entry in hosts file
       task :_zero_partitions, :hosts => ic.external_ip do
-        rubber.run_script 'zero_partitions', <<-ENDSCRIPT
+        rubber.sudo_script 'zero_partitions', <<-ENDSCRIPT
           # zero out parition for performance (see amazon DevGuide)
           echo "Zeroing out raid partitions to improve performance, this way take a while"
           #{zero_script}
@@ -200,7 +200,7 @@ namespace :rubber do
     end
 
     task :_setup_raid_volume, :hosts => ic.external_ip do
-      rubber.run_script 'setup_raid_volume', <<-ENDSCRIPT
+      rubber.sudo_script 'setup_raid_volume', <<-ENDSCRIPT
         if ! grep -q '#{raid_spec['device']}' /etc/fstab; then
           if mount | grep -q '#{raid_spec['mount']}'; then
             umount '#{raid_spec['mount']}'

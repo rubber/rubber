@@ -14,7 +14,7 @@ namespace :rubber do
       Reconfigures munin
     DESC
     task :custom_install do
-      rubber.run_script 'setup_munin_plugins', <<-ENDSCRIPT
+      rubber.sudo_script 'setup_munin_plugins', <<-ENDSCRIPT
         munin-node-configure --shell --remove-also > /tmp/setup-munin-plugins
         sh /tmp/setup-munin-plugins
       ENDSCRIPT
@@ -27,12 +27,12 @@ namespace :rubber do
 
     desc "Start munin system monitoring"
     task :start do
-      run "/etc/init.d/munin-node start"
+      sudo "/etc/init.d/munin-node start"
     end
     
     desc "Stop munin system monitoring"
     task :stop, :on_error => :continue do
-      run "/etc/init.d/munin-node stop"
+      sudo "/etc/init.d/munin-node stop"
     end
     
     desc "Restart munin system monitoring"

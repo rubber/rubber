@@ -1,6 +1,7 @@
 
 namespace :rubber do
-    namespace :monit do
+  
+  namespace :monit do
   
     rubber.allow_optional_tasks(self)
     
@@ -13,12 +14,12 @@ namespace :rubber do
 
     desc "Start monit daemon monitoring"
     task :start do
-      run "/etc/init.d/monit start"
+      sudo "/etc/init.d/monit start"
     end
     
     desc "Stop monit daemon monitoring"
     task :stop, :on_error => :continue do
-      run "/etc/init.d/monit stop"
+      sudo "/etc/init.d/monit stop"
     end
     
     desc "Restart monit daemon monitoring"

@@ -13,22 +13,22 @@ namespace :rubber do
 
     desc "Stops the redis server"
     task :stop, :roles => :redis, :on_error => :continue do
-      run "/etc/init.d/redis-server stop"
+      sudo "/etc/init.d/redis-server stop"
     end
 
     desc "Starts the redis server"
     task :start, :roles => :redis do
-      run "/etc/init.d/redis-server start"
+      sudo "/etc/init.d/redis-server start"
     end
 
     desc "Restarts the redis server"
     task :restart, :roles => :redis do
-      run "/etc/init.d/redis-server restart"
+      sudo "/etc/init.d/redis-server restart"
     end
 
     desc "Reloads the redis server"
     task :reload, :roles => :redis do
-      run "/etc/init.d/redis-server restart"
+      sudo "/etc/init.d/redis-server restart"
     end
 
   end
