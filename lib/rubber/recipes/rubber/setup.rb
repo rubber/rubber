@@ -7,14 +7,41 @@ namespace :rubber do
     Bootstraps instances by setting timezone, installing packages and gems
   DESC
   task :bootstrap do
-    set_timezone
     link_bash
+    set_timezone
     upgrade_packages
     install_packages
     setup_volumes
     setup_gem_sources
     install_gems
     deploy.setup
+  end
+
+  # Sets up instance to allow root access (e.g. recent canonical AMIs)
+  def enable_root_ssh(ip, initial_ssh_user)
+    old_user = user
+    begin
+      set :user, initial_ssh_user
+
+      task :_allow_root_ssh, :hosts => ip do
+        sudo "cp /home/#{initial_ssh_user}/.ssh/authorized_keys /root/.ssh/"
+      end
+
+      begin
+        _allow_root_ssh
+      rescue ConnectionError => e
+        if e.message =~ /Net::SSH::AuthenticationFailed/
+          logger.info "Can't connect as user #{initial_ssh_user} to #{ip}, assuming root allowed"
+        else
+          sleep 2
+          logger.info "Failed to connect to #{ip}, retrying"
+          retry
+        end
+      end
+    ensure
+      set :user, old_user
+    end
+
   end
 
   desc <<-DESC
@@ -313,7 +340,13 @@ namespace :rubber do
     sudo "bash -c 'echo $CAPISTRANO:VAR$ > /etc/timezone'", opts
     sudo "cp /usr/share/zoneinfo/$CAPISTRANO:VAR$ /etc/localtime", opts
     # restart syslog so that times match timezone
-    sudo "/etc/init.d/sysklogd restart"
+    sudo_script 'restart_syslog', <<-ENDSCRIPT
+      if [[ -x /etc/init.d/sysklogd ]]; then
+        /etc/init.d/sysklogd restart
+      elif [[ -x /etc/init.d/rsyslog ]]; then
+        /etc/init.d/rsyslog restart
+      fi
+    ENDSCRIPT
   end
   
   def update_dyndns(instance_item)

@@ -228,6 +228,9 @@ namespace :rubber do
         instance_item.platform = instance[:platform]
         rubber_instances.save()
 
+        # turn back on root ssh access if we are using root as the capistrano user for connecting
+        enable_root_ssh(instance_item.external_ip, fetch(:initial_ssh_user, 'ubuntu')) if user == 'root'
+
         # setup amazon elastic ips if configured to do so
         setup_static_ips
 
