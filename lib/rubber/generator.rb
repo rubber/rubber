@@ -113,7 +113,7 @@ module Rubber
           FileUtils.mkdir_p(File.dirname(config_path)) if config_path
 
           # Write a backup of original
-          open("#{config_path}.bak", 'w') { |f| f.write(orig) } if config_path
+          open("#{config_path}.bak", 'w') { |f| f.write(orig) } if config_path && config.backup
 
           # Write out transformed file
           writer = config_path || "|#{config.write_cmd}"
@@ -130,21 +130,23 @@ module Rubber
 
           # Run post transform command if needed
           if config.post
-            if orig == result
-              LOGGER.info("Nothing to do, not running post command")
+            if fake_root
+              LOGGER.info("Not running post command as a fake root was given: #{config.post}")
             elsif no_post
               LOGGER.info("Not running post command as no post specified")
-            elsif fake_root
-              LOGGER.info("Not running post command as a fake root was given: #{config.post}")
             else
-              # this lets us abort a script if a command in the middle of it errors out
-              # stop_on_error_cmd = "function error_exit { exit 99; }; trap error_exit ERR"
-              config.post = "#{stop_on_error_cmd}\n#{config.post}" if stop_on_error_cmd
+              if orig != result || force
+                # this lets us abort a script if a command in the middle of it errors out
+                # stop_on_error_cmd = "function error_exit { exit 99; }; trap error_exit ERR"
+                config.post = "#{stop_on_error_cmd}\n#{config.post}" if stop_on_error_cmd
 
-              LOGGER.info{"Transformation executing post config command: #{config.post}"}
-              LOGGER.info `#{config.post}`
-              if $?.exitstatus != 0
-                raise "Post command failed execution:  #{config.post}"
+                LOGGER.info{"Transformation executing post config command: #{config.post}"}
+                LOGGER.info `#{config.post}`
+                if $?.exitstatus != 0
+                  raise "Post command failed execution:  #{config.post}"
+                end
+              else
+                LOGGER.info("Nothing to do, not running post command")
               end
             end
           end
@@ -174,22 +176,28 @@ module Rubber
       attr_accessor :additive
       # Lets one dynamically determine if a given file gets skipped during transformation
       attr_accessor :skip
+      # Backup file when transforming, defaults to true, set to false to prevent backup
+      attr_accessor :backup
       # use sudo to write the output file
       # attr_accessor :sudo
       # options passed in through code
       attr_accessor :options
 
+      def initialize
+        @backup = true
+      end
+      
       def get_binding
         binding
-    end
+      end
     
-    def rubber_env()
-      Rubber::Configuration.rubber_env
-    end
-  
-    def rubber_instances()
-      Rubber::Configuration.rubber_instances
-    end
+      def rubber_env()
+        Rubber::Configuration.rubber_env
+      end
+
+      def rubber_instances()
+        Rubber::Configuration.rubber_instances
+      end
 
     end
 
