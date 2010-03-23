@@ -277,46 +277,43 @@ namespace :rubber do
 
     logger.info "Installing gems:#{expanded_gem_list}"
     open("/tmp/gem_helper", "w") {|f| f.write(gem_helper_script)}
-    system "sh /tmp/gem_helper install #{expanded_gem_list}"
+    system "ruby /tmp/gem_helper install #{expanded_gem_list}"
   end
 
+  set :gem_sources_helper_script, <<-'ENDSCRIPT'
+    sources = ARGV
+
+    installed = []
+    `gem sources -l`.grep(/^[^*]/) do |line|
+        line = line.strip
+        installed << line if line.size > 0
+    end
+
+    to_install = sources - installed
+    to_remove = installed - sources
+
+    if to_install.size > 0
+      to_install.each do |source|
+        system "gem sources -a #{source}"
+        fail "Unable to add gem sources" if $?.exitstatus > 0
+      end
+    end
+    if to_remove.size > 0
+      to_remove.each do |source|
+        system "gem sources -r #{source}"
+        fail "Unable to remove gem sources" if $?.exitstatus > 0
+      end
+    end
+  ENDSCRIPT
+  
   desc <<-DESC
     Setup ruby gems sources. Set 'gemsources' in rubber.yml to \
     be an array of URI strings.
   DESC
   task :setup_gem_sources do
     if rubber_env.gemsources
-      script = prepare_script 'gem_sources_helper', <<-'ENDSCRIPT'
-        ruby - $@ <<-'EOF'
-
-        sources = ARGV
-
-        installed = []
-        `gem sources -l`.grep(/^[^*]/) do |line|
-            line = line.strip
-            installed << line if line.size > 0
-        end
-
-        to_install = sources - installed
-        to_remove = installed - sources
-
-        if to_install.size > 0
-          to_install.each do |source|
-            system "gem sources -a #{source}"
-            fail "Unable to add gem sources" if $?.exitstatus > 0
-          end
-        end
-        if to_remove.size > 0
-          to_remove.each do |source|
-            system "gem sources -r #{source}"
-            fail "Unable to remove gem sources" if $?.exitstatus > 0
-          end
-        end
-
-        'EOF'
-      ENDSCRIPT
-
-      sudo "sh #{script} #{rubber_env.gemsources.join(' ')}"
+      script = prepare_script 'gem_sources_helper', gem_sources_helper_script, nil
+      sudo "ruby #{script} #{rubber_env.gemsources.join(' ')}"
     end
   end
 
@@ -418,8 +415,6 @@ namespace :rubber do
   # calls to rubygems
   #
   set :gem_helper_script, <<-'ENDSCRIPT'
-    ruby - $@ <<-'EOF'
-
     gem_cmd = ARGV[0]
     gems = ARGV[1..-1]
     cmd = "gem #{gem_cmd} --no-rdoc --no-ri"
@@ -458,8 +453,6 @@ namespace :rubber do
       system "#{cmd} #{gem_list}"
       fail "Unable to install gems" if $?.exitstatus > 0
     end
-
-    'EOF'
   ENDSCRIPT
 
   # Helper for installing gems,allows one to respond to prompts
@@ -479,8 +472,8 @@ namespace :rubber do
     end
     
     if opts.size > 0
-      script = prepare_script('gem_helper', gem_helper_script)
-      sudo "sh #{script} #{cmd} $CAPISTRANO:VAR$", opts do |ch, str, data|
+      script = prepare_script('gem_helper', gem_helper_script, nil)
+      sudo "ruby #{script} #{cmd} $CAPISTRANO:VAR$", opts do |ch, str, data|
         handle_gem_prompt(ch, data, str)
       end
     end

@@ -147,10 +147,10 @@ namespace :rubber do
     return local_alias
   end
 
-  def prepare_script(name, contents)
+  def prepare_script(name, contents, stop_on_error_cmd=rubber_env.stop_on_error_cmd)
     script = "/tmp/#{name}"
     # this lets us abort a script if a command in the middle of it errors out
-    contents = "#{rubber_env.stop_on_error_cmd}\n#{contents}" if rubber_env.stop_on_error_cmd
+    contents = "#{stop_on_error_cmd}\n#{contents}" if stop_on_error_cmd
     put(contents, script)
     return script
   end
