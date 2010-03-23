@@ -90,7 +90,10 @@ namespace :rubber do
               sudo "mysql -u #{env.db_user} #{pass} -h #{source_host} -e \"start slave;\""
             end
 
-            sudo "scp #{source_host}:/etc/mysql/debian.cnf /etc/mysql"
+            # this doesn't work without agent forwarding which sudo breaks, as well as not having your
+            # ec2 private key ssh-added on workstation
+            # sudo "scp -o \"StrictHostKeyChecking=no\" #{source_host}:/etc/mysql/debian.cnf /etc/mysql"
+
             sudo "mysql -u root -e \"flush privileges;\""
             sudo "mysql -u root -e \"start slave;\""
           end
