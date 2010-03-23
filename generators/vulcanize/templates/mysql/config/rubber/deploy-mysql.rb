@@ -36,7 +36,10 @@ namespace :rubber do
           exists = capture("echo $(ls #{env.db_data_dir}/ 2> /dev/null)")
           if exists.strip.size == 0
             common_bootstrap("mysql_master")
-            sudo "dpkg-reconfigure --frontend=noninteractive mysql-server-5.0"
+            sudo_script 'reconfigure-mysql', <<-ENDSCRIPT
+              server_package=`dpkg -l | grep mysql-server-[0-9] | awk '{print $2}'`
+              dpkg-reconfigure --frontend=noninteractive $server_package
+            ENDSCRIPT
             sleep 5
             pass = "identified by '#{env.db_pass}'" if env.db_pass
             sudo "mysql -u root -e 'create database #{env.db_name};'"
@@ -57,7 +60,10 @@ namespace :rubber do
           exists = capture("echo $(ls #{env.db_data_dir}/ 2> /dev/null)")
           if exists.strip.size == 0
             common_bootstrap("mysql_slave")
-            sudo "dpkg-reconfigure --frontend=noninteractive mysql-server-5.0"
+            sudo_script 'reconfigure-mysql', <<-ENDSCRIPT
+              server_package=`dpkg -l | grep mysql-server-[0-9] | awk '{print $2}'`
+              dpkg-reconfigure --frontend=noninteractive $server_package
+            ENDSCRIPT
             sleep 5
 
             master = rubber_instances.for_role("mysql_master").first
@@ -93,6 +99,7 @@ namespace :rubber do
               sudo "mysql -u #{env.db_user} #{pass} -h #{source_host} -e \"start slave;\""
             end
 
+            sudo "scp #{source_host}:/etc/mysql/debian.cnf /etc/mysql"
             sudo "mysql -u root -e \"flush privileges;\""
             sudo "mysql -u root -e \"start slave;\""
           end
@@ -113,7 +120,7 @@ namespace :rubber do
       deploy.update_code
       
       # Gen just the conf for the given mysql role
-      rubber.run_config(:RUBBER_ENV => RUBBER_ENV, :FILE => "role/#{role}|role/db/my.cnf", :deploy_path => release_path)
+      rubber.run_config(:RUBBER_ENV => RUBBER_ENV, :FILE => "role/#{role}|role/db/my.cnf", :FORCE => true, :deploy_path => release_path)
     end
     
     before "rubber:munin:custom_install", "rubber:mysql:custom_install_munin"
