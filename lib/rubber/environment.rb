@@ -145,14 +145,14 @@ module Rubber
           global = global.clone()
           role_overrides = global.delete("roles") || {}
           host_overrides = global.delete("hosts") || {}
-          roles.to_a.each do |role|
-            role_overrides[role].each do |k, v|
+          Array(roles).each do |role|
+            Array(role_overrides[role]).each do |k, v|
               global[k] = Environment.combine(global[k], v)
-            end if role_overrides[role]
+            end
           end
-          host_overrides[host].each do |k, v|
+          Array(host_overrides[host]).each do |k, v|
             global[k] = Environment.combine(global[k], v)
-          end if host_overrides[host]
+          end
           return global
         end
         

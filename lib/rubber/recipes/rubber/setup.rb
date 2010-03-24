@@ -284,9 +284,9 @@ namespace :rubber do
     sources = ARGV
 
     installed = []
-    `gem sources -l`.grep(/^[^*]/) do |line|
-        line = line.strip
-        installed << line if line.size > 0
+    `gem sources -l`.each_line do |line|
+      line = line.strip
+      installed << line if line.size > 0 && line =~ /^[^*]/
     end
 
     to_install = sources - installed
@@ -432,7 +432,7 @@ namespace :rubber do
     end
 
     installed = {}
-    `gem list --local`.each do |line|
+    `gem list --local`.each_line do |line|
         parts = line.scan(/(.*) \((.*)\)/).first
         next unless parts && parts.size == 2
         installed[parts[0]] = parts[1].split(",")
