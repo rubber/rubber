@@ -5,17 +5,18 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rubber}
-  s.version = "1.2.1"
+  s.version = "1.3.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Matt Conway"]
-  s.date = %q{2010-03-18}
+  s.date = %q{2010-04-05}
   s.default_executable = %q{vulcanize}
   s.description = %q{The rubber plugin enables relatively complex multi-instance deployments of RubyOnRails applications to Amazon's Elastic Compute Cloud (EC2).  Like capistrano, rubber is role based, so you can define a set of configuration files for a role and then assign that role to as many concrete instances as needed. One can also assign multiple roles to a single instance. This lets one start out with a single ec2 instance (belonging to all roles), and add new instances into the mix as needed to scale specific facets of your deployment, e.g. adding in instances that serve only as an 'app' role to handle increased app server load.}
   s.email = %q{matt@conwaysplace.com}
   s.executables = ["vulcanize"]
   s.extra_rdoc_files = [
-    "README"
+    "README",
+     "TODO"
   ]
   s.files = [
     "CHANGELOG",
@@ -112,6 +113,7 @@ Gem::Specification.new do |s|
      "generators/vulcanize/templates/munin/templates.yml",
      "generators/vulcanize/templates/mysql/config/rubber/common/database.yml",
      "generators/vulcanize/templates/mysql/config/rubber/deploy-mysql.rb",
+     "generators/vulcanize/templates/mysql/config/rubber/role/db/apparmor-mysql.conf",
      "generators/vulcanize/templates/mysql/config/rubber/role/db/crontab",
      "generators/vulcanize/templates/mysql/config/rubber/role/db/monit-mysql.cnf",
      "generators/vulcanize/templates/mysql/config/rubber/role/db/my.cnf",
@@ -210,7 +212,8 @@ Gem::Specification.new do |s|
      "test/generator_test.rb",
      "test/instance_test.rb",
      "test/test_helper.rb",
-     "test/util_test.rb"
+     "test/util_test.rb",
+     "test/zerigo_test.rb"
   ]
 
   if s.respond_to? :specification_version then
