@@ -15,6 +15,8 @@ class ZerigoTest < Test::Unit::TestCase
     FakeWeb.register_uri(:get,
                          "http://foo%40bar.com:testtoken@ns.zerigo.com/api/1.1/zones.xml",
                          :body => fakeweb_fixture('zerigo/get_zones.xml'))
+    @domain = "example1.com"
+    @zone = ::Zerigo::DNS::Zone.find_or_create(@domain)
   end
 
   def test_find_records
@@ -46,4 +48,40 @@ class ZerigoTest < Test::Unit::TestCase
     assert_equal 1, records.size
     assert_equal 'host1', records.first[:host]
   end
+
+  def test_create_record
+    params = {:host => 'newhost', :domain => 'example1.com', :data => '1.1.1.1', :type => 'A', :ttl => '333'}
+    dest_params = {'hostname' => 'newhost', 'data' => '1.1.1.1', 'host_type' => 'A', 'ttl' => '333', :zone_id => @zone.id}
+
+    ::Zerigo::DNS::Host.expects(:create).with(dest_params)
+    
+    @dns.create_host_record(params)
+  end
+
+  def test_destroy_record
+    params = {:host => 'host1', :domain => 'example1.com'}
+
+    FakeWeb.register_uri(:get,
+                         "http://foo%40bar.com:testtoken@ns.zerigo.com/api/1.1/hosts.xml?fqdn=host1.example1.com&zone_id=1",
+                         :body => fakeweb_fixture('zerigo/host1.xml'))
+    FakeWeb.register_uri(:delete,
+                         "http://foo%40bar.com:testtoken@ns.zerigo.com/api/1.1/hosts/1.xml",
+                         :body => "")
+
+    @dns.destroy_host_record(params)
+  end
+
+  def test_update_record
+    params = {:host => 'host1', :domain => 'example1.com', :data => "1.1.1.1"}
+
+    FakeWeb.register_uri(:get,
+                         "http://foo%40bar.com:testtoken@ns.zerigo.com/api/1.1/hosts.xml?fqdn=host1.example1.com&zone_id=1",
+                         :body => fakeweb_fixture('zerigo/host1.xml'))
+    FakeWeb.register_uri(:post,
+                         "http://foo%40bar.com:testtoken@ns.zerigo.com/api/1.1/hosts/1.xml",
+                         :body => "")
+
+    @dns.update_host_record(params)
+  end
+
 end
