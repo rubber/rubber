@@ -18,7 +18,7 @@ namespace :rubber do
     task :custom_install, :roles => :sphinx do
       # install sphinx from source
       ver = "0.9.8.1"
-      rubber.run_script 'install_sphinx', <<-ENDSCRIPT
+      rubber.sudo_script 'install_sphinx', <<-ENDSCRIPT
         # check if already installed
         if [ -x /usr/local/bin/searchd ]
           then echo 'Found sphinx searchd on system'
@@ -60,19 +60,20 @@ namespace :rubber do
     desc "Do sphinx setup tasks"
     task :setup, :roles => :sphinx do
       # Setup links to sphinx config/index as they need to persist between deploys
-      run "mkdir -p #{sphinx_root} #{sphinx_root}/config #{sphinx_root}/db"
-      run "chown -R #{runner}:#{runner} #{sphinx_root}"
+      sudo "mkdir -p #{sphinx_root} #{sphinx_root}/config #{sphinx_root}/db"
+      sudo "chown -R #{runner}:#{runner} #{sphinx_root}"
     end
 
     desc "Setup paths for sphinx runtime"
     task :config_dir, :roles => :sphinx do
-      run "rm -rf #{current_path}/sphinx && ln -sf #{sphinx_root} #{current_path}/sphinx"
+      sudo "rm -rf #{current_path}/sphinx"
+      sudo "ln -sf #{sphinx_root} #{current_path}/sphinx"
     end
 
     # runs the given ultrasphinx rake tasks
     def run_sphinx task
-      cmd = "cd #{current_path} && sudo -u #{runner} RAILS_ENV=#{RUBBER_ENV} rake #{task}"
-      run cmd
+      cmd = "sh -c 'cd #{current_path} && sudo -u #{runner} RAILS_ENV=#{RUBBER_ENV} rake #{task}'"
+      sudo cmd
     end
 
 

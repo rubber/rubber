@@ -9,10 +9,10 @@ namespace :rubber do
     # rubber auto-roles don't get defined till after all tasks are defined
     on :load do
       rubber.serial_task self, :serial_restart, :roles => :haproxy do
-        run "/etc/init.d/haproxy restart"
+        sudo "/etc/init.d/haproxy restart"
       end
       rubber.serial_task self, :serial_reload, :roles => :haproxy do
-        run "if ! ps ax | grep -v grep | grep -c haproxy &> /dev/null; then /etc/init.d/haproxy start; else /etc/init.d/haproxy reload; fi"
+        sudo "sh -c 'if ! ps ax | grep -v grep | grep -c haproxy &> /dev/null; then /etc/init.d/haproxy start; else /etc/init.d/haproxy reload; fi'"
       end
     end
     
@@ -22,12 +22,12 @@ namespace :rubber do
     
     desc "Stops the haproxy server"
     task :stop, :roles => :haproxy, :on_error => :continue do
-      run "/etc/init.d/haproxy stop"
+      sudo "/etc/init.d/haproxy stop"
     end
     
     desc "Starts the haproxy server"
     task :start, :roles => :haproxy do
-      run "/etc/init.d/haproxy start"
+      sudo "/etc/init.d/haproxy start"
     end
     
     desc "Restarts the haproxy server"

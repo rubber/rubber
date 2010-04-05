@@ -32,7 +32,7 @@ namespace :rubber do
     after "rubber:setup_app_permissions", "rubber:resque:setup_resque_permissions"
 
     task :setup_resque_permissions, :roles => :resque do
-      run "chown -R #{rubber_env.app_user}:#{rubber_env.app_user} #{rubber_env.resque_web_dir}/config.ru"
+      sudo "chown -R #{rubber_env.app_user}:#{rubber_env.app_user} #{rubber_env.resque_web_dir}/config.ru"
     end
     
   end

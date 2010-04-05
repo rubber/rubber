@@ -7,14 +7,41 @@ namespace :rubber do
     Bootstraps instances by setting timezone, installing packages and gems
   DESC
   task :bootstrap do
-    set_timezone
     link_bash
+    set_timezone
     upgrade_packages
     install_packages
     setup_volumes
     setup_gem_sources
     install_gems
     deploy.setup
+  end
+
+  # Sets up instance to allow root access (e.g. recent canonical AMIs)
+  def enable_root_ssh(ip, initial_ssh_user)
+    old_user = user
+    begin
+      set :user, initial_ssh_user
+
+      task :_allow_root_ssh, :hosts => ip do
+        sudo "cp /home/#{initial_ssh_user}/.ssh/authorized_keys /root/.ssh/"
+      end
+
+      begin
+        _allow_root_ssh
+      rescue ConnectionError => e
+        if e.message =~ /Net::SSH::AuthenticationFailed/
+          logger.info "Can't connect as user #{initial_ssh_user} to #{ip}, assuming root allowed"
+        else
+          sleep 2
+          logger.info "Failed to connect to #{ip}, retrying"
+          retry
+        end
+      end
+    ensure
+      set :user, old_user
+    end
+
   end
 
   desc <<-DESC
@@ -167,7 +194,9 @@ namespace :rubber do
       put filtered, hosts_file
 
       # Setup hostname on instance so shell, etcs have nice display
-      sudo "echo $CAPISTRANO:HOST$ > /etc/hostname && hostname $CAPISTRANO:HOST$"
+      sudo "sh -c 'echo $CAPISTRANO:HOST$ > /etc/hostname && hostname $CAPISTRANO:HOST$'"
+      # Newer ubuntus ec2-init script always resets hostname, so prevent it
+      sudo "sh -c 'echo compat=0 > /etc/ec2-init/is-compat-env'"
     end
 
     # TODO
@@ -248,46 +277,43 @@ namespace :rubber do
 
     logger.info "Installing gems:#{expanded_gem_list}"
     open("/tmp/gem_helper", "w") {|f| f.write(gem_helper_script)}
-    system "sh /tmp/gem_helper install #{expanded_gem_list}"
+    system "ruby /tmp/gem_helper install #{expanded_gem_list}"
   end
 
+  set :gem_sources_helper_script, <<-'ENDSCRIPT'
+    sources = ARGV
+
+    installed = []
+    `gem sources -l`.each_line do |line|
+      line = line.strip
+      installed << line if line.size > 0 && line =~ /^[^*]/
+    end
+
+    to_install = sources - installed
+    to_remove = installed - sources
+
+    if to_install.size > 0
+      to_install.each do |source|
+        system "gem sources -a #{source}"
+        fail "Unable to add gem sources" if $?.exitstatus > 0
+      end
+    end
+    if to_remove.size > 0
+      to_remove.each do |source|
+        system "gem sources -r #{source}"
+        fail "Unable to remove gem sources" if $?.exitstatus > 0
+      end
+    end
+  ENDSCRIPT
+  
   desc <<-DESC
     Setup ruby gems sources. Set 'gemsources' in rubber.yml to \
     be an array of URI strings.
   DESC
   task :setup_gem_sources do
     if rubber_env.gemsources
-      script = prepare_script 'gem_sources_helper', <<-'ENDSCRIPT'
-        ruby - $@ <<-'EOF'
-
-        sources = ARGV
-
-        installed = []
-        `gem sources -l`.grep(/^[^*]/) do |line|
-            line = line.strip
-            installed << line if line.size > 0
-        end
-
-        to_install = sources - installed
-        to_remove = installed - sources
-
-        if to_install.size > 0
-          to_install.each do |source|
-            system "gem sources -a #{source}"
-            fail "Unable to add gem sources" if $?.exitstatus > 0
-          end
-        end
-        if to_remove.size > 0
-          to_remove.each do |source|
-            system "gem sources -r #{source}"
-            fail "Unable to remove gem sources" if $?.exitstatus > 0
-          end
-        end
-
-        'EOF'
-      ENDSCRIPT
-
-      sudo "sh #{script} #{rubber_env.gemsources.join(' ')}"
+      script = prepare_script 'gem_sources_helper', gem_sources_helper_script, nil
+      sudo "ruby #{script} #{rubber_env.gemsources.join(' ')}"
     end
   end
 
@@ -296,7 +322,7 @@ namespace :rubber do
     You can override this task if you don't want this to happen
   DESC
   task :link_bash do
-    sudo("ln -sf /bin/bash /bin/sh")
+    sudo "ln -sf /bin/bash /bin/sh"
   end
 
   desc <<-DESC
@@ -310,10 +336,16 @@ namespace :rubber do
   DESC
   task :set_timezone do
     opts = get_host_options('timezone')
-    sudo "bash -c 'echo $CAPISTRANO:VAR$ > /etc/timezone'", opts
+    sudo "sh -c 'echo $CAPISTRANO:VAR$ > /etc/timezone'", opts
     sudo "cp /usr/share/zoneinfo/$CAPISTRANO:VAR$ /etc/localtime", opts
     # restart syslog so that times match timezone
-    sudo "/etc/init.d/sysklogd restart"
+    sudo_script 'restart_syslog', <<-ENDSCRIPT
+      if [[ -x /etc/init.d/sysklogd ]]; then
+        /etc/init.d/sysklogd restart
+      elif [[ -x /etc/init.d/rsyslog ]]; then
+        /etc/init.d/rsyslog restart
+     fi
+    ENDSCRIPT
   end
   
   def update_dyndns(instance_item)
@@ -354,7 +386,7 @@ namespace :rubber do
   end
 
   def custom_package(url_base, name, ver, install_test)
-    rubber.run_script "install_#{name}", <<-ENDSCRIPT
+    rubber.sudo_script "install_#{name}", <<-ENDSCRIPT
       if [[ #{install_test} ]]; then
         arch=`uname -m`
         if [ "$arch" = "x86_64" ]; then
@@ -389,8 +421,6 @@ namespace :rubber do
   # calls to rubygems
   #
   set :gem_helper_script, <<-'ENDSCRIPT'
-    ruby - $@ <<-'EOF'
-
     gem_cmd = ARGV[0]
     gems = ARGV[1..-1]
     cmd = "gem #{gem_cmd} --no-rdoc --no-ri"
@@ -408,7 +438,7 @@ namespace :rubber do
     end
 
     installed = {}
-    `gem list --local`.each do |line|
+    `gem list --local`.each_line do |line|
         parts = line.scan(/(.*) \((.*)\)/).first
         next unless parts && parts.size == 2
         installed[parts[0]] = parts[1].split(",")
@@ -429,8 +459,6 @@ namespace :rubber do
       system "#{cmd} #{gem_list}"
       fail "Unable to install gems" if $?.exitstatus > 0
     end
-
-    'EOF'
   ENDSCRIPT
 
   # Helper for installing gems,allows one to respond to prompts
@@ -450,8 +478,8 @@ namespace :rubber do
     end
     
     if opts.size > 0
-      script = prepare_script('gem_helper', gem_helper_script)
-      sudo "sh #{script} #{cmd} $CAPISTRANO:VAR$", opts do |ch, str, data|
+      script = prepare_script('gem_helper', gem_helper_script, nil)
+      sudo "ruby #{script} #{cmd} $CAPISTRANO:VAR$", opts do |ch, str, data|
         handle_gem_prompt(ch, data, str)
       end
     end

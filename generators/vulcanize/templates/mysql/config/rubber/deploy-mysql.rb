@@ -36,8 +36,7 @@ namespace :rubber do
           exists = capture("echo $(ls #{env.db_data_dir}/ 2> /dev/null)")
           if exists.strip.size == 0
             common_bootstrap("mysql_master")
-            sudo "dpkg-reconfigure --frontend=noninteractive mysql-server-5.0"
-            sleep 5
+            
             pass = "identified by '#{env.db_pass}'" if env.db_pass
             sudo "mysql -u root -e 'create database #{env.db_name};'"
             sudo "mysql -u root -e \"grant all on *.* to '#{env.db_user}'@'%' #{pass};\""
@@ -57,8 +56,6 @@ namespace :rubber do
           exists = capture("echo $(ls #{env.db_data_dir}/ 2> /dev/null)")
           if exists.strip.size == 0
             common_bootstrap("mysql_slave")
-            sudo "dpkg-reconfigure --frontend=noninteractive mysql-server-5.0"
-            sleep 5
 
             master = rubber_instances.for_role("mysql_master").first
 
@@ -80,7 +77,7 @@ namespace :rubber do
             if source == master
               logger.info "Creating slave from a dump of master #{source_host}"
               sudo "mysql -u root -e \"change master to master_host='#{master_host}', master_user='#{env.db_replicator_user}' #{master_pass}\""
-              sudo "mysqldump -u #{env.db_user} #{pass} -h #{source_host} --all-databases --master-data=1 | mysql -u root"
+              sudo "sh -c 'mysqldump -u #{env.db_user} #{pass} -h #{source_host} --all-databases --master-data=1 | mysql -u root'"
             else
               logger.info "Creating slave from a dump of slave #{source_host}"
               sudo "mysql -u #{env.db_user} #{pass} -h #{source_host} -e \"stop slave;\""
@@ -88,10 +85,14 @@ namespace :rubber do
               slave_config = Hash[*slave_status.scan(/([^\s:]+): ([^\s]*)/).flatten]
               log_file = slave_config['Master_Log_File']
               log_pos = slave_config['Read_Master_Log_Pos']
-              sudo "mysqldump -u #{env.db_user} #{pass} -h #{source_host} --all-databases --master-data=1 | mysql -u root"
+              sudo "sh -c 'mysqldump -u #{env.db_user} #{pass} -h #{source_host} --all-databases --master-data=1 | mysql -u root'"
               sudo "mysql -u root -e \"change master to master_host='#{master_host}', master_user='#{env.db_replicator_user}', master_log_file='#{log_file}', master_log_pos=#{log_pos} #{master_pass}\""
               sudo "mysql -u #{env.db_user} #{pass} -h #{source_host} -e \"start slave;\""
             end
+
+            # this doesn't work without agent forwarding which sudo breaks, as well as not having your
+            # ec2 private key ssh-added on workstation
+            # sudo "scp -o \"StrictHostKeyChecking=no\" #{source_host}:/etc/mysql/debian.cnf /etc/mysql"
 
             sudo "mysql -u root -e \"flush privileges;\""
             sudo "mysql -u root -e \"start slave;\""
@@ -113,7 +114,14 @@ namespace :rubber do
       deploy.update_code
       
       # Gen just the conf for the given mysql role
-      rubber.run_config(:RUBBER_ENV => RUBBER_ENV, :FILE => "role/#{role}|role/db/my.cnf", :deploy_path => release_path)
+      rubber.run_config(:RUBBER_ENV => RUBBER_ENV, :FILE => "role/#{role}|role/db/", :FORCE => true, :deploy_path => release_path)
+
+      # reconfigure mysql so that it sets up data dir in /mnt with correct files
+      sudo_script 'reconfigure-mysql', <<-ENDSCRIPT
+        server_package=`dpkg -l | grep mysql-server-[0-9] | awk '{print $2}'`
+        dpkg-reconfigure --frontend=noninteractive $server_package
+      ENDSCRIPT
+      sleep 5
     end
     
     before "rubber:munin:custom_install", "rubber:mysql:custom_install_munin"
@@ -122,7 +130,7 @@ namespace :rubber do
       Installs some extra munin graphs
     DESC
     task :custom_install_munin, :roles => [:mysql_master, :mysql_slave] do
-      rubber.run_script 'install_munin_mysql', <<-ENDSCRIPT
+      rubber.sudo_script 'install_munin_mysql', <<-ENDSCRIPT
         if [ ! -f /usr/share/munin/plugins/mysql_ ]; then
           wget -q -O /usr/share/munin/plugins/mysql_ http://github.com/kjellm/munin-mysql/raw/master/mysql_
           wget -q -O /etc/munin/plugin-conf.d/mysql_.conf http://github.com/kjellm/munin-mysql/raw/master/mysql_.conf
@@ -150,6 +158,96 @@ namespace :rubber do
     task :restart, :roles => [:mysql_master, :mysql_slave] do
       sudo "/etc/init.d/mysql restart"
     end
+
+    desc <<-DESC
+      Backup production database using rake task rubber:backup_db
+    DESC
+    task :backup, :roles => [:mysql_master, :mysql_slave] do
+      master_instances = rubber_instances.for_role("mysql_master")
+      slaves = rubber_instances.for_role("mysql_slave")
+
+      # Select only one instance for backup.  Favor slave database.
+      selected_mysql_instance = (slaves+master_instances).first
+            
+      task_name = "_backup_mysql_slave_#{selected_mysql_instance.full_name}".to_sym()
+      task task_name, :hosts => selected_mysql_instance.full_name do
+        run "cd #{current_path} && RUBBER_ENV=production RAILS_ENV=production RUBYOPT=rubygems BACKUP_DIR=/mnt/db_backups DBUSER=#{rubber_env.db_user} DBPASS=#{rubber_env.db_pass} DBNAME=#{rubber_env.db_name} DBHOST=#{selected_mysql_instance.full_name} rake rubber:backup_db"
+      end
+      send task_name
+    end
+    
+    desc <<-DESC
+      Restore production database from s3 using rake task rubber:restore_db_s3
+    DESC
+    task :restore_s3, :roles => [:mysql_master, :mysql_slave] do
+      master_instances = rubber_instances.for_role("mysql_master")
+      slaves = rubber_instances.for_role("mysql_slave")
+
+      for instance in master_instances+slaves
+        task_name = "_restore_mysql_s3_#{instance.full_name}".to_sym()
+        task task_name, :hosts => instance.full_name do
+          run "cd #{current_path} && RUBBER_ENV=production RAILS_ENV=production RUBYOPT=rubygems BACKUP_DIR=/mnt/db_backups DBUSER=#{rubber_env.db_user} DBPASS=#{rubber_env.db_pass} DBNAME=#{rubber_env.db_name} DBHOST=#{instance.full_name} rake rubber:restore_db_s3"
+        end
+        send task_name
+      end
+    end    
+    
+    desc <<-DESC
+      Overwrite ec2 production database with export from local production database.
+    DESC
+    task :local_to_ec2, :roles => [:mysql_master, :mysql_slave] do
+      require 'yaml'      
+      master_instances = rubber_instances.for_role("mysql_master")
+      slaves = rubber_instances.for_role("mysql_slave")
+
+      # Select only one instance for backup.  Favor slave database.
+      selected_mysql_instance = (slaves+master_instances).first
+            
+      task_name = "_load_local_to_#{selected_mysql_instance.full_name}".to_sym()
+      task task_name, :hosts => selected_mysql_instance.full_name do
+
+        # Dump Local to tmp folder
+        filename = "#{application}.local.#{Time.now.to_i}.sql.gz" 
+        backup_file = "/tmp/#{filename}" 
+        on_rollback { delete file }
+        FileUtils.mkdir_p(File.dirname(backup_file))
+
+        # Use database.yml to get connection params
+        db = YAML::load(ERB.new(IO.read(File.join(File.dirname(__FILE__), '..','database.yml'))).result)['production']
+        user = db['username']
+        pass = db['passsword']
+        pass = nil if pass and pass.strip.size == 0
+        host = db['host']
+        name = db['database']
+        
+        raise "No db_backup_cmd defined in rubber.yml, cannot backup!" unless rubber_env.db_backup_cmd
+        db_backup_cmd = rubber_env.db_backup_cmd.gsub(/%([^%]+)%/, '#{\1}')
+        db_backup_cmd = eval('%Q{' + db_backup_cmd + '}')
+
+        # mysqldump (or backup app) needs to be in your path
+        puts "Backing up database with command:"
+        system(db_backup_cmd)
+        puts "Created backup: #{backup_file}"
+
+        # Upload Local to S3
+        cloud_provider = rubber_env.cloud_providers[rubber_env.cloud_provider]
+        s3_prefix = "db/"
+        backup_bucket = cloud_provider.backup_bucket
+        if backup_bucket
+          AWS::S3::Base.establish_connection!(:access_key_id => cloud_provider.access_key, :secret_access_key => cloud_provider.secret_access_key)
+          unless AWS::S3::Bucket.list.find { |b| b.name == backup_bucket }
+            AWS::S3::Bucket.create(backup_bucket)
+          end
+          dest = "#{s3_prefix}#{File.basename(backup_file)}"
+          puts "Saving db dump to S3: #{backup_bucket}:#{dest}"
+          AWS::S3::S3Object.store(dest, open(backup_file), backup_bucket)
+        end
+        
+        send :restore_s3
+
+      end
+      send task_name
+    end    
   
   end
 

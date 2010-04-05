@@ -95,6 +95,14 @@ class GeneratorTest < Test::Unit::TestCase
 
     FileUtils.rm_f(post_file)
     gen = Generator.new(nil, nil, nil)
+    gen.force = true
+    gen.transform(src)
+    assert File.exists?(out_file.path), "transform did not generate an output file"
+    assert File.exists?(post_file), "forced transform did not execute post"
+    assert_equal "hello", File.read(out_file.path).strip, "transformed contents are incorrect"
+
+    FileUtils.rm_f(post_file)
+    gen = Generator.new(nil, nil, nil)
     gen.no_post = true
     gen.transform(src + "there")
     assert File.exists?(out_file.path), "transform did not generate an output file"
@@ -323,4 +331,40 @@ def test_file_pattern
     Generator.new(nil, nil, nil).transform(src)
     assert ! File.exists?(out_file.path), "transform didn't skip generation of an output file"
   end
+
+  def test_backup
+    out_file = Tempfile.new('testbak')
+    assert ! File.exists?("#{out_file.path}.bak")
+    File.open(out_file.path, 'w') {|f| f.write("howdy")}
+    
+    src = <<-SRC
+      <%
+        @path = '#{out_file.path}'
+      %>
+     hello <%= Time.now.to_f %>
+    SRC
+
+    Generator.new(nil, nil, nil).transform(src)
+
+    assert File.exists?("#{out_file.path}.bak"), "transform didn't generate backup"
+    assert_match /howdy/, File.read("#{out_file.path}.bak"), "transform backup has wrong contents"
+  end
+
+  def test_no_backup
+    out_file = Tempfile.new('testnobak')
+    assert ! File.exists?("#{out_file.path}.bak")
+    File.open(out_file.path, 'w') {|f| f.write("howdy")}
+    src = <<-SRC
+      <%
+        @path = '#{out_file.path}'
+        @backup = false
+      %>
+     hello <%= Time.now.to_f %>
+    SRC
+
+    Generator.new(nil, nil, nil).transform(src)
+
+    assert ! File.exists?("#{out_file.path}.bak"), "transform shouldn't generate backup"
+  end
+
 end

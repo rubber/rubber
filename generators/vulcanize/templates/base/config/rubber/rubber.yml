@@ -75,10 +75,10 @@ cloud_providers:
 
     # REQUIRED: the ami and instance type for creating instances
     # The Ubuntu images at http://alestic.com/ work well
-    # Ubuntu 9.04 Jaunty	base install	32-bit	2.6.21.7-2.fc8xen	ami-ccf615a5
-    # Ubuntu 9.04 Jaunty	base install	64-bit	2.6.21.7-2.fc8xen	ami-eef61587
+    # Ubuntu 9.10 Karmic	base install	32-bit	ami-bb709dd2
+    # Ubuntu 9.10 Karmic	base install	64-bit	ami-55739e3c
     #
-    image_id: ami-ccf615a5
+    image_id: ami-bb709dd2
     # m1.small or m1.large or m1.xlarge
     image_type: m1.small
 
@@ -143,7 +143,7 @@ ruby_prefix: "#{use_enterprise_ruby ? '/usr/local' : '/usr'}"
 packages: [postfix, build-essential, ruby-full, ruby1.8-dev, rake, irb, git-core]
 
 # OPTIONAL: gem sources to setup for rubygems
-gemsources: ["http://gemcutter.org", "http://gems.rubyforge.org/", "http://gems.github.com"]
+# gemsources: ["http://rubygems.org", "http://gems.github.com"]
 
 # OPTIONAL: The gems to install on all instances
 # You can install a specific version of a gem by using a sub-array of gem, version

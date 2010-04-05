@@ -59,8 +59,8 @@ namespace :rubber do
     Sets permissions of files in application directory to be owned by app_user.
   DESC
   task :setup_app_permissions do
-    run "find #{shared_path} -name cached-copy -prune -o -print | xargs chown #{rubber_env.app_user}:#{rubber_env.app_user}"
-    run "chown -R #{rubber_env.app_user}:#{rubber_env.app_user} #{current_path}/tmp"
+    sudo "sh -c 'find #{shared_path} -name cached-copy -prune -o -print | xargs chown #{rubber_env.app_user}:#{rubber_env.app_user}'"
+    sudo "chown -R #{rubber_env.app_user}:#{rubber_env.app_user} #{current_path}/tmp"
   end
 
   def run_config(options={})

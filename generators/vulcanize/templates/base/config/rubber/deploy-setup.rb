@@ -20,7 +20,7 @@ namespace :rubber do
       if ent_ruby_hosts.size > 0
         task :_install_enterprise_ruby, :hosts => ent_ruby_hosts do
           ver = "1.8.7-2010.01"
-          rubber.run_script "install_ruby-enterprise", <<-ENDSCRIPT
+          rubber.sudo_script "install_ruby-enterprise", <<-ENDSCRIPT
             if [[ ! `ruby --version 2> /dev/null` =~ "Ruby Enterprise Edition 2010.01" ]]; then
               arch=`uname -m`
               if [ "$arch" = "x86_64" ]; then
@@ -43,8 +43,8 @@ namespace :rubber do
     #  The ubuntu rubygem package is woefully out of date, so install it manually
     after "rubber:install_packages", "rubber:base:install_rubygems"
     task :install_rubygems do
-      ver = "1.3.5"
-      src_url = "http://rubyforge.org/frs/download.php/60718/rubygems-#{ver}.tgz"
+      ver = "1.3.6"
+      src_url = "http://production.cf.rubygems.org/rubygems/rubygems-#{ver}.tgz"
       rubber.sudo_script 'install_rubygems', <<-ENDSCRIPT
         if [[ `gem --version 2>&1` != "#{ver}" ]]; then
           wget -qNP /tmp #{src_url}
@@ -59,7 +59,7 @@ namespace :rubber do
     
     after "rubber:install_packages", "rubber:base:configure_git" if scm == "git"
     task :configure_git do
-      rubber.run_script 'configure_git', <<-ENDSCRIPT
+      rubber.sudo_script 'configure_git', <<-ENDSCRIPT
         if [[ "#{repository}" =~ "@" ]]; then
           # Get host key for src machine to prevent ssh from failing
           rm -f ~/.ssh/known_hosts
