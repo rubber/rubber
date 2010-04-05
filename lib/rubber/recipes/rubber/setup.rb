@@ -339,7 +339,13 @@ namespace :rubber do
     sudo "sh -c 'echo $CAPISTRANO:VAR$ > /etc/timezone'", opts
     sudo "cp /usr/share/zoneinfo/$CAPISTRANO:VAR$ /etc/localtime", opts
     # restart syslog so that times match timezone
-    sudo "/etc/init.d/rsyslog restart"
+    sudo_script 'restart_syslog', <<-ENDSCRIPT
+      if [[ -x /etc/init.d/sysklogd ]]; then
+        /etc/init.d/sysklogd restart
+      elif [[ -x /etc/init.d/rsyslog ]]; then
+        /etc/init.d/rsyslog restart
+     fi
+    ENDSCRIPT
   end
   
   def update_dyndns(instance_item)
