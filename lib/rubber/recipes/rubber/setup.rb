@@ -395,7 +395,7 @@ namespace :rubber do
           src="#{url_base}/#{name}_#{ver}_i386.deb"
         fi
         src_file="${src##*/}"
-        wget -qP /tmp ${src}
+        wget -qNP /tmp ${src}
         dpkg -i /tmp/${src_file}
       fi
     ENDSCRIPT

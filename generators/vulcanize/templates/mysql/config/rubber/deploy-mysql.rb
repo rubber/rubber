@@ -132,8 +132,8 @@ namespace :rubber do
     task :custom_install_munin, :roles => [:mysql_master, :mysql_slave] do
       rubber.sudo_script 'install_munin_mysql', <<-ENDSCRIPT
         if [ ! -f /usr/share/munin/plugins/mysql_ ]; then
-          wget -q -O /usr/share/munin/plugins/mysql_ http://github.com/kjellm/munin-mysql/raw/master/mysql_
-          wget -q -O /etc/munin/plugin-conf.d/mysql_.conf http://github.com/kjellm/munin-mysql/raw/master/mysql_.conf
+          wget -qN -O /usr/share/munin/plugins/mysql_ http://github.com/kjellm/munin-mysql/raw/master/mysql_
+          wget -qN -O /etc/munin/plugin-conf.d/mysql_.conf http://github.com/kjellm/munin-mysql/raw/master/mysql_.conf
         fi
       ENDSCRIPT
     end

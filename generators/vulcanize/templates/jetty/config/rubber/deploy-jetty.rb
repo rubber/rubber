@@ -10,7 +10,7 @@ namespace :rubber do
     task :custom_install, :roles => :jetty do
       rubber.sudo_script 'install_jetty', <<-ENDSCRIPT
         if [[ -z `ls #{rubber_env.jetty_prefix}/jetty-hightide-#{rubber_env.jetty_version} 2> /dev/null` ]]; then
-          wget -q http://dist.codehaus.org/jetty/jetty-hightide-7.0.0/jetty-hightide-#{rubber_env.jetty_version}.tar.gz
+          wget -qN http://dist.codehaus.org/jetty/jetty-hightide-7.0.0/jetty-hightide-#{rubber_env.jetty_version}.tar.gz
           tar -zxf jetty-hightide-#{rubber_env.jetty_version}.tar.gz
           
           # Install to appropriate location.
