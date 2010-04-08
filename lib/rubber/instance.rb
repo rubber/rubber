@@ -10,7 +10,7 @@ module Rubber
       include Enumerable
 
       def initialize(file)
-        LOGGER.debug{"Reading rubber instances from #{file}"}
+        Rubber.logger.debug{"Reading rubber instances from #{file}"}
         @file = file
         @items = {}
         @artifacts = {'volumes' => {}, 'static_ips' => {}}

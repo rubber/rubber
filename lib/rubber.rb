@@ -7,6 +7,8 @@ module Rubber
   def self.initialize(project_root, project_env)
     return if defined?(RUBBER_ROOT) && defined?(RUBBER_ENV)
 
+    @@root = project_root
+    @@env = project_env
     Object.const_set('RUBBER_ENV', project_env)
     Object.const_set('RUBBER_ROOT', File.expand_path(project_root))
 
@@ -17,15 +19,39 @@ module Rubber
     rails_boot_file = File.join(RUBBER_ROOT, 'config', 'boot.rb')
     require(rails_boot_file) if File.exists? rails_boot_file
 
-    if defined?(RAILS_DEFAULT_LOGGER) && RAILS_DEFAULT_LOGGER
-      Object.const_set('LOGGER', RAILS_DEFAULT_LOGGER)
+    if defined?(Rails.logger) && Rails.logger
+      @@logger = Rails.logger
     else
-      Object.const_set('LOGGER', Logger.new($stdout))
-      LOGGER.level = Logger::INFO
-      LOGGER.formatter = lambda {|severity, time, progname, msg| "Rubber[%s]: %s\n" % [severity, msg.to_s.lstrip]}
+      @@logger = Logger.new($stdout)
+      @@logger.level = Logger::INFO
+      @@logger.formatter = lambda {|severity, time, progname, msg| "Rubber[%s]: %s\n" % [severity, msg.to_s.lstrip]}
     end
+
+    # conveniences for backwards compatibility with old names
+    Object.const_set('RUBBER_CONFIG', self.config)
+    Object.const_set('RUBBER_INSTANCES', self.instances)
+
   end
 
+  def self.root
+    @@root
+  end
+
+  def self.env
+    @@env
+  end
+
+  def self.logger
+    @@logger
+  end
+
+  def self.config
+    Rubber::Configuration.rubber_env
+  end
+
+  def self.instances
+    Rubber::Configuration.rubber_instances
+  end
 end
 
 
@@ -36,3 +62,7 @@ require 'rubber/instance'
 require 'rubber/util'
 require 'rubber/cloud'
 require 'rubber/dns'
+
+module Rubber
+  require 'rubber/railtie' if defined?(Rails)
+end

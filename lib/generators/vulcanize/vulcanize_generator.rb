@@ -11,41 +11,55 @@ class VulcanizeGenerator < Rails::Generators::NamedBase
     apply_template(file_name)
   end
 
-   protected
+  protected
 
-    def apply_template(name)
-      template_dir = File.join(self.class.source_root, name, '')
-      unless File.directory?(template_dir)
-        raise Rails::Generators::Error.new("Invalid template #{name}, use one of #{valid_templates.join(', ')}")
-      end
-
-      template_conf = load_template_config(template_dir)
-      deps = template_conf['dependent_templates'] || []
-      deps.each do |dep|
-        apply_template(dep)
-      end
-
-      Find.find(template_dir) do |f|
-        Find.prune if f == File.join(template_dir, 'templates.yml')  # don't copy over templates.yml
-
-        source_rel = f.gsub(/#{self.class.source_root}\//, '')
-        dest_rel   = source_rel.gsub(/^#{name}\//, '')
-        if File.directory?(f)
-          empty_directory(dest_rel)
-        else
-          copy_file(source_rel, dest_rel)
-        end
-      end
-#      source_rel = File.join(template_dir.gsub(/#{self.class.source_root}\//, ''), 'config')
-#      dest_rel = source_rel.gsub(/^#{name}\//, '')
-#      directory(source_rel, dest_rel)
+  # helper to test for rails for optional templates
+  def rails?
+    is_rails = false
+    if defined?(Rails.root)
+      rails_boot_file = File.join(Rails.root, 'config', 'boot.rb')
+      is_rails = File.exists?(rails_boot_file)
+    end
+    return is_rails
+  end
+  
+  def apply_template(name)
+    template_dir = File.join(self.class.source_root, name, '')
+    unless File.directory?(template_dir)
+      raise Rails::Generators::Error.new("Invalid template #{name}, use one of #{valid_templates.join(', ')}")
     end
 
-     def valid_templates
-       valid = Dir.entries(self.class.source_root).delete_if {|e| e =~  /(^\.)|svn|CVS/ }
-     end
- 
-    def load_template_config(template_dir)
-      YAML.load(File.read(File.join(template_dir, 'templates.yml'))) rescue {}
+    template_conf = load_template_config(template_dir)
+    deps = template_conf['dependent_templates'] || []
+    deps.each do |dep|
+      apply_template(dep)
     end
+
+    Find.find(template_dir) do |f|
+      Find.prune if f == File.join(template_dir, 'templates.yml')  # don't copy over templates.yml
+
+      template_rel = f.gsub(/#{template_dir}/, '')
+      source_rel = f.gsub(/#{self.class.source_root}\//, '')
+      dest_rel   = source_rel.gsub(/^#{name}\//, '')
+
+      # Only include optional files when their conditions eval to true
+      optional = template_conf['optional'][template_rel] rescue nil
+      Find.prune if optional && !  eval(optional)
+      
+      if File.directory?(f)
+        empty_directory(dest_rel)
+      else
+        copy_file(source_rel, dest_rel)
+      end
+    end
+  end
+
+  def valid_templates
+    valid = Dir.entries(self.class.source_root).delete_if {|e| e =~  /(^\.)|svn|CVS/ }
+  end
+
+  def load_template_config(template_dir)
+    YAML.load(File.read(File.join(template_dir, 'templates.yml'))) rescue {}
+  end
+
 end

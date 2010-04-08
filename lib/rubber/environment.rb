@@ -22,7 +22,7 @@ module Rubber
       end
       
       def read_config(file)
-        LOGGER.debug{"Reading rubber configuration from #{file}"}
+        Rubber.logger.debug{"Reading rubber configuration from #{file}"}
         if File.exist?(file)
           @items = Environment.combine(@items, YAML.load_file(file) || {})
         end

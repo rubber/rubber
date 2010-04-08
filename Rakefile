@@ -18,7 +18,7 @@ begin
     s.add_dependency 'aws-s3'
     s.add_dependency 'nettica'
     s.add_dependency 'zerigo_dns'
-    s.add_dependency 'rails'
+    s.add_dependency 'railties', '3.0.0.beta2'
   end
   Jeweler::GemcutterTasks.new
 rescue LoadError

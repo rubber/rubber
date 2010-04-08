@@ -3,7 +3,4 @@
 #
 
 require "rubber"
-Rubber::initialize(RAILS_ROOT, RAILS_ENV)
-
-::RUBBER_CONFIG = Rubber::Configuration.rubber_env
-::RUBBER_INSTANCES = Rubber::Configuration.rubber_instances
+Rubber::initialize(Rails.root, Rails.env)

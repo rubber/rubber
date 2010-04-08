@@ -16,8 +16,6 @@ require "rubber"
 env = ENV["RUBBER_ENV"] ||= "development"
 root = File.join(File.dirname(__FILE__), '../..')
 Rubber::initialize(root, env)
-RUBBER_CONFIG = Rubber::Configuration.rubber_env
-RUBBER_INSTANCES = Rubber::Configuration.rubber_instances
 
 # Print config info need by munin for generating graphs
 if ARGV[0] == "config"
@@ -38,15 +36,15 @@ query = <<-EOF
 EOF
 
 # pick a non-critical db if possible
-source = RUBBER_INSTANCES.for_role("mysql_util").first
-source ||= RUBBER_INSTANCES.for_role("mysql_slave").first
-source ||= RUBBER_INSTANCES.for_role("mysql_master").first
+source = Rubber.instances.for_role("mysql_util").first
+source ||= Rubber.instances.for_role("mysql_slave").first
+source ||= Rubber.instances.for_role("mysql_master").first
 db_host = source ? source.full_name : 'localhost'
 
-command = "mysql -u #{RUBBER_CONFIG.db_slave_user}"
-command << " --password=#{RUBBER_CONFIG.db_pass}"
+command = "mysql -u #{Rubber.config.db_slave_user}"
+command << " --password=#{Rubber.config.db_pass}"
 command << " -h #{db_host}"
-command << " #{RUBBER_CONFIG.db_name} --skip-column-names"
+command << " #{Rubber.config.db_name} --skip-column-names"
 
 # execute a sql query to get some data
 data = `echo "#{query}" | #{command}`
