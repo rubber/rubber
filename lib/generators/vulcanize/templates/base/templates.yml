@@ -1,1 +1,6 @@
 description: The core configuration needed by all others
+
+# only include Rakefile when generating for non-rails apps, as we use rails
+# rake loading mechanism for including rakefile in rails apps
+optional:
+  Rakefile: "!rails?"
