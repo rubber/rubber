@@ -46,7 +46,7 @@ namespace :rubber do
   
     task :bootstrap, :roles => [:mysql_mgm, :mysql_data, :mysql_sql] do
       # mysql package install starts mysql, so stop it
-      sudo "/etc/init.d/mysql stop" rescue nil
+      rsudo "/etc/init.d/mysql stop" rescue nil
       
       # After everything installed on machines, we need the source tree
       # on hosts in order to run rubber:config for bootstrapping the db
@@ -62,7 +62,7 @@ namespace :rubber do
           exists = capture("if grep -c rubber.*mysql_mgm /etc/mysql/ndb_mgmd.cnf &> /dev/null; then echo exists; fi")
           if exists.strip.size == 0
             rubber.run_config(:RUBBER_ENV => RUBBER_ENV, :FILE => "role/mysql_mgm", :deploy_path => release_path)
-            sudo "/etc/init.d/mysql-ndb-mgm start"
+            rsudo "/etc/init.d/mysql-ndb-mgm start"
           end
         end
         send task_name
@@ -74,7 +74,7 @@ namespace :rubber do
           exists = capture("if grep -c rubber.*mysql_data /etc/mysql/my.cnf &> /dev/null; then echo exists; fi")
           if exists.strip.size == 0
             rubber.run_config(:RUBBER_ENV => RUBBER_ENV, :FILE => "role/mysql_data", :deploy_path => release_path)
-            sudo "/etc/init.d/mysql-ndb start-initial"
+            rsudo "/etc/init.d/mysql-ndb start-initial"
           end
         end
         send task_name
@@ -86,13 +86,18 @@ namespace :rubber do
           exists = capture("if grep -c rubber.*mysql_sql /etc/mysql/my.cnf &> /dev/null; then echo exists; fi")
           if exists.strip.size == 0
             rubber.run_config(:RUBBER_ENV => RUBBER_ENV, :FILE => "role/mysql_sql", :deploy_path => release_path)
-            sudo "/etc/init.d/mysql start"
+            rsudo "/etc/init.d/mysql start"
             env = rubber_cfg.environment.bind()
             # For mysql 5.0 cluster, need to create users and database for EVERY sql node
             pass = "identified by '#{env.db_pass}'" if env.db_pass
-            sudo "mysql -u root -e 'create database #{env.db_name};'"
-            sudo "mysql -u root -e \"grant all on #{env.db_name}.* to '#{env.db_user}'@'%' #{pass};\""
-            sudo "mysql -u root -e \"update user set Super_priv = 'N' where user = '#{env.db_user}';\" mysql"
+            rubber.sudo_script "create_mysql_sql_db", <<-ENDSCRIPT
+              mysql -u root -e "create database #{env.db_name};"
+              mysql -u root -e "grant all on *.* to '#{env.db_user}'@'%' #{pass};"
+              mysql -u root -e "grant select on *.* to '#{env.db_slave_user}'@'%' #{pass};"
+              mysql -u root -e "grant replication slave on *.* to '#{env.db_replicator_user}'@'%' #{pass};"
+              mysql -u root -e "flush privileges;"
+            ENDSCRIPT
+            
           end
         end
         send task_name
@@ -104,42 +109,42 @@ namespace :rubber do
       Starts the mysql cluster management daemon on the management node
     DESC
     task :start_mgm, :roles => :mysql_mgm do
-      sudo "/etc/init.d/mysql-ndb-mgm start"
+      rsudo "/etc/init.d/mysql-ndb-mgm start"
     end
     
     desc <<-DESC
       Starts the mysql cluster storage daemon on the data nodes
     DESC
     task :start_data, :roles => :mysql_data do
-      sudo "/etc/init.d/mysql-ndb start"
+      rsudo "/etc/init.d/mysql-ndb start"
     end
     
     desc <<-DESC
       Starts the mysql cluster sql daemon on the sql nodes
     DESC
     task :start_sql, :roles => :mysql_sql do
-      sudo "/etc/init.d/mysql start"
+      rsudo "/etc/init.d/mysql start"
     end
     
     desc <<-DESC
       Stops the mysql cluster management daemon on the management node
     DESC
     task :stop_mgm, :roles => :mysql_mgm do
-      sudo "/etc/init.d/mysql-ndb-mgm stop"
+      rsudo "/etc/init.d/mysql-ndb-mgm stop"
     end
     
     desc <<-DESC
       Stops the mysql cluster storage daemon on the data nodes
     DESC
     task :stop_data, :roles => :mysql_data do
-      sudo "/etc/init.d/mysql-ndb stop"
+      rsudo "/etc/init.d/mysql-ndb stop"
     end
     
     desc <<-DESC
       Stops the mysql cluster sql daemon on the sql nodes
     DESC
     task :stop_sql, :roles => :mysql_sql do
-      sudo "/etc/init.d/mysql stop"
+      rsudo "/etc/init.d/mysql stop"
     end
   
     desc <<-DESC

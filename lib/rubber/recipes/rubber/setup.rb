@@ -1,8 +1,5 @@
 namespace :rubber do
 
-  # Disable connecting to any Windows instance.
-  set :default_run_options, :except => { :platform => 'windows' }
-
   desc <<-DESC
     Bootstraps instances by setting timezone, installing packages and gems
   DESC
@@ -24,7 +21,7 @@ namespace :rubber do
       set :user, initial_ssh_user
 
       task :_allow_root_ssh, :hosts => ip do
-        sudo "cp /home/#{initial_ssh_user}/.ssh/authorized_keys /root/.ssh/"
+        rsudo "cp /home/#{initial_ssh_user}/.ssh/authorized_keys /root/.ssh/"
       end
 
       begin
@@ -194,9 +191,9 @@ namespace :rubber do
       put filtered, hosts_file
 
       # Setup hostname on instance so shell, etcs have nice display
-      sudo "sh -c 'echo $CAPISTRANO:HOST$ > /etc/hostname && hostname $CAPISTRANO:HOST$'"
+      rsudo "echo $CAPISTRANO:HOST$ > /etc/hostname && hostname $CAPISTRANO:HOST$"
       # Newer ubuntus ec2-init script always resets hostname, so prevent it
-      sudo "sh -c 'echo compat=0 > /etc/ec2-init/is-compat-env'"
+      rsudo "echo compat=0 > /etc/ec2-init/is-compat-env"
     end
 
     # TODO
@@ -253,9 +250,17 @@ namespace :rubber do
   desc <<-DESC
     Install ruby gems defined in the rails environment.rb
   DESC
-  after "rubber:config", "rubber:install_rails_gems" if Rubber::Util.is_rails?
+  after "rubber:config", "rubber:install_rails_gems" if Rubber::Util.is_rails_gems_install?
   task :install_rails_gems do
-    sudo "sh -c 'cd #{current_path} && RAILS_ENV=#{RUBBER_ENV} rake gems:install'"
+    rsudo "cd #{current_path} && RAILS_ENV=#{RUBBER_ENV} rake gems:install"
+  end
+
+  desc <<-DESC
+    Install ruby gems defined in Gemfile
+  DESC
+  after "rubber:config", "rubber:install_bundler_gems" if Rubber::Util.is_bundler?
+  task :install_bundler_gems do
+    rsudo "cd #{current_path} && RAILS_ENV=#{RUBBER_ENV} bundle install"
   end
 
   desc <<-DESC
@@ -313,7 +318,7 @@ namespace :rubber do
   task :setup_gem_sources do
     if rubber_env.gemsources
       script = prepare_script 'gem_sources_helper', gem_sources_helper_script, nil
-      sudo "ruby #{script} #{rubber_env.gemsources.join(' ')}"
+      rsudo "ruby #{script} #{rubber_env.gemsources.join(' ')}"
     end
   end
 
@@ -322,7 +327,7 @@ namespace :rubber do
     You can override this task if you don't want this to happen
   DESC
   task :link_bash do
-    sudo "ln -sf /bin/bash /bin/sh"
+    rsudo "ln -sf /bin/bash /bin/sh"
   end
 
   desc <<-DESC
@@ -336,8 +341,8 @@ namespace :rubber do
   DESC
   task :set_timezone do
     opts = get_host_options('timezone')
-    sudo "sh -c 'echo $CAPISTRANO:VAR$ > /etc/timezone'", opts
-    sudo "cp /usr/share/zoneinfo/$CAPISTRANO:VAR$ /etc/localtime", opts
+    rsudo "echo $CAPISTRANO:VAR$ > /etc/timezone", opts
+    rsudo "cp /usr/share/zoneinfo/$CAPISTRANO:VAR$ /etc/localtime", opts
     # restart syslog so that times match timezone
     sudo_script 'restart_syslog', <<-ENDSCRIPT
       if [[ -x /etc/init.d/sysklogd ]]; then
@@ -377,11 +382,11 @@ namespace :rubber do
       expanded_pkg_list.join(' ')
     end
 
-    sudo "apt-get -q update"
+    rsudo "apt-get -q update"
     if upgrade
-      sudo "/bin/sh -c 'export DEBIAN_FRONTEND=noninteractive; apt-get -q -y --force-yes dist-upgrade'"
+      rsudo "export DEBIAN_FRONTEND=noninteractive; apt-get -q -y --force-yes dist-upgrade"
     else
-      sudo "/bin/sh -c 'export DEBIAN_FRONTEND=noninteractive; apt-get -q -y --force-yes install $CAPISTRANO:VAR$'", opts
+      rsudo "export DEBIAN_FRONTEND=noninteractive; apt-get -q -y --force-yes install $CAPISTRANO:VAR$", opts
     end
   end
 
@@ -479,7 +484,7 @@ namespace :rubber do
     
     if opts.size > 0
       script = prepare_script('gem_helper', gem_helper_script, nil)
-      sudo "ruby #{script} #{cmd} $CAPISTRANO:VAR$", opts do |ch, str, data|
+      rsudo "ruby #{script} #{cmd} $CAPISTRANO:VAR$", opts do |ch, str, data|
         handle_gem_prompt(ch, data, str)
       end
     end

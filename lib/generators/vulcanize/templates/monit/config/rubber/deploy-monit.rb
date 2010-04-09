@@ -14,12 +14,12 @@ namespace :rubber do
 
     desc "Start monit daemon monitoring"
     task :start do
-      sudo "/etc/init.d/monit start"
+      rsudo "/etc/init.d/monit start"
     end
     
     desc "Stop monit daemon monitoring"
     task :stop, :on_error => :continue do
-      sudo "/etc/init.d/monit stop"
+      rsudo "/etc/init.d/monit stop"
     end
     
     desc "Restart monit daemon monitoring"

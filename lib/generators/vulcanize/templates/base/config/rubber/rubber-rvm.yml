@@ -1,0 +1,25 @@
+
+# rvm needs some extra packages to compile/install ruby runtimes
+# curl is required.
+# patch is required (for ree, some ruby head's).
+# For JRuby (if you wish to use it) you will need:
+#   aptitude install curl sun-java6-bin sun-java6-jre sun-java6-jdk
+# For MRI & ree (if you wish to use it) you will need:
+#   aptitude install curl bison build-essential zlib1g-dev libssl-dev libreadline5-dev libxml2-dev git-core
+# For IronRuby (if you wish to use it) you will need:
+#   aptitude install curl mono-2.0-devel
+
+packages: [build-essential, git-core, subversion, curl, autoconf, bison, ruby, zlib1g-dev, libssl-dev, libreadline5-dev, libxml2-dev]
+
+# REQUIRED: Set to the rvm version string for the ruby version you wish to use
+# Run "rvm list known" to see the list of possible options
+rvm_ruby: 1.9.2-head
+
+# When rvm is installed as root, and you set the default, it symlinks ruby executables
+# into /usr/local
+ruby_prefix: /usr/local
+
+rvm_prefix: /usr/local/rvm
+  
+# lets us setup global envoronment to use rvm (also needed when running sudo)
+rvm_prepare: "source #{rvm_prefix}/scripts/rvm"

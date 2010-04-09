@@ -27,12 +27,12 @@ namespace :rubber do
 
     desc "Start munin system monitoring"
     task :start do
-      sudo "/etc/init.d/munin-node start"
+      rsudo "/etc/init.d/munin-node start"
     end
     
     desc "Stop munin system monitoring"
     task :stop, :on_error => :continue do
-      sudo "/etc/init.d/munin-node stop"
+      rsudo "/etc/init.d/munin-node stop"
     end
     
     desc "Restart munin system monitoring"

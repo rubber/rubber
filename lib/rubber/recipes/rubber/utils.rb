@@ -155,14 +155,22 @@ namespace :rubber do
     return script
   end
 
-  def run_script(name, contents)
+  def run_script(name, contents, opts = {})
+    args = opts.delete(:script_args)
     script = prepare_script(name, contents)
-    run "sh #{script}"
+    run "bash #{script} #{args}", opts
   end
 
-  def sudo_script(name, contents)
+  def sudo_script(name, contents, opts = {})
+    args = opts.delete(:script_args)
     script = prepare_script(name, contents)
-    sudo "sh #{script}"
+    run "#{sudo} bash -l #{script} #{args}", opts
+  end
+
+  def top.rsudo(command, opts = {}, &block)
+    user = opts.delete(:as)
+    args = "-H -u #{user}" if user
+    run "#{sudo opts} #{args} bash -l -c '#{command}'", opts, &block
   end
 
   def get_env(name, desc, required=false, default=nil)

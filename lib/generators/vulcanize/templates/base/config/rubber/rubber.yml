@@ -130,17 +130,10 @@ auto_security_groups: true
 # account, or even multiple apps
 isolate_security_groups: true
 
-# OPTIONAL: Set if you want to use Ruby Enterprise Edition instead of the standard ubuntu one
-use_enterprise_ruby: false
-
-# REE installs into /usr/local, so this lets us setup environment to use it globally
-# instead of system ruby
-ruby_prefix: "#{use_enterprise_ruby ? '/usr/local' : '/usr'}"
-
 # OPTIONAL: The packages to install on all instances
 # You can install a specific version of a package by using a sub-array of pkg, version
 # For example, packages: [[rake, 0.7.1], irb]
-packages: [postfix, build-essential, ruby-full, ruby1.8-dev, rake, irb, git-core]
+packages: [postfix, build-essential, git-core]
 
 # OPTIONAL: gem sources to setup for rubygems
 # gemsources: ["http://rubygems.org", "http://gems.github.com"]
@@ -148,7 +141,9 @@ packages: [postfix, build-essential, ruby-full, ruby1.8-dev, rake, irb, git-core
 # OPTIONAL: The gems to install on all instances
 # You can install a specific version of a gem by using a sub-array of gem, version
 # For example, gem: [[rails, 2.2.2], open4, aws-s3]
-gems: [rubber, rails, open4, aws-s3]
+# gems: [rubber, rails, open4, aws-s3]
+# The above is the correct line once rails3 has been released
+gems: [open4, aws-s3, tzinfo, builder, i18n, memcache-client, rack, rake, rack-test, erubis, mail, text-format, thor, bundler, [rack-mount, 0.4], [rails, 3.0.0.beta2], [rubber, 2.0.0.rails3]]
 
 # OPTIONAL: A string prepended to shell command strings that cause multi
 # statement shell commands to fail fast.  You may need to comment this out

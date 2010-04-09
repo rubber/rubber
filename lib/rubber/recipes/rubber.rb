@@ -50,6 +50,11 @@ namespace :rubber do
     set :rubber_env, rubber_cfg.environment.bind()
     set :rubber_instances, rubber_cfg.instance
 
+    # Disable connecting to any Windows instance.
+    # pass -l to bash in :shell to that run also gets full env
+    # use a pty so we don't get "stdin: is not a tty" error output
+    set :default_run_options, :pty => true, :shell => "/bin/bash -l", :except => { :platform => 'windows' }
+
     set :cloud, Rubber::Cloud::get_provider(rubber_env.cloud_provider || "aws", rubber_env, self)
 
     load_roles() unless rubber_env.disable_auto_roles

@@ -38,11 +38,13 @@ namespace :rubber do
             common_bootstrap("mysql_master")
             
             pass = "identified by '#{env.db_pass}'" if env.db_pass
-            sudo "mysql -u root -e 'create database #{env.db_name};'"
-            sudo "mysql -u root -e \"grant all on *.* to '#{env.db_user}'@'%' #{pass};\""
-            sudo "mysql -u root -e \"grant select on *.* to '#{env.db_slave_user}'@'%' #{pass};\""
-            sudo "mysql -u root -e \"grant replication slave on *.* to '#{env.db_replicator_user}'@'%' #{pass};\""
-            sudo "mysql -u root -e \"flush privileges;\""
+            rubber.sudo_script "create_master_db", <<-ENDSCRIPT
+              mysql -u root -e "create database #{env.db_name};"
+              mysql -u root -e "grant all on *.* to '#{env.db_user}'@'%' #{pass};"
+              mysql -u root -e "grant select on *.* to '#{env.db_slave_user}'@'%' #{pass};"
+              mysql -u root -e "grant replication slave on *.* to '#{env.db_replicator_user}'@'%' #{pass};"
+              mysql -u root -e "flush privileges;"
+            ENDSCRIPT
           end
         end
         send task_name
@@ -76,26 +78,30 @@ namespace :rubber do
 
             if source == master
               logger.info "Creating slave from a dump of master #{source_host}"
-              sudo "mysql -u root -e \"change master to master_host='#{master_host}', master_user='#{env.db_replicator_user}' #{master_pass}\""
-              sudo "sh -c 'mysqldump -u #{env.db_user} #{pass} -h #{source_host} --all-databases --master-data=1 | mysql -u root'"
+              rubber.sudo_script "create_slave_db_from_master", <<-ENDSCRIPT
+                mysql -u root -e "change master to master_host='#{master_host}', master_user='#{env.db_replicator_user}' #{master_pass}"
+                mysqldump -u #{env.db_user} --password #{env.db_pass} -h #{source_host} --all-databases --master-data=1 | mysql -u root
+              ENDSCRIPT
             else
               logger.info "Creating slave from a dump of slave #{source_host}"
-              sudo "mysql -u #{env.db_user} #{pass} -h #{source_host} -e \"stop slave;\""
+              rsudo "mysql -u #{env.db_user} --password #{env.db_pass} -h #{source_host} -e \"stop slave;\""
               slave_status = capture("mysql -u #{env.db_user} #{pass} -h #{source_host} -e \"show slave status\\G\"")
               slave_config = Hash[*slave_status.scan(/([^\s:]+): ([^\s]*)/).flatten]
               log_file = slave_config['Master_Log_File']
               log_pos = slave_config['Read_Master_Log_Pos']
-              sudo "sh -c 'mysqldump -u #{env.db_user} #{pass} -h #{source_host} --all-databases --master-data=1 | mysql -u root'"
-              sudo "mysql -u root -e \"change master to master_host='#{master_host}', master_user='#{env.db_replicator_user}', master_log_file='#{log_file}', master_log_pos=#{log_pos} #{master_pass}\""
-              sudo "mysql -u #{env.db_user} #{pass} -h #{source_host} -e \"start slave;\""
+              rubber.sudo_script "create_slave_db_from_slave", <<-ENDSCRIPT
+                mysqldump -u #{env.db_user} --password #{env.db_pass} -h #{source_host} --all-databases --master-data=1 | mysql -u root
+                mysql -u root -e "change master to master_host='#{master_host}', master_user='#{env.db_replicator_user}', master_log_file='#{log_file}', master_log_pos=#{log_pos} #{master_pass}"
+                mysql -u #{env.db_user} --password #{env.db_pass} -h #{source_host} -e "start slave;"
+              ENDSCRIPT
             end
 
             # this doesn't work without agent forwarding which sudo breaks, as well as not having your
             # ec2 private key ssh-added on workstation
             # sudo "scp -o \"StrictHostKeyChecking=no\" #{source_host}:/etc/mysql/debian.cnf /etc/mysql"
 
-            sudo "mysql -u root -e \"flush privileges;\""
-            sudo "mysql -u root -e \"start slave;\""
+            rsudo "mysql -u root -e \"flush privileges;\""
+            rsudo "mysql -u root -e \"start slave;\""
           end
         end
         send task_name
@@ -106,7 +112,7 @@ namespace :rubber do
     # TODO: Make the setup/update happen just once per host
     def common_bootstrap(role)
       # mysql package install starts mysql, so stop it
-      sudo "/etc/init.d/mysql stop" rescue nil
+      rsudo "/etc/init.d/mysql stop" rescue nil
       
       # After everything installed on machines, we need the source tree
       # on hosts in order to run rubber:config for bootstrapping the db
@@ -142,21 +148,21 @@ namespace :rubber do
       Starts the mysql daemons
     DESC
     task :start, :roles => [:mysql_master, :mysql_slave] do
-      sudo "/etc/init.d/mysql start"
+      rsudo "/etc/init.d/mysql start"
     end
     
     desc <<-DESC
       Stops the mysql daemons
     DESC
     task :stop, :roles => [:mysql_master, :mysql_slave] do
-      sudo "/etc/init.d/mysql stop"
+      rsudo "/etc/init.d/mysql stop"
     end
   
     desc <<-DESC
       Restarts the mysql daemons
     DESC
     task :restart, :roles => [:mysql_master, :mysql_slave] do
-      sudo "/etc/init.d/mysql restart"
+      rsudo "/etc/init.d/mysql restart"
     end
 
     desc <<-DESC

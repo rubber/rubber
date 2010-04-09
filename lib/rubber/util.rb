@@ -30,7 +30,15 @@ module Rubber
     end
 
     def self.is_rails?
-      File.exist?(File.join(RUBBER_ROOT, 'config', 'environment.rb'))
+      File.exist?(File.join(RUBBER_ROOT, 'config', 'boot.rb'))
+    end
+
+    def self.is_rails_gems_install?
+      is_rails? && `cd #{RUBBER_ROOT}; rake -T | grep gems:install` != ''
+    end
+
+    def self.is_bundler?
+      File.exist?(File.join(RUBBER_ROOT, 'Gemfile'))
     end
 
   end

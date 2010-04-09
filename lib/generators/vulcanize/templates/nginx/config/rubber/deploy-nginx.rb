@@ -9,10 +9,10 @@ namespace :rubber do
     # rubber auto-roles don't get defined till after all tasks are defined
     on :load do
       rubber.serial_task self, :serial_restart, :roles => :nginx do
-        sudo "/etc/init.d/nginx restart"
+        rsudo "/etc/init.d/nginx restart"
       end
       rubber.serial_task self, :serial_reload, :roles => :nginx do
-        sudo "sh -c 'if ! ps ax | grep -v grep | grep -c nginx &> /dev/null; then /etc/init.d/nginx start; else /etc/init.d/nginx reload; fi'"
+        rsudo "if ! ps ax | grep -v grep | grep -c nginx &> /dev/null; then /etc/init.d/nginx start; else /etc/init.d/nginx reload; fi"
       end
     end
     
@@ -22,12 +22,12 @@ namespace :rubber do
     
     desc "Stops the nginx web server"
     task :stop, :roles => :nginx, :on_error => :continue do
-      sudo "/etc/init.d/nginx stop"
+      rsudo "/etc/init.d/nginx stop"
     end
     
     desc "Starts the nginx web server"
     task :start, :roles => :nginx do
-      sudo "/etc/init.d/nginx start"
+      rsudo "/etc/init.d/nginx start"
     end
     
     desc "Restarts the nginx web server"

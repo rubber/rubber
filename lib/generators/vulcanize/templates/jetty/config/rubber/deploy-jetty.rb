@@ -36,7 +36,7 @@ namespace :rubber do
     after "rubber:setup_app_permissions", "rubber:jetty:setup_jetty_permissions"
 
     task :setup_jetty_permissions, :roles => :jetty do
-      sudo "chown -R #{rubber_env.app_user}:#{rubber_env.app_user} #{rubber_env.jetty_dir}"
+      rsudo "chown -R #{rubber_env.app_user}:#{rubber_env.app_user} #{rubber_env.jetty_dir}"
     end
     
     before "deploy:stop", "rubber:jetty:stop"
@@ -44,15 +44,15 @@ namespace :rubber do
     after "deploy:restart", "rubber:jetty:restart"
     
     task :restart, :roles => :jetty do
-      sudo "#{rubber_env.jetty_dir}/bin/jetty.sh restart"
+      rsudo "#{rubber_env.jetty_dir}/bin/jetty.sh restart"
     end
     
     task :stop, :roles => :jetty do
-      sudo "#{rubber_env.jetty_dir}/bin/jetty.sh stop"
+      rsudo "#{rubber_env.jetty_dir}/bin/jetty.sh stop"
     end
     
     task :start, :roles => :jetty do
-      sudo "#{rubber_env.jetty_dir}/bin/jetty.sh start"
+      rsudo "#{rubber_env.jetty_dir}/bin/jetty.sh start"
     end
     
   end

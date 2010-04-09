@@ -18,7 +18,7 @@ namespace :rubber do
     after "rubber:setup_app_permissions", "rubber:passenger:setup_passenger_permissions"
 
     task :setup_passenger_permissions, :roles => :passenger do
-      sudo "chown #{rubber_env.app_user}:#{rubber_env.app_user} #{current_path}/config/environment.rb"
+      rsudo "chown #{rubber_env.app_user}:#{rubber_env.app_user} #{current_path}/config/environment.rb"
     end
 
     # passenger depends on apache for start/stop/restart, just need these defined

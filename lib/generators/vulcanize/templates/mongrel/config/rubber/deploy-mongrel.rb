@@ -21,16 +21,16 @@ namespace :rubber do
     
     
     def mongrel_stop
-        sudo "cd #{current_path} && mongrel_rails cluster::stop"
+        rsudo "cd #{current_path} && mongrel_rails cluster::stop"
         sleep 5 # Give the graceful stop a chance to complete
-        sudo "cd #{current_path} && mongrel_rails cluster::stop --force --clean"
+        rsudo "cd #{current_path} && mongrel_rails cluster::stop --force --clean"
     end
     
     def mongrel_start
-        sudo "cd #{current_path} && mongrel_rails cluster::start --clean"
+        rsudo "cd #{current_path} && mongrel_rails cluster::start --clean"
         pid_cnt = rubber_env.mongrel_count
         logger.info "Waiting for mongrel pid files to show up"
-        sudo "sh -c 'while ((`ls #{current_path}/tmp/pids/mongrel.*.pid 2> /dev/null | wc -l` < #{pid_cnt})); do sleep 1; done'"
+        rsudo "while ((`ls #{current_path}/tmp/pids/mongrel.*.pid 2> /dev/null | wc -l` < #{pid_cnt})); do sleep 1; done"
     end
     
     # serial_task can only be called after roles defined - not normally a problem, but

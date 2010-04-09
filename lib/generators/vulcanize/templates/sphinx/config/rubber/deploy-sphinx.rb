@@ -60,20 +60,19 @@ namespace :rubber do
     desc "Do sphinx setup tasks"
     task :setup, :roles => :sphinx do
       # Setup links to sphinx config/index as they need to persist between deploys
-      sudo "mkdir -p #{sphinx_root} #{sphinx_root}/config #{sphinx_root}/db"
-      sudo "chown -R #{runner}:#{runner} #{sphinx_root}"
+      rsudo "mkdir -p #{sphinx_root} #{sphinx_root}/config #{sphinx_root}/db"
+      rsudo "chown -R #{runner}:#{runner} #{sphinx_root}"
     end
 
     desc "Setup paths for sphinx runtime"
     task :config_dir, :roles => :sphinx do
-      sudo "rm -rf #{current_path}/sphinx"
-      sudo "ln -sf #{sphinx_root} #{current_path}/sphinx"
+      rsudo "rm -rf #{current_path}/sphinx"
+      rsudo "ln -sf #{sphinx_root} #{current_path}/sphinx"
     end
 
     # runs the given ultrasphinx rake tasks
     def run_sphinx task
-      cmd = "sh -c 'cd #{current_path} && sudo -u #{runner} RAILS_ENV=#{RUBBER_ENV} rake #{task}'"
-      sudo cmd
+      rsudo "cd #{current_path} && RAILS_ENV=#{RUBBER_ENV} rake #{task}", :as => runner
     end
 
 

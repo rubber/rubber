@@ -3,60 +3,65 @@ namespace :rubber do
   
     rubber.allow_optional_tasks(self)
 
+    before "rubber:install_gems", "rubber:base:install_rvm"
+    task :install_rvm do
+      rubber.sudo_script "install_rvm", <<-ENDSCRIPT
+        if [[ `rvm --version 2> /dev/null` == "" ]]; then
+          wget -qNP /tmp http://rvm.beginrescueend.com/releases/rvm-install-head
+          bash /tmp/rvm-install-head
+          echo "#{rubber_env.rvm_prepare}" > /etc/profile.d/rvm.sh
+          echo "rvm_prefix=/usr/local" > /etc/rvmrc
+        fi
+      ENDSCRIPT
+    end
 
-    before "rubber:install_packages", "rubber:base:pre_install_ruby"
-    task :pre_install_ruby do
+    # ensure that the rvm profile script gets sourced by reconnecting
+    after "rubber:base:install_rvm" do
+      teardown_connections_to(sessions.keys)
+    end
 
-      # figure out which hosts we have specified enterprise ruby for
-      sys_ruby_hosts = []
-      ent_ruby_hosts = []
+    after "rubber:base:install_rvm", "rubber:base:install_rvm_ruby"
+    task :install_rvm_ruby do
+      opts = get_host_options('rvm_ruby')
+      install_rvm_ruby_script = <<-ENDSCRIPT
+        rvm_ver=$1
+        if [[ ! `rvm list default 2> /dev/null` =~ "$rvm_ver" ]]; then
+          rvm install $rvm_ver
+          rvm use --default $rvm_ver
+        fi
+      ENDSCRIPT
+      opts[:script_args] = '$CAPISTRANO:VAR$'
+      rubber.sudo_script "install_rvm_ruby", install_rvm_ruby_script, opts
+    end
+
+
+    task :install_rvm_ruby_old do
+
+      # figure out rvm versions for hosts
+      rvm_ruby_hosts = {}
       rubber_instances.filtered.each do |ic|
         env = rubber_cfg.environment.bind(ic.role_names, ic.name)
-        if env.use_enterprise_ruby
-          ent_ruby_hosts << ic.full_name unless ic.windows?
-        end
+        rvm_ruby_hosts[env.rvm_ruby] ||= []
+        rvm_ruby_hosts[env.rvm_ruby] << ic.full_name unless ic.windows?
       end
 
-      if ent_ruby_hosts.size > 0
-        task :_install_enterprise_ruby, :hosts => ent_ruby_hosts do
-          ver = "1.8.7-2010.01"
-          rubber.sudo_script "install_ruby-enterprise", <<-ENDSCRIPT
-            if [[ ! `ruby --version 2> /dev/null` =~ "Ruby Enterprise Edition 2010.01" ]]; then
-              arch=`uname -m`
-              if [ "$arch" = "x86_64" ]; then
-                src="http://rubyforge.org/frs/download.php/68720/ruby-enterprise_#{ver}_amd64.deb"
-              else
-                src="http://rubyforge.org/frs/download.php/68718/ruby-enterprise_#{ver}_i386.deb"
-              fi
-              src_file="${src##*/}"
-              wget -qNP /tmp ${src}
-              dpkg -i /tmp/${src_file}
+      rvm_ruby_hosts.each do |rvm_ruby, rvm_ruby_hosts|
+
+        task :_install_rvm_ruby, :hosts => rvm_ruby_hosts do
+          rubber.sudo_script "install_rvm", <<-ENDSCRIPT
+            if [[ ! `rvm list default 2> /dev/null` =~ "#{rvm_ruby}" ]]; then
+              rvm install #{rvm_ruby}
+              rvm use --default #{rvm_ruby}
             fi
           ENDSCRIPT
         end
 
-        _install_enterprise_ruby
+        _install_rvm_ruby
+
       end
 
     end
 
-    #  The ubuntu rubygem package is woefully out of date, so install it manually
-    after "rubber:install_packages", "rubber:base:install_rubygems"
-    task :install_rubygems do
-      ver = "1.3.6"
-      src_url = "http://production.cf.rubygems.org/rubygems/rubygems-#{ver}.tgz"
-      rubber.sudo_script 'install_rubygems', <<-ENDSCRIPT
-        if [[ `gem --version 2>&1` != "#{ver}" ]]; then
-          wget -qNP /tmp #{src_url}
-          tar -C /tmp -xzf /tmp/rubygems-#{ver}.tgz
-          ruby -C /tmp/rubygems-#{ver} setup.rb
-          ln -sf /usr/bin/gem1.8 /usr/bin/gem
-          rm -rf /tmp/rubygems*
-          gem source -l > /dev/null
-        fi
-      ENDSCRIPT
-    end
-    
     after "rubber:install_packages", "rubber:base:configure_git" if scm == "git"
     task :configure_git do
       rubber.sudo_script 'configure_git', <<-ENDSCRIPT
