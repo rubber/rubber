@@ -3,7 +3,12 @@
   @write_cmd = 'crontab -'
 %>
 
-PATH=/sbin:/usr/sbin:/usr/local/sbin:<%= rubber_env.ruby_prefix %>/bin:/usr/local/bin:/usr/bin:/bin
+# cron clears out enviroment variables, so we need to add these in
+# to make sure we are running the correct ruby (rvm env vars, plus paths)
+<%- ENV.select {|k, v| k =~ /rvm|ruby|bundler|gem|path/i }.each do |k, v| -%>
+<%= k %>=<%= v %>
+<%- end -%>
+
 MAILTO=<%= rubber_env.admin_email %>
 # don't need to set RUBBER_ENV for each script since we set it for all cron here
 RUBBER_ENV=<%= RUBBER_ENV %>

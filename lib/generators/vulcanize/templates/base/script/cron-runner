@@ -14,5 +14,5 @@ rescue
 end
 
 Dir.chdir(RAILS_ROOT)
-args = %W{-e -l #{log} -- script/runner} + ARGV
+args = %W{-e -l #{log} -- rails runner} + ARGV
 system "script/cron-sh", *args
