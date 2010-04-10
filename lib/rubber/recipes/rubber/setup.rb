@@ -248,19 +248,11 @@ namespace :rubber do
   end
 
   desc <<-DESC
-    Install ruby gems defined in the rails environment.rb
-  DESC
-  after "rubber:config", "rubber:install_rails_gems" if Rubber::Util.is_rails_gems_install?
-  task :install_rails_gems do
-    rsudo "cd #{current_path} && RAILS_ENV=#{RUBBER_ENV} rake gems:install"
-  end
-
-  desc <<-DESC
     Install ruby gems defined in Gemfile
   DESC
-  after "rubber:config", "rubber:install_bundler_gems" if Rubber::Util.is_bundler?
+  after "deploy:update_code", "rubber:install_bundler_gems" if Rubber::Util.is_bundler?
   task :install_bundler_gems do
-    rsudo "cd #{current_path} && RAILS_ENV=#{RUBBER_ENV} bundle install"
+    rsudo "cd #{current_release} && RAILS_ENV=#{RUBBER_ENV} bundle install"
   end
 
   desc <<-DESC
