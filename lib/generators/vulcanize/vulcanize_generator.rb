@@ -10,18 +10,14 @@ class VulcanizeGenerator < Rails::Generators::NamedBase
 
   def copy_template_files
     apply_template(file_name)
+    gem "rubber", Rubber.version if Rubber::Util::is_bundler?
   end
 
   protected
 
   # helper to test for rails for optional templates
   def rails?
-    is_rails = false
-    if defined?(Rails.root)
-      rails_boot_file = File.join(Rails.root, 'config', 'boot.rb')
-      is_rails = File.exists?(rails_boot_file)
-    end
-    return is_rails
+    Rubber::Util::is_rails?
   end
   
   def apply_template(name)
@@ -45,7 +41,7 @@ class VulcanizeGenerator < Rails::Generators::NamedBase
 
       # Only include optional files when their conditions eval to true
       optional = template_conf['optional'][template_rel] rescue nil
-      Find.prune if optional && !  eval(optional)
+      Find.prune if optional && ! eval(optional)
       
       if File.directory?(f)
         empty_directory(dest_rel)

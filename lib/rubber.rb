@@ -2,7 +2,7 @@ $:.unshift(File.dirname(__FILE__))
 
 module Rubber
 
-  VERSION = File.read(File.join(File.dirname(__FILE__), '..', 'VERSION')).chomp
+  @@version  = File.read(File.join(File.dirname(__FILE__), '..', 'VERSION')).chomp
 
   def self.initialize(project_root, project_env)
     return if defined?(RUBBER_ROOT) && defined?(RUBBER_ENV)
@@ -39,6 +39,10 @@ module Rubber
 
   def self.env
     @@env
+  end
+
+  def self.version
+    @@version
   end
 
   def self.logger
