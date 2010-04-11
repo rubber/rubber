@@ -1,5 +1,6 @@
 require 'rails/generators'
 require 'find'
+require 'yaml'
 
 class VulcanizeGenerator < Rails::Generators::NamedBase
 
