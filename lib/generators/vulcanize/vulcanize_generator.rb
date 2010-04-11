@@ -50,6 +50,9 @@ class VulcanizeGenerator < Rails::Generators::NamedBase
         empty_directory(dest_rel)
       else
         copy_file(source_rel, dest_rel)
+        src_mode = File.stat(f).mode
+        dest_mode = File.stat(File.join(destination_root, dest_rel)).mode
+        chmod(dest_rel, src_mode) if src_mode != dest_mode
       end
     end
   end
