@@ -166,7 +166,7 @@ namespace :rubber do
     end
 
     desc <<-DESC
-      Backup production database using rake task rubber:backup_db
+      Backup database using rake task rubber:backup_db
     DESC
     task :backup, :roles => [:mysql_master, :mysql_slave] do
       master_instances = rubber_instances.for_role("mysql_master")
@@ -175,15 +175,15 @@ namespace :rubber do
       # Select only one instance for backup.  Favor slave database.
       selected_mysql_instance = (slaves+master_instances).first
             
-      task_name = "_backup_mysql_slave_#{selected_mysql_instance.full_name}".to_sym()
+      task_name = "_backup_mysql_#{selected_mysql_instance.full_name}".to_sym()
       task task_name, :hosts => selected_mysql_instance.full_name do
-        run "cd #{current_path} && RUBBER_ENV=production RAILS_ENV=production RUBYOPT=rubygems BACKUP_DIR=/mnt/db_backups DBUSER=#{rubber_env.db_user} DBPASS=#{rubber_env.db_pass} DBNAME=#{rubber_env.db_name} DBHOST=#{selected_mysql_instance.full_name} rake rubber:backup_db"
+        rsudo "cd #{current_path} && RUBBER_ENV=#{RUBBER_ENV} BACKUP_DIR=/mnt/db_backups DBUSER=#{rubber_env.db_user} DBPASS=#{rubber_env.db_pass} DBNAME=#{rubber_env.db_name} DBHOST=#{selected_mysql_instance.full_name} rake rubber:backup_db"
       end
       send task_name
     end
     
     desc <<-DESC
-      Restore production database from s3 using rake task rubber:restore_db_s3
+      Restore database from s3 using rake task rubber:restore_db_s3
     DESC
     task :restore_s3, :roles => [:mysql_master, :mysql_slave] do
       master_instances = rubber_instances.for_role("mysql_master")
@@ -192,7 +192,7 @@ namespace :rubber do
       for instance in master_instances+slaves
         task_name = "_restore_mysql_s3_#{instance.full_name}".to_sym()
         task task_name, :hosts => instance.full_name do
-          run "cd #{current_path} && RUBBER_ENV=production RAILS_ENV=production RUBYOPT=rubygems BACKUP_DIR=/mnt/db_backups DBUSER=#{rubber_env.db_user} DBPASS=#{rubber_env.db_pass} DBNAME=#{rubber_env.db_name} DBHOST=#{instance.full_name} rake rubber:restore_db_s3"
+          rsudo "cd #{current_path} && RUBBER_ENV=#{RUBBER_ENV} BACKUP_DIR=/mnt/db_backups DBUSER=#{rubber_env.db_user} DBPASS=#{rubber_env.db_pass} DBNAME=#{rubber_env.db_name} DBHOST=#{instance.full_name} rake rubber:restore_db_s3"
         end
         send task_name
       end
@@ -219,7 +219,7 @@ namespace :rubber do
         FileUtils.mkdir_p(File.dirname(backup_file))
 
         # Use database.yml to get connection params
-        db = YAML::load(ERB.new(IO.read(File.join(File.dirname(__FILE__), '..','database.yml'))).result)['production']
+        db = YAML::load(ERB.new(IO.read(File.join(File.dirname(__FILE__), '..','database.yml'))).result)[RUBBER_ENV]
         user = db['username']
         pass = db['passsword']
         pass = nil if pass and pass.strip.size == 0
