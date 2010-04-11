@@ -6,6 +6,7 @@ namespace :rubber do
   task :bootstrap do
     link_bash
     set_timezone
+    enable_multiverse
     upgrade_packages
     install_packages
     setup_volumes
@@ -342,6 +343,18 @@ namespace :rubber do
       elif [[ -x /etc/init.d/rsyslog ]]; then
         /etc/init.d/rsyslog restart
      fi
+    ENDSCRIPT
+  end
+  
+  desc <<-DESC
+    Enable the ubuntu multiverse source for getting packages like
+    ec2-ami-tools used for bundling images
+  DESC
+  task :enable_multiverse do
+    sudo_script 'enable_multiverse', <<-ENDSCRIPT
+      if ! grep -qc multiverse /etc/apt/sources.list /etc/apt/sources.list.d/* &> /dev/null; then
+        cat /etc/apt/sources.list | sed 's/main universe/multiverse/' > /etc/apt/sources.list.d/rubber-multiverse-source.list
+      fi
     ENDSCRIPT
   end
   
