@@ -1,3 +1,12 @@
+1.3.1
+-----
+
+make sure ec2 config dir exists before writing to it <39f51d1> [Matt Conway]
+make sure ec2-ami-tools is installed on canonical ami for rubber:bundle <62cb4ba> [Matt Conway]
+make passenger not unload app by default <d580cd9> [Matt Conway]
+ensure wget overwrites when rerunning after failed get <69102dc> [Matt Conway]
+remove uneeded dependency <97b68ac> [Matt Conway]
+
 1.3.0
 -----
 

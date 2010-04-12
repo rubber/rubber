@@ -84,7 +84,7 @@ task :changelog do
   log=`git log --pretty='format:%s <%h> [%cn]' #{last_tag}..#{current_tag}`
 
   # Strip out maintenance entries
-  log = log.to_a.delete_if {|l| l =~ /^Regenerated gemspec/ || l =~ /^Version bump/ || l =~ /^Updated changelog/ }
+  log = log.lines.to_a.delete_if {|l| l =~ /^Regenerated gemspec/ || l =~ /^Version bump/ || l =~ /^Updated changelog/ }
 
   # Write out changelog file
   File.open(changelog_file, 'w') do |out|
