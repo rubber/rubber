@@ -197,7 +197,7 @@ namespace :rubber do
       # Setup hostname on instance so shell, etcs have nice display
       sudo "sh -c 'echo $CAPISTRANO:HOST$ > /etc/hostname && hostname $CAPISTRANO:HOST$'"
       # Newer ubuntus ec2-init script always resets hostname, so prevent it
-      sudo "sh -c 'echo compat=0 > /etc/ec2-init/is-compat-env'"
+      sudo "sh -c 'mkdir -p/etc/ec2-init && echo compat=0 > /etc/ec2-init/is-compat-env'"
     end
 
     # TODO
