@@ -1,0 +1,14 @@
+<%
+  @read_cmd = 'crontab -l'
+  @write_cmd = 'crontab -'
+  @additive = ["# rubber-postgresql-start", "# rubber-postgresql-end"]
+%>
+
+<%
+  # Backup db every 3 hours to secondary db if available, else primary db
+  backup_db_host = rubber_instances.for_role('db', {}).first rescue nil
+  backup_db_host ||= rubber_instances.for_role('db', 'primary' => true).first
+  if backup_db_host.name == rubber_env.host
+%>
+0 */3 * * * BACKUP_DIR=/mnt/db_backups DBUSER=<%= rubber_env.db_user %> DBPASS=<%= rubber_env.db_pass %> DBNAME=<%= rubber_env.db_name %> DBHOST=<%= backup_db_host.full_name %> <%= RUBBER_ROOT %>/script/cron-rake rubber:backup_db
+<% end %>
