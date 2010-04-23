@@ -1,4 +1,3 @@
-
 namespace :rubber do
 
   namespace :redis do
@@ -8,7 +7,7 @@ namespace :rubber do
     after "rubber:install_packages", "rubber:redis:custom_install"
 
     task :custom_install, :roles => :redis do
-      custom_package('http://ftp.us.debian.org/debian/pool/main/r/redis/', 'redis-server', '1.2.5-1', '! -x /usr/bin/redis-server')
+      custom_package('http://ftp.us.debian.org/debian/pool/main/r/redis/', 'redis-server', '1.2.6-1', '! -x /usr/bin/redis-server')
     end
 
     desc "Stops the redis server"
