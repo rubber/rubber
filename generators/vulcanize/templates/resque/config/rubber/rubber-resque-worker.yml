@@ -1,0 +1,8 @@
+role_dependencies:
+  resque_worker: [resque]
+
+resque_workers:
+  -
+    queues: *
+  -
+    queues: *
