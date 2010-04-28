@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rubber}
-  s.version = "2.0.0.rails3.beta3"
+  s.version = "2.0.0.rails3.beta5"
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["Matt Conway"]
-  s.date = %q{2010-04-11}
+  s.date = %q{2010-04-28}
   s.default_executable = %q{vulcanize}
   s.description = %q{      The rubber plugin enables relatively complex multi-instance deployments of RubyOnRails applications to
       Amazon's Elastic Compute Cloud (EC2).  Like capistrano, rubber is role based, so you can define a set
@@ -168,10 +168,12 @@ Gem::Specification.new do |s|
      "lib/generators/vulcanize/templates/redis/config/rubber/role/redis/redis.conf",
      "lib/generators/vulcanize/templates/redis/config/rubber/rubber-redis.yml",
      "lib/generators/vulcanize/templates/redis/templates.yml",
-     "lib/generators/vulcanize/templates/resque/config/rubber/deploy-resque-worker-default.rb",
+     "lib/generators/vulcanize/templates/resque/config/rubber/deploy-resque-worker.rb",
      "lib/generators/vulcanize/templates/resque/config/rubber/deploy-resque.rb",
-     "lib/generators/vulcanize/templates/resque/config/rubber/role/resque_worker_default/monit-resque_worker_default.conf",
+     "lib/generators/vulcanize/templates/resque/config/rubber/role/resque_worker/monit-resque_worker.conf",
+     "lib/generators/vulcanize/templates/resque/config/rubber/rubber-resque-worker.yml",
      "lib/generators/vulcanize/templates/resque/config/rubber/rubber-resque.yml",
+     "lib/generators/vulcanize/templates/resque/script/resque_worker_management.rb",
      "lib/generators/vulcanize/templates/resque/templates.yml",
      "lib/generators/vulcanize/templates/sphinx/config/rubber/common/sphinx.yml",
      "lib/generators/vulcanize/templates/sphinx/config/rubber/deploy-sphinx.rb",
@@ -235,14 +237,14 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<aws-s3>, [">= 0"])
       s.add_runtime_dependency(%q<nettica>, [">= 0"])
       s.add_runtime_dependency(%q<zerigo_dns>, [">= 0"])
-      s.add_runtime_dependency(%q<railties>, ["= 3.0.0.beta2"])
+      s.add_runtime_dependency(%q<railties>, [">= 3.0.0.beta3"])
     else
       s.add_dependency(%q<capistrano>, [">= 2.4.0"])
       s.add_dependency(%q<amazon-ec2>, [">= 0.9.0"])
       s.add_dependency(%q<aws-s3>, [">= 0"])
       s.add_dependency(%q<nettica>, [">= 0"])
       s.add_dependency(%q<zerigo_dns>, [">= 0"])
-      s.add_dependency(%q<railties>, ["= 3.0.0.beta2"])
+      s.add_dependency(%q<railties>, [">= 3.0.0.beta3"])
     end
   else
     s.add_dependency(%q<capistrano>, [">= 2.4.0"])
@@ -250,7 +252,7 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<aws-s3>, [">= 0"])
     s.add_dependency(%q<nettica>, [">= 0"])
     s.add_dependency(%q<zerigo_dns>, [">= 0"])
-    s.add_dependency(%q<railties>, ["= 3.0.0.beta2"])
+    s.add_dependency(%q<railties>, [">= 3.0.0.beta3"])
   end
 end
 
