@@ -4,36 +4,55 @@ namespace :rubber do
   namespace :resque do
   
     rubber.allow_optional_tasks(self)
-  
-    after "rubber:install_packages", "rubber:resque:custom_install"
-    
-    task :custom_install, :roles => :resque do
-      rubber.sudo_script 'install_resque', <<-ENDSCRIPT
-        if [ -d resque ]; then
-          rm -r resque
-        fi
 
-        git clone git://github.com/defunkt/resque.git
+    namespace :worker do
 
-        if [ -d #{rubber_env.resque_web_dir} ]; then
-          rm -r #{rubber_env.resque_web_dir}
-        fi
+      rubber.allow_optional_tasks(self)
 
-        mkdir -p #{rubber_env.resque_web_dir}
-        mkdir #{rubber_env.resque_web_dir}/tmp
-        mv resque/config.ru #{rubber_env.resque_web_dir}
-        mv resque/lib/resque/server/* #{rubber_env.resque_web_dir}/
+      before "deploy:stop", "rubber:resque:worker:stop"
+      after "deploy:start", "rubber:resque:worker:start"
+      after "deploy:restart", "rubber:resque:worker:restart"
 
-        rm -f /var/www/resque
-        ln -s #{rubber_env.resque_web_dir}/public /var/www/resque
-      ENDSCRIPT
+      desc "Starts resque workers"
+      task :start, :roles => :resque_worker do
+        rsudo "cd #{current_path} && RUBBER_ENV=#{rails_env} ./script/resque_worker_management.rb start", :as => rubber_env.app_user
+      end
+
+      desc "Stops resque workers"
+      task :stop, :roles => :resque_worker do
+        rsudo "cd #{current_path} && RUBBER_ENV=#{rails_env} ./script/resque_worker_management.rb stop", :as => rubber_env.app_user
+      end
+
+      desc "Restarts resque workers"
+      task :restart, :roles => :resque_worker do
+        rsudo "cd #{current_path} && RUBBER_ENV=#{rails_env} ./script/resque_worker_management.rb restart", :as => rubber_env.app_user
+      end
     end
 
-    after "rubber:setup_app_permissions", "rubber:resque:setup_resque_permissions"
+    namespace :web do
+      rubber.allow_optional_tasks(self)
 
-    task :setup_resque_permissions, :roles => :resque do
-      rsudo "chown -R #{rubber_env.app_user}:#{rubber_env.app_user} #{rubber_env.resque_web_dir}/config.ru"
+      before "deploy:stop", "rubber:resque:web:stop"
+      after "deploy:start", "rubber:resque:web:start"
+      after "deploy:restart", "rubber:resque:web:restart"
+
+      desc "Starts resque web tools"
+      task :start, :roles => :resque_web do
+        rsudo "RAILS_ENV=#{RUBBER_ENV} resque-web --port #{rubber_env.resque_web_port} --no-launch #{current_path}/config/initializers/resque.rb"
+      end
+
+      desc "Stops resque web tools"
+      task :stop, :roles => :resque_web do
+        rsudo "RAILS_ENV=#{RUBBER_ENV} resque-web --kill"
+      end
+
+      desc "Restarts resque web tools"
+      task :restart, :roles => :resque_web do
+        rubber.resque.web.stop
+        rubber.resque.web.start
+      end
+
     end
-    
+
   end
 end
