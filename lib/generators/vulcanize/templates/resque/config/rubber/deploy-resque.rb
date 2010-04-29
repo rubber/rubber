@@ -38,12 +38,12 @@ namespace :rubber do
 
       desc "Starts resque web tools"
       task :start, :roles => :resque_web do
-        rsudo "RAILS_ENV=#{RUBBER_ENV} resque-web --port #{rubber_env.resque_web_port} --no-launch #{current_path}/config/initializers/resque.rb"
+        rsudo "RAILS_ENV=#{RUBBER_ENV} resque-web --pid-file /var/run/resque_web.pid --port #{rubber_env.resque_web_port} --no-launch #{current_path}/config/initializers/resque.rb"
       end
 
       desc "Stops resque web tools"
       task :stop, :roles => :resque_web do
-        rsudo "RAILS_ENV=#{RUBBER_ENV} resque-web --kill"
+        rsudo "RAILS_ENV=#{RUBBER_ENV} resque-web --pid-file /var/run/resque_web.pid --kill"
       end
 
       desc "Restarts resque web tools"

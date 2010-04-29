@@ -23,8 +23,8 @@ end
 def start(worker, index)
   puts "Starting worker #{index}/#{worker.queues}"
 
-  log_file = File.expand_path "#{Rubber.root}/log/resque_worker_#{index}.log"
-  pid_file = File.expand_path "#{Rubber.root}/tmp/pids/resque_worker_#{index}.pid"
+  log_file = log_file(index)
+  pid_file = pid_file(index)
 
   queues = worker.queues.to_s.split(',')
 
@@ -48,7 +48,7 @@ end
 def stop(index)
   puts "Stopping worker #{index}"
   
-  pid_file = File.expand_path "#{Rubber.root}/tmp/pids/resque_worker_#{index}.pid"
+  pid_file = pid_file(index)
   pid = File.read(pid_file).to_i rescue nil
   if pid
     puts "Killing worker #{index}: pid #{pid}"
@@ -57,6 +57,7 @@ def stop(index)
     rescue Exception => e
       puts e
     end
+    File.delete(pid_file) if File.exist?(pid_file)
   else
     puts "No pid file for worker #{index}: #{pid_file}"
   end
@@ -74,10 +75,17 @@ def daemonize(log_file, pid_file)
   STDERR.reopen   log_file, "a"
 
   File.open(pid_file, 'w') {|f| f.write("#{Process.pid}") }
-  at_exit { File.delete(pid_file) if File.exist?(pid_file) }
-
+  
   yield if block_given?
   exit(0)
+end
+
+def pid_file(index)
+  File.expand_path "#{Rubber.root}/tmp/pids/resque_worker_#{index}.pid"
+end
+
+def log_file(index)
+  File.expand_path "#{Rubber.root}/log/resque_worker_#{index}.log"
 end
 
 action = ARGV[0]
