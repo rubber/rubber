@@ -32,8 +32,14 @@ class VulcanizeGenerator < Rails::Generators::NamedBase
       apply_template(dep)
     end
 
+    extra_generator_steps_file = File.join(template_dir, 'templates.rb')
+    if File.exist? extra_generator_steps_file
+      eval File.read(extra_generator_steps_file), binding, extra_generator_steps_file
+    end
+
     Find.find(template_dir) do |f|
       Find.prune if f == File.join(template_dir, 'templates.yml')  # don't copy over templates.yml
+      Find.prune if f == extra_generator_steps_file # don't copy over templates.rb
 
       template_rel = f.gsub(/#{template_dir}/, '')
       source_rel = f.gsub(/#{self.class.source_root}\//, '')
