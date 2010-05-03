@@ -58,8 +58,8 @@ namespace :rubber do
     end
     
     desc "Stop cruise control daemon"
-    task :stop, :roles => :cruise, :on_error => :continue do
-      rsudo "/etc/init.d/cruise stop"
+    task :stop, :roles => :cruise do
+      rsudo "/etc/init.d/cruise stop; exit 0"
     end
     
     desc "Restart cruise control daemon"

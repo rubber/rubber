@@ -13,8 +13,8 @@ namespace :rubber do
     end
 
     desc "Stops the redis server"
-    task :stop, :roles => :redis, :on_error => :continue do
-      rsudo "/etc/init.d/redis-server stop"
+    task :stop, :roles => :redis do
+      rsudo "/etc/init.d/redis-server stop; exit 0"
     end
 
     desc "Starts the redis server"
