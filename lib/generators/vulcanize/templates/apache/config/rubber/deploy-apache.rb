@@ -27,8 +27,8 @@ namespace :rubber do
     after "deploy:restart", "rubber:apache:reload"
     
     desc "Stops the apache web server"
-    task :stop, :roles => :apache, :on_error => :continue do
-      rsudo "/etc/init.d/apache2 stop"
+    task :stop, :roles => :apache do
+      rsudo "/etc/init.d/apache2 stop; exit 0"
     end
     
     desc "Starts the apache web server"

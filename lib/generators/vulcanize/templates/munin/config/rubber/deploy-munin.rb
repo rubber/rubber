@@ -31,8 +31,8 @@ namespace :rubber do
     end
     
     desc "Stop munin system monitoring"
-    task :stop, :on_error => :continue do
-      rsudo "/etc/init.d/munin-node stop"
+    task :stop do
+      rsudo "/etc/init.d/munin-node stop; exit 0"
     end
     
     desc "Restart munin system monitoring"

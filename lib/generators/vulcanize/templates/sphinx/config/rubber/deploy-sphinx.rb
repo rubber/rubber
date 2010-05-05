@@ -77,8 +77,8 @@ namespace :rubber do
 
 
     desc "Stops sphinx searchd"
-    task :stop, :roles => :sphinx, :on_error => :continue do
-      run_sphinx 'ts:stop'
+    task :stop, :roles => :sphinx do
+      run_sphinx 'ts:stop; exit 0'
     end
 
     desc "Starts sphinx searchd"

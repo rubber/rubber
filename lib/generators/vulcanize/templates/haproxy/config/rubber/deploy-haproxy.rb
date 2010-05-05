@@ -21,8 +21,8 @@ namespace :rubber do
     after "deploy:restart", "rubber:haproxy:reload"
     
     desc "Stops the haproxy server"
-    task :stop, :roles => :haproxy, :on_error => :continue do
-      rsudo "/etc/init.d/haproxy stop"
+    task :stop, :roles => :haproxy do
+      rsudo "/etc/init.d/haproxy stop; exit 0"
     end
     
     desc "Starts the haproxy server"

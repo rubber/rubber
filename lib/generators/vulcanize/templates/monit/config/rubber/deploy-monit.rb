@@ -18,8 +18,8 @@ namespace :rubber do
     end
     
     desc "Stop monit daemon monitoring"
-    task :stop, :on_error => :continue do
-      rsudo "/etc/init.d/monit stop"
+    task :stop do
+      rsudo "/etc/init.d/monit stop; exit 0"
     end
     
     desc "Restart monit daemon monitoring"

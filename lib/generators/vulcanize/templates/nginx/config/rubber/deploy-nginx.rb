@@ -21,8 +21,8 @@ namespace :rubber do
     after "deploy:restart", "rubber:nginx:reload"
     
     desc "Stops the nginx web server"
-    task :stop, :roles => :nginx, :on_error => :continue do
-      rsudo "/etc/init.d/nginx stop"
+    task :stop, :roles => :nginx do
+      rsudo "/etc/init.d/nginx stop; exit 0"
     end
     
     desc "Starts the nginx web server"
