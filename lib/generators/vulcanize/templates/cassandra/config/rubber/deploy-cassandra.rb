@@ -12,6 +12,7 @@ namespace :rubber do
         if [[ ! -d "#{rubber_env.cassandra_dir}" ]]; then
           wget -qNP /tmp #{rubber_env.cassandra_pkg_url}
           tar -C #{rubber_env.cassandra_prefix} -zxf /tmp/apache-cassandra-#{rubber_env.cassandra_version}-bin.tar.gz
+          wget -nNO #{rubber_env.cassandra_dir}/jmxterm.jar http://downloads.sourceforge.net/project/cyclops-group/jmxterm/1.0-alpha-4/jmxterm-1.0-alpha-4-uber.jar
         fi
       ENDSCRIPT
     end
@@ -32,14 +33,26 @@ namespace :rubber do
 
             # Gen just the conf for cassandra
             rubber.run_config(:RUBBER_ENV => RUBBER_ENV, :FILE => "role/cassandra", :FORCE => true, :deploy_path => release_path)
+
+            cassandra_start
+            
+            # temporary hack to load initial schema from cassandra.yaml until
+            # something better available.  Subsequent schema changes should be
+            # done using thrift system_* api
+            # http://wiki.apache.org/cassandra/FAQ#no_keyspaces
+            # http://wiki.apache.org/cassandra/LiveSchemaUpdates
+            if instances.size == 1
+              rubber.sudo_script "install_cassandra_schema", <<-ENDSCRIPT
+                echo run -b org.apache.cassandra.service:type=StorageService loadSchemaFromYAML |\
+                  java -jar #{rubber_env.cassandra_dir}/jmxterm.jar -n -l #{ic.full_name}:#{rubber_env.cassandra_jmx_port}
+              ENDSCRIPT
+            end
           end
         end
         send task_name
       end
-      
-      rubber.cassandra.start
     end
-
+    
     on :load do
       rubber.serial_task self, :serial_restart, :roles => :cassandra do
         cassandra_stop

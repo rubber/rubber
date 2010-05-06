@@ -176,7 +176,7 @@ endpoint_snitch: org.apache.cassandra.locator.SimpleSnitch
 #   Defaults to false.
 #
 keyspaces:
-    - name: <%= rubber_env.app_name %>_keyspace
+    - name: <%= rubber_env.app_name.capitalize %>
       replica_placement_strategy: org.apache.cassandra.locator.RackUnawareStrategy
       replication_factor: 1
       column_families:
