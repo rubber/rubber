@@ -37,5 +37,9 @@ module Rubber
       File.exist?(File.join(RUBBER_ROOT, 'Gemfile'))
     end
 
+    def self.rubber_as_plugin?
+      File.exist?(File.join(RUBBER_ROOT, 'vendor/plugins/rubber'))
+    end
+
   end
 end
