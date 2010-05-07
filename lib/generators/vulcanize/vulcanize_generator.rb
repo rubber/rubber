@@ -10,7 +10,6 @@ class VulcanizeGenerator < Rails::Generators::NamedBase
 
   def copy_template_files
     apply_template(file_name)
-    gem "rubber", Rubber.version if Rubber::Util::is_bundler?
   end
 
   protected
