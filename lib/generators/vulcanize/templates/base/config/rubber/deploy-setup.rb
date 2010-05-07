@@ -27,39 +27,13 @@ namespace :rubber do
         rvm_ver=$1
         if [[ ! `rvm list default 2> /dev/null` =~ "$rvm_ver" ]]; then
           rvm install $rvm_ver
-          rvm use --default $rvm_ver
+          # need to set default after using once or something in env is broken
+          rvm use $rvm_ver &> /dev/null
+          rvm use $rvm_ver --default
         fi
       ENDSCRIPT
       opts[:script_args] = '$CAPISTRANO:VAR$'
       rubber.sudo_script "install_rvm_ruby", install_rvm_ruby_script, opts
-    end
-
-
-    task :install_rvm_ruby_old do
-
-      # figure out rvm versions for hosts
-      rvm_ruby_hosts = {}
-      rubber_instances.filtered.each do |ic|
-        env = rubber_cfg.environment.bind(ic.role_names, ic.name)
-        rvm_ruby_hosts[env.rvm_ruby] ||= []
-        rvm_ruby_hosts[env.rvm_ruby] << ic.full_name unless ic.windows?
-      end
-
-      rvm_ruby_hosts.each do |rvm_ruby, rvm_ruby_hosts|
-
-        task :_install_rvm_ruby, :hosts => rvm_ruby_hosts do
-          rubber.sudo_script "install_rvm", <<-ENDSCRIPT
-            if [[ ! `rvm list default 2> /dev/null` =~ "#{rvm_ruby}" ]]; then
-              rvm install #{rvm_ruby}
-              rvm use --default #{rvm_ruby}
-            fi
-          ENDSCRIPT
-        end
-
-        _install_rvm_ruby
-
-      end
-
     end
 
     after "rubber:install_packages", "rubber:base:configure_git" if scm == "git"
