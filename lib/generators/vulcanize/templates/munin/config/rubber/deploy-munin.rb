@@ -15,7 +15,7 @@ namespace :rubber do
     DESC
     task :custom_install do
       rubber.sudo_script 'setup_munin_plugins', <<-ENDSCRIPT
-        munin-node-configure --shell --remove-also > /tmp/setup-munin-plugins
+        munin-node-configure --shell --remove-also > /tmp/setup-munin-plugins 2> /dev/null || true
         sh /tmp/setup-munin-plugins
       ENDSCRIPT
       restart

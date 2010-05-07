@@ -1,6 +1,6 @@
 # Uses admin_email from base
 
-packages: [munin-node, munin-plugins-extra, mailx]
+packages: [munin-node, munin-plugins-extra, heirloom-mailx]
 
 roles:
   web_tools:
