@@ -341,7 +341,7 @@ namespace :rubber do
       if [[ -x /etc/init.d/sysklogd ]]; then
         /etc/init.d/sysklogd restart
       elif [[ -x /etc/init.d/rsyslog ]]; then
-        /etc/init.d/rsyslog restart
+        service rsyslog restart
      fi
     ENDSCRIPT
   end
