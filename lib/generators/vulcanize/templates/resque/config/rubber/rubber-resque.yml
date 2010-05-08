@@ -1,10 +1,18 @@
-resque_web_dir: /opt/resque
+resque_web_port: 5678
 
-resque_worker_default_count: 5
+# list of workers with the queues to be run on each - on each worker instance,
+# a worker is run for each item in this list to handle the queues specified
+#
+resque_workers:
+  -
+    queues: *
+    poll_interval: 1
+  -
+    queues: *
+    poll_interval: 1
+
+gems: [yajl-ruby resque]
 
 role_dependencies:
-  css_validator: [redis]
+  web_tools: [resque_web]
 
-roles:
-  resque:
-    gems: [redis redis-namespace yajl-ruby sinatra resque]

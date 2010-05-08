@@ -15,7 +15,7 @@ namespace :rubber do
     DESC
     task :custom_install do
       rubber.sudo_script 'setup_munin_plugins', <<-ENDSCRIPT
-        munin-node-configure --shell --remove-also > /tmp/setup-munin-plugins
+        munin-node-configure --shell --remove-also > /tmp/setup-munin-plugins 2> /dev/null || true
         sh /tmp/setup-munin-plugins
       ENDSCRIPT
       restart
@@ -27,12 +27,12 @@ namespace :rubber do
 
     desc "Start munin system monitoring"
     task :start do
-      rsudo "/etc/init.d/munin-node start"
+      rsudo "service munin-node start"
     end
     
     desc "Stop munin system monitoring"
-    task :stop, :on_error => :continue do
-      rsudo "/etc/init.d/munin-node stop"
+    task :stop do
+      rsudo "service munin-node stop; exit 0"
     end
     
     desc "Restart munin system monitoring"

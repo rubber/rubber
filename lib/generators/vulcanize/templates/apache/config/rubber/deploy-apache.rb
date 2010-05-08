@@ -15,10 +15,10 @@ namespace :rubber do
     # rubber auto-roles don't get defined till after all tasks are defined
     on :load do
       rubber.serial_task self, :serial_restart, :roles => :apache do
-        rsudo "/etc/init.d/apache2 restart"
+        rsudo "service apache2 restart"
       end
       rubber.serial_task self, :serial_reload, :roles => :apache do
-        rsudo "if ! ps ax | grep -v grep | grep -c apache2 &> /dev/null; then /etc/init.d/apache2 start; else /etc/init.d/apache2 reload; fi"
+        rsudo "if ! ps ax | grep -v grep | grep -c apache2 &> /dev/null; then service apache2 start; else service apache2 reload; fi"
       end
     end
     
@@ -27,13 +27,13 @@ namespace :rubber do
     after "deploy:restart", "rubber:apache:reload"
     
     desc "Stops the apache web server"
-    task :stop, :roles => :apache, :on_error => :continue do
-      rsudo "/etc/init.d/apache2 stop"
+    task :stop, :roles => :apache do
+      rsudo "service apache2 stop; exit 0"
     end
     
     desc "Starts the apache web server"
     task :start, :roles => :apache do
-      rsudo "/etc/init.d/apache2 start"
+      rsudo "service apache2 start"
     end
     
     desc "Restarts the apache web server"

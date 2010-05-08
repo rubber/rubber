@@ -1,4 +1,3 @@
-
 namespace :rubber do
 
   namespace :redis do
@@ -8,12 +7,14 @@ namespace :rubber do
     after "rubber:install_packages", "rubber:redis:custom_install"
 
     task :custom_install, :roles => :redis do
-      custom_package('http://ftp.us.debian.org/debian/pool/main/r/redis/', 'redis-server', '1.2.5-1', '! -x /usr/bin/redis-server')
+      custom_package('http://ftp.us.debian.org/debian/pool/main/r/redis/', 'redis-server', '1.2.6-1', '! -x /usr/bin/redis-server')
+      # force redis config regen so db dir gets recreated when creating staging from a bundle
+      rsudo "rm -f /etc/redis/redis.conf"
     end
 
     desc "Stops the redis server"
-    task :stop, :roles => :redis, :on_error => :continue do
-      rsudo "/etc/init.d/redis-server stop"
+    task :stop, :roles => :redis do
+      rsudo "/etc/init.d/redis-server stop; exit 0"
     end
 
     desc "Starts the redis server"

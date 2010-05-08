@@ -4,7 +4,7 @@
 
 check process mysql_cluster_sql with pidfile /var/lib/mysql/<%= rubber_env.full_host %>.pid
    group mysql_cluster_sql-<%= RUBBER_ENV %>
-   start program = "/etc/init.d/mysql start"
-   stop program = "/etc/init.d/mysql stop"
+   start program = "/usr/sbin/service mysql start"
+   stop program = "/usr/sbin/service mysql stop"
    if failed host 127.0.0.1 port 3306 protocol mysql then alert
    if 5 restarts within 5 cycles then timeout
