@@ -1,0 +1,18 @@
+cassandra_version: 2010-05-05_14-04-54
+cassandra_prefix: /usr/local
+cassandra_dir: "#{cassandra_prefix}/apache-cassandra-#{cassandra_version}"
+cassandra_data_dir: "/var/lib/cassandra/data"
+cassandra_commitlog_dir: "/var/lib/cassandra/commitlog"
+cassandra_log_dir: "/var/log/cassandra"
+cassandra_pid_file: "/var/run/cassandra.pid"
+cassandra_pkg_url: "http://hudson.zones.apache.org/hudson/job/Cassandra/lastSuccessfulBuild/artifact/cassandra/build/apache-cassandra-#{cassandra_version}-bin.tar.gz"
+cassandra_rpc_port: 9160
+cassandra_storage_port: 7070
+cassandra_jmx_port: 8181
+
+role_dependencies:
+  cassandra_seed: [cassandra]
+  
+roles:
+  cassandra:
+    packages: [openjdk-6-jdk]
