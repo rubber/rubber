@@ -92,14 +92,14 @@ module Rubber
 
       def update_host_record(old_opts={}, new_opts={})
         old_opts = setup_opts(old_opts, [:host, :domain])
-        new_opts = setup_opts(new_opts.merge(:no_defaults =>true), [])
+        new_opts = setup_opts(new_opts, [:host, :domain, :type, :data])
         zone = ::Zerigo::DNS::Zone.find_or_create(old_opts[:domain])
 
         find_hosts(old_opts).each do |h|
           opts_to_host(new_opts).each do |k, v|
             h.send("#{k}=", v)
           end
-          h.save || raise("Failed to update host #{h.hostname}")
+          h.save || raise("Failed to update host #{h.hostname}, #{h.errors.full_messages.join(', ')}")
         end
       end
 
