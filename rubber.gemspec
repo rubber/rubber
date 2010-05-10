@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["Matt Conway"]
-  s.date = %q{2010-04-28}
+  s.date = %q{2010-05-10}
   s.default_executable = %q{vulcanize}
   s.description = %q{      The rubber plugin enables relatively complex multi-instance deployments of RubyOnRails applications to
       Amazon's Elastic Compute Cloud (EC2).  Like capistrano, rubber is role based, so you can define a set
@@ -52,6 +52,7 @@ Gem::Specification.new do |s|
      "lib/generators/vulcanize/templates/base/config/rubber/common/monit-postfix.conf",
      "lib/generators/vulcanize/templates/base/config/rubber/common/rubber.profile",
      "lib/generators/vulcanize/templates/base/config/rubber/deploy-setup.rb",
+     "lib/generators/vulcanize/templates/base/config/rubber/deploy-util.rb",
      "lib/generators/vulcanize/templates/base/config/rubber/rubber-dns.yml",
      "lib/generators/vulcanize/templates/base/config/rubber/rubber-rvm.yml",
      "lib/generators/vulcanize/templates/base/config/rubber/rubber.yml",
@@ -59,14 +60,25 @@ Gem::Specification.new do |s|
      "lib/generators/vulcanize/templates/base/script/cron-rake",
      "lib/generators/vulcanize/templates/base/script/cron-runner",
      "lib/generators/vulcanize/templates/base/script/cron-sh",
+     "lib/generators/vulcanize/templates/base/templates.rb",
      "lib/generators/vulcanize/templates/base/templates.yml",
+     "lib/generators/vulcanize/templates/cassandra/config/rubber/deploy-cassandra.rb",
+     "lib/generators/vulcanize/templates/cassandra/config/rubber/role/cassandra/cassandra.in.sh",
+     "lib/generators/vulcanize/templates/cassandra/config/rubber/role/cassandra/cassandra.yaml",
+     "lib/generators/vulcanize/templates/cassandra/config/rubber/role/cassandra/log4j-server.properties",
+     "lib/generators/vulcanize/templates/cassandra/config/rubber/role/cassandra/monit-cassandra.conf",
+     "lib/generators/vulcanize/templates/cassandra/config/rubber/rubber-cassandra.yml",
+     "lib/generators/vulcanize/templates/cassandra/templates.yml",
      "lib/generators/vulcanize/templates/complete_mongrel_mysql/config/rubber/role/haproxy/haproxy-mongrel.conf",
      "lib/generators/vulcanize/templates/complete_mongrel_mysql/config/rubber/role/nginx/nginx-mongrel.conf",
      "lib/generators/vulcanize/templates/complete_mongrel_mysql/config/rubber/rubber-complete.yml",
      "lib/generators/vulcanize/templates/complete_mongrel_mysql/templates.yml",
-     "lib/generators/vulcanize/templates/complete_passenger_mysql/config/rubber/role/haproxy/haproxy-passenger.conf",
-     "lib/generators/vulcanize/templates/complete_passenger_mysql/config/rubber/rubber-complete.yml",
+     "lib/generators/vulcanize/templates/complete_passenger/config/rubber/role/haproxy/haproxy-passenger.conf",
+     "lib/generators/vulcanize/templates/complete_passenger/config/rubber/rubber-complete.yml",
+     "lib/generators/vulcanize/templates/complete_passenger/templates.rb",
+     "lib/generators/vulcanize/templates/complete_passenger/templates.yml",
      "lib/generators/vulcanize/templates/complete_passenger_mysql/templates.yml",
+     "lib/generators/vulcanize/templates/complete_passenger_postgresql/templates.yml",
      "lib/generators/vulcanize/templates/cruise/config/rubber/deploy-cruise.rb",
      "lib/generators/vulcanize/templates/cruise/config/rubber/role/cruise/cruise",
      "lib/generators/vulcanize/templates/cruise/config/rubber/role/cruise/my.cnf",
@@ -162,18 +174,30 @@ Gem::Specification.new do |s|
      "lib/generators/vulcanize/templates/passenger/config/rubber/role/passenger/passenger.conf",
      "lib/generators/vulcanize/templates/passenger/config/rubber/rubber-passenger.yml",
      "lib/generators/vulcanize/templates/passenger/templates.yml",
+     "lib/generators/vulcanize/templates/postgresql/config/rubber/common/database.yml",
+     "lib/generators/vulcanize/templates/postgresql/config/rubber/deploy-postgresql.rb",
+     "lib/generators/vulcanize/templates/postgresql/config/rubber/role/db/crontab",
+     "lib/generators/vulcanize/templates/postgresql/config/rubber/role/db/monit-postgresql.conf",
+     "lib/generators/vulcanize/templates/postgresql/config/rubber/role/db/pg_hba.conf",
+     "lib/generators/vulcanize/templates/postgresql/config/rubber/role/db/postgresql-sysctl.conf",
+     "lib/generators/vulcanize/templates/postgresql/config/rubber/role/db/postgresql.conf",
+     "lib/generators/vulcanize/templates/postgresql/config/rubber/rubber-postgresql.yml",
+     "lib/generators/vulcanize/templates/postgresql/templates.yml",
      "lib/generators/vulcanize/templates/redis/config/rubber/deploy-redis.rb",
      "lib/generators/vulcanize/templates/redis/config/rubber/role/redis/crontab",
      "lib/generators/vulcanize/templates/redis/config/rubber/role/redis/monit-redis.conf",
      "lib/generators/vulcanize/templates/redis/config/rubber/role/redis/redis.conf",
      "lib/generators/vulcanize/templates/redis/config/rubber/rubber-redis.yml",
      "lib/generators/vulcanize/templates/redis/templates.yml",
-     "lib/generators/vulcanize/templates/resque/config/rubber/deploy-resque-worker.rb",
+     "lib/generators/vulcanize/templates/resque/config/initializers/resque.rb",
+     "lib/generators/vulcanize/templates/resque/config/rubber/common/resque.yml",
      "lib/generators/vulcanize/templates/resque/config/rubber/deploy-resque.rb",
+     "lib/generators/vulcanize/templates/resque/config/rubber/role/monit-resque_web.conf",
+     "lib/generators/vulcanize/templates/resque/config/rubber/role/monit-resque_worker.conf",
      "lib/generators/vulcanize/templates/resque/config/rubber/role/resque_worker/monit-resque_worker.conf",
-     "lib/generators/vulcanize/templates/resque/config/rubber/rubber-resque-worker.yml",
      "lib/generators/vulcanize/templates/resque/config/rubber/rubber-resque.yml",
      "lib/generators/vulcanize/templates/resque/script/resque_worker_management.rb",
+     "lib/generators/vulcanize/templates/resque/templates.rb",
      "lib/generators/vulcanize/templates/resque/templates.yml",
      "lib/generators/vulcanize/templates/sphinx/config/rubber/common/sphinx.yml",
      "lib/generators/vulcanize/templates/sphinx/config/rubber/deploy-sphinx.rb",
@@ -216,7 +240,7 @@ Gem::Specification.new do |s|
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{rubber}
-  s.rubygems_version = %q{1.3.6}
+  s.rubygems_version = %q{1.3.7}
   s.summary = %q{A capistrano plugin for managing multi-instance deployments to the cloud (ec2)}
   s.test_files = [
     "test/environment_test.rb",
@@ -231,7 +255,7 @@ Gem::Specification.new do |s|
     current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
     s.specification_version = 3
 
-    if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
+    if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
       s.add_runtime_dependency(%q<capistrano>, [">= 2.4.0"])
       s.add_runtime_dependency(%q<amazon-ec2>, [">= 0.9.0"])
       s.add_runtime_dependency(%q<aws-s3>, [">= 0"])
