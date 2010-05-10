@@ -41,5 +41,24 @@ module Rubber
       File.exist?(File.join(RUBBER_ROOT, 'vendor/plugins/rubber'))
     end
 
+    def self.prompt(name, desc, required=false, default=nil)
+      value = ENV.delete(name)
+      msg = "#{desc}"
+      msg << " [#{default}]" if default
+      msg << ": "
+      unless value
+        print msg
+        value = gets
+      end
+      value = value.size == 0 ? default : value
+      self.fatal "#{name} is required, pass using environment or enter at prompt" if required && ! value
+      return value
+    end
+
+    def self.fatal(msg, code=1)
+      puts msg
+      exit code
+    end
+    
   end
 end
