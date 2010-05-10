@@ -1,10 +1,4 @@
 description: A fairly complete and scalable mysql deployment setup
 dependent_templates:
-  - base
+  - complete_passenger
   - mysql
-  - haproxy
-  - apache
-  - passenger
-  - monit
-  - munin
-  - memcached
