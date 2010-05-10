@@ -50,8 +50,7 @@ namespace :rubber do
       
       # After everything installed on machines, we need the source tree
       # on hosts in order to run rubber:config for bootstrapping the db
-      deploy.setup
-      deploy.update_code
+      rubber.update_code_for_bootstrap
   
       # Conditionaly bootstrap for each node/role only if that node has not
       # been boostrapped for that role before

@@ -116,8 +116,7 @@ namespace :rubber do
       
       # After everything installed on machines, we need the source tree
       # on hosts in order to run rubber:config for bootstrapping the db
-      deploy.setup
-      deploy.update_code
+      rubber.update_code_for_bootstrap
       
       # Gen just the conf for the given mysql role
       rubber.run_config(:RUBBER_ENV => RUBBER_ENV, :FILE => "role/#{role}|role/db/", :FORCE => true, :deploy_path => release_path)
