@@ -9,7 +9,10 @@ class VulcanizeGenerator < Rails::Generators::NamedBase
   end
 
   def copy_template_files
-    apply_template(file_name)
+    @template_dependencies = find_dependencies(file_name)
+    ([file_name] + @template_dependencies).each do |template|
+      apply_template(template)
+    end
   end
 
   protected
@@ -17,6 +20,22 @@ class VulcanizeGenerator < Rails::Generators::NamedBase
   # helper to test for rails for optional templates
   def rails?
     Rubber::Util::is_rails?
+  end
+
+  def find_dependencies(name)
+    template_dir = File.join(self.class.source_root, name, '')
+    unless File.directory?(template_dir)
+      raise Rails::Generators::Error.new("Invalid template #{name}, use one of #{valid_templates.join(', ')}")
+    end
+
+    template_conf = load_template_config(template_dir)
+    template_dependencies = template_conf['dependent_templates'] || []
+
+    template_dependencies.clone.each do |dep|
+      template_dependencies.concat(find_dependencies(dep))
+    end
+
+    return template_dependencies.uniq
   end
   
   def apply_template(name)
@@ -26,10 +45,6 @@ class VulcanizeGenerator < Rails::Generators::NamedBase
     end
 
     template_conf = load_template_config(template_dir)
-    deps = template_conf['dependent_templates'] || []
-    deps.each do |dep|
-      apply_template(dep)
-    end
 
     extra_generator_steps_file = File.join(template_dir, 'templates.rb')
     if File.exist? extra_generator_steps_file
