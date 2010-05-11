@@ -21,8 +21,15 @@ namespace :rubber do
     else
       rubber.create
     end
+
+    # stop everything before so monit doesn't start stuff during bootstrapping
+    # if its already installed due to a bundled instance
+    deploy.stop rescue nil
+
     rubber.bootstrap
-    # stop everything in case we have a bundled instance with monit, etc starting at boot
+    
+    # stop everything after in case package upgrades during bootstrap start up
+    # services - we should be able to safely do a deploy:start below
     deploy.stop rescue nil
 
     # some bootstraps update code (bootstrap_db) but if you don't have that role, need to do it here
