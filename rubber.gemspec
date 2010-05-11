@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rubber}
-  s.version = "2.0.0.rails3.beta5"
+  s.version = "2.0.0.rails3.beta6"
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["Matt Conway"]
-  s.date = %q{2010-05-10}
+  s.date = %q{2010-05-11}
   s.default_executable = %q{vulcanize}
   s.description = %q{      The rubber plugin enables relatively complex multi-instance deployments of RubyOnRails applications to
       Amazon's Elastic Compute Cloud (EC2).  Like capistrano, rubber is role based, so you can define a set
