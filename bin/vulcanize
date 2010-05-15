@@ -1,8 +1,6 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
-gem 'railties'
-require 'rails/generators'
 
 env = ENV['RUBBER_ENV'] ||= 'development'
 root = '.'
@@ -12,4 +10,9 @@ Rubber::initialize(root, env)
 
 require File.expand_path('../../lib/generators/vulcanize/vulcanize_generator', __FILE__)
 
-VulcanizeGenerator.start
+if defined?(Rails) && Rails::VERSION::MAJOR == 3
+  gem 'railties'
+  require 'rails/generators'
+
+  VulcanizeGenerator.start
+end
