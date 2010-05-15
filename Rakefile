@@ -24,9 +24,6 @@ begin
     s.add_dependency 'amazon-ec2', '>= 0.9.0'
     s.add_dependency 'aws-s3'
     s.add_dependency 'nettica'
-    s.add_dependency 'railties', '>= 3.0.0.beta3'
-    s.add_dependency 'activeresource', '>= 3.0.0.beta3'
-    s.add_dependency 'zerigo_dns'
   end
   Jeweler::GemcutterTasks.new
 rescue LoadError
