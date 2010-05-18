@@ -71,7 +71,7 @@ require 'rubber/util'
 require 'rubber/cloud'
 require 'rubber/dns'
 
-if defined?(Rails) && Rails::VERSION::MAJOR == 3
+if Rubber::Util::is_rails3?
   module Rubber
     require 'rubber/railtie'
   end

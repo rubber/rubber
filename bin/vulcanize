@@ -10,7 +10,7 @@ Rubber::initialize(root, env)
 
 require File.expand_path('../../lib/generators/vulcanize/vulcanize_generator', __FILE__)
 
-if defined?(Rails) && Rails::VERSION::MAJOR == 3
+if Rubber::Util::is_rails3?
   gem 'railties'
   require 'rails/generators'
 

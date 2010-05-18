@@ -259,7 +259,7 @@ namespace :rubber do
   desc <<-DESC
     Install ruby gems defined in the rails environment.rb
   DESC
-  after "rubber:config", "rubber:install_rails_gems" if (Rubber::Util.is_rails? && Rails::VERSION::MAJOR == 2)
+  after "rubber:config", "rubber:install_rails_gems" if Rubber::Util::is_rails2?
   task :install_rails_gems do
     sudo "sh -c 'cd #{current_release} && RAILS_ENV=#{RUBBER_ENV} rake gems:install'"
   end

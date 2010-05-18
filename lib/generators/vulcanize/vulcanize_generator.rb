@@ -1,7 +1,7 @@
 require 'find'
 require 'yaml'
 
-if defined?(Rails) && Rails::VERSION::MAJOR == 2
+if Rubber::Util::is_rails2?
   require 'fileutils'
   require 'commands/generate'
 
