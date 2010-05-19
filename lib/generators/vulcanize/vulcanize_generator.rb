@@ -41,6 +41,12 @@ if Rubber::Util::is_rails2?
 
         rel = f.gsub(/#{source_root}\//, '')
         dest_rel = rel.gsub(/^#{name}\//, '')
+
+        # Only include optional files when their conditions eval to true
+        template_conf = YAML.load(File.read(TEMPLATE_FILE)) rescue {}
+        optional = template_conf['optional'][dest_rel] rescue nil
+        Find.prune if optional && ! eval(optional)
+
         m.directory(dest_rel) if File.directory?(f)
         if File.file?(f)
           # force scripts to be executable
