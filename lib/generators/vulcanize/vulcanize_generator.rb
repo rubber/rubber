@@ -6,6 +6,7 @@ if Rubber::Util::is_rails2?
   require 'commands/generate'
 
   class VulcanizeGenerator < Rails::Generator::NamedBase
+    include Rails::Generator::Commands
 
     TEMPLATE_ROOT = File.dirname(__FILE__) + "/templates" unless defined?(TEMPLATE_ROOT)
     TEMPLATE_FILE = "templates.yml" unless defined?(TEMPLATE_FILE)
@@ -31,9 +32,12 @@ if Rubber::Util::is_rails2?
         apply_template(m, dep)
       end
 
+      extra_generator_steps_file = File.join(TEMPLATE_ROOT, name, 'templates.rb')
+
       Find.find(sp) do |f|
         Find.prune if File.basename(f) =~ /^(CVS|\.svn)$/
         Find.prune if f == "#{sp}#{TEMPLATE_FILE}"
+        Find.prune if f == extra_generator_steps_file # don't copy over templates.rb
 
         rel = f.gsub(/#{source_root}\//, '')
         dest_rel = rel.gsub(/^#{name}\//, '')
@@ -43,7 +47,11 @@ if Rubber::Util::is_rails2?
           opts = (File.read(f) =~ /^#!/) ? {:chmod => 0755} : {}
           m.file(rel, dest_rel, opts)
         end
+      end
 
+      puts extra_generator_steps_file
+      if File.exist? extra_generator_steps_file
+        eval File.read(extra_generator_steps_file), binding, extra_generator_steps_file
       end
     end
 
@@ -118,9 +126,6 @@ else
       template_conf = load_template_config(template_dir)
 
       extra_generator_steps_file = File.join(template_dir, 'templates.rb')
-      if File.exist? extra_generator_steps_file
-        eval File.read(extra_generator_steps_file), binding, extra_generator_steps_file
-      end
 
       Find.find(template_dir) do |f|
         Find.prune if f == File.join(template_dir, 'templates.yml')  # don't copy over templates.yml
@@ -143,6 +148,10 @@ else
           chmod(dest_rel, src_mode) if src_mode != dest_mode
         end
       end
+
+      if File.exist? extra_generator_steps_file
+        eval File.read(extra_generator_steps_file), binding, extra_generator_steps_file
+      end
     end
 
     def valid_templates
@@ -151,6 +160,12 @@ else
 
     def load_template_config(template_dir)
       YAML.load(File.read(File.join(template_dir, 'templates.yml'))) rescue {}
+    end
+
+    def gsub_file(relative_destination, regexp, *args, &block)
+     path = destination_path(relative_destination)
+     content = File.read(path).gsub(regexp, *args, &block)
+     File.open(path, 'wb') { |file| file.write(content) }
     end
   end
 
