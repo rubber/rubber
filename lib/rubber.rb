@@ -17,11 +17,7 @@ module Rubber
     # complicates bootstrap (i.e. can't run config to create db because full
     # rails env needs db to exist as some plugin accesses model or something)
     rails_boot_file = File.join(RUBBER_ROOT, 'config', 'boot.rb')
-
-    if File.exists? rails_boot_file
-      ARGV.insert(0, 'vulcanize') unless ARGV[0] == 'vulcanize' # Need for Rails 2 generator.
-      require(rails_boot_file)
-    end
+    require(rails_boot_file) if File.exists? rails_boot_file
 
     if defined?(Rails.logger) && Rails.logger
       @@logger = Rails.logger
