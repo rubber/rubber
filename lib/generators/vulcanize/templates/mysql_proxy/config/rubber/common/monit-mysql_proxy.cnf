@@ -4,7 +4,7 @@
 
 check process mysql_proxy with pidfile /var/run/mysql-proxy.pid
    group mysql_proxy-<%= RUBBER_ENV %>
-   start program = "/usr/sbin/service mysql-proxy start"
-   stop program = "/usr/sbin/service mysql-proxy stop"
+   start program = "/usr/bin/env service mysql-proxy start"
+   stop program = "/usr/bin/env service mysql-proxy stop"
    if failed host 127.0.0.1 port 4040 protocol mysql then alert
    if 5 restarts within 5 cycles then timeout
