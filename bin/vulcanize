@@ -11,11 +11,15 @@ Rubber::initialize(root, env)
 if Rubber::Util::is_rails2?
   ARGV.insert(0, 'vulcanize') unless ARGV[0] == 'vulcanize' # Need for Rails 2 generator.
   require File.expand_path('../../lib/generators/vulcanize/vulcanize_generator', __FILE__)
-end
+else
+  begin
+    gem 'railties'
+  rescue LoadError
+    puts "Missing the railties gem.  Install with `sudo gem install railties --version=3.0.0.beta3`."
+    exit(-1)
+  end
 
-if Rubber::Util::is_rails3?
-  gem 'railties'
-  require 'rails/generators'
+  require File.expand_path('../../lib/generators/vulcanize/vulcanize_generator', __FILE__)
 
   VulcanizeGenerator.start
 end

@@ -34,11 +34,11 @@ module Rubber
     end
 
     def self.is_rails2?
-      defined?(Rails) && Rails::VERSION::MAJOR == 2
+      defined?(Rails) && defined?(Rails::VERSION) && Rails::VERSION::MAJOR == 2
     end
 
     def self.is_rails3?
-      defined?(Rails) && Rails::VERSION::MAJOR == 3
+      defined?(Rails) && defined?(Rails::VERSION) && Rails::VERSION::MAJOR == 3
     end
 
     def self.is_bundler?
