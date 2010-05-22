@@ -1,3 +1,8 @@
+1.5.1
+-----
+
+Fixed a problem with installing gems listed in environment.rb. <aa2b516> [Kevin Menard]
+
 1.5.0
 -----
 
