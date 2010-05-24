@@ -26,8 +26,11 @@ if Rubber::Util::is_rails2?
         raise Rails::Generator::UsageError.new("Invalid template #{name}, use one of #{valid_templates.join(', ')}")
       end
 
+      @template_dependencies ||= []
+
       templ_conf = load_template_config(sp)
       deps = templ_conf['dependent_templates'] || []
+      @template_dependencies.concat(deps)
       deps.each do |dep|
         apply_template(m, dep)
       end
