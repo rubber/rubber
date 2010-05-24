@@ -1,3 +1,13 @@
+1.5.2
+-----
+
+New release. <fad9bbb> [Kevin Menard]
+Fixed issue with dependent modules in Rails 2 generator. <84a0259> [Kevin Menard]
+Fixed an issue with mysqldump and empty passwords. <708f053> [Kevin Menard]
+Removed unnecessary puts statement. <0e81cdc> [Kevin Menard]
+Fix for incomplete path. <b18743f> [Kevin Menard]
+Ubuntu changed the location of its service command, so we can't rely on any given path for it. <e82e7b1> [Kevin Menard]
+
 1.5.1
 -----
 
