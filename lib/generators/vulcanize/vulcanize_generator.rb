@@ -55,7 +55,6 @@ if Rubber::Util::is_rails2?
         end
       end
 
-      puts extra_generator_steps_file
       if File.exist? extra_generator_steps_file
         eval File.read(extra_generator_steps_file), binding, extra_generator_steps_file
       end
