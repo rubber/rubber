@@ -1,6 +1,16 @@
 require 'find'
 require 'yaml'
 
+# Load and initialize rubber if it hasn't been already.
+# This happens using the generator with Rails 2 and Rubber is not set up as a plugin.
+unless defined?(Rubber)
+  env = ENV['RUBBER_ENV'] ||= 'development'
+  root = '.'
+
+  require 'rubber'
+  Rubber::initialize(root, env)
+end
+
 if Rubber::Util::is_rails2?
   require 'fileutils'
   require 'commands/generate'
