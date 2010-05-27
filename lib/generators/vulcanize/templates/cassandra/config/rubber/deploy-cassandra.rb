@@ -12,7 +12,7 @@ namespace :rubber do
         if [[ ! -d "#{rubber_env.cassandra_dir}" ]]; then
           wget -qNP /tmp #{rubber_env.cassandra_pkg_url}
           tar -C #{rubber_env.cassandra_prefix} -zxf /tmp/apache-cassandra-#{rubber_env.cassandra_version}-bin.tar.gz
-          wget -nNO #{rubber_env.cassandra_dir}/jmxterm.jar http://downloads.sourceforge.net/project/cyclops-group/jmxterm/1.0-alpha-4/jmxterm-1.0-alpha-4-uber.jar
+          wget -qNO #{rubber_env.cassandra_dir}/jmxterm.jar http://downloads.sourceforge.net/project/cyclops-group/jmxterm/1.0-alpha-4/jmxterm-1.0-alpha-4-uber.jar
         fi
       ENDSCRIPT
     end
