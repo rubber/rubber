@@ -7,10 +7,10 @@ namespace :rubber do
     task :install_rvm do
       rubber.sudo_script "install_rvm", <<-ENDSCRIPT
         if [[ `rvm --version 2> /dev/null` == "" ]]; then
+          echo "rvm_prefix=/usr/local" > /etc/rvmrc
           wget -qNP /tmp http://rvm.beginrescueend.com/releases/rvm-install-head
           bash /tmp/rvm-install-head
           echo "#{rubber_env.rvm_prepare}" > /etc/profile.d/rvm.sh
-          echo "rvm_prefix=/usr/local" > /etc/rvmrc
         fi
       ENDSCRIPT
     end
