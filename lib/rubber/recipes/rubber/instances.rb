@@ -292,6 +292,10 @@ namespace :rubber do
       instance_item.external_ip = instance[:external_ip]
       instance_item.internal_host = instance[:internal_host]
       instance_item.zone = instance[:zone]
+      instance_item.platform = instance[:platform]
+
+      # turn back on root ssh access if we are using root as the capistrano user for connecting
+      enable_root_ssh(instance_item.external_ip, fetch(:initial_ssh_user, 'ubuntu')) if user == 'root'
 
       # setup amazon elastic ips if configured to do so
       setup_static_ips
@@ -306,8 +310,13 @@ namespace :rubber do
       # Connect to newly created instance and grab its internal ip
       # so that we can update all aliases
       task :_get_ip, :hosts => instance_item.external_ip do
-        instance_item.internal_ip = capture(print_ip_command).strip
-        rubber_instances.save()
+        # There's no good way to get the internal IP for a Windows host, so just set it to the external
+        # and let the router handle mapping to the internal network.
+        if instance_item.windows?
+          instance_item.internal_ip = instance_item.external_ip
+        else
+          instance_item.internal_ip = capture(print_ip_command).strip
+        end
       end
 
       # even though instance is running, sometimes ssh hasn't started yet,
