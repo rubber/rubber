@@ -13,7 +13,7 @@ packages: [build-essential, git-core, subversion, curl, autoconf, bison, ruby, z
 
 # REQUIRED: Set to the rvm version string for the ruby version you wish to use
 # Run "rvm list known" to see the list of possible options
-rvm_ruby: 1.9.2-head
+rvm_ruby: 1.9.2
 
 # When rvm is installed as root, and you set the default, it symlinks ruby executables
 # into /usr/local
