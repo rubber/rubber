@@ -17,3 +17,5 @@ task :console do
   require "irb"
   IRB.start
 end
+
+RAILS_TASKS

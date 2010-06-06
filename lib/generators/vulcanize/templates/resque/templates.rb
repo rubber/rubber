@@ -1,1 +1,1 @@
-gem "resque"if Rubber::Util::is_bundler?
+gem "resque" if Rubber::Util::is_bundler?

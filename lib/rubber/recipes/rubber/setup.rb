@@ -257,6 +257,14 @@ namespace :rubber do
   end
 
   desc <<-DESC
+    Install ruby gems defined in the rails environment.rb
+  DESC
+  after "rubber:config", "rubber:install_rails_gems" if (Rubber::Util::is_rails2? && !Rubber::Util.is_bundler?)
+  task :install_rails_gems do
+    rsudo "cd #{current_release} && RAILS_ENV=#{RUBBER_ENV} rake gems:install"
+  end
+
+  desc <<-DESC
     Convenience task for installing your defined set of ruby gems locally.
   DESC
   required_task :install_local_gems do
