@@ -2,7 +2,7 @@ require 'rubygems'
 gem 'test-unit'
 
 require 'test/unit'
-require 'test_helper'
+require File.expand_path(File.join(__FILE__, '..', 'test_helper'))
 
 class UtilTest < Test::Unit::TestCase
 

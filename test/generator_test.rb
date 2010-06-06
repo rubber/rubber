@@ -3,7 +3,7 @@ gem 'test-unit'
 
 require 'test/unit'
 require 'tempfile'
-require 'test_helper'
+require File.expand_path(File.join(__FILE__, '..', 'test_helper'))
 
 class GeneratorTest < Test::Unit::TestCase
   include Rubber::Configuration
@@ -186,7 +186,7 @@ class GeneratorTest < Test::Unit::TestCase
       hello
     SRC
 
-    assert_raises RuntimeError do
+    assert_raises do
       Generator.new(nil, nil, nil).transform(src)
     end
     
@@ -232,7 +232,7 @@ class GeneratorTest < Test::Unit::TestCase
     FileUtils.rm_rf(out_dir)
     assert ! File.exists?(out_dir)
 
-    g = Generator.new("#{File.dirname(__FILE__)}/fixtures/basic", ['role1'], ['host1'], :out_dir => out_dir)
+    g = Generator.new("#{File.dirname(__FILE__)}/fixtures/basic", ['role1'], 'host1', :out_dir => out_dir)
     g.run()
     assert File.directory?(out_dir), "scoped transform did not create dir"
     assert_equal ['bar.conf', 'foo.conf'], list_dir(out_dir), "scoped transform did not create correct files"
@@ -243,12 +243,12 @@ class GeneratorTest < Test::Unit::TestCase
     FileUtils.rm_rf(out_dir)
   end
 
-  def test_ordering
+  def test_ordering_of_additive
     out_dir = "#{Dir::tmpdir}/test_rubber_ordering"
     FileUtils.rm_rf(out_dir)
     assert ! File.exists?(out_dir)
     
-    g = Generator.new("#{File.dirname(__FILE__)}/fixtures/generator_order", ['role2', 'role1'], ['host1'], :out_dir => out_dir)
+    g = Generator.new("#{File.dirname(__FILE__)}/fixtures/generator_order", ['role2', 'role1'], 'host1', :out_dir => out_dir)
     g.run()
     assert File.directory?(out_dir), "transform did not create dir"
     assert_equal ['out.conf'], list_dir(out_dir), "transform did not create correct file"

@@ -3,7 +3,7 @@ gem 'test-unit'
 
 require 'test/unit'
 require 'tempfile'
-require 'test_helper'
+require File.expand_path(File.join(__FILE__, '..', 'test_helper'))
 
 class EnvironmentTest < Test::Unit::TestCase
   include Rubber::Configuration

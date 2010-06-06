@@ -2,7 +2,7 @@ require 'rubygems'
 gem 'test-unit'
 
 require 'test/unit'
-require 'test_helper'
+require File.expand_path(File.join(__FILE__, '..', 'test_helper'))
 require 'rubber/dns'
 require 'rubber/dns/zerigo'
 require 'rexml/document'
@@ -73,6 +73,7 @@ class ZerigoTest < Test::Unit::TestCase
 
   def test_update_record
     params = {:host => 'host1', :domain => 'example1.com', :data => "1.1.1.1"}
+    new = {:host => 'host1', :domain => 'example1.com', :data => "1.1.1.2"}
 
     FakeWeb.register_uri(:get,
                          "http://foo%40bar.com:testtoken@ns.zerigo.com/api/1.1/hosts.xml?fqdn=host1.example1.com&zone_id=1",
@@ -81,7 +82,7 @@ class ZerigoTest < Test::Unit::TestCase
                          "http://foo%40bar.com:testtoken@ns.zerigo.com/api/1.1/hosts/1.xml",
                          :body => "")
 
-    @dns.update_host_record(params)
+    @dns.update_host_record(params, new)
   end
 
 end
