@@ -220,14 +220,14 @@ module Rubber
         capistrano.put(File.read(ec2_pk), ec2_pk_dest)
         capistrano.put(File.read(ec2_cert), ec2_cert_dest)
 
-        arch = capistrano.capture "uname -m"
+        arch = capistrano.capture("uname -m").strip
         arch = case arch when /i\d86/ then "i386" else arch end
 
         capistrano.sudo_script "create_bundle", <<-CMD
           rvm use system
           export RUBYLIB=/usr/lib/site_ruby/
           unset RUBYOPT
-          nohup ec2-bundle-vol --batch -d /mnt -k #{ec2_pk_dest} -c #{ec2_cert_dest} -u #{@aws_env.account} -p #{image_name} -r #{arch}  &> /tmp/ec2-bundle-vol.log &
+          nohup ec2-bundle-vol --batch -d /mnt -k #{ec2_pk_dest} -c #{ec2_cert_dest} -u #{@aws_env.account} -p #{image_name} -r #{arch} &> /tmp/ec2-bundle-vol.log &
           echo "Creating image from instance volume..."
           while true; do
             if ! ps ax | grep -q "[e]c2-bundle-vol"; then exit; fi
