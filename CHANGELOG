@@ -1,3 +1,18 @@
+1.5.4
+-----
+
+add an environment specific rubber.yml file <8f8366e> [Matt Conway]
+set ruby ver to more stable 1.9.2 (rvm currently maps it to preview3, but will map it to actual 1.9.2 when released) <5fa8763> [Matt Conway]
+extra test <0ff8aba> [Matt Conway]
+fix some test failures <9ac276b> [Matt Conway]
+Merge branch 'master' into merge <6599fcb> [Matt Conway]
+add missing stuff from create to refresh to aid in sertting instance details for a partially failed create <a7ac958> [Matt Conway]
+clean string from instance arch to remove newlines <1b1052f> [Matt Conway]
+tell bundler to not install dev/test gems <a3a7d3b> [Matt Conway]
+use correct path for passenger ruby for newer rvm <dcff158> [Matt Conway]
+fix wget params for cassandra <d521eb1> [Matt Conway]
+set rvmrc before installing <df111ef> [Matt Conway]
+
 1.5.3
 -----
 
