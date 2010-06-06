@@ -14,7 +14,10 @@ module Rubber
 
       def initialize(config_root)
         @config_root = config_root
-        @config_files = ["#{@config_root}/rubber.yml"] + Dir["#{@config_root}/rubber-*.yml"].sort
+        @config_files = ["#{@config_root}/rubber.yml"]
+        @config_files += Dir["#{@config_root}/rubber-*.yml"].sort
+        @config_files -= Dir["#{@config_root}/rubber-*-env.yml"]
+        @config_files << "#{@config_root}/rubber-#{Rubber.env}-env.yml"
         @items = {}
         @config_files.each { |file| read_config(file) }
         @config_secret = bind().rubber_secret
