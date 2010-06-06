@@ -42,6 +42,14 @@ class EnvironmentTest < Test::Unit::TestCase
     assert_equal 'host1val2', e.var2, 'env not retrieving right val for method missing'
   end
 
+  def test_host_override
+    env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures/basic")
+    e = env.bind('norole', 'host2')
+    assert_equal 'host2val3', e['var3'], 'env not retrieving right val'
+    assert_equal %w[host2val4a host2val4b], e['var4'], 'env not retrieving right val'
+    assert_equal [{'var51a' => 'val51a', 'var52a' => 'val52a'}, {'var53' => 'val53'}, {'var54' => 'val54'}], e['var5'], 'env not retrieving right val'
+  end
+
   def test_combine
     env = Rubber::Configuration::Environment
     assert_equal "new", env.combine("old", "new"), "Last should win for scalar combine"

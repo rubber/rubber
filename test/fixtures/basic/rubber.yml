@@ -1,5 +1,9 @@
 var1: val1
 var2: val2
+var5:
+  -
+    var51a: val51a
+    var52a: val52a
 
 roles:
   role1:
@@ -8,3 +12,11 @@ roles:
 hosts:
   host1:
     var2: host1val2
+  host2:
+    var3: host2val3
+    var4: [host2val4a, host2val4b]
+    var5:
+      -
+        var53: val53
+      -
+        var54: val54
