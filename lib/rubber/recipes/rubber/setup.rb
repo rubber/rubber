@@ -253,7 +253,7 @@ namespace :rubber do
   DESC
   after "deploy:update_code", "rubber:install_bundler_gems" if Rubber::Util.is_bundler?
   task :install_bundler_gems do
-    rsudo "cd #{current_release} && RAILS_ENV=#{RUBBER_ENV} bundle install"
+    rsudo "cd #{current_release} && RAILS_ENV=#{RUBBER_ENV} bundle install --without development test"
   end
 
   desc <<-DESC
