@@ -1,3 +1,8 @@
+1.5.5
+-----
+
+only existingg config files should be listed to fix non-existing env yml when doing a push_config <9fbb7ba> [Matt Conway]
+
 1.5.4
 -----
 
