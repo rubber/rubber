@@ -56,3 +56,5 @@ JVM_OPTS=" \
         -Dcom.sun.management.jmxremote.port=<%= rubber_env.cassandra_jmx_port %> \
         -Dcom.sun.management.jmxremote.ssl=false \
         -Dcom.sun.management.jmxremote.authenticate=false"
+
+ulimit -n 65536
