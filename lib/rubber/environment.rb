@@ -16,8 +16,13 @@ module Rubber
         @config_root = config_root
         @config_files = ["#{@config_root}/rubber.yml"]
         @config_files += Dir["#{@config_root}/rubber-*.yml"].sort
+
+        # add a config file for current env only so that you can override
+        #things for specific envs
         @config_files -= Dir["#{@config_root}/rubber-*-env.yml"]
-        @config_files << "#{@config_root}/rubber-#{Rubber.env}-env.yml"
+        env_yml = "#{@config_root}/rubber-#{Rubber.env}-env.yml"
+        @config_files << env_yml if File.exist?(env_yml)
+        
         @items = {}
         @config_files.each { |file| read_config(file) }
         @config_secret = bind().rubber_secret
