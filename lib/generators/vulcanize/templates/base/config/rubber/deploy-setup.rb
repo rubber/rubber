@@ -8,9 +8,38 @@ namespace :rubber do
       rubber.sudo_script "install_rvm", <<-ENDSCRIPT
         if [[ `rvm --version 2> /dev/null` == "" ]]; then
           echo "rvm_prefix=/usr/local" > /etc/rvmrc
-          wget -qNP /tmp http://rvm.beginrescueend.com/releases/rvm-install-head
-          bash /tmp/rvm-install-head
           echo "#{rubber_env.rvm_prepare}" > /etc/profile.d/rvm.sh
+
+          # Copied below from http://rvm.beginrescueend.com/releases/rvm-install-latest
+          #
+
+          if [[ -f /etc/rvmrc ]] ; then source /etc/rvmrc ; fi
+
+          if [[ -f "$HOME/.rvmrc" ]] ; then source "$HOME/.rvmrc" ; fi
+
+          rvm_path="${rvm_path:-$HOME/.rvm}"
+
+          mkdir -p $rvm_path/src/
+
+          builtin cd $rvm_path/src
+
+          stable_version=#{rubber_env.rvm_version}
+
+          echo "rvm-${stable_version}"
+
+          curl -L "http://rvm.beginrescueend.com/releases/rvm-${stable_version}.tar.gz" -o "rvm-${stable_version}.tar.gz"
+
+          tar zxf "rvm-${stable_version}.tar.gz"
+
+          builtin cd "rvm-${stable_version}"
+
+          dos2unix scripts/* >/dev/null 2>&1 || true
+
+          bash ./scripts/install
+
+          #
+          # end rvm install script
+
         fi
       ENDSCRIPT
     end

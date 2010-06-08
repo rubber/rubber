@@ -11,6 +11,9 @@
 
 packages: [build-essential, git-core, subversion, curl, autoconf, bison, ruby, zlib1g-dev, libssl-dev, libreadline5-dev, libxml2-dev]
 
+# REQUIRED: the version of rvm itself
+rvm_version: 0.1.38
+
 # REQUIRED: Set to the rvm version string for the ruby version you wish to use
 # Run "rvm list known" to see the list of possible options
 rvm_ruby: 1.9.2
