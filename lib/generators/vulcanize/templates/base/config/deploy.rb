@@ -6,6 +6,7 @@ on :load do
   set :application, rubber_env.app_name
   set :runner,      rubber_env.app_user
   set :deploy_to,   "/mnt/#{application}-#{RUBBER_ENV}"
+  set :copy_exclude, [".git/*", "log/*"]
 end
 
 # Use a simple directory tree copy here to make demo easier.
