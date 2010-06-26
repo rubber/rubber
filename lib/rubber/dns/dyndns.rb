@@ -29,12 +29,12 @@ module Rubber
         begin
           Resolv::DNS.open(:nameserver => [nameserver], :search => [], :ndots => 1) do |dns|
             r = dns.getresource(hostname, Resolv::DNS::Resource::IN::A)
-            result = [{:host =>host, :data => r.address}]
+            result = [{:host =>opts[:host], :data => r.address}]
           end
         rescue
+          puts "Rescue #{e} #{e.message}"
           raise "Domain needs to exist in dyndns as an A record before record can be updated"
         end
-        return true
       end
 
       def create_host_record(opts={})
@@ -46,13 +46,12 @@ module Rubber
       end
 
       def update_host_record(old_opts={}, new_opts={})
-        old_opts = setup_opts(opts, [:host, :domain])
-        new_opts = setup_opts(opts, [:data])
-        
-        host = hostname(old_opts[:host])
+        old_opts = setup_opts(old_opts, [:host, :domain])
+
+        host = "#{old_opts[:host]}.#{old_opts[:domain]}"
         ip = new_opts[:data]
         update_url = eval('%Q{' + @update_url + '}')
-
+        # puts update_url
         # This header is required by dyndns.org
         headers = {
          "User-Agent" => "Capistrano - Rubber - 0.1"

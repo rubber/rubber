@@ -3,7 +3,7 @@ namespace :rubber do
   
     rubber.allow_optional_tasks(self)
 
-    before "rubber:install_gems", "rubber:base:install_rvm"
+    before "rubber:setup_gem_sources", "rubber:base:install_rvm"
     task :install_rvm do
       rubber.sudo_script "install_rvm", <<-ENDSCRIPT
         if [[ `rvm --version 2> /dev/null` == "" ]]; then
