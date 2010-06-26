@@ -397,9 +397,9 @@ namespace :rubber do
 
     rsudo "apt-get -q update"
     if upgrade
-      rsudo "export DEBIAN_FRONTEND=noninteractive; apt-get -q -y --force-yes dist-upgrade"
+      rsudo "export DEBIAN_FRONTEND=noninteractive; apt-get -q -o Dpkg::Options::=--force-confold -y --force-yes dist-upgrade"
     else
-      rsudo "export DEBIAN_FRONTEND=noninteractive; apt-get -q -y --force-yes install $CAPISTRANO:VAR$", opts
+      rsudo "export DEBIAN_FRONTEND=noninteractive; apt-get -q -o Dpkg::Options::=--force-confold -y --force-yes install $CAPISTRANO:VAR$", opts
     end
   end
 
