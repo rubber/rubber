@@ -1,3 +1,19 @@
+1.5.6
+-----
+
+Merge branch 'master' of github.com:wr0ngway/rubber <9d6ca8a> [Matt Conway]
+force unattended apt-get for some rare cases <94fa160> [Matt Conway]
+fixed typo <2382e8d> [Matt Conway]
+mongrel custom_install should be rvm agnostic <b620f71> [Matt Conway]
+setup_gem_sources should precede install_gems on rvm <52f9d48> [Matt Conway]
+Restore DynDNS update support <80f3c0e> [Matt Conway]
+update munin conf for new ubuntu package <672db55> [Matt Conway]
+exclude unneeded/large files during noscm deploy <286c8da> [Matt Conway]
+Merge branch 'master' of github.com:wr0ngway/rubber <3da29cb> [Matt Conway]
+use specific rvm version to stop rubber breaking everytime they change stuff <71cba60> [Matt Conway]
+Don't try to set up SSH access on Windows hosts. <e1df646> [Kevin Menard]
+increase ulimit for cassandra <e45bae1> [Matt Conway]
+
 1.5.5
 -----
 
