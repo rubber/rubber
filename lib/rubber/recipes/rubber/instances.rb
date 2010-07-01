@@ -216,62 +216,9 @@ namespace :rubber do
     while true do
       print "."
       sleep 2
-      instance = cloud.describe_instances(instance_id).first
 
-      if instance[:state] == "running"
-        print "\n"
-        logger.info "Instance running, fetching hostname/ip data"
-        instance_item.external_host = instance[:external_host]
-        instance_item.external_ip = instance[:external_ip]
-        instance_item.internal_host = instance[:internal_host]
-        instance_item.zone = instance[:zone]
-        instance_item.platform = instance[:platform]
-        rubber_instances.save()
+      break if refresh_instance(instance_alias)
 
-        # turn back on root ssh access if we are using root as the capistrano user for connecting
-        enable_root_ssh(instance_item.external_ip, fetch(:initial_ssh_user, 'ubuntu')) if (user == 'root' && ! instance_item.windows?)
-
-        # setup amazon elastic ips if configured to do so
-        setup_static_ips
-
-        # Need to setup aliases so ssh doesn't give us errors when we
-        # later try? to connect to same ip but using alias
-        setup_local_aliases
-
-        # re-load the roles since we may have just defined new ones
-        load_roles() unless env.disable_auto_roles
-
-        # Connect to newly created instance and grab its internal ip
-        # so that we can update all aliases
-
-        task :_get_ip, :hosts => instance_item.external_ip do
-          # There's no good way to get the internal IP for a Windows host, so just set it to the external
-          # and let the router handle mapping to the internal network.
-          if instance_item.windows?
-            instance_item.internal_ip = instance_item.external_ip
-          else
-            instance_item.internal_ip = capture(print_ip_command).strip
-          end
-
-          rubber_instances.save()
-        end
-
-        # even though instance is running, sometimes ssh hasn't started yet,
-        # so retry on connect failure
-        begin
-          _get_ip
-        rescue ConnectionError
-          sleep 2
-          logger.info "Failed to connect to #{instance_alias} (#{instance_item.external_ip}), retrying"
-          retry
-        end
-
-        # Add the aliases for this instance to all other hosts
-        setup_remote_aliases
-        setup_dns_aliases
-
-        break
-      end
     end
   end
 
@@ -283,11 +230,12 @@ namespace :rubber do
     fatal "Instance does not exist: #{instance_alias}" if ! instance_item
 
     env = rubber_cfg.environment.bind(instance_item.role_names, instance_alias)
-    
-    instance = cloud.describe_instances(instance_item.instance_id).first
+
+    instance = cloud.describe_instances(instance_item.instance_id).first rescue {}
 
     if instance[:state] == "running"
-      logger.info "\nInstance running, fetching hostname/ip data"
+      print "\n"
+      logger.info "Instance running, fetching hostname/ip data"
       instance_item.external_host = instance[:external_host]
       instance_item.external_ip = instance[:external_ip]
       instance_item.internal_host = instance[:internal_host]
@@ -296,7 +244,7 @@ namespace :rubber do
       rubber_instances.save()
 
       # turn back on root ssh access if we are using root as the capistrano user for connecting
-      enable_root_ssh(instance_item.external_ip, fetch(:initial_ssh_user, 'ubuntu')) if user == 'root'
+      enable_root_ssh(instance_item.external_ip, fetch(:initial_ssh_user, 'ubuntu')) if (user == 'root' && ! instance_item.windows?)
 
       # setup amazon elastic ips if configured to do so
       setup_static_ips
@@ -336,7 +284,10 @@ namespace :rubber do
       # Add the aliases for this instance to all other hosts
       setup_remote_aliases
       setup_dns_aliases
+
+      return true
     end
+    return false
   end
 
 
