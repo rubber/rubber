@@ -293,6 +293,7 @@ namespace :rubber do
       instance_item.internal_host = instance[:internal_host]
       instance_item.zone = instance[:zone]
       instance_item.platform = instance[:platform]
+      rubber_instances.save()
 
       # turn back on root ssh access if we are using root as the capistrano user for connecting
       enable_root_ssh(instance_item.external_ip, fetch(:initial_ssh_user, 'ubuntu')) if user == 'root'
@@ -317,6 +318,8 @@ namespace :rubber do
         else
           instance_item.internal_ip = capture(print_ip_command).strip
         end
+
+        rubber_instances.save()
       end
 
       # even though instance is running, sometimes ssh hasn't started yet,
