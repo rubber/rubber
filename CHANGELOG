@@ -1,3 +1,10 @@
+1.5.7
+-----
+
+allow access to calling generator so can determine stuff like fake_root <fa6354c> [Matt Conway]
+refactor create using refresh <12df4c4> [Matt Conway]
+save config in refresh <cdb8344> [Matt Conway]
+
 1.5.6
 -----
 
