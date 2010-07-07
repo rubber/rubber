@@ -51,6 +51,7 @@ module Rubber
       # dest_file (if not nil) before returning it
       def transform(src_data, options={})
         config = ConfigDescriptor.new
+        config.generator = self
 
         # for development/test, if we have a fake root, echo any
         # calls to system
@@ -182,6 +183,9 @@ module Rubber
       # attr_accessor :sudo
       # options passed in through code
       attr_accessor :options
+
+      # allow access to calling generator so can determine stuff like fake_root
+      attr_accessor :generator
 
       def initialize
         @backup = true
