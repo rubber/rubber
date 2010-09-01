@@ -6,7 +6,7 @@
 # cron clears out enviroment variables, so we need to add these in
 # to make sure we are running the correct ruby (rvm env vars, plus paths)
 <%- ENV.select {|k, v| k =~ /rvm|ruby|bundler|gem|path/i }.each do |k, v| -%>
-<%= k %>=<%= v %>
+<%= k %>='<%= v %>'
 <%- end -%>
 
 MAILTO=<%= rubber_env.admin_email %>
