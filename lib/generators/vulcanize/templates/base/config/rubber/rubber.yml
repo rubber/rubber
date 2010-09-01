@@ -75,12 +75,12 @@ cloud_providers:
 
     # REQUIRED: the ami and instance type for creating instances
     # The Ubuntu images at http://alestic.com/ work well
-    # Ubuntu 10.04 Lucid	base install	32-bit	ami-2d4aa444
-    # Ubuntu 10.04 Lucid	base install	64-bit	ami-fd4aa494
+    # Ubuntu 10.04 Lucid	base install	32-bit	ami-1437dd7d
+    # Ubuntu 10.04 Lucid	base install	64-bit	ami-4234de2b
     #
-    image_id: ami-2d4aa444
     # m1.small or m1.large or m1.xlarge
     image_type: m1.small
+    image_id: "#{ %w{m1.small c2.medium}.include?(image_type) ? 'ami-1437dd7d' : 'ami-4234de2b' }"
 
     # OPTIONAL: EC2 spot instance request support.
     #
@@ -141,9 +141,7 @@ packages: [postfix, build-essential, git-core, ec2-ami-tools]
 # OPTIONAL: The gems to install on all instances
 # You can install a specific version of a gem by using a sub-array of gem, version
 # For example, gem: [[rails, 2.2.2], open4, aws-s3]
-# gems: [rubber, rails, open4, aws-s3]
-# The above is the correct line once rails3 has been released
-gems: [open4, aws-s3, tzinfo, builder, i18n, memcache-client, rack, rake, rack-test, erubis, mail, text-format, thor, bundler, [rack-mount, 0.4], [rails, 3.0.0.beta3], [rubber, "#{Rubber.version}"]]
+gems: [open4, aws-s3, bundler, [rubber, "#{Rubber.version}"]]
 
 # OPTIONAL: A string prepended to shell command strings that cause multi
 # statement shell commands to fail fast.  You may need to comment this out
