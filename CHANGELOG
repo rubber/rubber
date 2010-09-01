@@ -1,3 +1,12 @@
+1.5.8
+-----
+
+use canonical bundler deploy <299a405> [Matt Conway]
+new amis, update to rails 3 final <d59b889> [Matt Conway]
+update to rvm 1.0.1 <b8e57df> [Matt Conway]
+try alternate timeout for instance connection hang issue <e72a881> [Matt Conway]
+quote env vars to keep crontab happy <1240818> [Matt Conway]
+
 1.5.7
 -----
 
