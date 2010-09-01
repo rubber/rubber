@@ -253,7 +253,19 @@ namespace :rubber do
   DESC
   after "deploy:update_code", "rubber:install_bundler_gems" if Rubber::Util.is_bundler?
   task :install_bundler_gems do
-    rsudo "cd #{current_release} && RAILS_ENV=#{RUBBER_ENV} bundle install --without development test"
+    # copied from bundler/capistrano in bundler distro
+    bundle_dir     = fetch(:bundle_dir,         " #{fetch(:shared_path)}/bundle")
+    bundle_without = [*fetch(:bundle_without,   [:development, :test])].compact
+    bundle_flags   = fetch(:bundle_flags, "--deployment --quiet")
+    bundle_gemfile = fetch(:bundle_gemfile,     "Gemfile")
+    bundle_cmd     = fetch(:bundle_cmd, "bundle")
+  
+    args = ["--gemfile #{fetch(:latest_release)}/#{bundle_gemfile}"]
+    args << "--path #{bundle_dir}" unless bundle_dir.to_s.empty?
+    args << bundle_flags.to_s
+    args << "--without #{bundle_without.join(" ")}" unless bundle_without.empty?
+
+    rsudo "#{bundle_cmd} install #{args.join(' ')}"
   end
 
   desc <<-DESC
