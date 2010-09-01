@@ -243,15 +243,24 @@ namespace :rubber do
       instance_item.platform = instance[:platform]
       rubber_instances.save()
 
-      # turn back on root ssh access if we are using root as the capistrano user for connecting
-      enable_root_ssh(instance_item.external_ip, fetch(:initial_ssh_user, 'ubuntu')) if (user == 'root' && ! instance_item.windows?)
+      # weird cap/netssh bug, sometimes just hangs forever on initial connect, so force a timeout
+      begin
+        Timeout::timeout(10) do
+          # turn back on root ssh access if we are using root as the capistrano user for connecting
+          enable_root_ssh(instance_item.external_ip, fetch(:initial_ssh_user, 'ubuntu')) if (user == 'root' && ! instance_item.windows?)
 
-      # setup amazon elastic ips if configured to do so
-      setup_static_ips
+          # setup amazon elastic ips if configured to do so
+          setup_static_ips
       
-      # Need to setup aliases so ssh doesn't give us errors when we
-      # later try to connect to same ip but using alias
-      setup_local_aliases
+          # Need to setup aliases so ssh doesn't give us errors when we
+          # later try to connect to same ip but using alias
+          setup_local_aliases
+        end
+      rescue Timeout::Error
+        logger.info "timeout in initial connect, retrying"
+        retry
+      end
+
 
       # re-load the roles since we may have just defined new ones
       load_roles() unless env.disable_auto_roles
