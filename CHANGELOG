@@ -1,3 +1,8 @@
+1.5.9
+-----
+
+fix find to handle filenames with spaces, prune bundle from permissions change <56b72ae> [Matt Conway]
+
 1.5.8
 -----
 
