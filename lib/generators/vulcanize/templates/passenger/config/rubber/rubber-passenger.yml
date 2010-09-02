@@ -1,5 +1,5 @@
 passenger_version: 2.2.11
-passenger_root: "$GEM_HOME/gems/passenger-#{passenger_version}"
+passenger_root: "#{rvm_gem_home}/gems/passenger-#{passenger_version}"
 passenger_ruby: "#{ruby_prefix}/bin/passenger_ruby"
 passenger_lib: "#{passenger_root}/ext/apache2/mod_passenger.so"
 passenger_listen_port: 7000
