@@ -42,6 +42,22 @@ namespace :rubber do
 
   end
 
+  # Forces a direct connection
+  def direct_connection(ip)
+    task_name = "_direct_connection_#{ip}_#{rand(1000)}"
+    task task_name, :hosts => ip do
+      yield
+    end
+
+    begin
+      send task_name
+    rescue ConnectionError => e
+      sleep 2
+      logger.info "Failed to connect to #{ip}, retrying"
+      retry
+    end
+  end
+
   desc <<-DESC
     Sets up aliases for instance hostnames based on contents of instance.yml.
     Generates /etc/hosts for local/remote machines and sets hostname on
