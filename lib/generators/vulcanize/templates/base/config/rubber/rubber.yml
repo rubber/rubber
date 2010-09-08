@@ -80,7 +80,7 @@ cloud_providers:
     #
     # m1.small or m1.large or m1.xlarge
     image_type: m1.small
-    image_id: "#{ %w{m1.small c2.medium}.include?(image_type) ? 'ami-1437dd7d' : 'ami-4234de2b' }"
+    image_id: "#{ %w{m1.small c1.medium}.include?(image_type) ? 'ami-1437dd7d' : 'ami-4234de2b' }"
 
     # OPTIONAL: EC2 spot instance request support.
     #
