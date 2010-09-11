@@ -1,6 +1,7 @@
-2.0.0.rails3
+1.5.10
 -----
 
+fix passenger references to gem home to always point to global (rvm) one <51f1f8a> [Matt Conway]
 
 1.5.9
 -----
