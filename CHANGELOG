@@ -1,3 +1,11 @@
+1.6.0
+-----
+
+Merge branch 'master' of github.com:wr0ngway/rubber <51a016c> [Matt Conway]
+stop loading rails within rubber as bundler in rails3 breaks everything by setting ENV[GEM_PATH], you may need to update your templates to use RUBBER_ENV/ROOT instead of RAILS_ENV/ROOT <8f4a0db> [Matt Conway]
+fix changelog gen <c5a8d83> [Matt Conway]
+Fix the API name for 32-bit medium CPU instance. <ec415ce> [Kevin Menard]
+
 1.5.11
 -----
 
