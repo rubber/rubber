@@ -65,7 +65,7 @@ task :changelog do
 
   # Get a list of current tags
   tags = `git tag -l`.split
-
+  tags = tags.sort_by {|t| t[1..-1].split(".").collect {|s| s.to_i } }
   # If we already have a changelog, make the last tag be the
   # last one in the changelog, and the next one be the one
   # following that in the tag list
