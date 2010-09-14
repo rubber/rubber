@@ -1,3 +1,10 @@
+1.6.1
+-----
+
+Fixed issue with Rakefile generation for Rails 2.x. <f239f0e> [Kevin Menard]
+Fixed RVM installation. <79dcf17> [Kevin Menard]
+Bump the version of RVM. <324e939> [Kevin Menard]
+
 1.6.0
 -----
 
