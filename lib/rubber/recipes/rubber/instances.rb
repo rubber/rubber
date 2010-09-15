@@ -243,19 +243,21 @@ namespace :rubber do
       instance_item.platform = instance[:platform]
       rubber_instances.save()
 
-      # weird cap/netssh bug, sometimes just hangs forever on initial connect, so force a timeout
-      begin
-        Timeout::timeout(30) do
-          # turn back on root ssh access if we are using root as the capistrano user for connecting
-          enable_root_ssh(instance_item.external_ip, fetch(:initial_ssh_user, 'ubuntu')) if (user == 'root' && ! instance_item.windows?)
-          # force a connection so if above isn't enabled we still timeout if initial connection hangs
-          direct_connection(instance_item.external_ip) do
-            run "echo"
+      unless instance_item.windows?
+        # weird cap/netssh bug, sometimes just hangs forever on initial connect, so force a timeout
+        begin
+          Timeout::timeout(30) do
+            # turn back on root ssh access if we are using root as the capistrano user for connecting
+            enable_root_ssh(instance_item.external_ip, fetch(:initial_ssh_user, 'ubuntu')) if user == 'root'
+            # force a connection so if above isn't enabled we still timeout if initial connection hangs
+            direct_connection(instance_item.external_ip) do
+              run "echo"
+            end
           end
+        rescue Timeout::Error
+          logger.info "timeout in initial connect, retrying"
+          retry
         end
-      rescue Timeout::Error
-        logger.info "timeout in initial connect, retrying"
-        retry
       end
 
       # setup amazon elastic ips if configured to do so
@@ -268,19 +270,19 @@ namespace :rubber do
       # re-load the roles since we may have just defined new ones
       load_roles() unless env.disable_auto_roles
 
-      # Connect to newly created instance and grab its internal ip
-      # so that we can update all aliases
-      direct_connection(instance_item.external_ip) do
-        # There's no good way to get the internal IP for a Windows host, so just set it to the external
-        # and let the router handle mapping to the internal network.
-        if instance_item.windows?
-          instance_item.internal_ip = instance_item.external_ip
-        else
+      # There's no good way to get the internal IP for a Windows host, so just set it to the external
+      # and let the router handle mapping to the internal network.
+      if instance_item.windows?
+        instance_item.internal_ip = instance_item.external_ip
+      else
+        # Connect to newly created instance and grab its internal ip
+        # so that we can update all aliases
+        direct_connection(instance_item.external_ip) do
           instance_item.internal_ip = capture(print_ip_command).strip
         end
-
-        rubber_instances.save()
       end
+
+      rubber_instances.save()
 
       # Add the aliases for this instance to all other hosts
       setup_remote_aliases
