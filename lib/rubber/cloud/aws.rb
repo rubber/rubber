@@ -38,8 +38,9 @@ module Rubber
             instance = {}
             instance[:id] = item.instanceId
             instance[:external_host] = item.dnsName
-            instance[:external_ip] = IPSocket.getaddress(instance[:external_host]) rescue nil
+            instance[:external_ip] = item.ipAddress
             instance[:internal_host] = item.privateDnsName
+            instance[:internal_ip] = item.privateIpAddress
             instance[:state] = item.instanceState.name
             instance[:zone] = item.placement.availabilityZone
             instance[:platform] = item.platform || 'linux'

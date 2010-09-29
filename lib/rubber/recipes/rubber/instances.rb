@@ -239,6 +239,7 @@ namespace :rubber do
       instance_item.external_host = instance[:external_host]
       instance_item.external_ip = instance[:external_ip]
       instance_item.internal_host = instance[:internal_host]
+      instance_item.internal_ip = instance[:internal_ip]
       instance_item.zone = instance[:zone]
       instance_item.platform = instance[:platform]
       rubber_instances.save()
@@ -269,18 +270,6 @@ namespace :rubber do
 
       # re-load the roles since we may have just defined new ones
       load_roles() unless env.disable_auto_roles
-
-      # There's no good way to get the internal IP for a Windows host, so just set it to the external
-      # and let the router handle mapping to the internal network.
-      if instance_item.windows?
-        instance_item.internal_ip = instance_item.external_ip
-      else
-        # Connect to newly created instance and grab its internal ip
-        # so that we can update all aliases
-        direct_connection(instance_item.external_ip) do
-          instance_item.internal_ip = capture(print_ip_command).strip
-        end
-      end
 
       rubber_instances.save()
 
