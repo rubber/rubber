@@ -67,6 +67,15 @@ namespace :rubber do
   end
 
   desc <<-DESC
+    Reboot the EC2 instance for the give ALIAS
+  DESC
+  required_task :reboot do
+    instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
+    ENV.delete('ROLES') # so we don't get an error if people leave ROLES in env from :create CLI
+    reboot_instance(instance_alias)
+  end
+
+  desc <<-DESC
     Adds the given ROLES to the instance named ALIAS
   DESC
   required_task :add_role do
@@ -321,6 +330,21 @@ namespace :rubber do
     setup_aliases
     destroy_dyndns(instance_item)
     cleanup_known_hosts(instance_item) unless env.disable_known_hosts_cleanup
+  end
+
+  # Reboots the given ec2 instance
+  def reboot_instance(instance_alias)
+    instance_item = rubber_instances[instance_alias]
+    fatal "Instance does not exist: #{instance_alias}" if ! instance_item
+
+    env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
+
+    value = Capistrano::CLI.ui.ask("About to REBOOT #{instance_alias} (#{instance_item.instance_id}) in mode #{RUBBER_ENV}.  Are you SURE [yes/NO]?: ")
+    fatal("Exiting", 0) if value != "yes"
+
+    logger.info "Rebooting instance alias=#{instance_alias}, instance_id=#{instance_item.instance_id}"
+
+    cloud.reboot_instance(instance_item.instance_id)
   end
 
 

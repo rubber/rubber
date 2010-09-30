@@ -55,6 +55,10 @@ module Rubber
         response = @ec2.terminate_instances(:instance_id => instance_id)
       end
 
+      def reboot_instance(instance_id)
+        response = @ec2.reboot_instances(:instance_id => instance_id)
+      end
+
       def describe_availability_zones
         zones = []
         response = @ec2.describe_availability_zones()
