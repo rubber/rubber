@@ -85,6 +85,15 @@ namespace :rubber do
   end
 
   desc <<-DESC
+    Start the EC2 instance for the give ALIAS
+  DESC
+  required_task :start do
+    instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
+    ENV.delete('ROLES') # so we don't get an error if people leave ROLES in env from :create CLI
+    start_instance(instance_alias)
+  end
+
+  desc <<-DESC
     Adds the given ROLES to the instance named ALIAS
   DESC
   required_task :add_role do
@@ -236,7 +245,6 @@ namespace :rubber do
       sleep 2
 
       break if refresh_instance(instance_alias)
-
     end
   end
 
@@ -373,6 +381,33 @@ namespace :rubber do
     logger.info "Stopping instance alias=#{instance_alias}, instance_id=#{instance_item.instance_id}"
 
     cloud.stop_instance(instance_item.instance_id)
+  end
+
+  # Starts the given ec2 instance.  Note that this operation only works for instances that use an EBS volume for the root
+  # device, that are not spot instances, and that are already stopped.
+  def start_instance(instance_alias)
+    instance_item = rubber_instances[instance_alias]
+    fatal "Instance does not exist: #{instance_alias}" if ! instance_item
+    fatal "Cannot start spot instances!" if ! instance_item.spot_instance_request_id.nil?
+    fatal "Cannot start instances with instance-store root device!" if (instance_item.root_device_type != 'ebs')
+
+    env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
+
+    value = Capistrano::CLI.ui.ask("About to START #{instance_alias} (#{instance_item.instance_id}) in mode #{RUBBER_ENV}.  Are you SURE [yes/NO]?: ")
+    fatal("Exiting", 0) if value != "yes"
+
+    logger.info "Starting instance alias=#{instance_alias}, instance_id=#{instance_item.instance_id}"
+
+    cloud.start_instance(instance_item.instance_id)
+
+    # Re-starting an instance will almost certainly give it a new set of IPs and DNS entries, so refresh the values.
+    print "Waiting for instance to start"
+    while true do
+      print "."
+      sleep 2
+
+      break if refresh_instance(instance_alias)
+    end
   end
 
   # delete from ~/.ssh/known_hosts all lines that begin with ec2- or instance_alias

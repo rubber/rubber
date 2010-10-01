@@ -65,6 +65,10 @@ module Rubber
         response = @ec2.stop_instances(:instance_id => instance_id, :force => false)
       end
 
+      def start_instance(instance_id)
+        response = @ec2.start_instances(:instance_id => instance_id)
+      end
+
       def describe_availability_zones
         zones = []
         response = @ec2.describe_availability_zones()
