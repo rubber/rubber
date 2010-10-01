@@ -80,7 +80,7 @@ module Rubber
       attr_accessor :roles, :zone
       attr_accessor :external_host, :external_ip
       attr_accessor :internal_host, :internal_ip
-      attr_accessor :static_ip, :volumes, :partitions
+      attr_accessor :static_ip, :volumes, :partitions, :root_device_type
       attr_accessor :spot_instance_request_id
       attr_accessor :platform
 

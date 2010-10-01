@@ -44,6 +44,7 @@ module Rubber
             instance[:state] = item.instanceState.name
             instance[:zone] = item.placement.availabilityZone
             instance[:platform] = item.platform || 'linux'
+            instance[:root_device_type] = item.rootDeviceType
             instances << instance
           end
         end if response.reservationSet
@@ -57,6 +58,11 @@ module Rubber
 
       def reboot_instance(instance_id)
         response = @ec2.reboot_instances(:instance_id => instance_id)
+      end
+
+      def stop_instance(instance_id)
+        # Don't force the stop process. I.e., allow the instance to flush its file system operations.
+        response = @ec2.stop_instances(:instance_id => instance_id, :force => false)
       end
 
       def describe_availability_zones

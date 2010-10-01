@@ -76,6 +76,15 @@ namespace :rubber do
   end
 
   desc <<-DESC
+    Stop the EC2 instance for the give ALIAS
+  DESC
+  required_task :stop do
+    instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
+    ENV.delete('ROLES') # so we don't get an error if people leave ROLES in env from :create CLI
+    stop_instance(instance_alias)
+  end
+
+  desc <<-DESC
     Adds the given ROLES to the instance named ALIAS
   DESC
   required_task :add_role do
@@ -251,6 +260,7 @@ namespace :rubber do
       instance_item.internal_ip = instance[:internal_ip]
       instance_item.zone = instance[:zone]
       instance_item.platform = instance[:platform]
+      instance_item.root_device_type = instance[:root_device_type]
       rubber_instances.save()
 
       unless instance_item.windows?
@@ -347,6 +357,23 @@ namespace :rubber do
     cloud.reboot_instance(instance_item.instance_id)
   end
 
+  # Stops the given ec2 instance.  Note that this operation only works for instances that use an EBS volume for the root
+  # device and that are not spot instances.
+  def stop_instance(instance_alias)
+    instance_item = rubber_instances[instance_alias]
+    fatal "Instance does not exist: #{instance_alias}" if ! instance_item
+    fatal "Cannot stop spot instances!" if ! instance_item.spot_instance_request_id.nil?
+    fatal "Cannot stop instances with instance-store root device!" if (instance_item.root_device_type != 'ebs')
+
+    env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
+
+    value = Capistrano::CLI.ui.ask("About to STOP #{instance_alias} (#{instance_item.instance_id}) in mode #{RUBBER_ENV}.  Are you SURE [yes/NO]?: ")
+    fatal("Exiting", 0) if value != "yes"
+
+    logger.info "Stopping instance alias=#{instance_alias}, instance_id=#{instance_item.instance_id}"
+
+    cloud.stop_instance(instance_item.instance_id)
+  end
 
   # delete from ~/.ssh/known_hosts all lines that begin with ec2- or instance_alias
   def cleanup_known_hosts(instance_item)
