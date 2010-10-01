@@ -273,6 +273,7 @@ module Rubber
           image = {}
           image[:id] = item.imageId
           image[:location] = item.imageLocation
+          image[:root_device_type] = item.rootDeviceType
           images << image
         end if response.imagesSet
         return images
