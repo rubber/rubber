@@ -1,3 +1,12 @@
+1.7.0
+-----
+
+Better support for Windows in some cases. <a8f3192> [Kevin Menard]
+Enhanced describe_bundles. <6f2b1f4> [Kevin Menard]
+Added support for starting EC2 instances with EBS root devices. <9296921> [Kevin Menard]
+Added support for stopping EC2 instances with EBS root devices. <a2a70ec> [Kevin Menard]
+Added reboot command for rebooting stuck EC2 instances. <1d29437> [Kevin Menard]
+
 1.6.3
 -----
 
