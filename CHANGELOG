@@ -1,3 +1,11 @@
+1.7.1
+-----
+
+Merge branch 'master' of github.com:wr0ngway/rubber <9cd568a> [Kevin Menard]
+Updated resque worker management script to allow monit to forcibly shut down workers. <f15bd59> [Kevin Menard]
+Updated to a version of RVM that works. <e14629c> [Kevin Menard]
+I am an idiot for removing this.  This is necessary for Rails 3 apps to work with Rubber as a plugin. <1666e58> [Kevin Menard]
+
 1.7.0
 -----
 
