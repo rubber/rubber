@@ -1,3 +1,9 @@
+1.7.2
+-----
+
+'primary' hash key needs to be a string not a symbol <d7075f2> [richard]
+'primary' hash key needs to be a string not a symbol <be6a610> [richard]
+
 1.7.1
 -----
 
