@@ -7,7 +7,7 @@ namespace :rubber do
       Backup database using rake task rubber:backup_db
     DESC
     task :backup do
-      master_instances = rubber_instances.for_role('db', :primary => true)
+      master_instances = rubber_instances.for_role('db', 'primary' => true)
       slaves = rubber_instances.for_role('db', {})
 
       # Select only one instance for backup.  Favor slave database.
