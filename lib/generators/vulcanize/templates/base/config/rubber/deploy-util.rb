@@ -24,7 +24,7 @@ namespace :rubber do
       Restore database from s3 using rake task rubber:restore_db_s3
     DESC
     task :restore_s3 do
-      master_instances = rubber_instances.for_role('db', :primary => true)
+      master_instances = rubber_instances.for_role('db', 'primary' => true)
       slaves = rubber_instances.for_role('db', {})
 
       for instance in master_instances+slaves
@@ -41,7 +41,7 @@ namespace :rubber do
     DESC
     task :local_to_ec2 do
       require 'yaml'      
-      master_instances = rubber_instances.for_role('db', :primary => true)
+      master_instances = rubber_instances.for_role('db', 'primary' => true)
       slaves = rubber_instances.for_role('db', {})
 
       # Select only one instance for backup.  Favor slave database.
