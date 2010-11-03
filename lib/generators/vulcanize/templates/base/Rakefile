@@ -2,6 +2,8 @@ require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
 
+RAILS_LOADER
+
 env = ENV['RUBBER_ENV'] ||= (ENV['RAILS_ENV'] || 'development')
 RAILS_ENV = ENV['RAILS_ENV'] = env
 root = File.dirname(__FILE__)

@@ -42,7 +42,7 @@ namespace :rubber do
     Refresh the host data for a EC2 instance with the given ALIAS.
     This is useful to run when rubber:create fails after instance creation
   DESC
-  task :refresh do
+  required_task :refresh do
     instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
     ENV.delete('ROLES') # so we don't get an error if people leave ROLES in env from :create CLI
     refresh_instance(instance_alias)
@@ -51,7 +51,7 @@ namespace :rubber do
   desc <<-DESC
     Destroy the EC2 instance for the given ALIAS
   DESC
-  task :destroy do
+  required_task :destroy do
     instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
     ENV.delete('ROLES') # so we don't get an error if people leave ROLES in env from :create CLI
     destroy_instance(instance_alias)
@@ -60,10 +60,37 @@ namespace :rubber do
   desc <<-DESC
     Destroy ALL the EC2 instances for the current env
   DESC
-  task :destroy_all do
+  required_task :destroy_all do
     rubber_instances.each do |ic|
       destroy_instance(ic.name)
     end
+  end
+
+  desc <<-DESC
+    Reboot the EC2 instance for the give ALIAS
+  DESC
+  required_task :reboot do
+    instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
+    ENV.delete('ROLES') # so we don't get an error if people leave ROLES in env from :create CLI
+    reboot_instance(instance_alias)
+  end
+
+  desc <<-DESC
+    Stop the EC2 instance for the give ALIAS
+  DESC
+  required_task :stop do
+    instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
+    ENV.delete('ROLES') # so we don't get an error if people leave ROLES in env from :create CLI
+    stop_instance(instance_alias)
+  end
+
+  desc <<-DESC
+    Start the EC2 instance for the give ALIAS
+  DESC
+  required_task :start do
+    instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
+    ENV.delete('ROLES') # so we don't get an error if people leave ROLES in env from :create CLI
+    start_instance(instance_alias)
   end
 
   desc <<-DESC
@@ -218,7 +245,6 @@ namespace :rubber do
       sleep 2
 
       break if refresh_instance(instance_alias)
-
     end
   end
 
@@ -239,23 +265,27 @@ namespace :rubber do
       instance_item.external_host = instance[:external_host]
       instance_item.external_ip = instance[:external_ip]
       instance_item.internal_host = instance[:internal_host]
+      instance_item.internal_ip = instance[:internal_ip]
       instance_item.zone = instance[:zone]
       instance_item.platform = instance[:platform]
+      instance_item.root_device_type = instance[:root_device_type]
       rubber_instances.save()
 
-      # weird cap/netssh bug, sometimes just hangs forever on initial connect, so force a timeout
-      begin
-        Timeout::timeout(30) do
-          # turn back on root ssh access if we are using root as the capistrano user for connecting
-          enable_root_ssh(instance_item.external_ip, fetch(:initial_ssh_user, 'ubuntu')) if (user == 'root' && ! instance_item.windows?)
-          # force a connection so if above isn't enabled we still timeout if initial connection hangs
-          direct_connection(instance_item.external_ip) do
-            run "echo"
+      unless instance_item.windows?
+        # weird cap/netssh bug, sometimes just hangs forever on initial connect, so force a timeout
+        begin
+          Timeout::timeout(30) do
+            # turn back on root ssh access if we are using root as the capistrano user for connecting
+            enable_root_ssh(instance_item.external_ip, fetch(:initial_ssh_user, 'ubuntu')) if user == 'root'
+            # force a connection so if above isn't enabled we still timeout if initial connection hangs
+            direct_connection(instance_item.external_ip) do
+              run "echo"
+            end
           end
+        rescue Timeout::Error
+          logger.info "timeout in initial connect, retrying"
+          retry
         end
-      rescue Timeout::Error
-        logger.info "timeout in initial connect, retrying"
-        retry
       end
 
       # setup amazon elastic ips if configured to do so
@@ -268,19 +298,7 @@ namespace :rubber do
       # re-load the roles since we may have just defined new ones
       load_roles() unless env.disable_auto_roles
 
-      # Connect to newly created instance and grab its internal ip
-      # so that we can update all aliases
-      direct_connection(instance_item.external_ip) do
-        # There's no good way to get the internal IP for a Windows host, so just set it to the external
-        # and let the router handle mapping to the internal network.
-        if instance_item.windows?
-          instance_item.internal_ip = instance_item.external_ip
-        else
-          instance_item.internal_ip = capture(print_ip_command).strip
-        end
-
-        rubber_instances.save()
-      end
+      rubber_instances.save()
 
       # Add the aliases for this instance to all other hosts
       setup_remote_aliases
@@ -332,6 +350,65 @@ namespace :rubber do
     cleanup_known_hosts(instance_item) unless env.disable_known_hosts_cleanup
   end
 
+  # Reboots the given ec2 instance
+  def reboot_instance(instance_alias)
+    instance_item = rubber_instances[instance_alias]
+    fatal "Instance does not exist: #{instance_alias}" if ! instance_item
+
+    env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
+
+    value = Capistrano::CLI.ui.ask("About to REBOOT #{instance_alias} (#{instance_item.instance_id}) in mode #{RUBBER_ENV}.  Are you SURE [yes/NO]?: ")
+    fatal("Exiting", 0) if value != "yes"
+
+    logger.info "Rebooting instance alias=#{instance_alias}, instance_id=#{instance_item.instance_id}"
+
+    cloud.reboot_instance(instance_item.instance_id)
+  end
+
+  # Stops the given ec2 instance.  Note that this operation only works for instances that use an EBS volume for the root
+  # device and that are not spot instances.
+  def stop_instance(instance_alias)
+    instance_item = rubber_instances[instance_alias]
+    fatal "Instance does not exist: #{instance_alias}" if ! instance_item
+    fatal "Cannot stop spot instances!" if ! instance_item.spot_instance_request_id.nil?
+    fatal "Cannot stop instances with instance-store root device!" if (instance_item.root_device_type != 'ebs')
+
+    env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
+
+    value = Capistrano::CLI.ui.ask("About to STOP #{instance_alias} (#{instance_item.instance_id}) in mode #{RUBBER_ENV}.  Are you SURE [yes/NO]?: ")
+    fatal("Exiting", 0) if value != "yes"
+
+    logger.info "Stopping instance alias=#{instance_alias}, instance_id=#{instance_item.instance_id}"
+
+    cloud.stop_instance(instance_item.instance_id)
+  end
+
+  # Starts the given ec2 instance.  Note that this operation only works for instances that use an EBS volume for the root
+  # device, that are not spot instances, and that are already stopped.
+  def start_instance(instance_alias)
+    instance_item = rubber_instances[instance_alias]
+    fatal "Instance does not exist: #{instance_alias}" if ! instance_item
+    fatal "Cannot start spot instances!" if ! instance_item.spot_instance_request_id.nil?
+    fatal "Cannot start instances with instance-store root device!" if (instance_item.root_device_type != 'ebs')
+
+    env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
+
+    value = Capistrano::CLI.ui.ask("About to START #{instance_alias} (#{instance_item.instance_id}) in mode #{RUBBER_ENV}.  Are you SURE [yes/NO]?: ")
+    fatal("Exiting", 0) if value != "yes"
+
+    logger.info "Starting instance alias=#{instance_alias}, instance_id=#{instance_item.instance_id}"
+
+    cloud.start_instance(instance_item.instance_id)
+
+    # Re-starting an instance will almost certainly give it a new set of IPs and DNS entries, so refresh the values.
+    print "Waiting for instance to start"
+    while true do
+      print "."
+      sleep 2
+
+      break if refresh_instance(instance_alias)
+    end
+  end
 
   # delete from ~/.ssh/known_hosts all lines that begin with ec2- or instance_alias
   def cleanup_known_hosts(instance_item)

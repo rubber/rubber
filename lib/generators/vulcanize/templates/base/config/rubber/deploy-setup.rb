@@ -7,7 +7,7 @@ namespace :rubber do
     task :install_rvm do
       rubber.sudo_script "install_rvm", <<-ENDSCRIPT
         if [[ `rvm --version 2> /dev/null` == "" ]]; then
-          echo "rvm_prefix=/usr/local" > /etc/rvmrc
+          echo "rvm_prefix=/usr/local/" > /etc/rvmrc
           echo "#{rubber_env.rvm_prepare}" > /etc/profile.d/rvm.sh
 
           # Copied below from http://rvm.beginrescueend.com/releases/rvm-install-latest

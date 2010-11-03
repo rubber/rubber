@@ -20,8 +20,10 @@ namespace :rubber do
   required_task :describe_bundles do
     images = cloud.describe_images()
     images.each do |image|
+      logger.info "======================"
       logger.info "ID: #{image[:id]}"
       logger.info "Location: #{image[:location]}"
+      logger.info "Root device type: #{image[:root_device_type]}"
     end
   end
 

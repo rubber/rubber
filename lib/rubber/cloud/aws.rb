@@ -38,11 +38,13 @@ module Rubber
             instance = {}
             instance[:id] = item.instanceId
             instance[:external_host] = item.dnsName
-            instance[:external_ip] = IPSocket.getaddress(instance[:external_host]) rescue nil
+            instance[:external_ip] = item.ipAddress
             instance[:internal_host] = item.privateDnsName
+            instance[:internal_ip] = item.privateIpAddress
             instance[:state] = item.instanceState.name
             instance[:zone] = item.placement.availabilityZone
             instance[:platform] = item.platform || 'linux'
+            instance[:root_device_type] = item.rootDeviceType
             instances << instance
           end
         end if response.reservationSet
@@ -52,6 +54,19 @@ module Rubber
 
       def destroy_instance(instance_id)
         response = @ec2.terminate_instances(:instance_id => instance_id)
+      end
+
+      def reboot_instance(instance_id)
+        response = @ec2.reboot_instances(:instance_id => instance_id)
+      end
+
+      def stop_instance(instance_id)
+        # Don't force the stop process. I.e., allow the instance to flush its file system operations.
+        response = @ec2.stop_instances(:instance_id => instance_id, :force => false)
+      end
+
+      def start_instance(instance_id)
+        response = @ec2.start_instances(:instance_id => instance_id)
       end
 
       def describe_availability_zones
@@ -258,6 +273,7 @@ module Rubber
           image = {}
           image[:id] = item.imageId
           image[:location] = item.imageLocation
+          image[:root_device_type] = item.rootDeviceType
           images << image
         end if response.imagesSet
         return images

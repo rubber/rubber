@@ -1,3 +1,46 @@
+1.7.2
+-----
+
+'primary' hash key needs to be a string not a symbol <d7075f2> [richard]
+'primary' hash key needs to be a string not a symbol <be6a610> [richard]
+
+1.7.1
+-----
+
+Merge branch 'master' of github.com:wr0ngway/rubber <9cd568a> [Kevin Menard]
+Updated resque worker management script to allow monit to forcibly shut down workers. <f15bd59> [Kevin Menard]
+Updated to a version of RVM that works. <e14629c> [Kevin Menard]
+I am an idiot for removing this.  This is necessary for Rails 3 apps to work with Rubber as a plugin. <1666e58> [Kevin Menard]
+
+1.7.0
+-----
+
+Better support for Windows in some cases. <a8f3192> [Kevin Menard]
+Enhanced describe_bundles. <6f2b1f4> [Kevin Menard]
+Added support for starting EC2 instances with EBS root devices. <9296921> [Kevin Menard]
+Added support for stopping EC2 instances with EBS root devices. <a2a70ec> [Kevin Menard]
+Added reboot command for rebooting stuck EC2 instances. <1d29437> [Kevin Menard]
+
+1.6.3
+-----
+
+Much better way to get an instance's internal IP. <dcf97a3> [Kevin Menard]
+
+1.6.2
+-----
+
+Fixed rake gems:install issue with Rails 2. <73c47a8> [Kevin Menard]
+RVM bump. <14b52bc> [Kevin Menard]
+Use the latest Ubuntu AMIs. <7a15b0d> [Kevin Menard]
+We shouldn't try to SSH into Windows machines. <f921685> [Kevin Menard]
+
+1.6.1
+-----
+
+Fixed issue with Rakefile generation for Rails 2.x. <f239f0e> [Kevin Menard]
+Fixed RVM installation. <79dcf17> [Kevin Menard]
+Bump the version of RVM. <324e939> [Kevin Menard]
+
 1.6.0
 -----
 
