@@ -1,4 +1,4 @@
-passenger_version: 2.2.11
+passenger_version: 3.0.0
 passenger_root: "#{rvm_gem_home}/gems/passenger-#{passenger_version}"
 passenger_ruby: "#{ruby_prefix}/bin/passenger_ruby"
 passenger_lib: "#{passenger_root}/ext/apache2/mod_passenger.so"
@@ -11,5 +11,5 @@ role_dependencies:
 
 roles:
   passenger:
-    packages: [apache2-mpm-prefork, apache2-prefork-dev]
+    packages: [apache2-mpm-prefork, apache2-prefork-dev, libcurl4-openssl-dev]
     gems: [fastthread, rack, [passenger, "#{passenger_version}"]]
