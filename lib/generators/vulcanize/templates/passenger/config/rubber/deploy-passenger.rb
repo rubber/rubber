@@ -11,7 +11,6 @@ namespace :rubber do
       rubber.sudo_script 'install_passenger', <<-ENDSCRIPT
         if [[ -z `ls #{rubber_env.passenger_lib} 2> /dev/null` ]]; then
           echo -en "\n\n\n\n" | passenger-install-apache2-module
-          rvm #{rubber_env.rvm_ruby} --passenger
         fi
       ENDSCRIPT
     end
