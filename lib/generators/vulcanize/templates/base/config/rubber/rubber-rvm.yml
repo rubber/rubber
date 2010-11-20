@@ -12,15 +12,15 @@
 packages: [build-essential, git-core, subversion, curl, autoconf, bison, ruby, zlib1g-dev, libssl-dev, libreadline5-dev, libxml2-dev]
 
 # REQUIRED: the version of rvm itself
-rvm_version: 1.0.15
+rvm_version: 1.1.0
 
 # REQUIRED: Set to the rvm version string for the ruby version you wish to use
 # Run "rvm list known" to see the list of possible options
 rvm_ruby: 1.9.2
 
 # When rvm is installed as root, and you set the default, it symlinks ruby executables
-# into /usr/local
-ruby_prefix: /usr/local
+# into /usr/local/rvm
+ruby_prefix: /usr/local/rvm
 
 rvm_prefix: /usr/local/rvm
   
