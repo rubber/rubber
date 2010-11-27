@@ -18,12 +18,12 @@ db_backup_cmd: "nice sudo -u postgres pg_dumpall -U postgres | gzip -c > %backup
 #           its standard input
 db_restore_cmd: "zcat - | psql -Uroot -h %host% %name%"
 
-postgresql_ver: 8.4
+postgresql_ver: 9.0
 postgresql_conf_dir: "/etc/postgresql/#{postgresql_ver}/main"
 postgresql_data_dir: /mnt/postgresql/data
 postgresql_archive_dir: /mnt/postgresql/archive
 postgresql_pid_file: "/var/run/postgresql/#{postgresql_ver}-main.pid"
-postgresql_ctl: "/usr/bin/env service postgresql-#{postgresql_ver}"
+postgresql_ctl: "/usr/bin/env service postgresql"
 
 # Capistrano needs db:primary role for migrate to work,
 # so we might as well just make consistent across the board
@@ -42,4 +42,4 @@ roles:
   postgresql_slave:
     db_server_id: 2
   db:
-    packages: [postgresql]
+    packages: [postgresql-9.0]

@@ -1,33 +1,39 @@
 
 namespace :rubber do
-  
+
   namespace :postgresql do
-    
+
     rubber.allow_optional_tasks(self)
-    
+
+    before "rubber:install_packages", "rubber:postgresql:setup_apt_sources"
+
+    task :setup_apt_sources, :roles => :redis do
+      rsudo "add-apt-repository ppa:pitti/postgresql"
+    end
+
     after "rubber:create", "rubber:postgresql:validate_db_roles"
 
     task :validate_db_roles do
       db_instances = rubber_instances.for_role("postgresql_slave")
       db_instances.each do |instance|
         if instance.role_names.find {|n| n == 'postgresql_master'}
-          fatal "Cannot have a postgresql slave and master on the same instance, please removing slave role for #{instance.name}"
+          fatal "Cannot have a postgresql slave and master on the same instance, please remove slave role for #{instance.name}"
         end
       end
     end
 
     after "rubber:bootstrap", "rubber:postgresql:bootstrap"
-  
-    
+
+
     # Bootstrap the production database config.  Db bootstrap is special - the
     # user could be requiring the rails env inside some of their config
     # templates, which creates a catch 22 situation with the db, so we try and
     # bootstrap the db separate from the rest of the config
     task :bootstrap, :roles => [:postgresql_master, :postgresql_slave] do
-      
-      # Conditionaly bootstrap for each node/role only if that node has not
+
+      # Conditionally bootstrap for each node/role only if that node has not
       # been boostrapped for that role before
-      master_instances = rubber_instances.for_role("postgresql_master") & rubber_instances.filtered  
+      master_instances = rubber_instances.for_role("postgresql_master") & rubber_instances.filtered
       master_instances.each do |ic|
         task_name = "_bootstrap_postgresql_master_#{ic.full_name}".to_sym()
         task task_name, :hosts => ic.full_name do
@@ -47,7 +53,7 @@ namespace :rubber do
         send task_name
       end
 
-#      Wait for postgresql 9.0 to be avlabel before allowing slaves
+#      Wait for postgresql 9.0 to be available before allowing slaves
 #
 #      slave_instances = rubber_instances.for_role("postgresql_slave") & rubber_instances.filtered
 #      slave_instances.each do |ic|
@@ -77,14 +83,14 @@ namespace :rubber do
 #        end
 #        send task_name
 #      end
-      
+
     end
-  
+
     # TODO: Make the setup/update happen just once per host
     def common_bootstrap(role)
       # postgresql package install starts postgresql, so stop it
       rsudo "#{rubber_env.postgresql_ctl} stop" rescue nil
-      
+
       # After everything installed on machines, we need the source tree
       # on hosts in order to run rubber:config for bootstrapping the db
       rubber.update_code_for_bootstrap
@@ -104,21 +110,21 @@ namespace :rubber do
       ENDSCRIPT
       sleep 5
     end
-    
+
     desc <<-DESC
       Starts the postgresql daemons
     DESC
     task :start, :roles => [:postgresql_master, :postgresql_slave] do
       rsudo "#{rubber_env.postgresql_ctl} start"
     end
-    
+
     desc <<-DESC
       Stops the postgresql daemons
     DESC
     task :stop, :roles => [:postgresql_master, :postgresql_slave] do
       rsudo "#{rubber_env.postgresql_ctl} stop"
     end
-  
+
     desc <<-DESC
       Restarts the postgresql daemons
     DESC
