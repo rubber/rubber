@@ -161,6 +161,7 @@ namespace :rubber do
 
   def zero_partitions(ic, partitions)
     env = rubber_cfg.environment.bind(ic.role_names, ic.name)
+    partitions = partitions.clone
 
     # don't zero out the ones that we weren't told to
     partitions.delete_if do |part|
@@ -194,9 +195,9 @@ namespace :rubber do
 
   def setup_raid_volume(ic, raid_spec, create=false)
     if create
-      mdadm_init = "mdadm --create #{raid_spec['device']} --level #{raid_spec['raid_level']} --raid-devices #{raid_spec['source_devices'].size} #{raid_spec['source_devices'].sort.join(' ')}"
+      mdadm_init = "yes | mdadm --create #{raid_spec['device']} --level #{raid_spec['raid_level']} --raid-devices #{raid_spec['source_devices'].size} #{raid_spec['source_devices'].sort.join(' ')}"
     else
-      mdadm_init = "mdadm --assemble #{raid_spec['device']} #{raid_spec['source_devices'].sort.join(' ')}"
+      mdadm_init = "yes | mdadm --assemble #{raid_spec['device']} #{raid_spec['source_devices'].sort.join(' ')}"
     end
 
     task :_setup_raid_volume, :hosts => ic.external_ip do
@@ -225,7 +226,7 @@ namespace :rubber do
           echo "mdadm --assemble --scan" > /etc/rc.local
           chmod +x /etc/rc.local
 
-          #{('yes | mkfs -t ' + raid_spec['filesystem'] + ' ' + raid_spec['device']) if create}
+          #{('yes | mkfs -t ' + raid_spec['filesystem'] + ' ' + raid_spec['filesystem_opts'] + ' ' + raid_spec['device']) if create}
           mkdir -p '#{raid_spec['mount']}'
           mount '#{raid_spec['mount']}'
         fi
