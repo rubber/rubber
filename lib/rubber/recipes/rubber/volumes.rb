@@ -96,7 +96,7 @@ namespace :rubber do
         print "."
         sleep 2
         volume = cloud.describe_volumes(vol_id).first
-        break if volume[:status] == "in-use"
+        break if volume[:attachment_status] == "attached"
       end
       print "\n"
 
