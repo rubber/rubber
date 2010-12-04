@@ -238,6 +238,7 @@ namespace :rubber do
     rubber_instances.add(instance_item)
     rubber_instances.save()
 
+    Rubber::Tag::update_instance_tags(instance_alias)
 
     print "Waiting for instance to start"
     while true do

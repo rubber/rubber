@@ -349,6 +349,13 @@ module Rubber
         return requests
       end
 
+      # resource_id is any Amazon resource ID (e.g., instance ID or volume ID)
+      # tags is a hash of tag_name => tag_value pairs
+      def create_tags(resource_id, tags)
+        # Tags needs to be an array of hashes, not one big hash, so break it down.
+        @ec2.create_tags(:resource_id => resource_id, :tag => tags.collect { |k, v| { k.to_s => v.to_s } })
+      end
+
     end
 
   end
