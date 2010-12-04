@@ -204,6 +204,13 @@ staging_roles: "web,app,db:primary=true"
 #         zone: us-east-1a # zone to create volume in, needs to match host's zone
 #         device: /dev/sdy # OS device to attach volume to
 #
+#    # Use some ephemeral volumes for raid array
+#    local_volumes:
+#      - partition_device: /dev/sdb
+#        zero: false # zeros out disk for improved performance
+#      - partition_device: /dev/sdc
+#        zero: false # zeros out disk for improved performance
+#
 #     # for raid array, you'll need to add mdadm to packages.  Likewise,
 #     # xfsprogs is needed for xfs filesystem support
 #     packages: [xfsprogs, mdadm]
@@ -211,6 +218,7 @@ staging_roles: "web,app,db:primary=true"
 #       - device: /dev/md0 # OS device to to create raid array on
 #         mount: /mnt/fast # The directory to mount this array to
 #         filesystem: xfs # the filesystem to create on array
+#         filesystem_opts: -f # the filesystem opts in mkfs
 #         raid_level: 0 # the raid level to use for the array
 #         source_devices: [/dev/sdx, /dev/sdy] # the source EBS devices we are creating raid array from
 
