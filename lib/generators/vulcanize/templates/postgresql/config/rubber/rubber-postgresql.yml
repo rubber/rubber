@@ -42,4 +42,4 @@ roles:
   postgresql_slave:
     db_server_id: 2
   db:
-    packages: [postgresql-9.0]
+    packages: [postgresql-9.0, libdbd-pg-perl]
