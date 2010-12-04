@@ -86,6 +86,27 @@ namespace :rubber do
 
     end
 
+    after "rubber:munin:custom_install", "rubber:postgresql:install_munin_plugins"
+    after "rubber:postgresql:install_munin_plugins", "rubber:munin:restart"
+    task :install_munin_plugins, :roles => [:postgresql_master, :postgresql_slave] do
+      regular_plugins = %w[bgwriter checkpoints connections_db users xlog]
+      parameterized_plugins = %w[cache connections locks querylength scans transactions tuples]
+
+      commands = ['rm -f /etc/munin/plugins/postgres_*']
+
+      regular_plugins.each do |name|
+        commands << "ln -s /usr/share/munin/plugins/postgres_#{name} /etc/munin/plugins/postgres_#{name}"
+      end
+
+      parameterized_plugins.each do |name|
+        commands << "ln -s /usr/share/munin/plugins/postgres_#{name}_ /etc/munin/plugins/postgres_#{name}_#{rubber_env.db_name}"
+      end
+
+      rubber.sudo_script "install_postgresql_munin_plugins", <<-ENDSCRIPT
+        #{commands.join(';')}
+      ENDSCRIPT
+    end
+
     # TODO: Make the setup/update happen just once per host
     def common_bootstrap(role)
       # postgresql package install starts postgresql, so stop it
