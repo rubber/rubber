@@ -116,5 +116,5 @@ task :changelog do
   sh "git push"
 end
 
-task :my_release => ['release', 'changelog', 'gemcutter:release'] do
+task :my_release => ['release', 'changelog', 'release'] do
 end
