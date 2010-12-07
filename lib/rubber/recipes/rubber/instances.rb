@@ -238,7 +238,14 @@ namespace :rubber do
     rubber_instances.add(instance_item)
     rubber_instances.save()
 
-    Rubber::Tag::update_instance_tags(instance_alias)
+    # Sometimes tag creation will fail, indicating that the instance doesn't exist yet even though it does.  It seems to
+    # be a propagation delay on Amazon's end, so the best we can do is wait and try again.
+    begin
+      Rubber::Tag::update_instance_tags(instance_alias)
+    rescue Exception
+      sleep 0.5
+      retry
+    end
 
     print "Waiting for instance to start"
     while true do
