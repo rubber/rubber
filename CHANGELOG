@@ -1,3 +1,32 @@
+1.8.0
+-----
+
+Regenerate gemspec for version 1.8.0 <1a924f5> [Kevin Menard]
+Bumped the version of Passenger to 3.0.1. <c419f34> [Kevin Menard]
+Bumped the version of RVM. <52c9891> [Kevin Menard]
+Merge branch 'tags_support' <3396ceb> [Kevin Menard]
+Handle Amazon being slow to update. <e89a7ae> [Kevin Menard]
+Added a comment to help people that change their ServerName from the default. <71ce99a> [Kevin Menard]
+We need this perl package for the postgres munin plugins. <4ae9e6c> [Kevin Menard]
+We need a newer amazon-ec2 for tags support. <90b20ba> [Kevin Menard]
+Added support for creating and updating tags on EC2 instances. <d29eda9> [Kevin Menard]
+Merge branch 'master' of github.com:wr0ngway/rubber <5ca9ce0> [Kevin Menard]
+Fixed issue with RVM, ruby 1.9.2, and passenger munin plugins. <623400b> [Kevin Menard]
+Set up munin for PostgreSQL. <4f9874e> [Kevin Menard]
+Fixes for raiding ephemeral drives <7a0c0d2> [Matt Conway]
+Watch attachment status for more reliable ebs mounts <44ebdae> [Matt Conway]
+Updated config for PostgreSQL 9. <9ade749> [Kevin Menard]
+Don't show Passenger 3 friendly error pages in production. <126093a> [Kevin Menard]
+Updated config for redis 2.0. <f4ed84a> [Kevin Menard]
+Support installation of redis 2.0. <e340091> [Kevin Menard]
+Merge branch 'master' of https://github.com/caike/rubber <4269178> [Kevin Menard]
+Fixed bug with RVM ruby location and updated to the latest version. <bd8805b> [Kevin Menard]
+Improved passenger 3 setup. <b72c5c0> [Kevin Menard]
+Changes passenger generator to use version 3.0.0 and removes deprecated option. <b64f623> [Kristopher Murata]
+Skipping SSL certificate check on wget to github due to wget bug. More info: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=409938 <3d0562e> [caike souza]
+Merge branch 'master' of github.com:wr0ngway/rubber <48269b5> [Matt Conway]
+allow rubber:config in test as well as dev <8954cd6> [Matt Conway]
+
 1.7.2
 -----
 
