@@ -32,7 +32,12 @@ module Rubber
       def read_config(file)
         Rubber.logger.debug{"Reading rubber configuration from #{file}"}
         if File.exist?(file)
-          @items = Environment.combine(@items, YAML.load_file(file) || {})
+          begin
+            @items = Environment.combine(@items, YAML.load_file(file) || {})
+          rescue Exception => e
+            Rubber.logger.error{"Unable to read rubber configuration from #{file}"}
+            raise
+          end
         end
       end
 
