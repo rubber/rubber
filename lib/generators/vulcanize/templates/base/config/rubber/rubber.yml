@@ -58,8 +58,8 @@ cloud_providers:
     #
     # NOTE: for some reason Capistrano requires you to have both the public and
     # the private key in the same folder, the public key should have the
-    # extension ".pub".  The easiest (only?) way to get your hand on this is to
-    # create an instance, ssh into it, and copy the file /mnt/openssh_id.pub
+    # extension ".pub".  The easiest way to get your hand on this is to create the
+    # public key from the private key: ssh-keygen -y -f gsg-keypair > gsg-keypair.pub
     #
     key_name: gsg-keypair
     key_file: "#{Dir[(File.expand_path('~') rescue '/root') + '/.ec2/*' + cloud_providers.aws.key_name].first}"
