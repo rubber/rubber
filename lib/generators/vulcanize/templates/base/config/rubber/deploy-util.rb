@@ -59,7 +59,7 @@ namespace :rubber do
         # Use database.yml to get connection params
         db = YAML::load(ERB.new(IO.read(File.join(File.dirname(__FILE__), '..','database.yml'))).result)[RUBBER_ENV]
         user = db['username']
-        pass = db['passsword']
+        pass = db['password']
         pass = nil if pass and pass.strip.size == 0
         host = db['host']
         name = db['database']
