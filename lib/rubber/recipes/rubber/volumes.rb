@@ -31,6 +31,11 @@ namespace :rubber do
         format = raid_spec['source_devices'].all? {|dev| created_vols.include?(dev)}
         setup_raid_volume(ic, raid_spec, format)
       end
+
+      lvm_volume_group_specs = env.lvm_volume_groups || []
+      lvm_volume_group_specs.each do |lvm_volume_group_spec|
+        setup_lvm_group(ic, lvm_volume_group_spec)
+      end
     end
   end
 
@@ -114,8 +119,8 @@ namespace :rubber do
               echo '#{vol_spec['device']} #{vol_spec['mount']} #{vol_spec['filesystem']} noatime 0 0 # rubber volume #{vol_id}' >> /etc/fstab
 
               #{('yes | mkfs -t ' + vol_spec['filesystem'] + ' ' + vol_spec['device']) if created}
-              mkdir -p '#{vol_spec['mount']}'
-              mount '#{vol_spec['mount']}'
+              #{("mkdir -p '#{vol_spec['mount']}'") if vol_spec['mount']}
+              #{("mount '#{vol_spec['mount']}'") if vol_spec['mount']}
             fi
           ENDSCRIPT
         end
@@ -234,6 +239,97 @@ namespace :rubber do
       ENDSCRIPT
     end
     _setup_raid_volume
+  end
+
+  def setup_lvm_group(ic, lvm_volume_group_spec)
+    physical_volumes = lvm_volume_group_spec['physical_volumes'].kind_of?(Array) ? lvm_volume_group_spec['physical_volumes'] : [lvm_volume_group_spec['physical_volumes']]
+    volume_group_name = lvm_volume_group_spec['name']
+    extent_size = lvm_volume_group_spec['extent_size'] || 32
+
+    volumes = lvm_volume_group_spec['volumes'] || []
+
+    def create_logical_volume_in_bash(volume, volume_group_name)
+      device_name = "/dev/#{volume_group_name}/#{volume['name']}"
+
+      resize_command =
+          case volume['filesystem']
+            when 'xfs'
+              "xfs_growfs '#{volume['mount']}'"
+            when 'reiserfs'
+              "resize_reiserfs -f #{device_name}"
+            when 'jfs'
+              "mount -o remount,resize #{volume['mount']}"
+            when /^ext/
+              <<-RESIZE_COMMAND
+              umount #{device_name}
+              ext2resize #{device_name}
+              mount #{volume['mount']}
+              RESIZE_COMMAND
+            else
+              raise "Do not know how to resize filesystem '#{volume['filesystem']}'"
+          end
+
+      <<-ENDSCRIPT
+        # Add the logical volume mount point to /etc/fstab.
+        if ! grep -q '#{volume['mount']}' /etc/fstab; then
+          if mount | grep -q '#{volume['mount']}'; then
+            umount '#{volume['mount']}'
+          fi
+
+          mv /etc/fstab /etc/fstab.bak
+          cat /etc/fstab.bak | grep -v '#{volume['mount']}' > /etc/fstab
+          echo '#{device_name} #{volume['mount']} #{volume['filesystem']} noatime 0 0 # rubber LVM volume' >> /etc/fstab
+        fi
+
+        # Check if the logical volume exists or not.
+        if ! lvdisplay #{device_name} >> /dev/null 2>&1; then
+          # Create the logical volume.
+          lvcreate -L #{volume['size']}G -i #{volume['stripes'] || 1} -n#{volume['name']} #{volume_group_name}
+
+          # Format the logical volume.
+          yes | mkfs -t #{volume['filesystem']} #{volume['filesystem_opts']} #{device_name}
+
+          # Create the mount point.
+          mkdir -p '#{volume['mount']}'
+
+          # Mount the volume.
+          mount '#{volume['mount']}'
+        else
+          # Try to extend the volume size.
+          if lvextend -L #{volume['size']}G -i #{volume['stripes'] || 1} #{device_name} >> /dev/null 2&>1; then
+
+            # If we actually resized the volume, then we need to resize the filesystem.
+            #{resize_command}
+          fi
+        fi
+      ENDSCRIPT
+    end
+
+    task :_setup_lvm_group, :hosts => ic.external_ip do
+      rubber.sudo_script 'setup_lvm_group', <<-ENDSCRIPT
+        # Check and see if the physical volume is already set up for LVM. If not, initialize it to be so.
+        for device in #{physical_volumes.join(' ')}
+        do
+          if ! pvdisplay $device >> /dev/null 2>&1; then
+            pvcreate $device
+
+            # See if the volume group already exists. If so, add the new physical volume to it.
+            if vgdisplay #{volume_group_name} >> /dev/null 2>&1; then
+              vgextend #{volume_group_name} $device
+            fi
+          fi
+        done
+
+        # If the volume group does not exist yet, construct it with all the physical volumes.
+        if ! vgdisplay #{volume_group_name} >> /dev/null 2>&1; then
+          vgcreate #{volume_group_name} #{physical_volumes.join(' ')} -s #{extent_size}
+        fi
+
+        # Set up each of the logical volumes.
+        #{volumes.collect { |volume| create_logical_volume_in_bash(volume, volume_group_name) }.join("\n\n") }
+      ENDSCRIPT
+    end
+    _setup_lvm_group
   end
 
   def destroy_volume(volume_id)
