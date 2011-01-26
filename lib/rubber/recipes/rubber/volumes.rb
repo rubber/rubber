@@ -2,7 +2,7 @@ namespace :rubber do
 
   desc <<-DESC
     Sets up persistent volumes in the cloud
-    All volumes defined in rubber.yml will be created if neccessary, and attached/mounted on their associated instances
+    All volumes defined in rubber.yml will be created if necessary, and attached/mounted on their associated instances
   DESC
   required_task :setup_volumes do
     rubber_instances.filtered.each do |ic|
