@@ -221,6 +221,21 @@ staging_roles: "web,app,db:primary=true"
 #         filesystem_opts: -f # the filesystem opts in mkfs
 #         raid_level: 0 # the raid level to use for the array
 #         source_devices: [/dev/sdx, /dev/sdy] # the source EBS devices we are creating raid array from
+#
+#     # for LVM volumes, you'll need to add lvm2 to packages.  Likewise,
+#     # xfsprogs is needed for xfs filesystem support
+#     packages: [xfsprogs, lvm2]
+#     lvm_volume_groups:
+#       - name: vg # The volume group name
+#         physical_volumes: [/dev/sdx, /dev/sdy] # Devices used for LVM group (you can use just one, but you can't stripe then)
+#         extent_size: 32 # Size of the volume extent in MB
+#         volumes:
+#           - name: lv # Name of the logical volume
+#             size: 999.9 # Size of volume in GB (slightly less than sum of all physical volumes because LVM reserves some space)
+#             stripes: 2 # Count of stripes for volume
+#             filesystem: xfs # The filesystem to create on the logical volume
+#             filesystem_opts: -f # the filesystem opts in mkfs
+#             mount: /mnt/large_work_dir # The directory to mount this LVM volume to
 
 # OPTIONAL: You can also define your own variables here for use when
 # transforming config files, and they will be available in your config
