@@ -1,3 +1,20 @@
+1.9.0
+-----
+
+Regenerate gemspec for version 1.9.0 <5d296e4> [Kevin Menard]
+Added the ability to set up LVM volumes. <89e865c> [Kevin Menard]
+Fixed a typo. <26eda95> [Kevin Menard]
+Merge branch 'master' of https://github.com/bpaul/rubber into bpaul-master <91fc6ff> [Kevin Menard]
+Merge branch 'master' of https://github.com/jcrumpton/rubber into jcrumpton-master <a4a3f24> [Kevin Menard]
+Merge branch 'master' of github.com:wr0ngway/rubber <ef88020> [Matt Conway]
+specify raid metadata level and admin email <c841ee2> [Matt Conway]
+extra error checking to make it easier to see yml failures <c89e97a> [Matt Conway]
+fix pub key docs <9c69976> [Matt Conway]
+fix postgresql recipe roles <873a3b9> [Matt Conway]
+A couple of Sphinx updates: Updated the location of the download on sphinxsearch.com Bumped the default version to 0.9.9 <d6695c3> [Barry Paul]
+fixed typo <45b8a07> [James Crumpton]
+It's no longer gemcutter:release. <f04deb1> [Kevin Menard]
+
 1.8.0
 -----
 
