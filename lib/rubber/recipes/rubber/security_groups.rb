@@ -134,7 +134,14 @@ namespace :rubber do
             # logger.debug "Rule in sync: #{rule_map.inspect}"
           else
             # rules don't match, remove them from cloud and re-add below
-            answer = Capistrano::CLI.ui.ask("Rule '#{rule_map.inspect}' exists in cloud, but not locally, remove from cloud? [y/N]?: ")
+            answer = nil
+            msg = "Rule '#{rule_map.inspect}' exists in cloud, but not locally"
+            if rubber_env.prompt_for_security_group_sync
+              answer = Capistrano::CLI.ui.ask("#{msg}, remove from cloud? [y/N]: ")
+            else
+              logger.info(msg)
+            end
+            
             rule_map = Rubber::Util::symbolize_keys(rule_map)
             if rule_map[:source_group_name]
               cloud.remove_security_group_rule(group_name, nil, nil, nil, {:name => rule_map[:source_group_name], :account => rule_map[:source_group_account]})
@@ -160,7 +167,13 @@ namespace :rubber do
         end
       else
         # delete group
-        answer = Capistrano::CLI.ui.ask("Security group '#{group_name}' exists in cloud but not locally, remove from cloud? [y/N]: ")
+        answer = nil
+        msg = "Security group '#{group_name}' exists in cloud but not locally"
+        if rubber_env.prompt_for_security_group_sync
+          answer = Capistrano::CLI.ui.ask("#{msg}, remove from cloud? [y/N]: ")
+        else
+          logger.debug(msg)
+        end
         cloud.destroy_security_group(group_name) if answer =~ /^y/
       end
     end

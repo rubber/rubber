@@ -130,6 +130,10 @@ auto_security_groups: true
 # account, or even multiple apps
 isolate_security_groups: true
 
+# OPTIONAL: Prompts one to sync security group rules when the ones in amazon
+# differ from those in rubber
+prompt_for_security_group_sync: true
+
 # OPTIONAL: The packages to install on all instances
 # You can install a specific version of a package by using a sub-array of pkg, version
 # For example, packages: [[rake, 0.7.1], irb]
