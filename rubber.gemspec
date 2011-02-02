@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rubber}
-  s.version = "1.9.1"
+  s.version = "1.10.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Matt Conway"]
-  s.date = %q{2011-01-26}
+  s.date = %q{2011-02-02}
   s.default_executable = %q{vulcanize}
   s.description = %q{      The rubber plugin enables relatively complex multi-instance deployments of RubyOnRails applications to
       Amazon's Elastic Compute Cloud (EC2).  Like capistrano, rubber is role based, so you can define a set
@@ -186,6 +186,7 @@ Gem::Specification.new do |s|
     "generators/vulcanize/templates/redis/config/rubber/deploy-redis.rb",
     "generators/vulcanize/templates/redis/config/rubber/role/redis/crontab",
     "generators/vulcanize/templates/redis/config/rubber/role/redis/monit-redis.conf",
+    "generators/vulcanize/templates/redis/config/rubber/role/redis/redis-sysctl.conf",
     "generators/vulcanize/templates/redis/config/rubber/role/redis/redis.conf",
     "generators/vulcanize/templates/redis/config/rubber/rubber-redis.yml",
     "generators/vulcanize/templates/redis/templates.yml",
@@ -361,6 +362,7 @@ Gem::Specification.new do |s|
     "lib/generators/vulcanize/templates/redis/config/rubber/deploy-redis.rb",
     "lib/generators/vulcanize/templates/redis/config/rubber/role/redis/crontab",
     "lib/generators/vulcanize/templates/redis/config/rubber/role/redis/monit-redis.conf",
+    "lib/generators/vulcanize/templates/redis/config/rubber/role/redis/redis-sysctl.conf",
     "lib/generators/vulcanize/templates/redis/config/rubber/role/redis/redis.conf",
     "lib/generators/vulcanize/templates/redis/config/rubber/rubber-redis.yml",
     "lib/generators/vulcanize/templates/redis/templates.yml",
@@ -429,7 +431,7 @@ http://wiki.github.com/wr0ngway/rubber/upgrading
 }
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{rubber}
-  s.rubygems_version = %q{1.3.7}
+  s.rubygems_version = %q{1.5.0}
   s.summary = %q{A capistrano plugin for managing multi-instance deployments to the cloud (ec2)}
   s.test_files = [
     "test/environment_test.rb",
@@ -441,7 +443,6 @@ http://wiki.github.com/wr0ngway/rubber/upgrading
   ]
 
   if s.respond_to? :specification_version then
-    current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
