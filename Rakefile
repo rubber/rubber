@@ -1,3 +1,9 @@
+# jeweler seems to need psych now
+begin
+  require 'psych'
+rescue LoadError
+end
+
 require 'rake'
 require 'rake/testtask'
 
