@@ -127,18 +127,11 @@ class EnvironmentTest < Test::Unit::TestCase
   end
 
   def test_instances_in_expansion
-    instance = InstanceItem.new('host1', 'domain.com', [RoleItem.new('role1')], '')
-    instance.external_ip = "1.2.3.4"
-    instances = Instance.new(Tempfile.new('testforinstanceexpansion').path)
-    instances.add(instance)
-
-    File.expects(:exist?).returns(true)
-    YAML.expects(:load_file).returns({'var1' =>'"#{rubber_instances.for_role("role1").first.external_ip}"'})
-    Rubber::Configuration.expects(:rubber_instances).returns(instances)
-    env = Rubber::Configuration::Environment.new(nil)
-    e = env.bind()
-
-    assert_equal "\"1.2.3.4\"", e['var1']    
+    config = Rubber::Configuration::get_configuration('test', "#{File.dirname(__FILE__)}/fixtures/instance_expansion")
+    config.environment
+    e = config.environment.bind()
+    e.stubs(:rubber_instances).returns(config.instance)
+    assert_equal "50.1.1.1", e['var1']
   end
 
 end
