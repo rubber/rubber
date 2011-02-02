@@ -14,9 +14,14 @@ module Rubber
         @file = file
         @items = {}
         @artifacts = {'volumes' => {}, 'static_ips' => {}}
-        if ENV['FILTER']
-          @filters = ENV['FILTER'].split(/\s*,\s*/)
-        end
+
+        @filters = ENV['FILTER'].split(/\s*,\s*/) rescue []
+        @filters, @filters_negated = @filters.partition {|f| f !~ /^-/ }
+        @filters_negated = @filters_negated.collect {|f| f[1..-1] }
+
+        @filter_roles = ENV['FILTER_ROLES'].split(/\s*,\s*/) rescue []
+        @filter_roles, @filter_roles_negated = @filter_roles.partition {|f| f !~ /^-/ }
+        @filter_roles_negated = @filter_roles_negated.collect {|f| f[1..-1] }
 
         if File.exist?(@file)
           item_list = File.open(@file) { |f| YAML.load(f) }
@@ -50,7 +55,21 @@ module Rubber
       end
 
       def filtered()
-        @items.values.find_all {|ic| ! @filters || @filters.include?(ic.name)}
+        filtered_results = []
+
+        if @filters.size == 0 && @filter_roles.size == 0
+          filtered_results.concat(@items.values)
+        else
+          @items.values.each do |ic|
+              filtered_results << ic if @filters.include?(ic.name)
+              filtered_results << ic if ic.roles.any? {|r| @filter_roles.include?(r.name)}
+          end
+        end
+
+        filtered_results.delete_if {|ic| @filters_negated.include?(ic.name) }
+        filtered_results.delete_if {|ic| ic.roles.any? {|r| @filter_roles_negated.include?(r.name)} }
+
+        return filtered_results
       end
 
       def all_roles()

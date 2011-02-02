@@ -25,9 +25,16 @@ class InstanceTest < Test::Unit::TestCase
     assert_equal @i4, @instance.for_role('role2', 'primary' => true).first, 'not finding correct instances for role'
   end
 
+  def test_unfiltered
+    ENV['FILTER'] = nil
+    ENV['FILTER_ROLES'] = nil
+    setup
+    assert_equal 4, @instance.filtered().size, 'should not filter for empty FILTER(_ROLES)'
+  end
+
+
   def test_filtered
-    assert_equal 4, @instance.filtered().size, 'should not filter for empty FILTER'
-    
+    ENV['FILTER_ROLES'] = nil
     ENV['FILTER'] = 'host1'
     setup
     assert_equal [@i1], @instance.filtered(), 'should have only filtered host'
@@ -35,7 +42,34 @@ class InstanceTest < Test::Unit::TestCase
     ENV['FILTER'] = 'host2 , host4'
     setup
     assert_equal [@i2, @i4], @instance.filtered(), 'should have only filtered hosts'
-    
+
+    ENV['FILTER'] = '-host2'
+    setup
+    assert_equal [@i1, @i3, @i4], @instance.filtered(), 'should not have negated hosts'
+
+    ENV['FILTER'] = 'host1,host2,-host2'
+    setup
+    assert_equal [@i1], @instance.filtered(), 'should not have negated hosts'
+
+    ENV['FILTER'] = '-host1'
+    ENV['FILTER_ROLES'] = 'role1'
+    setup
+    assert_equal [@i2], @instance.filtered(), 'should not have negated roles'
+  end
+
+  def test_filtered_roles
+    ENV['FILTER'] = nil
+    ENV['FILTER_ROLES'] = 'role1'
+    setup
+    assert_equal [@i1, @i2], @instance.filtered(), 'should have only filtered roles'
+
+    ENV['FILTER_ROLES'] = 'role1 , role2'
+    setup
+    assert_equal [@i1, @i2, @i3, @i4], @instance.filtered(), 'should have only filtered roles'
+
+    ENV['FILTER_ROLES'] = '-role1'
+    setup
+    assert_equal [@i3, @i4], @instance.filtered(), 'should not have negated roles'
   end
 
   def test_equality
