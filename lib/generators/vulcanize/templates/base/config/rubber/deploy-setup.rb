@@ -6,7 +6,7 @@ namespace :rubber do
     before "rubber:setup_gem_sources", "rubber:base:install_rvm"
     task :install_rvm do
       rubber.sudo_script "install_rvm", <<-ENDSCRIPT
-        if [[ `rvm --version 2> /dev/null` == "" ]]; then
+        if [[ ! `rvm --version 2> /dev/null` =~ "#{rubber_env.rvm_version}" ]]; then
           echo "rvm_prefix=/usr/local/" > /etc/rvmrc
           echo "#{rubber_env.rvm_prepare}" > /etc/profile.d/rvm.sh
 
@@ -55,10 +55,26 @@ namespace :rubber do
       install_rvm_ruby_script = <<-ENDSCRIPT
         rvm_ver=$1
         if [[ ! `rvm list default 2> /dev/null` =~ "$rvm_ver" ]]; then
-          rvm install $rvm_ver
+          echo "RVM is compiling/installing ruby $rvm_ver, this may take a while"
+
+          nohup rvm install $rvm_ver &> /tmp/install_rvm_ruby.log &
+          sleep 1
+
+          while true; do
+            if ! ps ax | grep -q "[r]vm install"; then exit; fi
+            echo -n .
+            sleep 5
+          done
+
           # need to set default after using once or something in env is broken
           rvm use $rvm_ver &> /dev/null
           rvm use $rvm_ver --default
+
+          # Something flaky with $PATH having an entry for "bin" which breaks
+          # munin, the below seems to fix it
+          rvm use $rvm_ver
+          rvm repair environments
+          rvm use $rvm_ver
         fi
       ENDSCRIPT
       opts[:script_args] = '$CAPISTRANO:VAR$'
