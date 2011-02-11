@@ -243,11 +243,13 @@ module Rubber
           export RUBYLIB=/usr/lib/site_ruby/
           unset RUBYOPT
           nohup ec2-bundle-vol --batch -d /mnt -k #{ec2_pk_dest} -c #{ec2_cert_dest} -u #{@aws_env.account} -p #{image_name} -r #{arch} &> /tmp/ec2-bundle-vol.log &
+          sleep 1
+
           echo "Creating image from instance volume..."
           while true; do
             if ! ps ax | grep -q "[e]c2-bundle-vol"; then exit; fi
             echo -n .
-            sleep 1
+            sleep 5
           done
         CMD
 

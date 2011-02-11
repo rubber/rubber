@@ -183,14 +183,15 @@ namespace :rubber do
       task :_zero_partitions, :hosts => ic.external_ip do
         rubber.sudo_script 'zero_partitions', <<-ENDSCRIPT
           # zero out parition for performance (see amazon DevGuide)
-          echo "Zeroing out raid partitions to improve performance, this way take a while"
+          echo "Zeroing out raid partitions to improve performance, this may take a while"
           #{zero_script}
+          sleep 1
 
           echo "Waiting for partitions to zero out"
           while true; do
             if ! ps ax | grep -q "[d]d.*/dev/zero"; then exit; fi
             echo -n .
-            sleep 1
+            sleep 5
           done
         ENDSCRIPT
       end
