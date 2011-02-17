@@ -4,5 +4,12 @@
   @additive = ['# start-redis-crontab', '# end-redis-crontab']
 %>
 
-# backup redis DBs every hour
-0 * * * * BACKUP_DIR=/mnt/redis_backups BACKUP_NAME=redis BACKUP_CMD="tar -czf \%dir\%/redis_\%time_stamp\%.tgz <%= rubber_env.redis_db_dir %>" <%= RUBBER_ROOT %>/script/cron-rake rubber:backup
+<%
+  # Backup db every 3 hours to secondary db if available, else primary db
+  backup_redis_host = rubber_instances.for_role('redis_slave').first rescue nil
+  backup_redis_host ||= rubber_instances.for_role('redis_master').first
+  if backup_redis_host.name == rubber_env.host
+%>
+# Backup redis DBs every hour.
+0 * * * * BACKUP_DIR=/mnt/redis_backups BACKUP_NAME=redis BACKUP_CMD="nice zip -r \%dir\%/redis_\%time_stamp\%.zip <%= rubber_env.redis_db_dir %> -x \*temp\*.rdb" <%= RUBBER_ROOT %>/script/cron-rake rubber:backup
+<% end %>
