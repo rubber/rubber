@@ -9,7 +9,7 @@ sleep to prevent race condition between ps/nohup, longer sleep between dots <84c
 stop setting constants in erb templates to silence warnings <ab74f24> [Matt Conway]
 use psych if there <1cbf64d> [Matt Conway]
 
-1.10.0
+1.10.0 (yanked due to bug in creating gem with RubyGems 1.5.0)
 -----
 
 Regenerate gemspec for version 1.10.0 <c8d5535> [Matt Conway]
