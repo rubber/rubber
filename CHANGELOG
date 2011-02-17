@@ -1,3 +1,14 @@
+1.10.1
+-----
+
+Regenerate gemspec for version 1.10.1 <8a178a9> [Kevin Menard]
+Changed the redis configuration so we can do replication. <4ce546d> [Kevin Menard]
+prevent long running compile from timing out ssh connection, better version checks, hack to prevent rvm breaking path <64299e2> [Matt Conway]
+update rvm ver <e60b946> [Matt Conway]
+sleep to prevent race condition between ps/nohup, longer sleep between dots <84c362c> [Matt Conway]
+stop setting constants in erb templates to silence warnings <ab74f24> [Matt Conway]
+use psych if there <1cbf64d> [Matt Conway]
+
 1.10.0
 -----
 
