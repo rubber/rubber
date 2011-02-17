@@ -1,3 +1,13 @@
+1.10.0
+-----
+
+Regenerate gemspec for version 1.10.0 <c8d5535> [Matt Conway]
+Add FILTER_ROLES and negation to both FILTER and FILTER_ROLES <a2f4574> [Matt Conway]
+fix some tests <e038b16> [Matt Conway]
+Merge branch 'master' of github.com:wr0ngway/rubber <a9a6b09> [Matt Conway]
+allow one to ignore security group sync <4d42438> [Matt Conway]
+allow redis to bgsave when memory is tight <c928458> [Matt Conway]
+
 1.9.1
 -----
 
