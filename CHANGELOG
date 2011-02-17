@@ -1,3 +1,9 @@
+1.9.1
+-----
+
+Regenerate gemspec for version 1.9.1 <efaf38c> [Kevin Menard]
+Added a sample snippet for creating LVM volumes. <42f09ec> [Kevin Menard]
+
 1.9.0
 -----
 
