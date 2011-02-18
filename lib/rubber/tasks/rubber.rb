@@ -262,7 +262,7 @@ namespace :rubber do
     raise "could not access backup file via s3" unless data
 
     puts "piping restore data to command [#{db_restore_cmd}]"
-    IO.popen(db_restore_cmd, mode='w') do |p|
+    IO.popen(db_restore_cmd, 'wb') do |p|
       data.value do |segment|
         p.write segment
       end
