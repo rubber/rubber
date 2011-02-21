@@ -1,3 +1,14 @@
+1.10.2
+-----
+
+Regenerate gemspec for version 1.10.2 <4f49701> [Kevin Menard]
+Merge branch 'master' of github.com:wr0ngway/rubber <e32671f> [Kevin Menard]
+Fixed issue #41: rvm installation exits prematurely. <8a4bced> [Kevin Menard]
+Fixed issue #28: postgresql with password fails <97270e3> [Kevin Menard]
+fix file write for db restoration <51b1117> [Matt Conway]
+Bumped passenger version. <2547950> [Kevin Menard]
+Note that a release had been yanked. <d636389> [Kevin Menard]
+
 1.10.1
 -----
 
