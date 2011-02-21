@@ -61,7 +61,7 @@ namespace :rubber do
           sleep 1
 
           while true; do
-            if ! ps ax | grep -q "[r]vm install"; then exit; fi
+            if ! ps ax | grep -q "[r]vm install"; then break; fi
             echo -n .
             sleep 5
           done
