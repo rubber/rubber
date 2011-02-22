@@ -43,7 +43,7 @@ namespace :rubber do
             common_bootstrap("postgresql_master")
 
             create_user_cmd = "CREATE USER #{env.db_user} WITH NOSUPERUSER CREATEDB NOCREATEROLE"
-            create_user_cmd << "PASSWORD '#{env.db_pass}'" if env.db_pass
+            create_user_cmd << " PASSWORD '#{env.db_pass}'" if env.db_pass
             rubber.sudo_script "create_master_db", <<-ENDSCRIPT
               sudo -u postgres psql -c "#{create_user_cmd}"
               sudo -u postgres psql -c "CREATE DATABASE #{env.db_name} WITH OWNER #{env.db_user}"
