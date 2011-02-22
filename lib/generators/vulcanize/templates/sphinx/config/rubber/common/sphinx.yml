@@ -12,7 +12,7 @@
 # pid file::              log/searchd.#{environment}.pid
 # searchd files::         db/sphinx/#{environment}/
 # address::               127.0.0.1
-# port::                  3312
+# port::                  9312
 # allow star::            false
 # min prefix length::     1
 # min infix length::      1
