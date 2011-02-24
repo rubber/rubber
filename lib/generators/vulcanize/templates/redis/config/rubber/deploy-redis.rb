@@ -26,11 +26,11 @@ namespace :rubber do
           # Install the binaries.
           /etc/init.d/redis-server stop
 
-          mv redis-benchmark /usr/bin/
-          mv redis-check-aof /usr/bin/
-          mv redis-check-dump /usr/bin/
-          mv redis-cli /usr/bin/
-          mv redis-server /usr/bin/
+          mv src/redis-benchmark /usr/bin/
+          mv src/redis-check-aof /usr/bin/
+          mv src/redis-check-dump /usr/bin/
+          mv src/redis-cli /usr/bin/
+          mv src/redis-server /usr/bin/
 
           /etc/init.d/redis-server start
 
@@ -49,6 +49,13 @@ namespace :rubber do
         mkdir -p #{rubber_env.redis_db_dir}
         chown -R redis:redis #{rubber_env.redis_db_dir}
       ENDSCRIPT
+
+      # After everything installed on machines, we need the source tree
+      # on hosts in order to run rubber:config for bootstrapping the db
+      rubber.update_code_for_bootstrap
+
+      # Gen just the conf for cassandra
+      rubber.run_config(:RUBBER_ENV => RUBBER_ENV, :FILE => "role/redis", :FORCE => true, :deploy_path => release_path)
     end
 
     desc "Stops the redis server"
