@@ -1,4 +1,4 @@
-passenger_version: 3.0.2
+passenger_version: 3.0.3
 passenger_root: "#{rvm_gem_home}/gems/passenger-#{passenger_version}"
 passenger_ruby: "#{rvm_prefix}/wrappers/#{`bash -l -c 'rvm strings #{rvm_ruby}'`.strip}/ruby"
 passenger_lib: "#{passenger_root}/ext/apache2/mod_passenger.so"
