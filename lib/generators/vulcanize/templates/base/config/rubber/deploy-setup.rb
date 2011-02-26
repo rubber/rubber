@@ -37,6 +37,8 @@ namespace :rubber do
 
           bash ./scripts/install
 
+          sed -i 's/rubygems_version=.*/rubygems_version=#{rubber_env.rubygems_version}/' #{rubber_env.rvm_prefix}/config/db
+
           #
           # end rvm install script
 
