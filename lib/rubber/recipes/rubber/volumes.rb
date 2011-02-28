@@ -56,11 +56,19 @@ namespace :rubber do
   end
 
   desc <<-DESC
-    Shows the configured persistent volumes
+    Destroys the configured persistent volumes
   DESC
   required_task :destroy_volume do
     volume_id = get_env('VOLUME_ID', "Volume ID", true)
     destroy_volume(volume_id)
+  end
+
+  desc <<-DESC
+    Detaches the configured persistent volumes
+  DESC
+  required_task :detach_volume do
+    volume_id = get_env('VOLUME_ID', "Volume ID", true)
+    detach_volume(volume_id)
   end
 
   def create_volume(size, zone)
@@ -333,8 +341,7 @@ namespace :rubber do
     _setup_lvm_group
   end
 
-  def destroy_volume(volume_id)
-
+  def detach_volume(volume_id)
     logger.info "Detaching volume #{volume_id}"
     cloud.detach_volume(volume_id) rescue logger.info("Volume was not attached")
 
@@ -348,16 +355,24 @@ namespace :rubber do
     end
     print "\n"
 
+    logger.info "Detaching volume #{volume_id} from rubber instances file"
+    rubber_instances.each do |ic|
+      ic.volumes.delete(volume_id) if ic.volumes
+    end
+    rubber_instances.save
+
+  end
+  
+  def destroy_volume(volume_id)
+    detach_volume(volume_id)
+
     logger.info "Deleting volume #{volume_id}"
     cloud.destroy_volume(volume_id)
 
     logger.info "Removing volume #{volume_id} from rubber instances file"
     artifacts = rubber_instances.artifacts
     artifacts['volumes'].delete_if {|k,v| v == volume_id}
-    rubber_instances.each do |ic|
-      ic.volumes.delete(volume_id) if ic.volumes
-    end
     rubber_instances.save
   end
-  
+
 end
