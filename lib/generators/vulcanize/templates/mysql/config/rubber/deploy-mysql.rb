@@ -80,7 +80,7 @@ namespace :rubber do
               logger.info "Creating slave from a dump of master #{source_host}"
               rubber.sudo_script "create_slave_db_from_master", <<-ENDSCRIPT
                 mysql -u root -e "change master to master_host='#{master_host}', master_user='#{env.db_replicator_user}' #{master_pass}"
-                mysqldump -u #{env.db_user} #{env.db_pass.nil? ? '' : '--password ' + env.db_pass} -h #{source_host} --all-databases --master-data=1 | mysql -u root
+                mysqldump -u #{env.db_user} #{env.db_pass.nil? ? '' : '--password=' + env.db_pass} -h #{source_host} --all-databases --master-data=1 | mysql -u root
               ENDSCRIPT
             else
               logger.info "Creating slave from a dump of slave #{source_host}"
@@ -90,7 +90,7 @@ namespace :rubber do
               log_file = slave_config['Master_Log_File']
               log_pos = slave_config['Read_Master_Log_Pos']
               rubber.sudo_script "create_slave_db_from_slave", <<-ENDSCRIPT
-                mysqldump -u #{env.db_user} --password #{env.db_pass} -h #{source_host} --all-databases --master-data=1 | mysql -u root
+                mysqldump -u #{env.db_user} #{env.db_pass.nil? ? '' : '--password=' + env.db_pass} -h #{source_host} --all-databases --master-data=1 | mysql -u root
                 mysql -u root -e "change master to master_host='#{master_host}', master_user='#{env.db_replicator_user}', master_log_file='#{log_file}', master_log_pos=#{log_pos} #{master_pass}"
                 mysql -u #{env.db_user} --password #{env.db_pass} -h #{source_host} -e "start slave;"
               ENDSCRIPT
