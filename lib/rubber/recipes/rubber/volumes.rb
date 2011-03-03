@@ -280,13 +280,13 @@ namespace :rubber do
 
       <<-ENDSCRIPT
         # Add the logical volume mount point to /etc/fstab.
-        if ! grep -q '#{volume['mount']}' /etc/fstab; then
+        if ! grep -q '#{volume['name']}' /etc/fstab; then
           if mount | grep -q '#{volume['mount']}'; then
             umount '#{volume['mount']}'
           fi
 
           mv /etc/fstab /etc/fstab.bak
-          cat /etc/fstab.bak | grep -v '#{volume['mount']}' > /etc/fstab
+          cat /etc/fstab.bak | grep -v '#{volume['mount']}\\b' > /etc/fstab
           echo '#{device_name} #{volume['mount']} #{volume['filesystem']} noatime 0 0 # rubber LVM volume' >> /etc/fstab
         fi
 
@@ -320,6 +320,10 @@ namespace :rubber do
         for device in #{physical_volumes.join(' ')}
         do
           if ! pvdisplay $device >> /dev/null 2>&1; then
+            if grep $device /etc/mtab; then
+              umount $device
+            fi
+
             pvcreate $device
 
             # See if the volume group already exists. If so, add the new physical volume to it.
