@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rubber}
-  s.version = "1.10.2"
+  s.version = "1.11.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Matt Conway"]
-  s.date = %q{2011-02-21}
+  s.date = %q{2011-03-04}
   s.default_executable = %q{vulcanize}
   s.description = %q{      The rubber plugin enables relatively complex multi-instance deployments of RubyOnRails applications to
       Amazon's Elastic Compute Cloud (EC2).  Like capistrano, rubber is role based, so you can define a set
@@ -415,23 +415,9 @@ Gem::Specification.new do |s|
     "rails/init.rb"
   ]
   s.homepage = %q{http://github.com/wr0ngway/rubber}
-  s.post_install_message = %q{
-********************************************************************************
-
-Thank you for installing rubber.  Please note that this is a major upgrade
-and we've moved towards using RVM for Ruby configuration on your EC2 instances.
-
-If you're upgrading rubber, please make sure to read the upgrade notes and
-make the necessary configuration changes:
-
-http://wiki.github.com/wr0ngway/rubber/upgrading
-
-********************************************************************************
-
-}
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{rubber}
-  s.rubygems_version = %q{1.5.2}
+  s.rubygems_version = %q{1.5.3}
   s.summary = %q{A capistrano plugin for managing multi-instance deployments to the cloud (ec2)}
   s.test_files = [
     "test/environment_test.rb",
