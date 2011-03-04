@@ -176,7 +176,7 @@ namespace :rubber do
 
     user = get_env('DBUSER', true)
     pass = get_env('DBPASS')
-    pass = nil if pass.strip.size == 0
+    pass = nil if (pass.nil? || pass.strip.size == 0)
     host = get_env('DBHOST', true)
     name = get_env('DBNAME', true)
 
