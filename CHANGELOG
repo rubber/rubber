@@ -1,3 +1,23 @@
+1.11.0
+-----
+
+Regenerate gemspec for version 1.11.0 <1358116> [Kevin Menard]
+We've been using RVM for a while now, so time to kill that warning message. <1d29137> [Kevin Menard]
+Make the generated Rakefile play nicer with bundler and rubber transformation. <90f6702> [Kevin Menard]
+Truly make the DBPASS field optional. <ba0aa56> [Kevin Menard]
+Allow creation of LVM volumes over ephemeral devices. <319e80b> [Kevin Menard]
+Bumped passenger version. <d4b4950> [Kevin Menard]
+add detach volume <9daa912> [Matt Conway]
+fix passing of passwd to mysqldump <143d467> [Matt Conway]
+Added new feature to lock down the version of RubyGems installed on a cluster by RVM. <652f908> [Kevin Menard]
+Bumped the version of RVM so we can get the latest security fix releases of Ruby. <9fb2383> [Kevin Menard]
+Merge branch 'master' of github.com:wr0ngway/rubber <58d3209> [Kevin Menard]
+Upgraded redis to 2.2.1. <aa0aa31> [Kevin Menard]
+Bumped Passenger to version 3.0.3. <cad658a> [Kevin Menard]
+sphinx default port has changed to 9312 <eee2bd0> [Nick Plante]
+Merge branch 'master' of https://github.com/wr0ngway/rubber <2ff0188> [Nick Plante]
+fix file write for db restoration <15fe2e0> [Nick Plante]
+
 1.10.2
 -----
 
