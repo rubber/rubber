@@ -30,23 +30,6 @@ begin
     s.add_dependency 'amazon-ec2', '>= 0.9.17'
     s.add_dependency 'aws-s3'
     s.add_dependency 'nettica'
-
-    s.post_install_message = <<-POST_INSTALL_MESSAGE
-
-#{"*" * 80}
-
-Thank you for installing rubber.  Please note that this is a major upgrade
-and we've moved towards using RVM for Ruby configuration on your EC2 instances.
-
-If you're upgrading rubber, please make sure to read the upgrade notes and
-make the necessary configuration changes:
-
-http://wiki.github.com/wr0ngway/rubber/upgrading
-
-#{"*" * 80}
-
-POST_INSTALL_MESSAGE
-
   end
   Jeweler::GemcutterTasks.new
 rescue LoadError
