@@ -9,8 +9,14 @@ namespace :rubber do
     
     task :custom_install, :roles => :passenger do
       rubber.sudo_script 'install_passenger', <<-ENDSCRIPT
-        if [[ -z `ls #{rubber_env.passenger_lib} 2> /dev/null` ]]; then
+        # can't use passenger_lib from rubber here as it only evaluates correctly
+        # when variable interpolation of rvm_gem_home is run remotely, and since we
+        # are in cap, we run the interpolation locally
+        #
+        passenger_lib=$(find /usr/local/rvm -path "*/passenger-#{rubber_env.passenger_version}/*/mod_passenger.so" 2> /dev/null)
+        if [[ -z $passenger_lib ]]; then
           echo -en "\n\n\n\n" | passenger-install-apache2-module
+          rvm #{rubber_env.rvm_ruby} --passenger
         fi
       ENDSCRIPT
     end
