@@ -55,7 +55,8 @@ namespace :rubber do
     # use a pty so we don't get "stdin: is not a tty" error output
     set :default_run_options, :pty => true, :shell => "/bin/bash -l", :except => { :platform => 'windows' }
 
-    set :cloud, Rubber::Cloud::get_provider(rubber_env.cloud_provider || "aws", rubber_env, self)
+    # sharing a Net::HTTP instance across threads doesn't work, so create a new instance per thread
+    set :cloud, Rubber::ThreadSafeProxy.new { Rubber::Cloud::get_provider(rubber_env.cloud_provider || "aws", rubber_env, self) }
 
     load_roles() unless rubber_env.disable_auto_roles
     # NOTE: for some reason Capistrano requires you to have both the public and

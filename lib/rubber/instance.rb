@@ -1,4 +1,5 @@
 require 'yaml'
+require 'monitor'
 
 module Rubber
   module Configuration
@@ -8,8 +9,10 @@ module Rubber
     class Instance
       attr_reader :file, :artifacts
       include Enumerable
+      include MonitorMixin
 
       def initialize(file)
+        super
         Rubber.logger.debug{"Reading rubber instances from #{file}"}
         @file = file
         @items = {}
@@ -38,10 +41,12 @@ module Rubber
       end
 
       def save()
-        data = []
-        data.push(*@items.values)
-        data.push(@artifacts)
-        File.open(@file, "w") { |f| f.write(YAML.dump(data)) }
+        synchronize do
+          data = []
+          data.push(*@items.values)
+          data.push(@artifacts)
+          File.open(@file, "w") { |f| f.write(YAML.dump(data)) }
+        end
       end
 
       def [](name)
