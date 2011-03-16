@@ -53,7 +53,9 @@ namespace :rubber do
     # Disable connecting to any Windows instance.
     # pass -l to bash in :shell to that run also gets full env
     # use a pty so we don't get "stdin: is not a tty" error output
-    set :default_run_options, :pty => true, :shell => "/bin/bash -l", :except => { :platform => 'windows' }
+    default_run_options[:pty] = true
+    default_run_options[:shell] = "/bin/bash -l"
+    default_run_options[:except] = { :platform => 'windows' }
 
     set :cloud, Rubber::Cloud::get_provider(rubber_env.cloud_provider || "aws", rubber_env, self)
 
