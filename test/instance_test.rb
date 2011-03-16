@@ -51,6 +51,14 @@ class InstanceTest < Test::Unit::TestCase
     setup
     assert_equal [@i1], @instance.filtered(), 'should not have negated hosts'
 
+    ENV['FILTER'] = 'host1~host3'
+    setup
+    assert_equal [@i1, @i2, @i3], @instance.filtered(), 'should allow range in filter'
+
+    ENV['FILTER'] = '-host1~-host3'
+    setup
+    assert_equal [@i4], @instance.filtered(), 'should allow negative range in filter'
+
     ENV['FILTER'] = '-host1'
     ENV['FILTER_ROLES'] = 'role1'
     setup
@@ -70,6 +78,40 @@ class InstanceTest < Test::Unit::TestCase
     ENV['FILTER_ROLES'] = '-role1'
     setup
     assert_equal [@i3, @i4], @instance.filtered(), 'should not have negated roles'
+
+    ENV['FILTER_ROLES'] = 'role1~role2'
+    setup
+    assert_equal [@i1, @i2, @i3, @i4], @instance.filtered(), 'should allow range in filter'
+
+    ENV['FILTER_ROLES'] = '-role1~-role2'
+    setup
+    assert_equal [], @instance.filtered(), 'should allow negative range in filter'
+  end
+
+  def test_validate_filters
+    ENV['FILTER'] = "nohost"
+    setup
+    assert_raises do
+      @instance.filtered()
+    end
+
+    ENV['FILTER'] = "-nohost"
+    setup
+    assert_raises do
+      @instance.filtered()
+    end
+
+    ENV['FILTER_ROLES'] = "norole"
+    setup
+    assert_raises do
+      @instance.filtered()
+    end
+
+    ENV['FILTER_ROLES'] = "-norole"
+    setup
+    assert_raises do
+      @instance.filtered()
+    end
   end
 
   def test_equality

@@ -6,7 +6,7 @@ namespace :rubber do
   required_task :create do
     instance_aliases = get_env('ALIAS', "Instance alias (e.g. web01 or web01~web05,web09)", true)
 
-    aliases = parse_aliases(instance_aliases)
+    aliases = Rubber::Util::parse_aliases(instance_aliases)
 
     if aliases.size > 1
       default_roles = "roles for instance in *.yml"
@@ -37,7 +37,7 @@ namespace :rubber do
   required_task :refresh do
     instance_aliases = get_env('ALIAS', "Instance alias (e.g. web01 or web01~web05,web09)", true)
 
-    aliases = parse_aliases(instance_aliases)
+    aliases = Rubber::Util::parse_aliases(instance_aliases)
 
     ENV.delete('ROLES') # so we don't get an error if people leave ROLES in env from :create CLI
     
@@ -50,7 +50,7 @@ namespace :rubber do
   required_task :destroy do
     instance_aliases = get_env('ALIAS', "Instance alias (e.g. web01 or web01~web05,web09)", true)
 
-    aliases = parse_aliases(instance_aliases)
+    aliases = Rubber::Util::parse_aliases(instance_aliases)
 
     ENV.delete('ROLES') # so we don't get an error if people leave ROLES in env from :create CLI
     destroy_instances(aliases, ENV['FORCE'] == 'true')
@@ -175,22 +175,6 @@ namespace :rubber do
     end
 
     results.each {|r| logger.info r}
-  end
-
-  def parse_aliases(instance_aliases)
-    aliases = []
-    alias_patterns = instance_aliases.strip.split(/\s*,\s*/)
-    alias_patterns.each do |a|
-      if a =~ /~/
-        range = a.split(/~/)
-        range_items = (range.first..range.last).to_a
-        raise "Invalid range, '#{a}', sequence generated no items" if range_items.size == 0
-        aliases.concat(range_items)
-      else
-        aliases << a
-      end
-    end
-    return aliases
   end
 
   set :print_ip_command, "ifconfig eth0 | awk 'NR==2 {print $2}' | awk -F: '{print $2}'"

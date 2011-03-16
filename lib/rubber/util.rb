@@ -24,6 +24,22 @@ module Rubber
       
     end
 
+    def self.parse_aliases(instance_aliases)
+      aliases = []
+      alias_patterns = instance_aliases.to_s.strip.split(/\s*,\s*/)
+      alias_patterns.each do |a|
+        if a =~ /~/
+          range = a.split(/~/)
+          range_items = (range.first..range.last).to_a
+          raise "Invalid range, '#{a}', sequence generated no items" if range_items.size == 0
+          aliases.concat(range_items)
+        else
+          aliases << a
+        end
+      end
+      return aliases
+    end
+
     # Opens the file for writing by root
     def self.sudo_open(path, perms, &block)
       open("|sudo tee #{path} > /dev/null", perms, &block)

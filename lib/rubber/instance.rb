@@ -18,11 +18,11 @@ module Rubber
         @items = {}
         @artifacts = {'volumes' => {}, 'static_ips' => {}}
 
-        @filters = ENV['FILTER'].split(/\s*,\s*/) rescue []
+        @filters = Rubber::Util::parse_aliases(ENV['FILTER'])
         @filters, @filters_negated = @filters.partition {|f| f !~ /^-/ }
         @filters_negated = @filters_negated.collect {|f| f[1..-1] }
 
-        @filter_roles = ENV['FILTER_ROLES'].split(/\s*,\s*/) rescue []
+        @filter_roles = Rubber::Util::parse_aliases(ENV['FILTER_ROLES'])
         @filter_roles, @filter_roles_negated = @filter_roles.partition {|f| f !~ /^-/ }
         @filter_roles_negated = @filter_roles_negated.collect {|f| f[1..-1] }
 
@@ -62,6 +62,8 @@ module Rubber
       def filtered()
         filtered_results = []
 
+        validate_filters()
+
         if @filters.size == 0 && @filter_roles.size == 0
           filtered_results.concat(@items.values)
         else
@@ -75,6 +77,18 @@ module Rubber
         filtered_results.delete_if {|ic| ic.roles.any? {|r| @filter_roles_negated.include?(r.name)} }
 
         return filtered_results
+      end
+
+      def validate_filters()
+        aliases = @items.values.collect{|ic| ic.name}
+        [@filters, @filters_negated].flatten.each do |f|
+          raise "Filter doesn't match any hosts: #{f}" if ! aliases.include?(f)
+        end
+
+        roles = all_roles
+        [@filter_roles, @filter_roles_negated].flatten.each do |f|
+          raise "Filter doesn't match any roles: #{f}" if ! roles.include?(f)
+        end
       end
 
       def all_roles()
