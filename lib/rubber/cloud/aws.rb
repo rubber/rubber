@@ -80,16 +80,6 @@ module Rubber
         end if response.availabilityZoneInfo
         return zones
       end
-      
-      def describe_regions
-        regions = []
-        response = @ec2.describe_regions()
-        response.regionInfo.item.each do |item|
-          region = {}
-          region[:endpoint] = item.regionEndpoint
-          region[:name] = item.regionName
-        end
-      end
 
       def create_security_group(group_name, group_description)
         @ec2.create_security_group(:group_name => group_name, :group_description => group_description)
