@@ -10,9 +10,9 @@ module Rubber
       def initialize(env, capistrano)
         super(env, capistrano)
         @aws_env = env.cloud_providers.aws
-        @ec2 = AWS::EC2::Base.new(:access_key_id => @aws_env.access_key, :secret_access_key => @aws_env.secret_access_key)
-        @ec2elb = AWS::ELB::Base.new(:access_key_id => @aws_env.access_key, :secret_access_key => @aws_env.secret_access_key)
-        AWS::S3::Base.establish_connection!(:access_key_id => @aws_env.access_key, :secret_access_key => @aws_env.secret_access_key)
+        @ec2 = AWS::EC2::Base.new(:access_key_id => @aws_env.access_key, :secret_access_key => @aws_env.secret_access_key, :server => @aws_env.server_endpoint)
+        @ec2elb = AWS::ELB::Base.new(:access_key_id => @aws_env.access_key, :secret_access_key => @aws_env.secret_access_key, :server => @aws_env.server_endpoint)
+        AWS::S3::Base.establish_connection!(:access_key_id => @aws_env.access_key, :secret_access_key => @aws_env.secret_access_key, :server => @aws_env.server_endpoint)
       end
 
       def create_instance(ami, ami_type, security_groups, availability_zone)
@@ -79,6 +79,16 @@ module Rubber
           zones << zone
         end if response.availabilityZoneInfo
         return zones
+      end
+      
+      def describe_regions
+        regions = []
+        response = @ec2.describe_regions()
+        response.regionInfo.item.each do |item|
+          region = {}
+          region[:endpoint] = item.regionEndpoint
+          region[:name] = item.regionName
+        end
       end
 
       def create_security_group(group_name, group_description)
