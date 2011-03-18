@@ -1,3 +1,13 @@
+1.12.0
+-----
+
+Regenerate gemspec for version 1.12.0 <ff2307d> [Matt Conway]
+Merge branch 'master' into multi_instance_creation <984f62b> [Matt Conway]
+add ranges to filters, add filter validation <ac1ee6d> [Matt Conway]
+don't override default_run_options we don't set <f8b672a> [Matt Conway]
+initial version allowing one to create/destroy multiple instances with a single command <6f5b5a8> [Matt Conway]
+fix passenger version check <68ac0cd> [Matt Conway]
+
 1.11.0
 -----
 
