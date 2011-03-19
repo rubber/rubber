@@ -12,7 +12,7 @@ module Rubber
       include MonitorMixin
 
       def initialize(file)
-        super
+        super()
         Rubber.logger.debug{"Reading rubber instances from #{file}"}
         @file = file
         @items = {}
