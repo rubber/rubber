@@ -1,3 +1,12 @@
+1.12.1
+-----
+
+Revert "Allow backing up and restoring multiple databases in a given environment." <e382e9b> [Matt Conway]
+Merge branch 'master' of github.com:wr0ngway/rubber <ea26d35> [Matt Conway]
+hopefully fix task my_release <21a41d5> [Matt Conway]
+Allow backing up and restoring multiple databases in a given environment. <add1ef6> [Kevin Menard]
+fix for ruby 1.8.7 <16bb626> [Matt Conway]
+
 1.12.0
 -----
 
