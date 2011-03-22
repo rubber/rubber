@@ -171,14 +171,15 @@ namespace :rubber do
     dir = get_env('BACKUP_DIR', true)
     age = (get_env('BACKUP_AGE') || 3).to_i
     time_stamp = Time.now.strftime("%Y-%m-%d_%H-%M")
-    backup_file = "#{dir}/#{RUBBER_ENV}_dump_#{time_stamp}.sql.gz"
-    FileUtils.mkdir_p(File.dirname(backup_file))
 
     user = get_env('DBUSER', true)
     pass = get_env('DBPASS')
     pass = nil if (pass.nil? || pass.strip.size == 0)
     host = get_env('DBHOST', true)
     name = get_env('DBNAME', true)
+
+    backup_file = "#{dir}/#{RUBBER_ENV}_#{name}_dump_#{time_stamp}.sql.gz"
+    FileUtils.mkdir_p(File.dirname(backup_file))
 
     raise "No db_backup_cmd defined in rubber.yml, cannot backup!" unless rubber_env.db_backup_cmd
     db_backup_cmd = rubber_env.db_backup_cmd.gsub(/%([^%]+)%/, '#{\1}')
@@ -256,7 +257,8 @@ namespace :rubber do
         data = s3objects.detect { |o| file == o.key }
       else
         puts "trying to fetch last modified s3 backup"
-        data = s3objects.max {|a,b| a.about["last-modified"] <=> b.about["last-modified"] }
+        filtered = s3objects.select { |f| f.path =~ /#{RUBBER_ENV}_#{name}/ }
+        data = filtered.max {|a,b| a.about["last-modified"] <=> b.about["last-modified"] }
       end
     end
     raise "could not access backup file via s3" unless data
