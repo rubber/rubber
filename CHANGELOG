@@ -1,3 +1,11 @@
+1.12.2
+-----
+
+improve commit filter for changelog <6298227> [Matt Conway]
+don't delete security groups when answer is negative <fbba5de> [Matt Conway]
+fix enabling root user for create/refresh with multiple instances <db5a227> [Matt Conway]
+latest stable ami <84da0eb> [Matt Conway]
+
 1.12.1
 -----
 
