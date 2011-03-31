@@ -75,12 +75,12 @@ cloud_providers:
 
     # REQUIRED: the ami and instance type for creating instances
     # The Ubuntu images at http://alestic.com/ work well
-    # Ubuntu 10.04 Lucid	base install	32-bit	ami-6407f20d
-    # Ubuntu 10.04 Lucid	base install	64-bit	ami-ac07f2c5
+    # Ubuntu 10.04 Lucid	base install	32-bit	ami-7000f019
+    # Ubuntu 10.04 Lucid	base install	64-bit	ami-fa01f193
     #
     # m1.small or m1.large or m1.xlarge
     image_type: m1.small
-    image_id: "#{ %w{m1.small c1.medium}.include?(image_type) ? 'ami-6407f20d' : 'ami-ac07f2c5' }"
+    image_id: "#{ %w{m1.small c1.medium}.include?(image_type) ? 'ami-7000f019' : 'ami-fa01f193' }"
 
     # OPTIONAL: EC2 spot instance request support.
     #
