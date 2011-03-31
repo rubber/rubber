@@ -61,7 +61,7 @@ namespace :rubber do
   DESC
   required_task :destroy_all do
     rubber_instances.each do |ic|
-      destroy_instance(ic.name)
+      destroy_instance(ic.name, ENV['FORCE'] == 'true')
     end
   end
 
