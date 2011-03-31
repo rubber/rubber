@@ -17,29 +17,22 @@ namespace :rubber do
 
   # Sets up instance to allow root access (e.g. recent canonical AMIs)
   def enable_root_ssh(ip, initial_ssh_user)
-    old_user = user
-    begin
-      set :user, initial_ssh_user
 
-      task :_allow_root_ssh, :hosts => ip do
-        rsudo "cp /home/#{initial_ssh_user}/.ssh/authorized_keys /root/.ssh/"
-      end
-
-      begin
-        _allow_root_ssh
-      rescue ConnectionError => e
-        if e.message =~ /Net::SSH::AuthenticationFailed/
-          logger.info "Can't connect as user #{initial_ssh_user} to #{ip}, assuming root allowed"
-        else
-          sleep 2
-          logger.info "Failed to connect to #{ip}, retrying"
-          retry
-        end
-      end
-    ensure
-      set :user, old_user
+    task :_allow_root_ssh, :hosts => "#{initial_ssh_user}@#{ip}" do
+      rsudo "cp /home/#{initial_ssh_user}/.ssh/authorized_keys /root/.ssh/"
     end
 
+    begin
+      _allow_root_ssh
+    rescue ConnectionError => e
+      if e.message =~ /Net::SSH::AuthenticationFailed/
+        logger.info "Can't connect as user #{initial_ssh_user} to #{ip}, assuming root allowed"
+      else
+        sleep 2
+        logger.info "Failed to connect to #{ip}, retrying"
+        retry
+      end
+    end
   end
 
   # Forces a direct connection
