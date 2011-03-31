@@ -141,14 +141,16 @@ namespace :rubber do
             else
               logger.info(msg)
             end
-            
-            rule_map = Rubber::Util::symbolize_keys(rule_map)
-            if rule_map[:source_group_name]
-              cloud.remove_security_group_rule(group_name, nil, nil, nil, {:name => rule_map[:source_group_name], :account => rule_map[:source_group_account]})
-            else
-              rule_map[:source_ips].each do |source_ip|
-                cloud.remove_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], source_ip)
-              end if rule_map[:source_ips] && answer =~ /^y/
+
+            if answer =~ /^y/
+              rule_map = Rubber::Util::symbolize_keys(rule_map)
+              if rule_map[:source_group_name]
+                cloud.remove_security_group_rule(group_name, nil, nil, nil, {:name => rule_map[:source_group_name], :account => rule_map[:source_group_account]})
+              else
+                rule_map[:source_ips].each do |source_ip|
+                  cloud.remove_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], source_ip)
+                end if rule_map[:source_ips]
+              end
             end
           end
         end
