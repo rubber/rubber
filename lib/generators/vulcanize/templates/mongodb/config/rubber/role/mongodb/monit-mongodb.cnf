@@ -1,0 +1,10 @@
+<%
+  @path = '/etc/monit/monit.d/monit-mongodb.conf'
+%>
+
+check process mongodb with pidfile <%= rubber_env.mongodb_pid %>
+   group mongodb-<%= RUBBER_ENV %>
+   start program = "/usr/bin/env service mongodb start"
+   stop program = "/usr/bin/env service mongodb stop"
+   if failed port 27017 then restart
+   if 5 restarts within 5 cycles then timeout
