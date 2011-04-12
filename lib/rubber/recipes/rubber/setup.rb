@@ -383,6 +383,8 @@ namespace :rubber do
     sudo_script 'enable_multiverse', <<-ENDSCRIPT
       if ! grep -qc multiverse /etc/apt/sources.list /etc/apt/sources.list.d/* &> /dev/null; then
         cat /etc/apt/sources.list | sed 's/main universe/multiverse/' > /etc/apt/sources.list.d/rubber-multiverse-source.list
+      elif grep -q multiverse /etc/apt/sources.list &> /dev/null; then
+        cat /etc/apt/sources.list | sed -n '/multiverse$/s/^#\s*//p' > /etc/apt/sources.list.d/rubber-multiverse-source.list
       fi
     ENDSCRIPT
   end
