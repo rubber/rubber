@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Matt Conway"]
-  s.date = %q{2011-03-04}
+  s.date = %q{2011-04-13}
   s.default_executable = %q{vulcanize}
   s.description = %q{      The rubber plugin enables relatively complex multi-instance deployments of RubyOnRails applications to
       Amazon's Elastic Compute Cloud (EC2).  Like capistrano, rubber is role based, so you can define a set
@@ -109,6 +109,11 @@ Gem::Specification.new do |s|
     "generators/vulcanize/templates/memcached/templates.yml",
     "generators/vulcanize/templates/minimal_mysql/templates.yml",
     "generators/vulcanize/templates/minimal_nodb/templates.yml",
+    "generators/vulcanize/templates/mongodb/config/rubber/deploy-mongodb.rb",
+    "generators/vulcanize/templates/mongodb/config/rubber/role/mongodb/mongodb.conf",
+    "generators/vulcanize/templates/mongodb/config/rubber/role/mongodb/monit-mongodb.cnf",
+    "generators/vulcanize/templates/mongodb/config/rubber/rubber-mongodb.yml",
+    "generators/vulcanize/templates/mongodb/templates.yml",
     "generators/vulcanize/templates/mongrel/config/rubber/deploy-mongrel.rb",
     "generators/vulcanize/templates/mongrel/config/rubber/role/mongrel/mongrel_cluster.yml",
     "generators/vulcanize/templates/mongrel/config/rubber/role/mongrel/monit-mongrel.conf",
@@ -285,6 +290,11 @@ Gem::Specification.new do |s|
     "lib/generators/vulcanize/templates/memcached/templates.yml",
     "lib/generators/vulcanize/templates/minimal_mysql/templates.yml",
     "lib/generators/vulcanize/templates/minimal_nodb/templates.yml",
+    "lib/generators/vulcanize/templates/mongodb/config/rubber/deploy-mongodb.rb",
+    "lib/generators/vulcanize/templates/mongodb/config/rubber/role/mongodb/mongodb.conf",
+    "lib/generators/vulcanize/templates/mongodb/config/rubber/role/mongodb/monit-mongodb.cnf",
+    "lib/generators/vulcanize/templates/mongodb/config/rubber/rubber-mongodb.yml",
+    "lib/generators/vulcanize/templates/mongodb/templates.yml",
     "lib/generators/vulcanize/templates/mongrel/config/rubber/deploy-mongrel.rb",
     "lib/generators/vulcanize/templates/mongrel/config/rubber/role/mongrel/mongrel_cluster.yml",
     "lib/generators/vulcanize/templates/mongrel/config/rubber/role/mongrel/monit-mongrel.conf",
