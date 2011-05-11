@@ -124,9 +124,14 @@ namespace :rubber do
               fi
               mv /etc/fstab /etc/fstab.bak
               cat /etc/fstab.bak | grep -v '#{vol_spec['mount']}' > /etc/fstab
-              echo '#{vol_spec['device']} #{vol_spec['mount']} #{vol_spec['filesystem']} noatime 0 0 # rubber volume #{vol_id}' >> /etc/fstab
+              if grep '11\.04' /etc/lsb-release; then
+		 device=`echo #{vol_spec['device']} | sed 's/sd/xvd/'`
+	      else
+		 device='#{vol_spec['device']}'
+	      fi
+		 echo "$device #{vol_spec['mount']} #{vol_spec['filesystem']} noatime 0 0 # rubber volume #{vol_id}" >> /etc/fstab		
 
-              #{('yes | mkfs -t ' + vol_spec['filesystem'] + ' ' + vol_spec['device']) if created}
+              #{('yes | mkfs -t ' + vol_spec['filesystem'] + ' ' + '$device') if created}
               #{("mkdir -p '#{vol_spec['mount']}'") if vol_spec['mount']}
               #{("mount '#{vol_spec['mount']}'") if vol_spec['mount']}
             fi
@@ -157,7 +162,7 @@ namespace :rubber do
             fi
 
             # partition format is: Start (blank is first available),Size(MB due to -uM),Id(83=linux,82=swap,etc),Bootable
-            echo "#{partition_spec['start']},#{partition_spec['size']},#{partition_spec['type']},#{partition_spec['bootable']}" | sfdisk -L -uM #{partition_spec['disk_device']}
+              echo "#{partition_spec['start']},#{partition_spec['size']},#{partition_spec['type']},#{partition_spec['bootable']}" | sfdisk -L -uM #{partition_spec['disk_device']}
           fi
         ENDSCRIPT
       end
