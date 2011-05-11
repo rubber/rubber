@@ -6,7 +6,7 @@ namespace :rubber do
     rubber.allow_optional_tasks(self)
     
     before "rubber:install_packages", "rubber:mongodb:install"
-    after "rubber:install_packages", "rubber:mongodb:setup_paths"
+    after "rubber:bootstrap", "rubber:mongodb:setup_paths"
   
     task :install, :roles => :mongodb do
       # Setup apt sources to mongodb from 10gen
