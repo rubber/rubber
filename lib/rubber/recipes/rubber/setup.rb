@@ -19,6 +19,7 @@ namespace :rubber do
   def enable_root_ssh(ip, initial_ssh_user)
 
     task :_allow_root_ssh, :hosts => "#{initial_ssh_user}@#{ip}" do
+      sleep 20
       rsudo "cp /home/#{initial_ssh_user}/.ssh/authorized_keys /root/.ssh/"
     end
 
