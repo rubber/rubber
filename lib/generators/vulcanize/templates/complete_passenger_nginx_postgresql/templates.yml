@@ -1,0 +1,4 @@
+description: A fairly complete and scalable postgresql deployment setup using passenger/nginx
+dependent_templates:
+  - complete_passenger_nginx
+  - postgresql
