@@ -1,3 +1,11 @@
+1.13.1
+-----
+
+allow specifying a common role dependency for all instances <f49b662> [Matt Conway]
+allow one to specify HOSTand ROLES when testing rake rubber:config in dev <56b3c8c> [Matt Conway]
+Merged pull request #57 from drync/no_rvmrc. <9aee319> [Matt Conway]
+Exclude .rvmrc from NO_SCM deploys <3fa1502> [Savanah Cummings]
+
 1.13.0
 -----
 
