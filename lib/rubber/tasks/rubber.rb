@@ -32,7 +32,9 @@ namespace :rubber do
       env = cfg.environment.bind(roles, instance_alias)
       gen = Rubber::Configuration::Generator.new("#{RUBBER_ROOT}/config/rubber", roles, instance_alias)
     elsif ['development', 'test'].include?(Rubber.env)
-      roles = cfg.environment.known_roles
+      instance_alias = ENV['HOST'] || instance_alias
+      roles = ENV['ROLES'].split(',') if ENV['ROLES']
+      roles ||= cfg.environment.known_roles
       role_items = roles.collect do |r|
         Rubber::Configuration::RoleItem.new(r, r == "db" ? {'primary' => true} : {})
       end
