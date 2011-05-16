@@ -8,6 +8,16 @@ allow FORCE on destroy_all <0db9347> [Matt Conway]
 Removing a function that wasn't meant to be committed :( <8538041> [Jordan Brock]
 Added support for changing the region end point, using the EC2 gem "server" key. <326448f> [Jordan Brock]
 
+1.13.0
+-----
+
+Forgot target roles for start/stop/restart <9b916e8> [Alex Kremer]
+Fix enabling multiverse on newer canonical AMIs (ie Maverick) <dcf81fa> [Alex Kremer]
+Initial commit of MongoDB Template <c4f7640> [Alex Kremer]
+allow FORCE on destroy_all <0db9347> [Matt Conway]
+Removing a function that wasn't meant to be committed :( <8538041> [Jordan Brock]
+Added support for changing the region end point, using the EC2 gem "server" key. <326448f> [Jordan Brock]
+
 1.12.2
 -----
 
