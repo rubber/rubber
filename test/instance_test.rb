@@ -169,4 +169,12 @@ class InstanceTest < Test::Unit::TestCase
                  RoleItem.expand_role_dependencies(RoleItem.new('db'), deps).sort
 
   end
+
+  def test_common_dependencies
+    deps = { RoleItem.new('a') => RoleItem.new('b'),
+             RoleItem.new('common') => [RoleItem.new('c')]}
+    roles = [RoleItem.new('a'), RoleItem.new('b'), RoleItem.new('c')]
+    assert_equal roles, RoleItem.expand_role_dependencies(RoleItem.new('a'), deps).sort
+  end
+  
 end

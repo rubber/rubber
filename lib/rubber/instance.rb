@@ -155,6 +155,12 @@ module Rubber
 
       def self.expand_role_dependencies(roles, dependency_map, expanded=[])
         roles = Array(roles)
+
+        if expanded.size == 0
+          common_deps = dependency_map[RoleItem.new('common')]
+          roles.concat(common_deps)
+        end
+
         roles.each do |role|
           unless expanded.include?(role)
             expanded << role
@@ -162,6 +168,7 @@ module Rubber
             expand_role_dependencies(needed, dependency_map, expanded)
           end
         end
+        
         return expanded
       end
 
