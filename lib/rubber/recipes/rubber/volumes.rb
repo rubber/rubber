@@ -124,7 +124,8 @@ namespace :rubber do
               fi
               mv /etc/fstab /etc/fstab.bak
               cat /etc/fstab.bak | grep -v '#{vol_spec['mount']}' > /etc/fstab
-              if grep '11\.04' /etc/lsb-release; then
+              rel=`lsb_release -r | awk '{print $2}' | cut -d '.' -f1`
+	      if [ $rel -gt 10 ]; then
 		 device=`echo #{vol_spec['device']} | sed 's/sd/xvd/'`
 	      else
 		 device='#{vol_spec['device']}'
