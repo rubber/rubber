@@ -158,7 +158,7 @@ module Rubber
 
         if expanded.size == 0
           common_deps = dependency_map[RoleItem.new('common')]
-          roles.concat(common_deps) unless common_deps.nil?
+          roles.concat(common_deps)
         end
 
         roles.each do |role|
