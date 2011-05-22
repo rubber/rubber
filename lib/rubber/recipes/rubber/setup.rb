@@ -198,7 +198,7 @@ namespace :rubber do
       filtered = (capture "cat #{hosts_file}").gsub(/^#{delim}.*^#{delim}\n?/m, '')
       filtered = filtered + remote_hosts
       # Put the generated hosts back on remote instance
-      put filtered, hosts_file
+      put filtered.to_s, hosts_file
 
       # Setup hostname on instance so shell, etcs have nice display
       rsudo "echo $CAPISTRANO:HOST$ > /etc/hostname && hostname $CAPISTRANO:HOST$"
