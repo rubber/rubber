@@ -1,3 +1,10 @@
+1.13.2
+-----
+
+fix npe <184cbac> [Matt Conway]
+Merge pull request #61 from dzinevich/e173588f4018bc118785bd3806d262ce3bdd033d <0bfb5c2> [Kevin Menard]
+make workaround so ebs works with 11.04 <e173588> [Denis Zinevich]
+
 1.13.1
 -----
 
