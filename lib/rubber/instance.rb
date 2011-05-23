@@ -157,7 +157,7 @@ module Rubber
         roles = Array(roles)
 
         if expanded.size == 0
-          common_deps = dependency_map[RoleItem.new('common')]
+          common_deps = Array(dependency_map[RoleItem.new('common')])
           roles.concat(common_deps)
         end
 
