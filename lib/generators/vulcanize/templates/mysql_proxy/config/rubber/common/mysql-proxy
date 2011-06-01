@@ -1,6 +1,7 @@
 <%
   @path = "/etc/init.d/mysql-proxy"
   @perms = 0755
+  @backup = false
 %>#! /bin/sh
 ### BEGIN INIT INFO
 # Provides:          mysql-proxy
