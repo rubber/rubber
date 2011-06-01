@@ -5,7 +5,7 @@
 # Sets up rails to talk to mysql-proxy load balancer running on localhost,
 # which then then balances requests between sql nodes in the cluster
 <%= RUBBER_ENV %>:
-  adapter: mysql
+  adapter: <%= YAML::load(File.open("#{RUBBER_ROOT}/config/database.yml"))["production"]["adapter"] %>
   encoding: utf8
   database: <%= rubber_env.db_name %>
   username: <%= rubber_env.db_user %>
