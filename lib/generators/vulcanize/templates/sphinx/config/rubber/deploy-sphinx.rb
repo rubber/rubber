@@ -72,7 +72,7 @@ namespace :rubber do
 
     # runs the given ultrasphinx rake tasks
     def run_sphinx task
-      rsudo "cd #{current_path} && RAILS_ENV=#{RUBBER_ENV} rake #{task}", :as => runner
+      rsudo "cd #{current_path} && RAILS_ENV=#{RUBBER_ENV} #{fetch(:rake, 'rake')} #{task}", :as => runner
     end
 
 
