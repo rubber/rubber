@@ -1,0 +1,8 @@
+description: A fairly complete and scalable deployment setup using passenger and nginx
+dependent_templates:
+  - base
+  - haproxy
+  - passenger_nginx
+  - monit
+  - munin
+  - memcached
