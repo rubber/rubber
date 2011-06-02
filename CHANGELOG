@@ -1,3 +1,9 @@
+1.14.1 (06/02/2011)
+-----
+
+Upgraded the version of RVM installed by default
+Switched from using our own installation method to using the new RVM installer
+
 1.14.0 (06/02/2011)
 -----
 
