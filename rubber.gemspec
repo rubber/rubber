@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rubber}
-  s.version = "1.13.2"
+  s.version = "1.14.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Matt Conway"]
