@@ -40,7 +40,7 @@ namespace :rubber do
       end
       env = cfg.environment.bind(roles, instance_alias)
       domain = env.domain
-      instance = Rubber::Configuration::InstanceItem.new(instance_alias, domain, role_items, 'dummyid', ['dummygroup'])
+      instance = Rubber::Configuration::InstanceItem.new(instance_alias, domain, role_items, 'dummyid', 'm1.small', 'ami-7000f019' ['dummygroup'])
       instance.external_host = instance.full_name
       instance.external_ip = "127.0.0.1"
       instance.internal_host = instance.full_name

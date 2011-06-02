@@ -295,7 +295,7 @@ namespace :rubber do
 
     logger.info "Instance #{instance_alias} created: #{instance_id}"
 
-    instance_item = Rubber::Configuration::InstanceItem.new(instance_alias, env.domain, instance_roles, instance_id, security_groups)
+    instance_item = Rubber::Configuration::InstanceItem.new(instance_alias, env.domain, instance_roles, instance_id, ami_type, ami, security_groups)
     instance_item.spot_instance_request_id = request_id if create_spot_instance
     rubber_instances.add(instance_item)
     rubber_instances.save()

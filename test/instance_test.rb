@@ -10,10 +10,10 @@ class InstanceTest < Test::Unit::TestCase
 
   def setup
     @instance = Instance.new(Tempfile.new('testforrole').path)
-    @instance.add(@i1 = InstanceItem.new('host1', 'domain.com', [RoleItem.new('role1')], ''))
-    @instance.add(@i2 = InstanceItem.new('host2', 'domain.com', [RoleItem.new('role1')], ''))
-    @instance.add(@i3 = InstanceItem.new('host3', 'domain.com', [RoleItem.new('role2')], ''))
-    @instance.add(@i4 = InstanceItem.new('host4', 'domain.com', [RoleItem.new('role2', 'primary' => true)], ''))
+    @instance.add(@i1 = InstanceItem.new('host1', 'domain.com', [RoleItem.new('role1')], '', 'm1.small', 'ami-7000f019'))
+    @instance.add(@i2 = InstanceItem.new('host2', 'domain.com', [RoleItem.new('role1')], '', 'm1.small', 'ami-7000f019'))
+    @instance.add(@i3 = InstanceItem.new('host3', 'domain.com', [RoleItem.new('role2')], '', 'm1.small', 'ami-7000f019'))
+    @instance.add(@i4 = InstanceItem.new('host4', 'domain.com', [RoleItem.new('role2', 'primary' => true)], '', 'm1.small', 'ami-7000f019'))
   end
 
   def test_for_role
