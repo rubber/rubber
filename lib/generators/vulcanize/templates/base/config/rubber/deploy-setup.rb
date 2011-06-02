@@ -44,6 +44,10 @@ namespace :rubber do
           sed -i 's/rake.*/rake -v#{rubber_env.rake_version}/' #{rubber_env.rvm_prefix}/gemsets/default.gems
           sed -i 's/rake.*/rake -v#{rubber_env.rake_version}/' #{rubber_env.rvm_prefix}/gemsets/global.gems
 
+          # Set up the .gemrc file
+          echo "--- " >> ~/.gemrc
+          echo "gem: --no-ri --no-rdoc" >> ~/.gemrc
+
           #
           # end rvm install script
         fi
