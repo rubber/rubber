@@ -221,12 +221,12 @@ namespace :rubber do
 
     task :_setup_raid_volume, :hosts => ic.external_ip do
       rubber.sudo_script 'setup_raid_volume', <<-ENDSCRIPT
-        if ! grep -q '#{raid_spec['device']}' /etc/fstab; then
+        if ! grep -qE '#{raid_spec['device']}|#{raid_spec['mount']}' /etc/fstab; then
           if mount | grep -q '#{raid_spec['mount']}'; then
             umount '#{raid_spec['mount']}'
           fi
           mv /etc/fstab /etc/fstab.bak
-          cat /etc/fstab.bak | grep -v '#{raid_spec['mount']}' > /etc/fstab
+          cat /etc/fstab.bak | grep -vE '#{raid_spec['device']}|#{raid_spec['mount']}' > /etc/fstab
           echo '#{raid_spec['device']} #{raid_spec['mount']} #{raid_spec['filesystem']} noatime 0 0 # rubber raid volume' >> /etc/fstab
 
           # seems to help devices initialize, otherwise mdadm fails because
@@ -325,8 +325,14 @@ namespace :rubber do
         for device in #{physical_volumes.join(' ')}
         do
           if ! pvdisplay $device >> /dev/null 2>&1; then
+
             if grep $device /etc/mtab; then
               umount $device
+            fi
+
+            if grep -q "$device" /etc/fstab; then
+              mv /etc/fstab /etc/fstab.bak
+              cat /etc/fstab.bak | grep -v "$device\\b" > /etc/fstab
             fi
 
             pvcreate $device
