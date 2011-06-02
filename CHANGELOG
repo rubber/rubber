@@ -1,3 +1,12 @@
+1.14.0 (06/02/2011)
+-----
+
+Projects using bundler will now run rake with bundle exec
+Added ability to lockdown the version of rake that RVM will install (vulcanize base for the changes)
+Added the image type and ID for each instance to the instance file
+Fixed an issue with LVM groups keeping physical volumes in /etc/fstab
+Fixed an issue using the mysql2 adapter with the stock MySQL config
+
 1.13.2
 -----
 
