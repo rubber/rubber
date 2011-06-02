@@ -37,11 +37,19 @@ namespace :rubber do
 
           bash ./scripts/install
 
+          # Set up the rubygems version
           sed -i 's/rubygems_version=.*/rubygems_version=#{rubber_env.rubygems_version}/' #{rubber_env.rvm_prefix}/config/db
+
+          # Set up the rake version
+          sed -i 's/rake.*/rake -v#{rubber_env.rake_version}/' #{rubber_env.rvm_prefix}/gemsets/default.gems
+          sed -i 's/rake.*/rake -v#{rubber_env.rake_version}/' #{rubber_env.rvm_prefix}/gemsets/global.gems
+
+          # Set up the .gemrc file
+          echo "--- " >> ~/.gemrc
+          echo "gem: --no-ri --no-rdoc" >> ~/.gemrc
 
           #
           # end rvm install script
-
         fi
       ENDSCRIPT
     end

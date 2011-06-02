@@ -84,7 +84,7 @@ namespace :rubber do
       put(File.read(secret), File.join(path, base, File.basename(secret)), :mode => "+r")
     end
 
-    rsudo "cd #{path} && #{extra_env} rake rubber:config"
+    rsudo "cd #{path} && #{extra_env} #{fetch(:rake, 'rake')} rubber:config"
   end
 
 end
