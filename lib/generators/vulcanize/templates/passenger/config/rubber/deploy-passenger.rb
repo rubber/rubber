@@ -13,7 +13,7 @@ namespace :rubber do
         # when variable interpolation of rvm_gem_home is run remotely, and since we
         # are in cap, we run the interpolation locally
         #
-        passenger_lib=$(find /usr/local/rvm -path "*/passenger-#{rubber_env.passenger_version}/*/mod_passenger.so" 2> /dev/null)
+        passenger_lib=$(find /usr/local/rvm/gems/`rvm current` -path "*/passenger-#{rubber_env.passenger_version}/*/mod_passenger.so" 2> /dev/null)
         if [[ -z $passenger_lib ]]; then
           echo -en "\n\n\n\n" | passenger-install-apache2-module
           rvm #{rubber_env.rvm_ruby} --passenger
