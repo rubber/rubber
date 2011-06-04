@@ -21,8 +21,13 @@ namespace :rubber do
           sed -i 's/rake.*/rake -v#{rubber_env.rake_version}/' #{rubber_env.rvm_prefix}/gemsets/global.gems
 
           # Set up the .gemrc file
-          echo "--- " >> ~/.gemrc
-          echo "gem: --no-ri --no-rdoc" >> ~/.gemrc
+          if [[ ! -f ~/.gemrc ]]; then
+            echo "--- " >> ~/.gemrc
+          fi
+
+          if ! grep -q 'gem: ' ~/.gemrc; then
+            echo "gem: --no-ri --no-rdoc" >> ~/.gemrc
+          fi
         fi
       ENDSCRIPT
     end
