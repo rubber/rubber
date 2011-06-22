@@ -32,13 +32,15 @@ namespace :rubber do
       env = cfg.environment.bind(roles, instance_alias)
       gen = Rubber::Configuration::Generator.new("#{RUBBER_ROOT}/config/rubber", roles, instance_alias)
     elsif ['development', 'test'].include?(Rubber.env)
-      roles = cfg.environment.known_roles
+      instance_alias = ENV['HOST'] || instance_alias
+      roles = ENV['ROLES'].split(',') if ENV['ROLES']
+      roles ||= cfg.environment.known_roles
       role_items = roles.collect do |r|
         Rubber::Configuration::RoleItem.new(r, r == "db" ? {'primary' => true} : {})
       end
       env = cfg.environment.bind(roles, instance_alias)
       domain = env.domain
-      instance = Rubber::Configuration::InstanceItem.new(instance_alias, domain, role_items, 'dummyid', ['dummygroup'])
+      instance = Rubber::Configuration::InstanceItem.new(instance_alias, domain, role_items, 'dummyid', 'm1.small', 'ami-7000f019' ['dummygroup'])
       instance.external_host = instance.full_name
       instance.external_ip = "127.0.0.1"
       instance.internal_host = instance.full_name

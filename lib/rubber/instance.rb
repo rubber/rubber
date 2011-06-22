@@ -114,7 +114,7 @@ module Rubber
 
     # The configuration for a single instance
     class InstanceItem
-      attr_reader :name, :domain, :instance_id, :security_groups
+      attr_reader :name, :domain, :instance_id, :image_type, :image_id, :security_groups
       attr_accessor :roles, :zone
       attr_accessor :external_host, :external_ip
       attr_accessor :internal_host, :internal_ip
@@ -122,11 +122,13 @@ module Rubber
       attr_accessor :spot_instance_request_id
       attr_accessor :platform
 
-      def initialize(name, domain, roles, instance_id, security_group_list=[])
+      def initialize(name, domain, roles, instance_id, image_type, image_id, security_group_list=[])
         @name = name
         @domain = domain
         @roles = roles
         @instance_id = instance_id
+        @image_type = image_type
+        @image_id = image_id
         @security_groups = security_group_list
       end
 
@@ -155,6 +157,12 @@ module Rubber
 
       def self.expand_role_dependencies(roles, dependency_map, expanded=[])
         roles = Array(roles)
+
+        if expanded.size == 0
+          common_deps = Array(dependency_map[RoleItem.new('common')])
+          roles.concat(common_deps)
+        end
+
         roles.each do |role|
           unless expanded.include?(role)
             expanded << role
@@ -162,6 +170,7 @@ module Rubber
             expand_role_dependencies(needed, dependency_map, expanded)
           end
         end
+        
         return expanded
       end
 

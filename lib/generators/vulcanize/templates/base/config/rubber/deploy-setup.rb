@@ -7,41 +7,27 @@ namespace :rubber do
     task :install_rvm do
       rubber.sudo_script "install_rvm", <<-ENDSCRIPT
         if [[ ! `rvm --version 2> /dev/null` =~ "#{rubber_env.rvm_version}" ]]; then
-          echo "rvm_prefix=/usr/local/" > /etc/rvmrc
-          echo "#{rubber_env.rvm_prepare}" > /etc/profile.d/rvm.sh
+          cd /tmp
+          curl -s https://rvm.beginrescueend.com/install/rvm -o rvm-installer
+          chmod +x rvm-installer
+          rm -f /etc/rvmrc
+          rvm_path=#{rubber_env.rvm_prefix} ./rvm-installer --version #{rubber_env.rvm_version}
 
-          # Copied below from http://rvm.beginrescueend.com/releases/rvm-install-latest
-          #
-
-          if [[ -f /etc/rvmrc ]] ; then source /etc/rvmrc ; fi
-
-          if [[ -f "$HOME/.rvmrc" ]] ; then source "$HOME/.rvmrc" ; fi
-
-          rvm_path="${rvm_path:-$HOME/.rvm}"
-
-          mkdir -p $rvm_path/src/
-
-          builtin cd $rvm_path/src
-
-          stable_version=#{rubber_env.rvm_version}
-
-          echo "rvm-${stable_version}"
-
-          curl -L "http://rvm.beginrescueend.com/releases/rvm-${stable_version}.tar.gz" -o "rvm-${stable_version}.tar.gz"
-
-          tar zxf "rvm-${stable_version}.tar.gz"
-
-          builtin cd "rvm-${stable_version}"
-
-          dos2unix scripts/* >/dev/null 2>&1 || true
-
-          bash ./scripts/install
-
+          # Set up the rubygems version
           sed -i 's/rubygems_version=.*/rubygems_version=#{rubber_env.rubygems_version}/' #{rubber_env.rvm_prefix}/config/db
 
-          #
-          # end rvm install script
+          # Set up the rake version
+          sed -i 's/rake.*/rake -v#{rubber_env.rake_version}/' #{rubber_env.rvm_prefix}/gemsets/default.gems
+          sed -i 's/rake.*/rake -v#{rubber_env.rake_version}/' #{rubber_env.rvm_prefix}/gemsets/global.gems
 
+          # Set up the .gemrc file
+          if [[ ! -f ~/.gemrc ]]; then
+            echo "--- " >> ~/.gemrc
+          fi
+
+          if ! grep -q 'gem: ' ~/.gemrc; then
+            echo "gem: --no-ri --no-rdoc" >> ~/.gemrc
+          fi
         fi
       ENDSCRIPT
     end

@@ -7,7 +7,7 @@ namespace :rubber do
 
     before "rubber:install_packages", "rubber:postgresql:setup_apt_sources"
 
-    task :setup_apt_sources, :roles => [:postgresql_master, :postgresql_save] do
+    task :setup_apt_sources do
       rsudo "add-apt-repository ppa:pitti/postgresql"
     end
 

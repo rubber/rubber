@@ -10,10 +10,10 @@ class InstanceTest < Test::Unit::TestCase
 
   def setup
     @instance = Instance.new(Tempfile.new('testforrole').path)
-    @instance.add(@i1 = InstanceItem.new('host1', 'domain.com', [RoleItem.new('role1')], ''))
-    @instance.add(@i2 = InstanceItem.new('host2', 'domain.com', [RoleItem.new('role1')], ''))
-    @instance.add(@i3 = InstanceItem.new('host3', 'domain.com', [RoleItem.new('role2')], ''))
-    @instance.add(@i4 = InstanceItem.new('host4', 'domain.com', [RoleItem.new('role2', 'primary' => true)], ''))
+    @instance.add(@i1 = InstanceItem.new('host1', 'domain.com', [RoleItem.new('role1')], '', 'm1.small', 'ami-7000f019'))
+    @instance.add(@i2 = InstanceItem.new('host2', 'domain.com', [RoleItem.new('role1')], '', 'm1.small', 'ami-7000f019'))
+    @instance.add(@i3 = InstanceItem.new('host3', 'domain.com', [RoleItem.new('role2')], '', 'm1.small', 'ami-7000f019'))
+    @instance.add(@i4 = InstanceItem.new('host4', 'domain.com', [RoleItem.new('role2', 'primary' => true)], '', 'm1.small', 'ami-7000f019'))
   end
 
   def test_for_role
@@ -169,4 +169,12 @@ class InstanceTest < Test::Unit::TestCase
                  RoleItem.expand_role_dependencies(RoleItem.new('db'), deps).sort
 
   end
+
+  def test_common_dependencies
+    deps = { RoleItem.new('a') => RoleItem.new('b'),
+             RoleItem.new('common') => [RoleItem.new('c')]}
+    roles = [RoleItem.new('a'), RoleItem.new('b'), RoleItem.new('c')]
+    assert_equal roles, RoleItem.expand_role_dependencies(RoleItem.new('a'), deps).sort
+  end
+  
 end

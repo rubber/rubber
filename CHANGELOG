@@ -1,3 +1,44 @@
+1.14.1 (06/02/2011)
+-----
+
+Upgraded the version of RVM installed by default
+Switched from using our own installation method to using the new RVM installer
+
+1.14.0 (06/02/2011)
+-----
+
+Projects using bundler will now run rake with bundle exec
+Added ability to lockdown the version of rake that RVM will install (vulcanize base for the changes)
+Added the image type and ID for each instance to the instance file
+Fixed an issue with LVM groups keeping physical volumes in /etc/fstab
+Fixed an issue using the mysql2 adapter with the stock MySQL config
+Disable ri and rdoc generation on new hosts
+
+1.13.2
+-----
+
+fix npe <184cbac> [Matt Conway]
+Merge pull request #61 from dzinevich/e173588f4018bc118785bd3806d262ce3bdd033d <0bfb5c2> [Kevin Menard]
+make workaround so ebs works with 11.04 <e173588> [Denis Zinevich]
+
+1.13.1
+-----
+
+allow specifying a common role dependency for all instances <f49b662> [Matt Conway]
+allow one to specify HOSTand ROLES when testing rake rubber:config in dev <56b3c8c> [Matt Conway]
+Merged pull request #57 from drync/no_rvmrc. <9aee319> [Matt Conway]
+Exclude .rvmrc from NO_SCM deploys <3fa1502> [Savanah Cummings]
+
+1.13.0
+-----
+
+Forgot target roles for start/stop/restart <9b916e8> [Alex Kremer]
+Fix enabling multiverse on newer canonical AMIs (ie Maverick) <dcf81fa> [Alex Kremer]
+Initial commit of MongoDB Template <c4f7640> [Alex Kremer]
+allow FORCE on destroy_all <0db9347> [Matt Conway]
+Removing a function that wasn't meant to be committed :( <8538041> [Jordan Brock]
+Added support for changing the region end point, using the EC2 gem "server" key. <326448f> [Jordan Brock]
+
 1.13.0
 -----
 
