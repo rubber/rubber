@@ -17,12 +17,16 @@
         <li><a href="http://<%= cruise_host %>/cruise/">CruiseControl</a></li>
       <% end %>
 
-		  <% rubber_instances.for_role('haproxy').each do |ic| %>
+		  <% rubber_instances.for_role('haproxy').sort {|a,b| a.name <=> b.name }.each do |ic| %>
 		      <li><a href="/haproxy_<%= ic.name %>/">HAProxy <%= ic.name %></a></li>
 		  <% end %>
 
-      <% rubber_instances.each do |ic| %>
+      <% rubber_instances.sort {|a,b| a.name <=> b.name }.each do |ic| %>
           <li><a href="/monit_<%= ic.name %>/">Monit <%= ic.name %></a></li>
+      <% end %>
+      
+      <% if resque_host = rubber_instances.for_role('resque_web').first %>
+          <li><a href="/resque/">Resque</a></li>
       <% end %>
 
 		</ul>
