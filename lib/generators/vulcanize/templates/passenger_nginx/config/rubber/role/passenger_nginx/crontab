@@ -1,0 +1,8 @@
+<%
+  @read_cmd = 'crontab -l'
+  @write_cmd = 'crontab -'
+  @additive = ["# rubber-nginx-start", "# rubber-nginx-end"]
+%>
+
+# Roll the nginx logs at midnight
+0 0 * * * LOG_DIR=/mnt/nginx/logs <%= RUBBER_ROOT %>/script/cron-rake rubber:rotate_logs
