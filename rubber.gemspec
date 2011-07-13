@@ -480,17 +480,20 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<amazon-ec2>, [">= 0.9.17"])
       s.add_runtime_dependency(%q<aws-s3>, [">= 0"])
       s.add_runtime_dependency(%q<nettica>, [">= 0"])
+      s.add_runtime_dependency(%q<open4>, [">= 0"])
     else
       s.add_dependency(%q<capistrano>, [">= 2.4.0"])
       s.add_dependency(%q<amazon-ec2>, [">= 0.9.17"])
       s.add_dependency(%q<aws-s3>, [">= 0"])
       s.add_dependency(%q<nettica>, [">= 0"])
+      s.add_dependency(%q<open4>, [">= 0"])
     end
   else
     s.add_dependency(%q<capistrano>, [">= 2.4.0"])
     s.add_dependency(%q<amazon-ec2>, [">= 0.9.17"])
     s.add_dependency(%q<aws-s3>, [">= 0"])
     s.add_dependency(%q<nettica>, [">= 0"])
+    s.add_dependency(%q<open4>, [">= 0"])
   end
 end
 
