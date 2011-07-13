@@ -30,6 +30,7 @@ begin
     s.add_dependency 'amazon-ec2', '>= 0.9.17'
     s.add_dependency 'aws-s3'
     s.add_dependency 'nettica'
+    s.add_dependency 'open4'
   end
   Jeweler::GemcutterTasks.new
 rescue LoadError
