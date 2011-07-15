@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Matt Conway"]
-  s.date = %q{2011-07-12}
+  s.date = %q{2011-07-15}
   s.description = %q{      The rubber plugin enables relatively complex multi-instance deployments of RubyOnRails applications to
       Amazon's Elastic Compute Cloud (EC2).  Like capistrano, rubber is role based, so you can define a set
       of configuration files for a role and then assign that role to as many concrete instances as needed. One
@@ -114,6 +114,8 @@ Gem::Specification.new do |s|
     "generators/vulcanize/templates/memcached/templates.yml",
     "generators/vulcanize/templates/minimal_mysql/templates.yml",
     "generators/vulcanize/templates/minimal_nodb/templates.yml",
+    "generators/vulcanize/templates/minimal_passenger_nginx/config/rubber/rubber-complete.yml",
+    "generators/vulcanize/templates/minimal_passenger_nginx/templates.yml",
     "generators/vulcanize/templates/mongodb/config/rubber/deploy-mongodb.rb",
     "generators/vulcanize/templates/mongodb/config/rubber/role/mongodb/mongodb.conf",
     "generators/vulcanize/templates/mongodb/config/rubber/role/mongodb/monit-mongodb.cnf",
@@ -316,6 +318,8 @@ Gem::Specification.new do |s|
     "lib/generators/vulcanize/templates/memcached/templates.yml",
     "lib/generators/vulcanize/templates/minimal_mysql/templates.yml",
     "lib/generators/vulcanize/templates/minimal_nodb/templates.yml",
+    "lib/generators/vulcanize/templates/minimal_passenger_nginx/config/rubber/rubber-complete.yml",
+    "lib/generators/vulcanize/templates/minimal_passenger_nginx/templates.yml",
     "lib/generators/vulcanize/templates/mongodb/config/rubber/deploy-mongodb.rb",
     "lib/generators/vulcanize/templates/mongodb/config/rubber/role/mongodb/mongodb.conf",
     "lib/generators/vulcanize/templates/mongodb/config/rubber/role/mongodb/monit-mongodb.cnf",
