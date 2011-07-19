@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Matt Conway"]
-  s.date = %q{2011-07-15}
+  s.date = %q{2011-07-20}
   s.description = %q{      The rubber plugin enables relatively complex multi-instance deployments of RubyOnRails applications to
       Amazon's Elastic Compute Cloud (EC2).  Like capistrano, rubber is role based, so you can define a set
       of configuration files for a role and then assign that role to as many concrete instances as needed. One
@@ -136,7 +136,6 @@ Gem::Specification.new do |s|
     "generators/vulcanize/templates/munin/config/rubber/common/munin-node.conf",
     "generators/vulcanize/templates/munin/config/rubber/common/munin-plugins.conf",
     "generators/vulcanize/templates/munin/config/rubber/deploy-munin.rb",
-    "generators/vulcanize/templates/munin/config/rubber/role/web_tools/munin-nginx.conf",
     "generators/vulcanize/templates/munin/config/rubber/role/web_tools/munin-plugins.conf",
     "generators/vulcanize/templates/munin/config/rubber/role/web_tools/munin.conf",
     "generators/vulcanize/templates/munin/config/rubber/rubber-munin.yml",
@@ -340,7 +339,6 @@ Gem::Specification.new do |s|
     "lib/generators/vulcanize/templates/munin/config/rubber/common/munin-node.conf",
     "lib/generators/vulcanize/templates/munin/config/rubber/common/munin-plugins.conf",
     "lib/generators/vulcanize/templates/munin/config/rubber/deploy-munin.rb",
-    "lib/generators/vulcanize/templates/munin/config/rubber/role/web_tools/munin-nginx.conf",
     "lib/generators/vulcanize/templates/munin/config/rubber/role/web_tools/munin-plugins.conf",
     "lib/generators/vulcanize/templates/munin/config/rubber/role/web_tools/munin.conf",
     "lib/generators/vulcanize/templates/munin/config/rubber/rubber-munin.yml",
