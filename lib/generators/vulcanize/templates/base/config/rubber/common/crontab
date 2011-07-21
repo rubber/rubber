@@ -18,4 +18,4 @@ RUBYOPT=rubygems
 0 0 * * * LOG_DIR=<%= RUBBER_ROOT %>/log <%= RUBBER_ROOT %>/script/cron-rake rubber:rotate_logs
 
 # Automatically set the clock for all machines
-<%= rand(60) %> 4 * * * <%= RUBBER_ROOT %>/script/cron-sh -- ntpdate pool.ntp.org
+<%= rand(60) %> 4 * * * rvm exec <%= RUBBER_ROOT %>/script/cron-sh -- ntpdate pool.ntp.org
