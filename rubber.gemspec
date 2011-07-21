@@ -9,8 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Matt Conway"]
-  s.date = %q{2011-06-02}
-  s.default_executable = %q{vulcanize}
+  s.date = %q{2011-07-20}
   s.description = %q{      The rubber plugin enables relatively complex multi-instance deployments of RubyOnRails applications to
       Amazon's Elastic Compute Cloud (EC2).  Like capistrano, rubber is role based, so you can define a set
       of configuration files for a role and then assign that role to as many concrete instances as needed. One
@@ -77,6 +76,12 @@ Gem::Specification.new do |s|
     "generators/vulcanize/templates/complete_passenger/templates.rb",
     "generators/vulcanize/templates/complete_passenger/templates.yml",
     "generators/vulcanize/templates/complete_passenger_mysql/templates.yml",
+    "generators/vulcanize/templates/complete_passenger_nginx/config/rubber/role/haproxy/haproxy-passenger.conf",
+    "generators/vulcanize/templates/complete_passenger_nginx/config/rubber/rubber-complete.yml",
+    "generators/vulcanize/templates/complete_passenger_nginx/templates.rb",
+    "generators/vulcanize/templates/complete_passenger_nginx/templates.yml",
+    "generators/vulcanize/templates/complete_passenger_nginx_mysql/templates.yml",
+    "generators/vulcanize/templates/complete_passenger_nginx_postgresql/templates.yml",
     "generators/vulcanize/templates/complete_passenger_postgresql/templates.yml",
     "generators/vulcanize/templates/cruise/config/rubber/deploy-cruise.rb",
     "generators/vulcanize/templates/cruise/config/rubber/role/cruise/cruise",
@@ -109,6 +114,8 @@ Gem::Specification.new do |s|
     "generators/vulcanize/templates/memcached/templates.yml",
     "generators/vulcanize/templates/minimal_mysql/templates.yml",
     "generators/vulcanize/templates/minimal_nodb/templates.yml",
+    "generators/vulcanize/templates/minimal_passenger_nginx/config/rubber/rubber-complete.yml",
+    "generators/vulcanize/templates/minimal_passenger_nginx/templates.yml",
     "generators/vulcanize/templates/mongodb/config/rubber/deploy-mongodb.rb",
     "generators/vulcanize/templates/mongodb/config/rubber/role/mongodb/mongodb.conf",
     "generators/vulcanize/templates/mongodb/config/rubber/role/mongodb/monit-mongodb.cnf",
@@ -129,7 +136,6 @@ Gem::Specification.new do |s|
     "generators/vulcanize/templates/munin/config/rubber/common/munin-node.conf",
     "generators/vulcanize/templates/munin/config/rubber/common/munin-plugins.conf",
     "generators/vulcanize/templates/munin/config/rubber/deploy-munin.rb",
-    "generators/vulcanize/templates/munin/config/rubber/role/web_tools/munin-nginx.conf",
     "generators/vulcanize/templates/munin/config/rubber/role/web_tools/munin-plugins.conf",
     "generators/vulcanize/templates/munin/config/rubber/role/web_tools/munin.conf",
     "generators/vulcanize/templates/munin/config/rubber/rubber-munin.yml",
@@ -178,6 +184,21 @@ Gem::Specification.new do |s|
     "generators/vulcanize/templates/passenger/config/rubber/role/passenger/passenger.conf",
     "generators/vulcanize/templates/passenger/config/rubber/rubber-passenger.yml",
     "generators/vulcanize/templates/passenger/templates.yml",
+    "generators/vulcanize/templates/passenger_nginx/config/rubber/deploy-passenger_nginx.rb",
+    "generators/vulcanize/templates/passenger_nginx/config/rubber/role/passenger_nginx/application.conf",
+    "generators/vulcanize/templates/passenger_nginx/config/rubber/role/passenger_nginx/crontab",
+    "generators/vulcanize/templates/passenger_nginx/config/rubber/role/passenger_nginx/monit-nginx.conf",
+    "generators/vulcanize/templates/passenger_nginx/config/rubber/role/passenger_nginx/munin-passenger-memory.conf",
+    "generators/vulcanize/templates/passenger_nginx/config/rubber/role/passenger_nginx/munin-passenger-sudoers.conf",
+    "generators/vulcanize/templates/passenger_nginx/config/rubber/role/passenger_nginx/munin-passenger.conf",
+    "generators/vulcanize/templates/passenger_nginx/config/rubber/role/passenger_nginx/nginx",
+    "generators/vulcanize/templates/passenger_nginx/config/rubber/role/passenger_nginx/nginx.conf",
+    "generators/vulcanize/templates/passenger_nginx/config/rubber/role/passenger_nginx/passenger_nginx.conf",
+    "generators/vulcanize/templates/passenger_nginx/config/rubber/role/web_tools/nginx-tools.conf",
+    "generators/vulcanize/templates/passenger_nginx/config/rubber/role/web_tools/tools-index.html",
+    "generators/vulcanize/templates/passenger_nginx/config/rubber/role/web_tools/tools-nginx.auth",
+    "generators/vulcanize/templates/passenger_nginx/config/rubber/rubber-passenger_nginx.yml",
+    "generators/vulcanize/templates/passenger_nginx/templates.yml",
     "generators/vulcanize/templates/postgresql/config/rubber/common/database.yml",
     "generators/vulcanize/templates/postgresql/config/rubber/deploy-postgresql.rb",
     "generators/vulcanize/templates/postgresql/config/rubber/role/db/crontab",
@@ -258,6 +279,12 @@ Gem::Specification.new do |s|
     "lib/generators/vulcanize/templates/complete_passenger/templates.rb",
     "lib/generators/vulcanize/templates/complete_passenger/templates.yml",
     "lib/generators/vulcanize/templates/complete_passenger_mysql/templates.yml",
+    "lib/generators/vulcanize/templates/complete_passenger_nginx/config/rubber/role/haproxy/haproxy-passenger.conf",
+    "lib/generators/vulcanize/templates/complete_passenger_nginx/config/rubber/rubber-complete.yml",
+    "lib/generators/vulcanize/templates/complete_passenger_nginx/templates.rb",
+    "lib/generators/vulcanize/templates/complete_passenger_nginx/templates.yml",
+    "lib/generators/vulcanize/templates/complete_passenger_nginx_mysql/templates.yml",
+    "lib/generators/vulcanize/templates/complete_passenger_nginx_postgresql/templates.yml",
     "lib/generators/vulcanize/templates/complete_passenger_postgresql/templates.yml",
     "lib/generators/vulcanize/templates/cruise/config/rubber/deploy-cruise.rb",
     "lib/generators/vulcanize/templates/cruise/config/rubber/role/cruise/cruise",
@@ -290,6 +317,8 @@ Gem::Specification.new do |s|
     "lib/generators/vulcanize/templates/memcached/templates.yml",
     "lib/generators/vulcanize/templates/minimal_mysql/templates.yml",
     "lib/generators/vulcanize/templates/minimal_nodb/templates.yml",
+    "lib/generators/vulcanize/templates/minimal_passenger_nginx/config/rubber/rubber-complete.yml",
+    "lib/generators/vulcanize/templates/minimal_passenger_nginx/templates.yml",
     "lib/generators/vulcanize/templates/mongodb/config/rubber/deploy-mongodb.rb",
     "lib/generators/vulcanize/templates/mongodb/config/rubber/role/mongodb/mongodb.conf",
     "lib/generators/vulcanize/templates/mongodb/config/rubber/role/mongodb/monit-mongodb.cnf",
@@ -310,7 +339,6 @@ Gem::Specification.new do |s|
     "lib/generators/vulcanize/templates/munin/config/rubber/common/munin-node.conf",
     "lib/generators/vulcanize/templates/munin/config/rubber/common/munin-plugins.conf",
     "lib/generators/vulcanize/templates/munin/config/rubber/deploy-munin.rb",
-    "lib/generators/vulcanize/templates/munin/config/rubber/role/web_tools/munin-nginx.conf",
     "lib/generators/vulcanize/templates/munin/config/rubber/role/web_tools/munin-plugins.conf",
     "lib/generators/vulcanize/templates/munin/config/rubber/role/web_tools/munin.conf",
     "lib/generators/vulcanize/templates/munin/config/rubber/rubber-munin.yml",
@@ -359,6 +387,21 @@ Gem::Specification.new do |s|
     "lib/generators/vulcanize/templates/passenger/config/rubber/role/passenger/passenger.conf",
     "lib/generators/vulcanize/templates/passenger/config/rubber/rubber-passenger.yml",
     "lib/generators/vulcanize/templates/passenger/templates.yml",
+    "lib/generators/vulcanize/templates/passenger_nginx/config/rubber/deploy-passenger_nginx.rb",
+    "lib/generators/vulcanize/templates/passenger_nginx/config/rubber/role/passenger_nginx/application.conf",
+    "lib/generators/vulcanize/templates/passenger_nginx/config/rubber/role/passenger_nginx/crontab",
+    "lib/generators/vulcanize/templates/passenger_nginx/config/rubber/role/passenger_nginx/monit-nginx.conf",
+    "lib/generators/vulcanize/templates/passenger_nginx/config/rubber/role/passenger_nginx/munin-passenger-memory.conf",
+    "lib/generators/vulcanize/templates/passenger_nginx/config/rubber/role/passenger_nginx/munin-passenger-sudoers.conf",
+    "lib/generators/vulcanize/templates/passenger_nginx/config/rubber/role/passenger_nginx/munin-passenger.conf",
+    "lib/generators/vulcanize/templates/passenger_nginx/config/rubber/role/passenger_nginx/nginx",
+    "lib/generators/vulcanize/templates/passenger_nginx/config/rubber/role/passenger_nginx/nginx.conf",
+    "lib/generators/vulcanize/templates/passenger_nginx/config/rubber/role/passenger_nginx/passenger_nginx.conf",
+    "lib/generators/vulcanize/templates/passenger_nginx/config/rubber/role/web_tools/nginx-tools.conf",
+    "lib/generators/vulcanize/templates/passenger_nginx/config/rubber/role/web_tools/tools-index.html",
+    "lib/generators/vulcanize/templates/passenger_nginx/config/rubber/role/web_tools/tools-nginx.auth",
+    "lib/generators/vulcanize/templates/passenger_nginx/config/rubber/rubber-passenger_nginx.yml",
+    "lib/generators/vulcanize/templates/passenger_nginx/templates.yml",
     "lib/generators/vulcanize/templates/postgresql/config/rubber/common/database.yml",
     "lib/generators/vulcanize/templates/postgresql/config/rubber/deploy-postgresql.rb",
     "lib/generators/vulcanize/templates/postgresql/config/rubber/role/db/crontab",
@@ -428,7 +471,7 @@ Gem::Specification.new do |s|
   s.homepage = %q{http://github.com/wr0ngway/rubber}
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{rubber}
-  s.rubygems_version = %q{1.6.2}
+  s.rubygems_version = %q{1.7.2}
   s.summary = %q{A capistrano plugin for managing multi-instance deployments to the cloud (ec2)}
 
   if s.respond_to? :specification_version then
