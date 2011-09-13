@@ -1,6 +1,11 @@
 <%
   @path = "/etc/init.d/mysql-proxy"
   @perms = 0755
+<<<<<<< HEAD
+=======
+  @post = "/usr/sbin/update-rc.d -f mysql-proxy defaults"
+  @backup = false
+>>>>>>> 1a67900... Run update-rc.d for mysql-proxy init script
 %>#! /bin/sh
 ### BEGIN INIT INFO
 # Provides:          mysql-proxy
