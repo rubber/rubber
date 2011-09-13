@@ -1,15 +1,3 @@
-# All variables can also be overridden on the role and/or host level by creating
-# a sub level to the config under roles and hosts
-# e.g. to install mysql only on db role, and awstats only on web01:
-#
-# packages: [ruby]
-# roles:
-#   db:
-#     packages: [mysql]
-# hosts:
-#   web01:
-#     packages: [awstats]
-
 # REQUIRED: The name of your application
 app_name: your_app_name
 
@@ -257,6 +245,10 @@ staging_roles: "web,app,db:primary=true"
 # templates as  <%= rubber_env.var_name %>
 #
 # var_name: var_value
+
+# All variables can also be overridden on the role and/or host level by creating
+# a sub level to the config under roles and hosts
+# e.g. to install mysql only on db role, and awstats only on web01:
 
 # OPTIONAL: Role specific overrides
 # roles:
