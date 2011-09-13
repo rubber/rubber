@@ -3,20 +3,18 @@
   @write_cmd = 'crontab -'
 %>
 
-# cron clears out enviroment variables, so we need to add these in
-# to make sure we are running the correct ruby (rvm env vars, plus paths)
-<%- ENV.select {|k, v| k =~ /rvm|ruby|bundler|gem|path/i }.each do |k, v| -%>
-<%= k %>='<%= v %>'
-<%- end -%>
+# cron clears out enviroment variables. We need to put our path back in so we can find RVM.
+# 'rvm exec' and 'bundle exec' in cron-rake will take care of setting up the rest of the
+# environment needed by Ruby / Rails
+PATH='<%= ENV['PATH'] %>'
 
 MAILTO=<%= rubber_env.admin_email %>
 # don't need to set RUBBER_ENV for each script since we set it for all cron here
 RUBBER_ENV=<%= RUBBER_ENV %>
 RAILS_ENV=<%= RUBBER_ENV %>
-RUBYOPT=rubygems
 
 # Roll all rails logs at midnight
 0 0 * * * LOG_DIR=<%= RUBBER_ROOT %>/log <%= RUBBER_ROOT %>/script/cron-rake rubber:rotate_logs
 
 # Automatically set the clock for all machines
-<%= rand(60) %> 4 * * * <%= RUBBER_ROOT %>/script/cron-sh -- ntpdate pool.ntp.org
+<%= rand(60) %> 4 * * * rvm exec <%= RUBBER_ROOT %>/script/cron-sh -- ntpdate pool.ntp.org
