@@ -1,3 +1,38 @@
+1.15.0 (09/13/2011)
+
+New Features:
+============
+
+Added PostgreSQL streaming replication configuration (thanks Kevin Menard)
+Added the ability to specify mount options for volumes (thanks Alex Kremer)
+Added a minimal Passenger nginx configuration (thanks Will Koehler)
+Added SSL support for nginx-passenger (thanks Michael Glass)
+Added staging environment support fon nginx-passenger (thanks Michael Glass)
+
+Improvements:
+============
+
+Resque-web now runs as an unpriviliged user (thanks Scott Carleton)
+Better error message when having issues loading the Zerigo gem (thanks Rupert Meese)
+Upgraded Passenger to 3.0.9 (thanks Kevin Menard)
+Upgraded Redis to 2.2.13 (thanks Kevin Menard)
+Better .gemrc file setup (thanks Kevin Menard)
+
+Bug Fixes:
+==========
+
+Fixed an issue with setting up redis on Ubuntu 11.04 (thanks Kevin Menard)
+Fixed an issue with mysql-proxy not being added to the correct run level (thanks Alex Kremer)
+Fixed a typo in the passenger_nginx module name (thanks Alex Kremer)
+Fixed an issue with the munin generated Web site location (thanks Will Koehler)
+Fixed the open4 require issue (thanks Will Koehler)w
+Fixed a bunch of nginx-related issues (thanks Will Koehler)
+Fixed an environmental issue running ntpdate (thanks Will Koehler)
+Fixed compatibility issues with the Psych parser used in Ruby 1.9.2 (thanks Kevin Menard)
+Fixed timing issue with multiple resque workers starting (thanks Matt Conway)
+Fixed an issue with hostnames that happen to be monit commands (thanks Michael Glass)
+
+
 1.14.1 (06/02/2011)
 -----
 
