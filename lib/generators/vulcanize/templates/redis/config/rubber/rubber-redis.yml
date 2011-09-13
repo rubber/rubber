@@ -1,4 +1,4 @@
-redis_server_version: 2.2.8
+redis_server_version: 2.2.13
 
 redis_db_dir: /mnt/redis
 
