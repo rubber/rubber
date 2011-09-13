@@ -6,3 +6,4 @@ pkg
 *.gem
 .DS_Store
 .gitignore
+atlassian-ide-plugin.xml
