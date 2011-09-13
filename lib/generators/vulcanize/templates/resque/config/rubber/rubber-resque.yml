@@ -5,10 +5,10 @@ resque_web_port: 5678
 #
 resque_workers:
   -
-    queues: *
+    queues: "*"
     poll_interval: 1
   -
-    queues: *
+    queues: "*"
     poll_interval: 1
 
 gems: [yajl-ruby resque]

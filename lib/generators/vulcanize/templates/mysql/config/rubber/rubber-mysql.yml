@@ -26,7 +26,7 @@ db_log_dir: "#{db_root_dir}/log"
 # Capistrano needs db:primary role for migrate to work,
 # so we might as well just make consistent across the board
 role_dependencies:
-  mysql_master: [db:primary=true]
+  mysql_master: ["db:primary=true"]
   mysql_slave: [db]
   db:primary=true: [mysql_master]
   db: [mysql_slave]
