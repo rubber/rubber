@@ -15,7 +15,7 @@ rvm_version: 1.8.3
 
 # REQUIRED: Set to the rvm version string for the ruby version you wish to use
 # Run "rvm list known" to see the list of possible options
-rvm_ruby: 1.9.2
+rvm_ruby: 1.9.2-p290
 
 # REQUIRED: Set to version of RubyGems you want RVM to install. Note that older RVMs do not
 # know about newer RubyGems.  So you may need to bump your rvm_version to get the latest RubyGems release.
