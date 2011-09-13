@@ -4,7 +4,7 @@ begin
   require 'zerigo_dns'
 rescue LoadError
   puts "Missing the zerigo_dns gem.  Install with `sudo gem install zerigo_dns`."
-  exit(-1)
+  raise
 end
 
 module Rubber
