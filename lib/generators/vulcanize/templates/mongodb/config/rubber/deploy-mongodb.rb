@@ -19,8 +19,12 @@ namespace :rubber do
     end
     
     task :setup_paths, :roles => :mongodb do
-      rsudo "mkdir -p #{rubber_env.mongodb_data_dir}"
-      rsudo "chown -R mongodb:mongodb #{rubber_env.mongodb_data_dir}"
+      rubber.sudo_script 'setup_mongodb_paths', <<-ENDSCRIPT
+        if [[ ! -d "#{rubber_env.mongodb_data_dir}" ]]; then
+          mkdir -p #{rubber_env.mongodb_data_dir}
+          chown -R mongodb:mongodb #{rubber_env.mongodb_data_dir}
+        fi
+      ENDSCRIPT
     end
     
     desc <<-DESC
