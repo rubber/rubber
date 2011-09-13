@@ -7,7 +7,12 @@ namespace :rubber do
     before "rubber:install_packages", "rubber:redis:setup_apt_sources"
 
     task :setup_apt_sources, :roles => :redis do
-      rsudo "add-apt-repository ppa:soren/nova"
+      rubber.sudo_script 'configure_redis_repository', <<-ENDSCRIPT
+        # redis 2.0 is the default starting in Ubuntu 11.04.
+        if grep '10\.' /etc/lsb-release; then
+          add-apt-repository ppa:soren/nova
+        fi
+      ENDSCRIPT
     end
 
     after "rubber:install_packages", "rubber:redis:custom_install"
