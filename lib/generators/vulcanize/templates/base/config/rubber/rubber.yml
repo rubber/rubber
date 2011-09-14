@@ -173,7 +173,7 @@ staging_roles: "web,app,db:primary=true"
 #           affect instances in another.  As such, it is good to specify these
 #           for instances that need to be redundant to reduce your chance of
 #           downtime. You should typically set this on the role/host level
-#           rather than globally.  Use rubber describe:zones to see the list
+#           rather than globally.  Use cap rubber:describe_zones to see the list
 #           of zones
 # availability_zone: us-east-1a
 
