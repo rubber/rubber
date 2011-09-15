@@ -1,0 +1,12 @@
+graphite_server_port: 2003
+graphite_web_port: 2080
+
+# comment out the repo version to install from packages
+graphite_repo_version: 426
+graphite_whisper_package_url: http://launchpad.net/graphite/1.0/0.9.8/+download/whisper-0.9.8.tar.gz
+graphite_carbon_package_url: http://launchpad.net/graphite/1.0/0.9.8/+download/carbon-0.9.8.tar.gz
+graphite_web_package_url: http://launchpad.net/graphite/1.0/0.9.8/+download/graphite-web-0.9.8.tar.gz
+
+roles:
+  graphite_web:
+    packages: [python-django apache2 libapache2-mod-wsgi python-cairo python-memcache memcached sqlite3 bzr]
