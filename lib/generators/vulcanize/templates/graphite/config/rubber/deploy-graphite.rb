@@ -77,7 +77,7 @@ namespace :rubber do
 
       rubber.allow_optional_tasks(self)
 
-      if rubber_env.graphite_repo_version
+      if Rubber::Configuration.rubber_env.graphite_repo_version
         after "rubber:install_packages", "rubber:graphite:install_graphite_from_repo"
       else
         after "rubber:install_packages", "rubber:graphite:server:install"
@@ -137,7 +137,7 @@ namespace :rubber do
 
       rubber.allow_optional_tasks(self)
 
-      if rubber_env.graphite_repo_version
+      if Rubber::Configuration.rubber_env.graphite_repo_version
         after "rubber:graphite:server:install", "rubber:graphite:install_graphite_from_repo"
       else
         after "rubber:graphite:server:install", "rubber:graphite:web:install"
