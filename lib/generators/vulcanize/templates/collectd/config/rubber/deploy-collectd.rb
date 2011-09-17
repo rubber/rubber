@@ -5,7 +5,6 @@ namespace :rubber do
   
     rubber.allow_optional_tasks(self)
 
-    after "rubber:install_packages", "rubber:collectd:install"
     after "rubber:bootstrap", "rubber:collectd:bootstrap"
     after "deploy:restart", "rubber:collectd:restart_rubber_plugin"
 
