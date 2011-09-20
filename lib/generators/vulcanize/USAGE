@@ -1,6 +1,0 @@
-Description:
-    Prepares the rails application for deploying with rubber by installing a
-    sample rubber configuration template
-
-Examples:
-    ./script/generate vulcanize minimal_mysql

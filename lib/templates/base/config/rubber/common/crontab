@@ -1,12 +1,24 @@
 <%
   @read_cmd = 'crontab -l'
   @write_cmd = 'crontab -'
+
+  create_env = Proc.new do
+    ENV.select {|k, v| k =~ /rvm|ruby|bundler|gem|path/i }.collect do |k, v|
+      "#{k}='#{v}'"
+    end
+  end
+
+  if Rubber::Util::is_bundler?
+    env_lines = Bundler.with_clean_env &create_env
+  else
+    env_lines = create_env.call
+  end
 %>
 
-# cron clears out enviroment variables, so we need to add these in
+# cron clears out environment variables, so we need to add these in
 # to make sure we are running the correct ruby (rvm env vars, plus paths)
-<%- ENV.select {|k, v| k =~ /rvm|ruby|bundler|gem|path/i }.each do |k, v| -%>
-<%= k %>='<%= v %>'
+<%- env_lines.each do |line| -%>
+<%= line %>
 <%- end -%>
 
 MAILTO=<%= rubber_env.admin_email %>

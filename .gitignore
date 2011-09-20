@@ -1,7 +1,8 @@
+*.gem
+.bundle
+Gemfile.lock
+pkg
 .buildpath
 .project
 .idea
 *.swp
-pkg
-*.gem
-

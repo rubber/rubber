@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+
+env = ENV['RUBBER_ENV'] ||= 'development'
+root = '.'
+
+
+if File.exists?("Gemfile")
+  require "bundler"
+  Bundler.setup(:default, env.to_sym)
+end
+
+require 'rubber'
+require 'rubber/cli'
+
+Rubber::initialize(root, env)
+Rubber::CLI.start
