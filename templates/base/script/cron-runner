@@ -13,6 +13,5 @@ begin
 rescue
 end
 
-Dir.chdir(RAILS_ROOT)
 args = %W{-e -l #{log} -- RAILS_RUNNER} + ARGV
 system "script/cron-sh", *args

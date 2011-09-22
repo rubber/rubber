@@ -14,6 +14,7 @@ options = OpenStruct.new
 options.logfile = "/tmp/cron-sh-#{Time.now.tv_sec}.log"
 options.echoerr = false
 options.echoout = false
+options.rootdir = File.expand_path("..", File.dirname(__FILE__))
 
 opts = OptionParser.new do |opts|
   opts.banner = "Usage: cron-sh [options] <shell command>"
@@ -34,6 +35,10 @@ opts = OptionParser.new do |opts|
     options.echoerr = true
   end
 
+  opts.on("-r", "--rootdir", "Root dir to cd into before running") do |val|
+    options.rootdir = val
+  end
+
   opts.on_tail("-h", "--help", "Show this message") do
     puts opts
     exit
@@ -41,6 +46,7 @@ opts = OptionParser.new do |opts|
 end
 
 cmd = opts.parse(ARGV)
+Dir.chdir(options.rootdir) if options.rootdir.size > 0
 
 status = Open4::popen4(*cmd) do |pid, stdin, stdout, stderr|
   File.open(options.logfile, "w") do | fh |

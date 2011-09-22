@@ -13,6 +13,5 @@ begin
 rescue
 end
 
-Dir.chdir(RAILS_ROOT)
 args = %W{-l #{log} -- rake --trace} + ARGV
 system "script/cron-sh", *args
