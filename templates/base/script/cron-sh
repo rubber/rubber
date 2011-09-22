@@ -11,7 +11,6 @@ require 'rubygems'
 require 'open4'
 
 options = OpenStruct.new
-options.logfile = "/tmp/cron-sh-#{Time.now.tv_sec}.log"
 options.echoerr = false
 options.echoout = false
 options.rootdir = File.expand_path("..", File.dirname(__FILE__))
@@ -35,7 +34,7 @@ opts = OptionParser.new do |opts|
     options.echoerr = true
   end
 
-  opts.on("-r", "--rootdir", "Root dir to cd into before running") do |val|
+  opts.on("-r", "--rootdir directory", "Root dir to cd into before running") do |val|
     options.rootdir = val
   end
 
@@ -46,7 +45,17 @@ opts = OptionParser.new do |opts|
 end
 
 cmd = opts.parse(ARGV)
-Dir.chdir(options.rootdir) if options.rootdir.size > 0
+
+if options.rootdir.size > 0
+  logdir = "#{options.rootdir}/log"
+  if File.exist?(logdir)
+    options.logfile = "#{logdir}/cron-sh-#{Time.now.tv_sec}.log"
+  end
+
+  Dir.chdir(options.rootdir)
+end
+
+options.logfile = "/tmp/cron-sh-#{Time.now.tv_sec}.log" unless options.logfile
 
 status = Open4::popen4(*cmd) do |pid, stdin, stdout, stderr|
   File.open(options.logfile, "w") do | fh |
