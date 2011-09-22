@@ -43,9 +43,12 @@ module Rubber
 
       def known_roles
         roles_dir = File.join(@config_root, "role")
-        roles = Dir.entries(roles_dir)
-        roles.delete_if {|d| d =~ /(^\..*)/}
-        roles += @items['roles'].keys
+        roles = []
+        if File.exist?(roles_dir)
+          roles = Dir.entries(roles_dir)
+          roles.delete_if {|d| d =~ /(^\..*)/}
+          roles += @items['roles'].keys
+        end
         return roles.compact.uniq
       end
 

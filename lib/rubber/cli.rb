@@ -1,161 +1,90 @@
 require "thor"
+require "thor/group"
+require "thor/runner"
 
 module Rubber
 
   class CLI < Thor
 
-    include Thor::Actions
-
-    def self.source_root
-      File.expand_path(File.join(File.dirname(__FILE__), '..', 'templates'))
-    end
-
-    desc "config", "Generate system config files by transforming the files in the config/rubber tree"
-    method_options :host => :string, :roles => :string, :file => :string,
-                   :no_post => :boolean, :force => :boolean
-
-    def config
-      cfg = Rubber::Configuration.get_configuration(Rubber.env)
-      instance_alias = cfg.environment.current_host
-      instance = cfg.instance[instance_alias]
-      if instance
-        roles = instance.role_names
-        env = cfg.environment.bind(roles, instance_alias)
-        gen = Rubber::Configuration::Generator.new("#{Rubber.root}/config/rubber", roles, instance_alias)
-      elsif ['development', 'test'].include?(Rubber.env)
-        instance_alias = options[:host] || instance_alias
-        roles = options[:roles].split(',') if options[:roles]
-        roles ||= cfg.environment.known_roles
-        role_items = roles.collect do |r|
-          Rubber::Configuration::RoleItem.new(r, r == "db" ? {'primary' => true} : {})
-        end
-        env = cfg.environment.bind(roles, instance_alias)
-        domain = env.domain
-        instance = Rubber::Configuration::InstanceItem.new(instance_alias, domain, role_items,
-                                                           'dummyid', 'm1.small', 'ami-7000f019', ['dummygroup'])
-        instance.external_host = instance.full_name
-        instance.external_ip = "127.0.0.1"
-        instance.internal_host = instance.full_name
-        instance.internal_ip = "127.0.0.1"
-        cfg.instance.add(instance)
-        gen = Rubber::Configuration::Generator.new("#{Rubber.root}/config/rubber", roles, instance_alias)
-        gen.fake_root ="#{Rubber.root}/tmp/rubber"
+    # Override Thor#help so it can give information about any class and any method.
+    #
+    def help(meth = nil)
+      initialize_thorfiles
+      if meth && !self.respond_to?(meth)
+        klass, task = find_class_and_task_by_namespace(meth)
+        klass.start(["-h", task].compact, :shell => self.shell)
       else
-        puts "Instance not found for host: #{instance_alias}"
-        exit 1
-      end
-
-      if options[:file]
-        gen.file_pattern = options[:file]
-      end
-      gen.no_post = options[:no_post]
-      gen.force = options[:force]
-      gen.stop_on_error_cmd = env.stop_on_error_cmd
-      gen.run
-
-    end
-
-    def self.valid_templates()
-      valid = Dir.entries(self.source_root).delete_if {|e| e =~  /(^\.)|svn|CVS/ }
-    end
-
-    desc "vulcanize TEMPLATE", <<-EOS
-      Prepares the rails application for deploying with rubber by installing
-      a sample rubber configuration template.
-
-        e.g. rubber vulcanize complete_passenger_postgresql
-
-      where TEMPLATE is one of:
-        #{valid_templates.join(", ")}
-    EOS
-
-    def vulcanize(template_name)
-      @template_dependencies = find_dependencies(template_name)
-      ([template_name] + @template_dependencies).each do |template|
-        apply_template(template)
+        display_klasses
       end
     end
 
-    protected
+    # If a task is not found on Thor::Runner, method missing is invoked and
+    # Thor::Runner is then responsable for finding the task in all classes.
+    #
+    def method_missing(meth, *args)
+      initialize_thorfiles
 
-    # helper to test for rails for optional templates
-    def rails?
-      Rubber::Util::is_rails?
+      klass, task = find_class_and_task_by_namespace(meth)
+
+      args.unshift(task) if task
+      klass.start(args, :shell => self.shell)
     end
 
-    def find_dependencies(name)
-      template_dir = File.join(self.class.source_root, name, '')
-      unless File.directory?(template_dir)
-        raise Thor::Error.new("Invalid template #{name}, use one of #{valid_templates.join(', ')}")
-      end
+    private
 
-      template_conf = load_template_config(template_dir)
-      template_dependencies = template_conf['dependent_templates'] || []
+    def find_class_and_task_by_namespace(meth)
+      meth = meth.to_s
 
-      template_dependencies.clone.each do |dep|
-        template_dependencies.concat(find_dependencies(dep))
-      end
+      pieces = meth.split(":")
+      task   = pieces.pop
+      namespace = pieces.join(":")
+      namespace = "default#{namespace}" if namespace.empty? || namespace =~ /^:/
 
-      return template_dependencies.uniq
+      klass = Thor::Base.subclasses.find { |k| k.namespace == namespace && k.tasks[task] }
+      return klass, task
     end
 
-    def apply_template(name)
-      template_dir = File.join(self.class.source_root, name, '')
-      unless File.directory?(template_dir)
-        raise Thor::Error.new("Invalid template #{name}, use one of #{valid_templates.join(', ')}")
-      end
+    def self.exit_on_failure?
+      true
+    end
 
-      template_conf = load_template_config(template_dir)
-
-      extra_generator_steps_file = File.join(template_dir, 'templates.rb')
-
-      Find.find(template_dir) do |f|
-        Find.prune if f == File.join(template_dir, 'templates.yml')  # don't copy over templates.yml
-        Find.prune if f == extra_generator_steps_file # don't copy over templates.rb
-
-        template_rel = f.gsub(/#{template_dir}/, '')
-        source_rel = f.gsub(/#{self.class.source_root}\//, '')
-        dest_rel   = source_rel.gsub(/^#{name}\//, '')
-
-        # Only include optional files when their conditions eval to true
-        optional = template_conf['optional'][template_rel] rescue nil
-        Find.prune if optional && ! eval(optional)
-
-        if File.directory?(f)
-          empty_directory(dest_rel)
-        else
-          copy_file(source_rel, dest_rel)
-          src_mode = File.stat(f).mode
-          dest_mode = File.stat(File.join(destination_root, dest_rel)).mode
-          chmod(dest_rel, src_mode) if src_mode != dest_mode
-        end
-      end
-
-      if File.exist? extra_generator_steps_file
-        eval File.read(extra_generator_steps_file), binding, extra_generator_steps_file
+    def initialize_thorfiles
+      files = Dir[File.expand_path(File.join(File.dirname(__FILE__), 'commands/*.rb'))]
+      files.each do |f|
+        require f
       end
     end
 
-    def load_template_config(template_dir)
-      YAML.load(File.read(File.join(template_dir, 'templates.yml'))) rescue {}
+    def display_klasses(show_internal=false, klasses=Thor::Base.subclasses)
+      klasses -= [Thor, Thor::Runner, Thor::Group] unless show_internal
+
+      raise Error, "No Thor tasks available" if klasses.empty?
+
+      list = Hash.new { |h,k| h[k] = [] }
+      groups = klasses.select { |k| k.ancestors.include?(Thor::Group) }
+
+      # Get classes which inherit from Thor
+      (klasses - groups).each { |k| list[k.namespace.split(":").first] += k.printable_tasks(false) }
+
+      # Get classes which inherit from Thor::Base
+      groups.map! { |k| k.printable_tasks(false).first }
+      list["root"] = groups
+
+      # Order namespaces with default coming first
+      list = list.sort{ |a,b| a[0].sub(/^default/, '') <=> b[0].sub(/^default/, '') }
+      list.each { |n, tasks| display_tasks(n, tasks) unless tasks.empty? }
     end
 
-    def rubber_env()
-      Rubber::Configuration.rubber_env
-    end
+    def display_tasks(namespace, list) #:nodoc:
+      list.sort!{ |a,b| a[0] <=> b[0] }
 
-    def rubber_instances()
-      Rubber::Configuration.rubber_instances
-    end
+      say shell.set_color(namespace, :blue, true)
+      say "-" * namespace.size
 
-    def cloud_provider
-      rubber_env.cloud_providers[rubber_env.cloud_provider]
-    end
-
-    def init_s3()
-      AWS::S3::Base.establish_connection!(:access_key_id => cloud_provider.access_key, :secret_access_key => cloud_provider.secret_access_key)
+      print_table(list, :truncate => true)
+      say
     end
 
   end
-
+  
 end

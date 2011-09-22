@@ -83,6 +83,14 @@ module Rubber
       puts msg
       exit code
     end
-    
+
+    # remove leading whitespace from "here" strings so they look good in code
+    # skips empty lines
+    def self.clean_indent(str)
+      counts = str.lines.collect {|l| l.scan(/^\s*/).first.size }
+      m = counts.reject {|x| x <= 1 }.min
+      str.lines.collect {|l| l.size < m ? l : l[m..-1] }.join("")
+    end
+
   end
 end
