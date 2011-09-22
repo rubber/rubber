@@ -11,5 +11,5 @@
   if backup_redis_host.name == rubber_env.host
 %>
 # Backup redis DBs every hour.
-0 * * * * BACKUP_DIR=/mnt/redis_backups BACKUP_NAME=redis BACKUP_CMD="nice zip -r \%dir\%/redis_\%time_stamp\%.zip <%= rubber_env.redis_db_dir %> -x \*temp\*.rdb" <%= RUBBER_ROOT %>/script/cron-rake rubber:backup
+0 * * * * <%= RUBBER_ROOT %>/script/cron-sh rubber util:backup --directory=/mnt/redis_backups --name=redis --command="nice zip -r \%dir\%/redis_\%time_stamp\%.zip <%= rubber_env.redis_db_dir %> -x \*temp\*.rdb"
 <% end %>

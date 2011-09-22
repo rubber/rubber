@@ -119,7 +119,7 @@ namespace :rubber do
       rubber.update_code_for_bootstrap
       
       # Gen just the conf for the given mysql role
-      rubber.run_config(:RUBBER_ENV => RUBBER_ENV, :FILE => "role/#{role}|role/db/", :FORCE => true, :deploy_path => release_path)
+      rubber.run_config(:file => "role/#{role}|role/db/", :force => true, :deploy_path => release_path)
 
       # reconfigure mysql so that it sets up data dir in /mnt with correct files
       sudo_script 'reconfigure-mysql', <<-ENDSCRIPT

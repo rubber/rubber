@@ -32,7 +32,7 @@ namespace :rubber do
             deploy.update_code
 
             # Gen just the conf for cassandra
-            rubber.run_config(:RUBBER_ENV => RUBBER_ENV, :FILE => "role/cassandra", :FORCE => true, :deploy_path => release_path)
+            rubber.run_config(:file => "role/cassandra", :force => true, :deploy_path => release_path)
 
             cassandra_start
             

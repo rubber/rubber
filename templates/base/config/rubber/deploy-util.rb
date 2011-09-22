@@ -4,7 +4,7 @@ namespace :rubber do
     rubber.allow_optional_tasks(self)
    
     desc <<-DESC
-      Backup database using rake task rubber:backup_db
+      Backup database using rubber util:backup_db
     DESC
     task :backup do
       master_instances = rubber_instances.for_role('db', 'primary' => true)
@@ -15,22 +15,23 @@ namespace :rubber do
             
       task_name = "_backup_db_#{selected_db_instance.full_name}".to_sym()
       task task_name, :hosts => selected_db_instance.full_name do
-        rsudo "cd #{current_path} && RUBBER_ENV=#{RUBBER_ENV} BACKUP_DIR=/mnt/db_backups DBUSER=#{rubber_env.db_user} DBPASS=#{rubber_env.db_pass} DBNAME=#{rubber_env.db_name} DBHOST=#{selected_db_instance.full_name} rake rubber:backup_db"
+        rsudo "cd #{current_path} && RUBBER_ENV=#{RUBBER_ENV} rubber util:backup_db --directory=/mnt/db_backups --dbuser=#{rubber_env.db_user} --dbpass=#{rubber_env.db_pass} --dbname=#{rubber_env.db_name} --dbhost=#{rubber_env.db_host}"
       end
       send task_name
     end
     
     desc <<-DESC
-      Restore database from s3 using rake task rubber:restore_db_s3
+      Restore database from s3 using rubber util:restore_db_s3
     DESC
     task :restore_s3 do
+      filename = get_env('FILENAME', "The s3 key to restore", true)
       master_instances = rubber_instances.for_role('db', 'primary' => true)
       slaves = rubber_instances.for_role('db', {})
 
       for instance in master_instances+slaves
         task_name = "_restore_db_s3_#{instance.full_name}".to_sym()
         task task_name, :hosts => instance.full_name do
-          rsudo "cd #{current_path} && RUBBER_ENV=#{RUBBER_ENV} BACKUP_DIR=/mnt/db_backups DBUSER=#{rubber_env.db_user} DBPASS=#{rubber_env.db_pass} DBNAME=#{rubber_env.db_name} DBHOST=#{instance.full_name} rake rubber:restore_db_s3"
+          rsudo "cd #{current_path} && RUBBER_ENV=#{RUBBER_ENV} rubber util:restore_db_s3 --filename=#{filename} --dbuser=#{rubber_env.db_user} --dbpass=#{rubber_env.db_pass} --dbname=#{rubber_env.db_name} --dbhost=#{rubber_env.db_host}"
         end
         send task_name
       end

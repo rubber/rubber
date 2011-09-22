@@ -121,29 +121,50 @@ module Rubber
         end
       end
 
-      desc "backup_db", <<-DESC
-        Backup database to given backup directory
-        The following arguments affect behavior:
-        BACKUP_DIR (required): Directory where db backups will be stored
-        BACKUP_AGE (3):        Delete rotated logs older than this many days in the past
-        DBUSER (required)      User to connect to the db as
-        DBPASS (optional):     Pass to connect to the db with
-        DBHOST (required):     Host where the db is
-        DBNAME (required):     Database name to backup
-      DESC
+      desc "backup_db", Rubber::Util.clean_indent(<<-EOS
+        Performs a cyclical backup of the database to the backup directory (and s3)
+      EOS
+      )
+
+      method_option :directory,
+                    :required => true,
+                    :type => :string, :aliases => "-d",
+                    :desc => "The directory to stage the backups into"
+      method_option :age,
+                    :default => 3,
+                    :type => :numeric, :aliases => "-a",
+                    :desc => "The number of days rotated backups are kept around for"
+      method_option :dbuser,
+                    :required => true,
+                    :type => :string, :aliases => "-u",
+                    :desc => "The database user to connect with"
+      method_option :dbpass,
+                    :required => false,
+                    :type => :string, :aliases => "-p",
+                    :desc => "The database password to connect with"
+      method_option :dbhost,
+                    :required => true,
+                    :type => :string, :aliases => "-h",
+                    :desc => "The database host to connect to"
+      method_option :dbname,
+                    :required => true,
+                    :type => :string, :aliases => "-n",
+                    :desc => "The database name to backup"
+
       def backup_db
-        options[''] =
-        dir = get_env('BACKUP_DIR', true)
-        age = (get_env('BACKUP_AGE') || 3).to_i
+        dir = options.directory
+        age = options.age.to_i
+
         time_stamp = Time.now.strftime("%Y-%m-%d_%H-%M")
         backup_file = "#{dir}/#{RUBBER_ENV}_dump_#{time_stamp}.sql.gz"
         FileUtils.mkdir_p(File.dirname(backup_file))
 
-        user = options.user
-        pass = options.password
-        host = options.host
-        name = options.db
-        options.command = db_backup_cmd
+        user = options.dbuser
+        pass = options.dbpass
+        pass = nil if pass && pass.strip.size == 0
+        host = options.dbhost
+        name = options.dbname
+
         raise "No db_backup_cmd defined in rubber.yml, cannot backup!" unless rubber_env.db_backup_cmd
         db_backup_cmd = rubber_env.db_backup_cmd.gsub(/%([^%]+)%/, '#{\1}')
         db_backup_cmd = eval('%Q{' + db_backup_cmd + '}')
@@ -185,7 +206,69 @@ module Rubber
         end
       end
 
-      
+      desc "restore_db_s3", Rubber::Util.clean_indent(<<-EOS
+        Performs a restore of the database from the given file
+      EOS
+      )
+
+      method_option :filename,
+                    :required => true,
+                    :type => :string, :aliases => "-f",
+                    :desc => "key of S3 object to use"
+      method_option :dbuser,
+                    :required => true,
+                    :type => :string, :aliases => "-u",
+                    :desc => "The database user to connect with"
+      method_option :dbpass,
+                    :required => false,
+                    :type => :string, :aliases => "-p",
+                    :desc => "The database password to connect with"
+      method_option :dbhost,
+                    :required => true,
+                    :type => :string, :aliases => "-h",
+                    :desc => "The database host to connect to"
+      method_option :dbname,
+                    :required => true,
+                    :type => :string, :aliases => "-n",
+                    :desc => "The database name to backup"
+
+      def restore_db_s3
+        file = options.filename
+        user = options.dbuser
+        pass = options.dbpass
+        pass = nil if pass && pass.strip.size == 0
+        host = options.dbhost
+
+        raise "No db_restore_cmd defined in rubber.yml" unless rubber_env.db_restore_cmd
+        db_restore_cmd = rubber_env.db_restore_cmd.gsub(/%([^%]+)%/, '#{\1}')
+        db_restore_cmd = eval('%Q{' + db_restore_cmd + '}')
+
+        # try to fetch a matching file from s3 (if backup_bucket given)
+        backup_bucket = cloud_provider.backup_bucket
+        raise "No backup_bucket defined in rubber.yml" unless backup_bucket
+        if (init_s3 &&
+            AWS::S3::Bucket.list.find { |b| b.name == backup_bucket })
+          s3objects = AWS::S3::Bucket.find(backup_bucket,
+                     :prefix => 'db/')
+          if file
+            puts "trying to fetch #{file} from s3"
+            data = s3objects.detect { |o| file == o.key }
+          else
+            puts "trying to fetch last modified s3 backup"
+            data = s3objects.max {|a,b| a.about["last-modified"] <=> b.about["last-modified"] }
+          end
+        end
+        raise "could not access backup file via s3" unless data
+
+        puts "piping restore data to command [#{db_restore_cmd}]"
+        IO.popen(db_restore_cmd, 'wb') do |p|
+          data.value do |segment|
+            p.write segment
+          end
+        end
+
+      end
+
       protected
 
       

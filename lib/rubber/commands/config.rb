@@ -10,7 +10,7 @@ module Rubber
                            :desc => "Override the instance's host for generation"
       method_option :roles, :type => :string, :aliases => "-r",
                            :desc => "Override the instance's roles for generation"
-      method_option :file, :type => :boolean, :aliases => "-p",
+      method_option :file, :type => :string, :aliases => "-p",
                            :desc => "Only generate files that match the given pattern"
       method_option :no_post, :type => :boolean, :aliases => "-n",
                            :desc => "Skip running post commands for files that get generated"
@@ -52,7 +52,7 @@ module Rubber
           puts "Instance not found for host: #{instance_alias}"
           exit 1
         end
-
+        
         if options[:file]
           gen.file_pattern = options[:file]
         end

@@ -38,12 +38,9 @@ namespace :rubber do
   DESC
   task :config do
     opts = {}
-    opts['NO_POST'] = true if ENV['NO_POST']
-    opts['FILE'] = ENV['FILE'] if ENV['FILE']
-    opts['RUBBER_ENV'] = RUBBER_ENV
-    # we need to set rails env as well because when running rake
-    # in a rails project, rails gets loaded before the rubber hook gets run
-    opts['RAILS_ENV'] = RUBBER_ENV
+    opts[:no_post] = true if ENV['NO_POST']
+    opts[:force] = true if ENV['FORCE']
+    opts[:file] = ENV['FILE'] if ENV['FILE']
 
     # when running deploy:migrations, we need to run config against release_path
     opts[:deploy_path] = current_release if fetch(:migrate_target, :current).to_sym == :latest
@@ -65,7 +62,10 @@ namespace :rubber do
 
   def run_config(options={})
     path = options.delete(:deploy_path) || current_path
-    extra_env = options.keys.inject("") {|all, k|  "#{all} #{k}=\"#{options[k]}\""}
+    opts = ""
+    opts += " --no_post" if options[:no_post]
+    opts += " --force" if options[:force]
+    opts += " --file=#{options[:file]}" if options[:file]
 
     # Need to do this so we can work with staging instances without having to
     # checkin instance file between create and bootstrap, as well as during a deploy
@@ -84,7 +84,7 @@ namespace :rubber do
       put(File.read(secret), File.join(path, base, File.basename(secret)), :mode => "+r")
     end
 
-    rsudo "cd #{path} && #{extra_env} #{fetch(:rake, 'rake')} rubber:config"
+    rsudo "cd #{path} && RUBBER_ENV=#{Rubber.env} RAILS_ENV=#{Rubber.env} rubber config #{opts}"
   end
 
 end
