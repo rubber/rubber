@@ -17,6 +17,7 @@ module Rubber
 
         ::Zerigo::DNS::Base.user = provider_env.email
         ::Zerigo::DNS::Base.password = provider_env.token
+        ::Zerigo::DNS::Base.format = :xml
       end
 
       def host_to_opts(host)
