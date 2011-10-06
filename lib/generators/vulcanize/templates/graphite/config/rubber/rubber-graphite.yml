@@ -9,4 +9,4 @@ graphite_web_package_url: http://launchpad.net/graphite/0.9/0.9.9/+download/grap
 
 roles:
   graphite_web:
-    packages: [python-django apache2 libapache2-mod-wsgi python-cairo python-memcache memcached sqlite3 bzr]
+    packages: [python-django python-django-tagging apache2 libapache2-mod-wsgi python-cairo python-memcache memcached sqlite3 bzr]
