@@ -34,12 +34,6 @@ namespace :rubber do
 
           pushd graphite/carbon
           python setup.py install
-          # carbon setup.py missing install of daemon script twistd plugins, so do it
-          # manually till setup.py upstream installs them.  Also remove __init__ if present
-          # as it shadows system twistd package
-          cp -R /tmp/graphite_install/graphite/carbon/lib/twisted /opt/graphite/lib/
-          rm -f /opt/graphite/lib/twisted/__init__.*
-          rm -f /opt/graphite/lib/twisted/plugins/__init__.*
           popd
 
           pushd graphite
