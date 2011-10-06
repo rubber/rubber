@@ -4,7 +4,9 @@ namespace :rubber do
     Convenience task for creating a staging instance for the given RUBBER_ENV/RAILS_ENV.
     By default this task assigns all known roles when creating the instance,
     but you can specify a different default in rubber.yml:staging_roles
-    At the end, the instance will be up and running
+    At the end, the instance will be up and running.  If the staging instance
+    already exists, the user will be warned, and if they chose to proceed,
+    will skip the create and just bootstrap that instance.
     e.g. RUBBER_ENV=matt cap create_staging
   DESC
   required_task :create_staging do
@@ -13,12 +15,13 @@ namespace :rubber do
       fatal("Exiting", 0) if value !~ /^y/
     end
     instance_alias = ENV['ALIAS'] = rubber.get_env("ALIAS", "Hostname to use for staging instance", true, RUBBER_ENV)
-    default_roles = rubber_env.staging_roles || "*"
-    roles = ENV['ROLES'] = rubber.get_env("ROLES", "Roles to use for staging instance", true, default_roles)
 
     if rubber_instances[instance_alias]
       logger.info "Instance already exists, skipping to bootstrap"
     else
+      default_roles = rubber_env.staging_roles || "*"
+      roles = ENV['ROLES'] = rubber.get_env("ROLES", "Roles to use for staging instance", true, default_roles)
+      
       rubber.create
     end
 
