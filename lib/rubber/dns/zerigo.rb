@@ -4,7 +4,7 @@ begin
   require 'zerigo_dns'
 rescue LoadError
   puts "Missing the zerigo_dns gem.  Install with `sudo gem install zerigo_dns`."
-  exit(-1)
+  raise
 end
 
 module Rubber
@@ -17,6 +17,7 @@ module Rubber
 
         ::Zerigo::DNS::Base.user = provider_env.email
         ::Zerigo::DNS::Base.password = provider_env.token
+        ::Zerigo::DNS::Base.format = :xml
       end
 
       def host_to_opts(host)

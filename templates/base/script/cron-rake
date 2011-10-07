@@ -13,5 +13,5 @@ begin
 rescue
 end
 
-args = %W{-l #{log} -- rake --trace} + ARGV
-system "script/cron-sh", *args
+args = %W{-l #{log} -- bundle exec rake -t} + ARGV
+system "rvm", "exec", "script/cron-sh", *args

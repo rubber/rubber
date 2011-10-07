@@ -6,3 +6,6 @@ pkg
 .project
 .idea
 *.swp
+.DS_Store
+.gitignore
+atlassian-ide-plugin.xml

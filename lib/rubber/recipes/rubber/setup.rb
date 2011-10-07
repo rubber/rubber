@@ -189,7 +189,7 @@ namespace :rubber do
     delim = "#{delim} #{RUBBER_ENV}"
     remote_hosts = delim + "\n"
     rubber_instances.each do |ic|
-      hosts_data = [ic.name, ic.full_name, ic.external_host, ic.internal_host].join(' ')
+      hosts_data = [ic.full_name, ic.name, ic.external_host, ic.internal_host].join(' ')
       remote_hosts << ic.internal_ip << ' ' << hosts_data << "\n"
     end
     remote_hosts << delim << "\n"

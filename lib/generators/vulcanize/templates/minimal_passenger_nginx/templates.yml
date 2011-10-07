@@ -1,0 +1,4 @@
+description: A minimal deployment setup using passenger and nginx
+dependent_templates:
+  - base
+  - passenger_nginx

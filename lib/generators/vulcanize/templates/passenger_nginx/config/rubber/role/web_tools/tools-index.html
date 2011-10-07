@@ -1,0 +1,34 @@
+<%
+  @path = "/var/www/index.html"
+%>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+		<title>Rubber Admin Tools</title>
+	</head>
+	<body>
+		<h1>Rubber Admin Tools</h1>
+		<ul>
+
+      <li><a href="/munin/">Munin</a></li>
+
+      <% if cruise_host = rubber_instances.for_role('cruise').first %>
+        <li><a href="http://<%= cruise_host %>/cruise/">CruiseControl</a></li>
+      <% end %>
+
+		  <% rubber_instances.for_role('haproxy').sort {|a,b| a.name <=> b.name }.each do |ic| %>
+		      <li><a href="/haproxy_<%= ic.name %>/">HAProxy <%= ic.name %></a></li>
+		  <% end %>
+
+      <% rubber_instances.sort {|a,b| a.name <=> b.name }.each do |ic| %>
+          <li><a href="/monit_<%= ic.name %>/">Monit <%= ic.name %></a></li>
+      <% end %>
+      
+      <% if resque_host = rubber_instances.for_role('resque_web').first %>
+          <li><a href="/resque/">Resque</a></li>
+      <% end %>
+
+		</ul>
+	</body>
+</html>
