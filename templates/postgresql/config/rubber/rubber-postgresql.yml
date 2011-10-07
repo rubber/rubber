@@ -28,10 +28,10 @@ postgresql_ctl: "/usr/bin/env service postgresql"
 # Capistrano needs db:primary role for migrate to work,
 # so we might as well just make consistent across the board
 role_dependencies:
-  postgresql_master: ["db:primary=true"]
-  postgresql_slave: [db]
-  db:primary=true: [postgresql_master]
-  db: [postgresql_slave]
+  postgresql_master: [postgresql, "db:primary=true"]
+  postgresql_slave: [postgresql, db]
+  db:primary=true: [postgresql, postgresql_master]
+  db: [postgresql, postgresql_slave]
 
 packages: [postgresql-client, libpq-dev]
 gems: [pg]

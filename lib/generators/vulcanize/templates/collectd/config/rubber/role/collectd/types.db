@@ -1,0 +1,5 @@
+<%
+  @path = '/etc/collectd/types.db'
+%>
+
+domains_by_segment    domain_count:GAUGE:0:U, avg_user_count:GAUGE:0:U, avg_storage:GAUGE:0:U

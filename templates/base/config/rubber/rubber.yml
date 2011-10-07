@@ -6,7 +6,7 @@ app_user: app
 
 # REQUIRED: Notification emails (e.g. monit) get sent to this address
 #
-admin_email: root@localhost
+admin_email: "root@#{full_host}"
 
 # OPTIONAL: If not set, you won't be able to access web_tools
 # server (munin stats, monit status, etc)
