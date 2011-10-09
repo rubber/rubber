@@ -33,6 +33,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'aws-s3'
   s.add_dependency 'nettica'
   s.add_dependency 'thor'
+  s.add_dependency 'fog', '>= 1.0.0'
 
 end
 
