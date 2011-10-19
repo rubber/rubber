@@ -1,4 +1,3 @@
-
 namespace :rubber do
   
   namespace :postgresql do
@@ -50,7 +49,6 @@ namespace :rubber do
             rubber.sudo_script "create_master_db", <<-ENDSCRIPT
               sudo -u postgres psql -c "#{create_user_cmd}"
               sudo -u postgres psql -c "CREATE DATABASE #{env.db_name} WITH OWNER #{env.db_user}"
-              sudo -u postgres createlang plpythonu #{env.db_name}
             ENDSCRIPT
           end
         end
