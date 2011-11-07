@@ -150,15 +150,21 @@ namespace :rubber do
   DESC
   required_task :describe do
     results = []
-    format = "%-10s %-10s %-10s %-15s %-30s"
-    results << format % %w[InstanceID State Zone IP Alias\ (*=unknown)]
+    format = "%-10s %-10s %-10s %-10s %-15s %-30s"
+    results << format % %w[InstanceID Type State Zone IP Alias\ (*=unknown)]
 
     instances = cloud.describe_instances()
+    data = []
     instances.each do |instance|
       local_alias = find_alias(instance[:external_ip], instance[:id], instance[:state] == 'running')
-      results << format % [instance[:id], instance[:state], instance[:zone], instance[:external_ip] || "NoIP", local_alias || "Unknown"]
+      data << [instance[:id], instance[:type], instance[:state], instance[:zone], instance[:external_ip] || "NoIP", local_alias || "Unknown"]
     end
-    results.each {|r| logger.info r}
+
+    # sort by alias
+    data = data.sort {|r1, r2| r1.last <=> r2.last }
+    results.concat(data.collect {|r| format % r})
+
+    results.each {|r| logger.info(r) }
   end
 
   desc <<-DESC

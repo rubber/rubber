@@ -37,6 +37,7 @@ module Rubber
           ritem.instancesSet.item.each do |item|
             instance = {}
             instance[:id] = item.instanceId
+            instance[:type] = item.instanceType
             instance[:external_host] = item.dnsName
             instance[:external_ip] = item.ipAddress
             instance[:internal_host] = item.privateDnsName
