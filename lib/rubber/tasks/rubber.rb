@@ -258,7 +258,10 @@ namespace :rubber do
         data = s3objects.detect { |o| file == o.key }
       else
         puts "trying to fetch last modified s3 backup"
-        data = s3objects.max {|a,b| a.about["last-modified"] <=> b.about["last-modified"] }
+        # Only grab a file if the naming structure matches the current RUBBER_ENV
+        data = s3objects.select {|c| !c.key.match(/#{RUBBER_ENV}_dump_/).nil?  }.max do 
+          |a,b| a.about["last-modified"] <=> b.about["last-modified"]
+        end
       end
     end
     raise "could not access backup file via s3" unless data
