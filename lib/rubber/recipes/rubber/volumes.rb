@@ -292,7 +292,7 @@ namespace :rubber do
 
           mv /etc/fstab /etc/fstab.bak
           cat /etc/fstab.bak | grep -v '#{volume['mount']}\\b' > /etc/fstab
-          echo '#{device_name} #{volume['mount']} #{volume['filesystem']} #{vol_spec['mount_opts'] ? vol_spec['mount_opts'] : 'noatime'} 0 0 # rubber LVM volume' >> /etc/fstab
+          echo '#{device_name} #{volume['mount']} #{volume['filesystem']} #{volume['mount_opts'] ? volume['mount_opts'] : 'noatime'} 0 0 # rubber LVM volume' >> /etc/fstab
         fi
 
         # Check if the logical volume exists or not.
