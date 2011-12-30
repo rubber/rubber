@@ -22,6 +22,7 @@ gsub_file 'config/rubber/rubber.yml', /packages: \[/, "packages: [zip, "
 # gsub_file 'config/rubber/rubber.yml', /rubber, /, ''
 gsub_file 'config/rubber/rubber.yml', /, \[rubber, [^\]]*\]/, ''
 gsub_file 'config/rubber/rubber.yml', /,db:primary=true/, ',db:primary=true,web_tools'
+gsub_file 'config/rubber/rubber.yml', /image_type: m1.small/, 'image_type: c1.medium'
 
 default_secret = "~/rubber-secret.yml"
 secret = ask("Which rubber secret file [#{default_secret}] ?")
