@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
-
 env = ENV['RUBBER_ENV'] ||= 'development'
 root = '.'
 
-
-if File.exists?("Gemfile")
+# Only load gemfile if there and contains rubber in order
+# to allow vulcanize to work in bootstrap case
+if File.exists?("Gemfile") && File.read("Gemfile").lines.grep(/gem.*["']rubber["']/).size > 0
   require "bundler"
   Bundler.setup(:default, env.to_sym)
 end
