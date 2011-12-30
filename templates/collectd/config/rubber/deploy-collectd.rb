@@ -14,7 +14,7 @@ namespace :rubber do
       if exists.strip.size == 0
         rubber.update_code_for_bootstrap
 
-        rubber.run_config(:RUBBER_ENV => RUBBER_ENV, :FILE => "role/collectd", :FORCE => true, :deploy_path => release_path)
+        rubber.run_config(:file => "role/collectd", :force => true, :deploy_path => release_path)
 
         restart
       end

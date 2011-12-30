@@ -80,7 +80,7 @@ namespace :rubber do
             sudo base_backup_script, :hosts => [master.full_name]
 
             # Gen just the slave-specific conf.
-            rubber.run_config(:RUBBER_ENV => RUBBER_ENV, :FILE => "role/postgresql_slave/", :FORCE => true, :deploy_path => release_path)
+            rubber.run_config(:file => "role/postgresql_slave/", :force => true, :deploy_path => release_path)
 
             # Start up the server.
             sudo "#{rubber_env.postgresql_ctl} start"
