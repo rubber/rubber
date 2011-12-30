@@ -4,5 +4,5 @@ dependent_templates:
   - haproxy
   - passenger_nginx
   - monit
-  - munin
-  - memcached
+  - collectd
+  - graphite

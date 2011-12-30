@@ -11,7 +11,9 @@
 		<h1>Rubber Admin Tools</h1>
 		<ul>
 
-      <li><a href="/munin/">Munin</a></li>
+      <% if File.exist?("/var/www/munin") %>
+        <li><a href="/munin/">Munin</a></li>
+      <% end %>
 
       <% if cruise_host = rubber_instances.for_role('cruise').first %>
         <li><a href="http://<%= cruise_host %>/cruise/">CruiseControl</a></li>
@@ -23,6 +25,10 @@
 
       <% rubber_instances.each do |ic| %>
           <li><a href="/monit_<%= ic.name %>/">Monit <%= ic.name %></a></li>
+      <% end %>
+
+      <% if graphite_host = rubber_instances.for_role('graphite_web').first %>
+          <li><a href="/graphite/">Graphite</a></li>
       <% end %>
 
 		</ul>

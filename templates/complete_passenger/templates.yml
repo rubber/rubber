@@ -5,5 +5,5 @@ dependent_templates:
   - apache
   - passenger
   - monit
-  - munin
-  - memcached
+  - collectd
+  - graphite
