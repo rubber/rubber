@@ -26,7 +26,7 @@ gsub_file 'config/rubber/rubber.yml', /,db:primary=true/, ',db:primary=true,web_
 default_secret = "~/rubber-secret.yml"
 secret = ask("Which rubber secret file [#{default_secret}] ?")
 secret = default_secret if secret.blank?
-run "cp -f #{secret} config/rubber"
+run "cp -f #{secret} config/rubber/rubber-secret.yml"
 chmod 'config/rubber/rubber-secret.yml', 0644
 gsub_file 'config/rubber/rubber-secret.yml', /dns_provider: .*/, ''
 
