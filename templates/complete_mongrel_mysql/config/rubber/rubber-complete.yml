@@ -2,7 +2,7 @@
 role_dependencies:
   web: [nginx, haproxy]
   app: [mongrel]
-  web_tools: [nginx]
+  web_tools: [nginx, graphite_server, graphite_web]
 
 haproxy_listen_port: 9000
 web_port: 80

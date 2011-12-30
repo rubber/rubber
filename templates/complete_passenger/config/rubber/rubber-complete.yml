@@ -2,7 +2,7 @@
 role_dependencies:
   web: [haproxy]
   app: [passenger]
-  web_tools: [apache]
+  web_tools: [apache, graphite_server, graphite_web]
 
 web_port: 80
 web_ssl_port: 443
