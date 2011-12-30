@@ -8,21 +8,21 @@
 # For IronRuby (if you wish to use it) you will need:
 #   aptitude install curl mono-2.0-devel
 
-packages: [build-essential, git-core, subversion, curl, autoconf, bison, ruby, zlib1g-dev, libssl-dev, libreadline5-dev, libxml2-dev]
+packages: [build-essential, git-core, subversion, curl, autoconf, bison, ruby, zlib1g-dev, libssl-dev, libreadline5-dev, libxml2-dev, libyaml-dev]
 
 # REQUIRED: the version of rvm itself
-rvm_version: 1.8.3
+rvm_version: 1.10.0
 
 # REQUIRED: Set to the rvm version string for the ruby version you wish to use
 # Run "rvm list known" to see the list of possible options
-rvm_ruby: 1.9.2-p290
+rvm_ruby: 1.9.3-p0
 
 # REQUIRED: Set to version of RubyGems you want RVM to install. Note that older RVMs do not
 # know about newer RubyGems.  So you may need to bump your rvm_version to get the latest RubyGems release.
-rubygems_version: 1.5.2
+rubygems_version: 1.8.13
 
 # REQUIRED: Set to version of rake you want RVM to install.
-rake_version: 0.8.7
+rake_version: 0.9.2.2
 
 # When rvm is installed as root, and you set the default, it symlinks ruby executables
 # into /usr/local/rvm
