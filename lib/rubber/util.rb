@@ -61,6 +61,10 @@ module Rubber
       File.exist?(File.join(RUBBER_ROOT, 'Gemfile'))
     end
 
+    def self.bundle_exec
+      self.is_bundler? ? "bundle exec" : ""
+    end
+    
     def self.rubber_as_plugin?
       File.exist?(File.join(RUBBER_ROOT, 'vendor/plugins/rubber'))
     end

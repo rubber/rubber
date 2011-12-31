@@ -1,6 +1,7 @@
 require 'erb'
 require 'find'
 require 'fileutils'
+require 'rubber/util'
 
 module Rubber
   module Configuration
@@ -159,6 +160,7 @@ module Rubber
     # Instances of this object are used accept settings from with
     # a config file for when it is transformed by Generator
     class ConfigDescriptor
+      
       # The output path to write the transformed config file to
       attr_accessor :path
       # The command to use for reading the original config file from (e.g. "crontab -l")
@@ -201,6 +203,10 @@ module Rubber
 
       def rubber_instances()
         Rubber::Configuration.rubber_instances
+      end
+
+      def bundle_exec()
+        Rubber::Util.bundle_exec
       end
 
     end
