@@ -6,7 +6,7 @@ module Rubber
       attr_reader :env, :provider_env, :provider_name
 
       def initialize(env, provider_name)
-        @env = env
+        @env = env   
         @provider_name = provider_name
         @provider_env = @env.dns_providers[provider_name]
       end
