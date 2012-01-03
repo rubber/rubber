@@ -1,5 +1,6 @@
 <%
   @path = "/var/www/index.html"
+  tools_host = rubber_instances.for_role('web_tools').first
 %>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
@@ -28,11 +29,11 @@
       <% end %>
       
       <% if resque_host = rubber_instances.for_role('resque_web').first %>
-          <li><a href="/resque/">Resque</a></li>
+          <li><a href="https://resque.<%= tools_host.full_name %>:<%= rubber_env.web_tools_ssl_port %>/">Resque</a></li>
       <% end %>
 
       <% if graphite_host = rubber_instances.for_role('graphite_web').first %>
-          <li><a href="/graphite/">Graphite</a></li>
+        <li><a href="https://graphite.<%= tools_host.full_name %>:<%= rubber_env.web_tools_ssl_port %>/">Graphite</a></li>
       <% end %>
 
 		</ul>
