@@ -84,7 +84,7 @@ module Rubber
         backup_cmd = eval('%Q{' + backup_cmd + '}')
 
         puts "Backing up with command:"
-        sh backup_cmd
+        system backup_cmd || fail("Command failed: #{backup_cmd.inspect}")
         puts "Backup created"
 
         s3_prefix = "#{name}/"
@@ -170,7 +170,7 @@ module Rubber
         db_backup_cmd = eval('%Q{' + db_backup_cmd + '}')
 
         puts "Backing up database with command:"
-        sh db_backup_cmd
+        system db_backup_cmd || fail("Command failed: #{db_backup_cmd.inspect}")
         puts "Created backup: #{backup_file}"
 
         s3_prefix = "db/"
