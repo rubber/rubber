@@ -4,6 +4,7 @@ class CommandTest < Test::Unit::TestCase
 
   def setup
     system("rm -f #{Rubber.root}/log/*.log")
+    ENV['RUBBER_ROOT'] = Rubber.root
   end
   
   def teardown

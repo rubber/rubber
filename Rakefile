@@ -80,3 +80,4 @@ end
 desc 'Default: run unit tests.'
 task :default => :test
 
+fail "Run with 'bundle exec rake'" unless ENV['BUNDLE_GEMFILE']
