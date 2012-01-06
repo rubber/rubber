@@ -1,4 +1,6 @@
 #!/bin/bash
 
 export RUBBER_ROOT=`dirname $0`/..
-bundle exec rubber $@
+export BUNDLE_GEMFILE=$RUBBER_ROOT/Gemfile
+
+bundle exec rubber "$@"
