@@ -83,8 +83,8 @@ module Rubber
         backup_cmd = cmd.gsub(/%([^%]+)%/, '#{\1}')
         backup_cmd = eval('%Q{' + backup_cmd + '}')
 
-        puts "Backing up with command:"
-        system backup_cmd || fail("Command failed: #{backup_cmd.inspect}")
+        puts "Backing up with command: '#{backup_cmd}'"
+        system backup_cmd || fail("Command failed: '#{backup_cmd.inspect}'")
         puts "Backup created"
 
         s3_prefix = "#{name}/"
@@ -169,8 +169,8 @@ module Rubber
         db_backup_cmd = rubber_env.db_backup_cmd.gsub(/%([^%]+)%/, '#{\1}')
         db_backup_cmd = eval('%Q{' + db_backup_cmd + '}')
 
-        puts "Backing up database with command:"
-        system db_backup_cmd || fail("Command failed: #{db_backup_cmd.inspect}")
+        puts "Backing up database with command: '#{db_backup_cmd}'"
+        system db_backup_cmd || fail("Command failed: '#{db_backup_cmd.inspect}'")
         puts "Created backup: #{backup_file}"
 
         s3_prefix = "db/"
