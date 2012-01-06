@@ -39,6 +39,14 @@ class CommandTest < Test::Unit::TestCase
     assert_equal date, File.read(logs.first).strip
   end
   
+  def test_rubber_cron_task_logfile
+    date = Time.now.tv_sec.to_s
+    out = `rubber cron:task -- cron:sh -o -- echo #{date}`
+    logs = Dir["#{Rubber.root}/log/cron-task*.log"]
+    assert_equal 1, logs.size
+    assert_equal date, File.read(logs.first).strip
+  end
+  
   def test_rubber_cron_sh_directory_changed
     out = `rubber cron:sh -o -r /tmp -- pwd`
     assert_match /(\/private)?\/tmp/, out

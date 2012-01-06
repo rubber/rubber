@@ -39,7 +39,7 @@ module Rubber
 
       def sh
         cmd = parse_command
-        run_command(cmd)
+        run_command(cmd, options.logfile)
       end
             
       desc "task", Rubber::Util.clean_indent( <<-EOS
@@ -50,9 +50,8 @@ module Rubber
       def task
         cmd = parse_command
         log = "#{options.rootdir}/log/cron-task-#{cmd[0]}-#{Time.now.tv_sec}.log"
-        options.logfile = log 
         cmd = ["rubber"] + cmd
-        run_command(cmd)
+        run_command(cmd, log)
       end
       
       desc "rake", Rubber::Util.clean_indent( <<-EOS
@@ -63,9 +62,8 @@ module Rubber
       def rake
         cmd = parse_command
         log = "#{options.rootdir}/log/cron-rake-#{cmd[0]}-#{Time.now.tv_sec}.log"
-        options.logfile = log 
         cmd = ["rake"] + cmd
-        run_command(cmd)
+        run_command(cmd, log)
       end
 
       desc "runner", Rubber::Util.clean_indent( <<-EOS
@@ -76,9 +74,8 @@ module Rubber
       def runner
         cmd = parse_command
         log = "#{options.rootdir}/log/cron-runner-#{cmd[0].gsub(/\W+/, "_")}-#{Time.now.tv_sec}.log"
-        options.logfile = log 
         cmd = ["rails", "runner"] + cmd
-        run_command(cmd)
+        run_command(cmd, log)
       end
       
       private
@@ -92,7 +89,7 @@ module Rubber
         end
       end
       
-      def run_command(cmd)
+      def run_command(cmd, logfile)
         if options.user
           if options.user =~ /^[0-9]+$/
             uid = options.user.to_i
@@ -103,13 +100,13 @@ module Rubber
         end
         
         # make sure dir containing logfile exists
-        FileUtils.mkdir_p(File.dirname(options.logfile))
+        FileUtils.mkdir_p(File.dirname(logfile))
         
         # set current directory to rootdir
         Dir.chdir(options.rootdir)
   
         status = Open4::popen4(*cmd) do |pid, stdin, stdout, stderr|
-          File.open(options.logfile, "w") do | fh |
+          File.open(logfile, "w") do | fh |
             threads = []
             threads <<  Thread.new(stdout) do |stdout|
                stdout.each { |line| $stdout.puts line if options.echoout; fh.print line; fh.flush }
@@ -127,7 +124,7 @@ module Rubber
           puts "*** Process exited with non-zero error code, full output follows"
           puts "*** Command was: #{cmd.join(' ')}"
           puts ""
-          puts IO.read(options.logfile)
+          puts IO.read(logfile)
         end
         
         exit(result)
