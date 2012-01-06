@@ -5,5 +5,5 @@
 %>
 
 # Roll the nginx logs at midnight
-0 0 * * * <%= RUBBER_ROOT %>/script/cron-sh -- rubber util:rotate_logs --directory=/mnt/nginx/logs
+0 0 * * * <%= Rubber.root %>/script/rubber cron:task -- util:rotate_logs --directory=/mnt/nginx/logs
 

@@ -205,10 +205,6 @@ module Rubber
         Rubber::Configuration.rubber_instances
       end
 
-      def bundle_exec()
-        Rubber::Util.bundle_exec
-      end
-
     end
 
   end

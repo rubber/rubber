@@ -23,12 +23,11 @@
 
 MAILTO=<%= rubber_env.admin_email %>
 # don't need to set RUBBER_ENV for each script since we set it for all cron here
-RUBBER_ENV=<%= RUBBER_ENV %>
-RAILS_ENV=<%= RUBBER_ENV %>
-RUBYOPT=rubygems
+RUBBER_ENV=<%= Rubber.env %>
+RAILS_ENV=<%= Rubber.env %>
 
 # Roll all rails logs at midnight
-0 0 * * * <%= RUBBER_ROOT %>/script/cron-sh -- <%= bundle_exec %> rubber util:rotate_logs --directory=<%= RUBBER_ROOT %>/log
+0 0 * * * <%= Rubber.root %>/script/rubber cron:task -- util:rotate_logs --directory=<%= Rubber.root %>/log
 
 # Automatically set the clock for all machines
-<%= rand(60) %> 4 * * * <%= RUBBER_ROOT %>/script/cron-sh -- ntpdate pool.ntp.org
+<%= rand(60) %> 4 * * * <%= Rubber.root %>/script/rubber cron:sh -- ntpdate pool.ntp.org

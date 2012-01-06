@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 env = ENV['RUBBER_ENV'] ||= 'development'
-root = '.'
+root = File.expand_path(ENV['RUBBER_ROOT'] || '.')
 
 # Only load gemfile if there and contains rubber in order
 # to allow vulcanize to work in bootstrap case
@@ -10,7 +10,8 @@ if File.exists?("Gemfile") && File.read("Gemfile").lines.grep(/gem.*["']rubber["
 end
 
 require 'rubber'
-require 'rubber/cli'
-
 Rubber::initialize(root, env)
+
+require 'rubber/cli'
+$thor_runner = true
 Rubber::CLI.start

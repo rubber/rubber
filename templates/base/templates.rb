@@ -6,9 +6,3 @@ if Rubber::Util::is_bundler?
   # for cron-sh
   append_to_file 'Gemfile', "gem 'open4'\n"
 end
-
-if Rubber::Util::is_rails2?
-  m.gsub_file('script/cron-runner', /RAILS_RUNNER/, 'script/runner')
-else
-  gsub_file('script/cron-runner', /RAILS_RUNNER/, 'rails runner')
-end

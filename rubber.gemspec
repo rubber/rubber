@@ -33,8 +33,12 @@ Gem::Specification.new do |s|
   s.add_dependency 'aws-s3'
   s.add_dependency 'nettica'
   s.add_dependency 'thor'
+  s.add_dependency 'open4'
   s.add_dependency 'fog', '>= 1.0.0'
-
+  
+  s.add_development_dependency('rake')
+  s.add_development_dependency('test-unit')
+  s.add_development_dependency('mocha')
 end
 
 

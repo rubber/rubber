@@ -1,0 +1,4 @@
+#!/bin/bash
+
+export RUBBER_ROOT=`dirname $0`/..
+bundle exec rubber $@

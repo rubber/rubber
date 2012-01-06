@@ -5,4 +5,4 @@
 %>
 
 # Backup graphite web UI db every day
-0 1 * * * BACKUP_DIR=/mnt/graphite_backups BACKUP_NAME=graphite BACKUP_CMD="nice zip \%dir\%/graphite_<%= rubber_env.host %>_\%time_stamp\%.zip /opt/graphite/storage/*.db" <%= RUBBER_ROOT %>/script/cron-rake rubber:backup
+0 1 * * * <%= Rubber.root %>/script/rubber cron:task -- util:backup --directory /mnt/graphite_backups --name graphite --command "nice zip \%dir\%/graphite_<%= rubber_env.host %>_\%time_stamp\%.zip /opt/graphite/storage/*.db"

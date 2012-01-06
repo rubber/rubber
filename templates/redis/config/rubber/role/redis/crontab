@@ -10,6 +10,8 @@
   backup_redis_host ||= rubber_instances.for_role('redis_master').first
   if backup_redis_host.name == rubber_env.host
 %>
+
 # Backup redis DBs every hour.
-0 * * * * <%= RUBBER_ROOT %>/script/cron-sh -- <%= bundle_exec %> rubber util:backup --directory=/mnt/redis_backups --name=redis --command="nice zip -r \%dir\%/redis_\%time_stamp\%.zip <%= rubber_env.redis_db_dir %> -x \*temp\*.rdb"
+0 * * * * <%= Rubber.root %>/script/rubber cron:task -- util:backup --directory=/mnt/redis_backups --name=redis --command="nice zip -r \%dir\%/redis_\%time_stamp\%.zip <%= rubber_env.redis_db_dir %> -x \*temp\*.rdb"
+
 <% end %>

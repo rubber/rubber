@@ -2,10 +2,20 @@ require "thor"
 require "thor/group"
 require "thor/runner"
 
+# monkey patch thor arg parsing to allow "--" to short circuit
+# parsing - standard in most cli parsing systems
+class Thor::Arguments
+  private
+  def peek
+    p = @pile.first
+    p == "--" ? nil : p
+  end
+end
+
 module Rubber
 
   class CLI < Thor
-
+    
     # Override Thor#help so it can give information about any class and any method.
     #
     def help(meth = nil)

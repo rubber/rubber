@@ -5,7 +5,7 @@
 %>
 
 # incremental index once every 10 minutes
-*/10 * * * * sudo -u <%= rubber_env.app_user %> <%= RUBBER_ROOT %>/script/cron-rake RUBBER_ENV=<%= RUBBER_ENV %> ts:in:delta
+*/10 * * * * <%= Rubber.root %>/script/rubber cron:rake --user <%= rubber_env.app_user %> -- ts:in:delta
 
 # full reindex daily at 4:35
-35 4 * * * sudo -u <%= rubber_env.app_user %> <%= RUBBER_ROOT %>/script/cron-rake RUBBER_ENV=<%= RUBBER_ENV %> ts:index
+35 4 * * * <%= Rubber.root %>/script/rubber cron:rake --user <%= rubber_env.app_user %> -- ts:index

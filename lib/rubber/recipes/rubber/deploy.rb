@@ -84,7 +84,7 @@ namespace :rubber do
       put(File.read(secret), File.join(path, base, File.basename(secret)), :mode => "+r")
     end
     
-    rsudo "cd #{path} && RUBBER_ENV=#{Rubber.env} RAILS_ENV=#{Rubber.env} #{Rubber::Util.bundle_exec} rubber config #{opts}"
+    rsudo "cd #{path} && RUBBER_ENV=#{Rubber.env} RAILS_ENV=#{Rubber.env} ./script/rubber config #{opts}"
   end
 
 end

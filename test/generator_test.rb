@@ -1,8 +1,3 @@
-require 'rubygems'
-gem 'test-unit'
-
-require 'test/unit'
-require 'tempfile'
 require File.expand_path(File.join(__FILE__, '..', 'test_helper'))
 
 class GeneratorTest < Test::Unit::TestCase
