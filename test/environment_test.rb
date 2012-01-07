@@ -68,6 +68,9 @@ class EnvironmentTest < Test::Unit::TestCase
     e.map1.each do |k, v|
       assert_equal expected[k], v
     end
+    Array(e.map1).each do |k, v|
+      assert_equal expected[k], v
+    end
       
     e = env.bind('role1', 'nohost')
     assert_equal 'role1val1', e['var1']
