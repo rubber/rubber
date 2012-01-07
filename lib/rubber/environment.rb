@@ -110,6 +110,12 @@ module Rubber
             yield key, self[key]
           end
         end
+        
+        # allows expansion when to_a gets called on hash proxy, e.g. when wrapping
+        # a var in Array() to ensure error free iteration for possible null values
+        def to_a
+          self.collect {|k, v| [k, v]}
+        end
 
         def method_missing(method_id)
           key = method_id.id2name
