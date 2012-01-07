@@ -11,6 +11,12 @@ cruise_port: 3333
 # REQUIRED: The git repo to fetch your project from
 # cruise_repository: git@github.com:mylogin/myproject.git
 
+web_tools_proxies:
+  cruise:
+    role: cruise
+    port: 80
+    path: /cruise/
+
 roles:
   cruise:
     gems: [grit, mime-types, mongrel]

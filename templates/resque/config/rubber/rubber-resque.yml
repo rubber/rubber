@@ -13,6 +13,12 @@ resque_workers:
 
 gems: [yajl-ruby resque]
 
+web_tools_proxies:
+  resque:
+    role: resque_web
+    port: "#{resque_web_port}"
+    path: /
+
 role_dependencies:
   web_tools: [resque_web]
 

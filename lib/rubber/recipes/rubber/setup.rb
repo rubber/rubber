@@ -77,8 +77,19 @@ namespace :rubber do
     rubber_instances.each do |ic|
       # don't add unqualified hostname in local hosts file since user may be
       # managing multiple domains with same aliases
-      hosts_data = [ic.full_name, ic.external_host, ic.internal_host].join(' ')
-      local_hosts << ic.external_ip << ' ' << hosts_data << "\n"
+      hosts_data = [ic.full_name, ic.external_host, ic.internal_host]
+      
+      # add the ip aliases for web tools hosts so we can map internal tools
+      # to their own vhost to make proxying easier (rewriting url paths for
+      # proxy is a real pain, e.g. '/graphite/' externally to '/' on the
+      # graphite web app)
+      if ic.role_names.include?('web_tools')
+        Array(rubber_env.web_tools_proxies).each do |name, settings|
+          hosts_data << "#{name}.#{ic.full_name}"
+        end
+      end
+      
+      local_hosts << ic.external_ip << ' ' << hosts_data.join(' ') << "\n"
     end
     local_hosts << delim << "\n"
 
@@ -189,8 +200,19 @@ namespace :rubber do
     delim = "#{delim} #{RUBBER_ENV}"
     remote_hosts = delim + "\n"
     rubber_instances.each do |ic|
-      hosts_data = [ic.full_name, ic.name, ic.external_host, ic.internal_host].join(' ')
-      remote_hosts << ic.internal_ip << ' ' << hosts_data << "\n"
+      hosts_data = [ic.full_name, ic.name, ic.external_host, ic.internal_host]
+      
+      # add the ip aliases for web tools hosts so we can map internal tools
+      # to their own vhost to make proxying easier (rewriting url paths for
+      # proxy is a real pain, e.g. '/graphite/' externally to '/' on the
+      # graphite web app)
+      if ic.role_names.include?('web_tools')
+        Array(rubber_env.web_tools_proxies).each do |name, settings|
+          hosts_data << "#{name}.#{ic.full_name}"
+        end
+      end
+      
+      remote_hosts << ic.internal_ip << ' ' << hosts_data.join(' ') << "\n"
     end
     remote_hosts << delim << "\n"
     if rubber_instances.size > 0
@@ -376,6 +398,16 @@ namespace :rubber do
     if env.dns_provider
       provider = Rubber::Dns::get_provider(env.dns_provider, env)
       provider.update(instance_item.name, instance_item.external_ip)
+      
+      # add the ip aliases for web tools hosts so we can map internal tools
+      # to their own vhost to make proxying easier (rewriting url paths for
+      # proxy is a real pain, e.g. '/graphite/' externally to '/' on the
+      # graphite web app)
+      if instance_item.role_names.include?('web_tools')
+        Array(rubber_env.web_tools_proxies).each do |name, settings|
+          provider.update("#{name}.#{ic.name}", instance_item.external_ip)
+        end
+      end
     end
   end
 
@@ -384,6 +416,16 @@ namespace :rubber do
     if env.dns_provider
       provider = Rubber::Dns::get_provider(env.dns_provider, env)
       provider.destroy(instance_item.name)
+      
+      # add the ip aliases for web tools hosts so we can map internal tools
+      # to their own vhost to make proxying easier (rewriting url paths for
+      # proxy is a real pain, e.g. '/graphite/' externally to '/' on the
+      # graphite web app)
+      if instance_item.role_names.include?('web_tools')
+        Array(rubber_env.web_tools_proxies).each do |name, settings|
+          provider.destroy("#{name}.#{ic.name}")
+        end
+      end
     end
   end
 

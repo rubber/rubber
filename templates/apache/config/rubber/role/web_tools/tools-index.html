@@ -16,10 +16,6 @@
         <li><a href="/munin/">Munin</a></li>
       <% end %>
 
-      <% if cruise_host = rubber_instances.for_role('cruise').first %>
-        <li><a href="http://<%= cruise_host %>/cruise/">CruiseControl</a></li>
-      <% end %>
-
 		  <% rubber_instances.for_role('haproxy').sort {|a,b| a.name <=> b.name }.each do |ic| %>
 		      <li><a href="/haproxy_<%= ic.name %>/">HAProxy <%= ic.name %></a></li>
 		  <% end %>
@@ -27,13 +23,15 @@
       <% rubber_instances.sort {|a,b| a.name <=> b.name }.each do |ic| %>
           <li><a href="/monit_<%= ic.name %>/">Monit <%= ic.name %></a></li>
       <% end %>
-      
-      <% if resque_host = rubber_instances.for_role('resque_web').first %>
-          <li><a href="https://resque.<%= tools_host.full_name %>:<%= rubber_env.web_tools_ssl_port %>/">Resque</a></li>
-      <% end %>
-
-      <% if graphite_host = rubber_instances.for_role('graphite_web').first %>
-        <li><a href="https://graphite.<%= tools_host.full_name %>:<%= rubber_env.web_tools_ssl_port %>/">Graphite</a></li>
+       
+      <%
+        # add the ip aliases for web tools hosts so we can map internal tools
+        # to their own vhost to make proxying easier (rewriting url paths for
+        # proxy is a real pain, e.g. '/graphite/' externally to '/' on the
+        # graphite web app)
+        Array(rubber_env.web_tools_proxies).each do |name, settings|
+      %>
+        <li><a href="https://<%= name %>.<%= tools_host.full_name %>:<%= rubber_env.web_tools_ssl_port %>/"><%= name.capitalize %></a></li>
       <% end %>
 
 		</ul>

@@ -7,6 +7,12 @@ graphite_whisper_package_url: http://launchpad.net/graphite/0.9/0.9.9/+download/
 graphite_carbon_package_url: http://launchpad.net/graphite/0.9/0.9.9/+download/carbon-0.9.9.tar.gz
 graphite_web_package_url: http://launchpad.net/graphite/0.9/0.9.9/+download/graphite-web-0.9.9.tar.gz
 
+web_tools_proxies:
+  graphite:
+    role: graphite_web
+    port: "#{graphite_web_port}"
+    path: /
+    
 roles:
   graphite_web:
     packages: [python-django python-django-tagging apache2 libapache2-mod-wsgi python-cairo python-memcache memcached sqlite3 bzr]
