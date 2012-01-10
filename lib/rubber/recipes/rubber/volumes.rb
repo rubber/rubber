@@ -227,7 +227,7 @@ namespace :rubber do
           fi
           mv /etc/fstab /etc/fstab.bak
           cat /etc/fstab.bak | grep -vE '#{raid_spec['device']}|#{raid_spec['mount']}' > /etc/fstab
-          echo '#{raid_spec['device']} #{raid_spec['mount']} #{raid_spec['filesystem']} #{vol_spec['mount_opts'] ? vol_spec['mount_opts'] : 'noatime'} 0 0 # rubber raid volume' >> /etc/fstab
+          echo '#{raid_spec['device']} #{raid_spec['mount']} #{raid_spec['filesystem']} #{raid_spec['mount_opts'] ? raid_spec['mount_opts'] : 'noatime'} 0 0 # rubber raid volume' >> /etc/fstab
 
           # seems to help devices initialize, otherwise mdadm fails because
           # device not ready even though ec2 says the volume is attached
@@ -292,7 +292,7 @@ namespace :rubber do
 
           mv /etc/fstab /etc/fstab.bak
           cat /etc/fstab.bak | grep -v '#{volume['mount']}\\b' > /etc/fstab
-          echo '#{device_name} #{volume['mount']} #{volume['filesystem']} #{vol_spec['mount_opts'] ? vol_spec['mount_opts'] : 'noatime'} 0 0 # rubber LVM volume' >> /etc/fstab
+          echo '#{device_name} #{volume['mount']} #{volume['filesystem']} #{volume['mount_opts'] ? volume['mount_opts'] : 'noatime'} 0 0 # rubber LVM volume' >> /etc/fstab
         fi
 
         # Check if the logical volume exists or not.
