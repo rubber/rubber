@@ -7,3 +7,6 @@ require 'test/unit'
 require 'mocha'
 require 'pp'
 require 'tempfile'
+
+require 'fog'
+Fog.mock!
