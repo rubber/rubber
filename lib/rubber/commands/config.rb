@@ -2,42 +2,43 @@
 module Rubber
   module Commands
 
-    class Config < Thor
+    class Config < Clamp::Command
 
-      namespace :default
+      def self.subcommand_name
+        "config"
+      end
 
-      method_option :host, :type => :string, :aliases => "-h",
-                           :desc => "Override the instance's host for generation"
-      method_option :roles, :type => :string, :aliases => "-r",
-                           :desc => "Override the instance's roles for generation"
-      method_option :file, :type => :string, :aliases => "-p",
-                           :desc => "Only generate files that match the given pattern"
-      method_option :no_post, :type => :boolean, :aliases => "-n",
-                           :desc => "Skip running post commands for files that get generated"
-      method_option :force, :type => :boolean, :aliases => "-f",
-                           :desc => "Overwrite files that already exist"
-
-      desc "config", Rubber::Util.clean_indent(<<-EOS
-        Generate system config files by transforming the files in the config/rubber tree
-      EOS
-      )
-
-      def config
+      def self.subcommand_description
+        "Transform templates in the config/rubber tree"
+      end
+      
+      def self.description
+        "Generate system files by transforming the files in the config/rubber tree"
+      end
+      
+      option ["--host", "-h"], "HOST", "Override the instance's host for generation"
+      option ["--roles", "-r"], "ROLES", "Override the instance's roles for generation" do |str|
+        str.split(",")
+      end
+      option ["--file", "-p"], "FILE", "Only generate files matching the given pattern"
+      option ["--no_post", "-n"], :flag, "Skip running post commands"
+      option ["--force", "-f"], :flag, "Overwrite files that already exist"
+      
+      def execute
         cfg = Rubber::Configuration.get_configuration(Rubber.env)
         instance_alias = cfg.environment.current_host
         instance = cfg.instance[instance_alias]
         if instance
-          roles = instance.role_names
-          env = cfg.environment.bind(roles, instance_alias)
-          gen = Rubber::Configuration::Generator.new("#{Rubber.root}/config/rubber", roles, instance_alias)
+          role_names = instance.role_names
+          env = cfg.environment.bind(role_names, instance_alias)
+          gen = Rubber::Configuration::Generator.new("#{Rubber.root}/config/rubber", role_names, instance_alias)
         elsif ['development', 'test'].include?(Rubber.env)
-          instance_alias = options[:host] || instance_alias
-          roles = options[:roles].split(',') if options[:roles]
-          roles ||= cfg.environment.known_roles
-          role_items = roles.collect do |r|
+          instance_alias = host || instance_alias
+          role_names = roles || cfg.environment.known_roles
+          role_items = role_names.collect do |r|
             Rubber::Configuration::RoleItem.new(r, r == "db" ? {'primary' => true} : {})
           end
-          env = cfg.environment.bind(roles, instance_alias)
+          env = cfg.environment.bind(role_names, instance_alias)
           domain = env.domain
           instance = Rubber::Configuration::InstanceItem.new(instance_alias, domain, role_items,
                                                              'dummyid', 'm1.small', 'ami-7000f019', ['dummygroup'])
@@ -46,18 +47,18 @@ module Rubber
           instance.internal_host = instance.full_name
           instance.internal_ip = "127.0.0.1"
           cfg.instance.add(instance)
-          gen = Rubber::Configuration::Generator.new("#{Rubber.root}/config/rubber", roles, instance_alias)
+          gen = Rubber::Configuration::Generator.new("#{Rubber.root}/config/rubber", role_names, instance_alias)
           gen.fake_root ="#{Rubber.root}/tmp/rubber"
         else
           puts "Instance not found for host: #{instance_alias}"
           exit 1
         end
         
-        if options[:file]
-          gen.file_pattern = options[:file]
+        if file
+          gen.file_pattern = file
         end
-        gen.no_post = options[:no_post]
-        gen.force = options[:force]
+        gen.no_post = no_post?
+        gen.force = force?
         gen.stop_on_error_cmd = env.stop_on_error_cmd
         gen.run
 

@@ -27,7 +27,7 @@ RUBBER_ENV=<%= Rubber.env %>
 RAILS_ENV=<%= Rubber.env %>
 
 # Roll all rails logs at midnight
-0 0 * * * <%= Rubber.root %>/script/rubber cron:task -- util:rotate_logs --directory=<%= Rubber.root %>/log
+0 0 * * * <%= Rubber.root %>/script/rubber cron --task util:rotate_logs --directory=<%= Rubber.root %>/log
 
 # Automatically set the clock for all machines
-<%= rand(60) %> 4 * * * <%= Rubber.root %>/script/rubber cron:sh -- ntpdate pool.ntp.org
+<%= rand(60) %> 4 * * * <%= Rubber.root %>/script/rubber cron ntpdate pool.ntp.org

@@ -14,5 +14,4 @@ require 'rubber'
 Rubber::initialize(root, env)
 
 require 'rubber/cli'
-$thor_runner = true
-Rubber::CLI.start
+Rubber::CLI.run
