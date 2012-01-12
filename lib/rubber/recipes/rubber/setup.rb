@@ -102,6 +102,56 @@ namespace :rubber do
     end
   end
 
+
+  desc <<-DESC
+    Sets up aliases for instance hostnames based on contents of instance.yml.
+    Generates /etc/hosts for remote machines and sets hostname on remote instances
+  DESC
+  task :setup_remote_aliases do
+    hosts_file = '/etc/hosts'
+
+    # Generate /etc/hosts contents for the remote instance from instance config
+    delim = "## rubber config #{Rubber.env}"
+    remote_hosts = []
+    
+    rubber_instances.each do |ic|
+      hosts_data = [ic.internal_ip, ic.full_name, ic.name, ic.external_host, ic.internal_host]
+      
+      # add the ip aliases for web tools hosts so we can map internal tools
+      # to their own vhost to make proxying easier (rewriting url paths for
+      # proxy is a real pain, e.g. '/graphite/' externally to '/' on the
+      # graphite web app)
+      if ic.role_names.include?('web_tools')
+        Array(rubber_env.web_tools_proxies).each do |name, settings|
+          hosts_data << "#{name}.#{ic.full_name}"
+        end
+      end
+      
+      remote_hosts << hosts_data.join(' ')
+    end
+    
+    if rubber_instances.size > 0
+      
+      replace="#{delim}\\n#{remote_hosts.join("\\n")}\\n#{delim}"
+      
+      rubber.sudo_script 'setup_remote_aliases', <<-ENDSCRIPT
+        sed -i.bak '/#{delim}/,/#{delim}/c #{replace}' /etc/hosts
+        if ! grep -q "#{delim}" /etc/hosts; then
+          echo -e "#{replace}" >> /etc/hosts
+        fi
+      ENDSCRIPT
+      
+      # Setup hostname on instance so shell, etcs have nice display
+      rsudo "echo $CAPISTRANO:HOST$ > /etc/hostname && hostname $CAPISTRANO:HOST$"
+      # Newer ubuntus ec2-init script always resets hostname, so prevent it
+      rsudo "mkdir -p /etc/ec2-init && echo compat=0 > /etc/ec2-init/is-compat-env"
+    end
+
+    # TODO
+    # /etc/resolv.conf to add search domain
+    # ~/.ssh/options to setup user/host/key aliases
+  end
+  
   desc <<-DESC
     Sets up aliases in dynamic dns provider for instance hostnames based on contents of instance.yml.
   DESC
@@ -186,53 +236,6 @@ namespace :rubber do
         end
       end
     end
-  end
-
-  desc <<-DESC
-    Sets up aliases for instance hostnames based on contents of instance.yml.
-    Generates /etc/hosts for remote machines and sets hostname on remote instances
-  DESC
-  task :setup_remote_aliases do
-    hosts_file = '/etc/hosts'
-
-    # Generate /etc/hosts contents for the remote instance from instance config
-    delim = "## rubber config"
-    delim = "#{delim} #{RUBBER_ENV}"
-    remote_hosts = delim + "\n"
-    rubber_instances.each do |ic|
-      hosts_data = [ic.full_name, ic.name, ic.external_host, ic.internal_host]
-      
-      # add the ip aliases for web tools hosts so we can map internal tools
-      # to their own vhost to make proxying easier (rewriting url paths for
-      # proxy is a real pain, e.g. '/graphite/' externally to '/' on the
-      # graphite web app)
-      if ic.role_names.include?('web_tools')
-        Array(rubber_env.web_tools_proxies).each do |name, settings|
-          hosts_data << "#{name}.#{ic.full_name}"
-        end
-      end
-      
-      remote_hosts << ic.internal_ip << ' ' << hosts_data.join(' ') << "\n"
-    end
-    remote_hosts << delim << "\n"
-    if rubber_instances.size > 0
-      # write out the hosts file for the remote instances
-      # NOTE that we use "capture" to get the existing hosts
-      # file, which only grabs the hosts file from the first host
-      filtered = (capture "cat #{hosts_file}").gsub(/^#{delim}.*^#{delim}\n?/m, '')
-      filtered = filtered + remote_hosts
-      # Put the generated hosts back on remote instance
-      put filtered, hosts_file
-
-      # Setup hostname on instance so shell, etcs have nice display
-      rsudo "echo $CAPISTRANO:HOST$ > /etc/hostname && hostname $CAPISTRANO:HOST$"
-      # Newer ubuntus ec2-init script always resets hostname, so prevent it
-      rsudo "mkdir -p /etc/ec2-init && echo compat=0 > /etc/ec2-init/is-compat-env"
-    end
-
-    # TODO
-    # /etc/resolv.conf to add search domain
-    # ~/.ssh/options to setup user/host/key aliases
   end
 
   desc <<-DESC
