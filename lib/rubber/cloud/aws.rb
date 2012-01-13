@@ -232,6 +232,16 @@ module Rubber
         ec2_pk_dest = "/mnt/#{File.basename(ec2_pk)}"
         ec2_cert_dest = "/mnt/#{File.basename(ec2_cert)}"
 
+        # validate all needed config set
+        ["key_file", "pk_file", "cert_file", "account", "secret_access_key", "image_bucket"].each do |k|
+          raise "Set #{k} in rubber.yml" unless "#{@aws_env[k]}".strip.size > 0
+        end
+        
+        # create the bucket if needed
+        unless AWS::S3::Bucket.list.find { |b| b.name == @aws_env.image_bucket }
+          AWS::S3::Bucket.create(@aws_env.image_bucket)
+        end
+        
         capistrano.put(File.read(ec2_key), ec2_key_dest)
         capistrano.put(File.read(ec2_pk), ec2_pk_dest)
         capistrano.put(File.read(ec2_cert), ec2_cert_dest)
