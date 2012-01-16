@@ -27,7 +27,7 @@ namespace :rubber do
   
     desc "Reloads the unicorn web server"
     task :reload, :roles => :unicorn do
-      rsudo "if [ -f /var/run/unicorn.pid ]; then pid=`cat /var/run/unicorn.pid` && kill -HUP $pid; else cd #{current_path} && bundle exec unicorn_rails -c #{current_path}/config/unicorn.rb -E #{RUBBER_ENV} -D; fi"
+      rsudo "if [ -f /var/run/unicorn.pid ]; then pid=`cat /var/run/unicorn.pid` && kill -USR2 $pid; else cd #{current_path} && bundle exec unicorn_rails -c #{current_path}/config/unicorn.rb -E #{RUBBER_ENV} -D; fi"
     end
   
   end
