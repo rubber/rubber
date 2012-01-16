@@ -4,115 +4,95 @@ require 'fileutils'
 module Rubber
   module Commands
 
-    class Cron < Thor
+    class Cron < Clamp::Command
 
-      namespace :cron
+      def self.subcommand_name
+        "cron"
+      end
 
+      def self.subcommand_description
+        "A cron-safe way for running commands"
+      end
+      
+      def self.description
+        Rubber::Util.clean_indent( <<-EOS
+          Runs the given command, sending all stdout/stderr to a logfile, but echoing
+          the entire file if the command exits with an error.  Exits with the same
+          error code the command exited with
+        EOS
+        )
+      end
+      
       # options for all tasks
-      class_option :echoerr,
-                   :default => false,
-                   :type => :boolean, :aliases => "-e",
-                   :desc => "Log _and_ echo stderr"
-      class_option :echoout,
-                   :default => false,
-                   :type => :boolean, :aliases => "-o",
-                   :desc => "Log _and_ echo stdout"
-      class_option :rootdir,
-                   :default => Rubber.root,
-                   :type => :string, :aliases => "-r",
-                   :desc => "Root dir to cd into before running"
-      class_option :logfile,
-                   :default => "#{Rubber.root}/log/cron-sh-#{Time.now.tv_sec}.log",
-                   :type => :string, :aliases => "-l",
-                   :desc => "Logs output to the given file"
-      class_option :user,
-                   :type => :string, :aliases => "-u",
-                   :desc => "User to run the command as"
+      option ["-e", "--echoerr"],
+             :flag,
+             "Log _and_ echo stderr",
+             :default => false
+      option ["-o", "--echoout"],
+             :flag,
+             "Log _and_ echo stdout",
+             :default => false
+      option ["-r", "--rootdir"],
+             "ROOTDIR",
+             "Root dir to cd into before running\n (default: <Rubber.root>)"
+      option ["-l", "--logfile"],
+             "LOGFILE",
+             "Logs output to the given file\n (default: <rootdir>/log/cron-sh-<time>.log)"
+      option ["-u", "--user"],
+             "USER",
+             "User to run the command as"
+      option ["--task"],
+             :flag,
+             "Run the arguments with rubber"
+      option ["--runner"],
+             :flag,
+             "Run the arguments with rails runner"
+      option ["--rake"],
+             :flag,
+             "Run the arguments with rake"
+      parameter "COMMAND ...", "the command to run"
 
-      
-      desc "sh", Rubber::Util.clean_indent( <<-EOS
-        Runs the given command, sending all stdout/stderr to a logfile, but echoing
-        the entire file if the command exits with an error, and exits with the same
-        error code the command exited with
-      EOS
-      )
-
-      def sh
-        cmd = parse_command
-        run_command(cmd, options.logfile)
-      end
-            
-      desc "task", Rubber::Util.clean_indent( <<-EOS
-        Runs the given rubber task through cron:sh
-      EOS
-      )
-
-      def task
-        cmd = parse_command
-        log = "#{options.rootdir}/log/cron-task-#{cmd[0]}-#{Time.now.tv_sec}.log"
-        cmd = ["rubber"] + cmd
-        run_command(cmd, log)
-      end
-      
-      desc "rake", Rubber::Util.clean_indent( <<-EOS
-        Runs the given rake task through cron:sh
-      EOS
-      )
-      
-      def rake
-        cmd = parse_command
-        log = "#{options.rootdir}/log/cron-rake-#{cmd[0]}-#{Time.now.tv_sec}.log"
-        cmd = ["rake"] + cmd
-        run_command(cmd, log)
-      end
-
-      desc "runner", Rubber::Util.clean_indent( <<-EOS
-        Runs the given rails runner command through cron:sh
-      EOS
-      )
-      
-      def runner
-        cmd = parse_command
-        log = "#{options.rootdir}/log/cron-runner-#{cmd[0].gsub(/\W+/, "_")}-#{Time.now.tv_sec}.log"
-        cmd = ["rails", "runner"] + cmd
-        run_command(cmd, log)
-      end
-      
-      private
-      
-      def parse_command
-        sep_idx = ARGV.index("--")
-        if sep_idx
-          return ARGV[(sep_idx + 1)..-1]
-        else
-          fail("Run like: rubber cron:sh [opts] -- command")
+      def execute
+        self.rootdir ||= Rubber.root
+        self.logfile ||= "#{Rubber.root}/log/cron-sh-#{Time.now.tv_sec}.log"
+        
+        cmd = command_list
+        log = logfile
+        
+        if task?
+          log = "#{rootdir}/log/cron-task-#{cmd[0]}-#{Time.now.tv_sec}.log"
+          cmd = ["rubber"] + cmd
+        elsif runner?
+          log = "#{rootdir}/log/cron-runner-#{cmd[0].gsub(/\W+/, "_")}-#{Time.now.tv_sec}.log"
+          cmd = ["rails", "runner"] + cmd
+        elsif rake?
+          log = "#{rootdir}/log/cron-rake-#{cmd[0]}-#{Time.now.tv_sec}.log"
+          cmd = ["rake"] + cmd
         end
-      end
-      
-      def run_command(cmd, logfile)
-        if options.user
-          if options.user =~ /^[0-9]+$/
-            uid = options.user.to_i
+        
+        if user
+          if user =~ /^[0-9]+$/
+            uid = user.to_i
           else
-            uid = Etc.getpwnam(options.user).uid
+            uid = Etc.getpwnam(user).uid
           end
           Process::UID.change_privilege(uid) if uid != Process.euid
         end
         
         # make sure dir containing logfile exists
-        FileUtils.mkdir_p(File.dirname(logfile))
+        FileUtils.mkdir_p(File.dirname(log))
         
         # set current directory to rootdir
-        Dir.chdir(options.rootdir)
+        Dir.chdir(rootdir)
   
         status = Open4::popen4(*cmd) do |pid, stdin, stdout, stderr|
-          File.open(logfile, "w") do | fh |
+          File.open(log, "w") do | fh |
             threads = []
             threads <<  Thread.new(stdout) do |stdout|
-               stdout.each { |line| $stdout.puts line if options.echoout; fh.print line; fh.flush }
+               stdout.each { |line| $stdout.puts line if echoout?; fh.print line; fh.flush }
             end
             threads <<  Thread.new(stderr) do |stderr|
-               stderr.each { |line| $stderr.puts line if options.echoerr; fh.print line; fh.flush }
+               stderr.each { |line| $stderr.puts line if echoerr?; fh.print line; fh.flush }
             end
             threads.each { |t| t.join }
           end
@@ -124,7 +104,7 @@ module Rubber
           puts "*** Process exited with non-zero error code, full output follows"
           puts "*** Command was: #{cmd.join(' ')}"
           puts ""
-          puts IO.read(logfile)
+          puts IO.read(log)
         end
         
         exit(result)

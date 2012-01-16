@@ -1,13 +1,75 @@
 
+# vulcanize is the only thing that needs thor in order to get the
+# rails style generator capability
+require 'thor'
+
 module Rubber
   module Commands
 
-    class Vulcanize < Thor
+    class Vulcanize < Clamp::Command
+      
+      def self.subcommand_name
+        "vulcanize"
+      end
 
-      namespace :default
+      def self.subcommand_description
+        "Installs rubber templates into project"
+      end
+      
+      def self.description
+        lines = []
+        line = ""
+        VulcanizeThor.valid_templates.each do |t|
+          line << ", " if line.size > 0
+          line << t
+          if line.size > 55
+            lines << line + ","
+            line = ""
+          end
+        end
+        lines << line if line.size >0
+        
+        Rubber::Util.clean_indent(<<-EOS
+          Prepares the rails application for deploying with rubber by installing a
+          sample rubber configuration template. e.g.
+          
+            rubber vulcanize complete_passenger_postgresql
+          
+          where TEMPLATE is one of:
+          
+          #{lines.join("\n")}
+        EOS
+        )
+      end
+      
+      option ["-f", "--force"], :flag, "Overwrite files that already exist"
+      option ["-p", "--pretend"], :flag, "Run but do not make any changes"
+      option ["-q", "--quiet"], :flag, "Supress status output"
+      option ["-s", "--skip"], :flag, "Skip files that already exist"
+      
+      parameter "TEMPLATE ...", "rubber template(s)" do |arg|
+        invalid = arg - VulcanizeThor.valid_templates
+        if invalid.size == 0
+          arg
+        else
+          raise ArgumentError.new "Templates #{arg.inspect} don't exist"
+        end
+      end
+
+      def execute
+        v = VulcanizeThor.new([],
+                              :force => force?,
+                              :pretend => pretend?,
+                              :quiet => quiet?,
+                              :skip => skip?)
+        v.vulcanize(template_list)
+      end
+      
+    end
+    
+    class VulcanizeThor < Thor
 
       include Thor::Actions
-      add_runtime_options!
 
       def self.source_root
         File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'templates'))
@@ -17,21 +79,11 @@ module Rubber
         valid = Dir.entries(self.source_root).delete_if {|e| e =~  /(^\.)|svn|CVS/ }
       end
 
-      desc "vulcanize TEMPLATE", Rubber::Util.clean_indent(<<-EOS
-        Prepares the rails application for deploying with rubber by installing
-        a sample rubber configuration template.
+      desc "vulcanize TEMPLATE", ""
 
-          e.g. rubber vulcanize complete_passenger_postgresql
-
-        where TEMPLATE is one of:
-          #{valid_templates.join(", ")}
-      EOS
-      )
-
-      def vulcanize(template_name)
-        (template_name)
-        @template_dependencies = find_dependencies(template_name)
-        ([template_name] + @template_dependencies).each do |template|
+      def vulcanize(template_names)
+        @template_dependencies = template_names.collect {|t| [t] + find_dependencies(t) }.flatten.uniq
+        @template_dependencies.each do |template|
           apply_template(template)
         end
       end
