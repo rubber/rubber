@@ -1,3 +1,9 @@
+gemfile = File.expand_path(File.join(__FILE__, '..', 'Gemfile'))
+if File.exist?(gemfile) && ENV['BUNDLE_GEMFILE'].nil?
+  puts "Respawning with 'bundle exec rake'"
+  exec("bundle", "exec", "rake", *ARGV)
+end
+
 require 'bundler'
 Bundler::GemHelper.install_tasks
 
@@ -79,5 +85,3 @@ end
 
 desc 'Default: run unit tests.'
 task :default => :test
-
-fail "Run with 'bundle exec rake'" unless ENV['BUNDLE_GEMFILE']
