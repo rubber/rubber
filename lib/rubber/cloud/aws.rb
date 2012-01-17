@@ -319,8 +319,10 @@ module Rubber
         CMD
 
         image_location = "#{env.image_bucket}/#{image_name}.manifest.xml"
-        response = @ec2.register_image(:image_location => image_location)
-        return response.imageId
+        response = @compute_provider.register_image(image_name,
+                                                    "rubber bundled image",
+                                                    image_location)
+        return response.body["imageId"]
       end
 
       def describe_images(image_id=nil)
