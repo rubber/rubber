@@ -103,11 +103,12 @@ module Rubber
         raise "a key is required" unless key && key.size > 0
         
         if block_given?
-          @storage_provider.get_object(@bucket, key, opts, &block)
+          @directory.files.get(key, opts, &block)
         else
           Rubber::Util.retry_on_failure(*RETRYABLE_EXCEPTIONS) do
             begin
-              @storage_provider.get_object(@bucket, key, opts).body
+              file = @directory.files.get(key, opts)
+              file.body if file
             rescue Excon::Errors::NotFound
               nil
             end
