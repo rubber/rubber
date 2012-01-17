@@ -1,4 +1,4 @@
-require File.expand_path(File.join(__FILE__, '..', 'test_helper'))
+require File.expand_path(File.join(__FILE__, '../..', 'test_helper'))
 require 'rubber/cloud/aws_storage'
 require 'ostruct'
 

@@ -5,6 +5,13 @@
 #          This lets rubber update a dynamic dns service with the instance alias and ip
 #
 dns_providers:
+  fog:
+    credentials:
+     provider: aws
+     aws_access_key_id: "#{cloud_providers.aws.access_key}"
+     aws_secret_access_key: "#{cloud_providers.aws.secret_access_key}"
+    type: A
+    ttl: 300
   nettica:
     user: joe
     password: sekret

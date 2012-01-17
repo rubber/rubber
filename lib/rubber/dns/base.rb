@@ -3,12 +3,10 @@ module Rubber
 
     class Base
 
-      attr_reader :env, :provider_env, :provider_name
+      attr_reader :env
 
-      def initialize(env, provider_name)
+      def initialize(env)
         @env = env   
-        @provider_name = provider_name
-        @provider_env = @env.dns_providers[provider_name]
       end
 
       def update(host, ip)
@@ -60,9 +58,9 @@ module Rubber
       end
 
       def setup_opts(opts, required=[])
-        default_opts = {:domain => @env.domain,
-                        :type => @provider_env['type'] || @provider_env.record_type || 'A',
-                        :ttl => @provider_env.ttl || 300}
+        default_opts = {:domain => env.domain || Rubber.config.domain,
+                        :type => env['type'] || env.record_type || 'A',
+                        :ttl => env.ttl || 300}
         
         if opts.delete(:no_defaults)
           actual_opts = Rubber::Util::symbolize_keys(opts)
