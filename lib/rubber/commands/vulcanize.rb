@@ -152,22 +152,6 @@ module Rubber
         YAML.load(File.read(File.join(template_dir, 'templates.yml'))) rescue {}
       end
 
-      def rubber_env()
-        Rubber::Configuration.rubber_env
-      end
-
-      def rubber_instances()
-        Rubber::Configuration.rubber_instances
-      end
-
-      def cloud_provider
-        rubber_env.cloud_providers[rubber_env.cloud_provider]
-      end
-
-      def init_s3()
-        AWS::S3::Base.establish_connection!(:access_key_id => cloud_provider.access_key, :secret_access_key => cloud_provider.secret_access_key)
-      end
-
     end
 
   end

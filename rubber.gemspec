@@ -29,8 +29,6 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency 'capistrano', '>= 2.4.0'
-  s.add_dependency 'amazon-ec2', '>= 0.9.17'
-  s.add_dependency 'aws-s3'
   s.add_dependency 'nettica'
   s.add_dependency 'thor'
   s.add_dependency 'clamp'
@@ -39,6 +37,7 @@ Gem::Specification.new do |s|
   
   s.add_development_dependency('rake')
   s.add_development_dependency('test-unit')
+  s.add_development_dependency('shoulda-context')
   s.add_development_dependency('mocha')
   s.add_development_dependency('ruby-debug19')
 end

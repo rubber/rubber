@@ -259,20 +259,21 @@ namespace :rubber do
     end
     security_groups = get_assigned_security_groups(instance_alias, role_names)
 
-    ami = env.cloud_providers[env.cloud_provider].image_id
-    ami_type = env.cloud_providers[env.cloud_provider].image_type
+    cloud_env = env.cloud_providers[env.cloud_provider]
+    ami = cloud_env.image_id
+    ami_type = cloud_env.image_type
     availability_zone = env.availability_zone
 
-    create_spot_instance ||= env.cloud_providers[env.cloud_provider].spot_instance
+    create_spot_instance ||= cloud_env.spot_instance
 
     if create_spot_instance
-      spot_price = env.cloud_providers[env.cloud_provider].spot_price.to_s
+      spot_price = cloud_env.spot_price.to_s
 
       logger.info "Creating spot instance request for instance #{ami}/#{ami_type}/#{security_groups.join(',') rescue 'Default'}/#{availability_zone || 'Default'}"
       request_id = cloud.create_spot_instance_request(spot_price, ami, ami_type, security_groups, availability_zone)
 
       print "Waiting for spot instance request to be fulfilled"
-      max_wait_time = env.cloud_providers[env.cloud_provider].spot_instance_request_timeout || (1.0 / 0) # Use the specified timeout value or default to infinite.
+      max_wait_time = cloud_env.spot_instance_request_timeout || (1.0 / 0) # Use the specified timeout value or default to infinite.
       instance_id = nil
       while instance_id.nil? do
         print "."
@@ -308,11 +309,8 @@ namespace :rubber do
 
     # Sometimes tag creation will fail, indicating that the instance doesn't exist yet even though it does.  It seems to
     # be a propagation delay on Amazon's end, so the best we can do is wait and try again.
-    begin
+    Rubber::Util.retry_on_failure(Exception, :retry_sleep => 0.5, :retry_count => 100) do
       Rubber::Tag::update_instance_tags(instance_alias)
-    rescue Exception
-      sleep 0.5
-      retry
     end
   end
 

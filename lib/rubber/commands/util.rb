@@ -2,29 +2,7 @@
 module Rubber
   module Commands
 
-    module Support
-      
-      def rubber_env()
-        Rubber::Configuration.rubber_env
-      end
-      
-      def rubber_instances()
-        Rubber::Configuration.rubber_instances
-      end
-      
-      def cloud_provider
-        rubber_env.cloud_providers[rubber_env.cloud_provider]
-      end
-      
-      def init_s3()
-        AWS::S3::Base.establish_connection!(:access_key_id => cloud_provider.access_key,
-                                            :secret_access_key => cloud_provider.secret_access_key)
-      end
-      
-    end
-  
     class RotateLogs < Clamp::Command
-      include Rubber::Commands::Support
       
       def self.subcommand_name
         "util:rotate_logs"
@@ -78,7 +56,6 @@ module Rubber
     end
       
     class Backup < Clamp::Command
-      include Rubber::Commands::Support
       
       def self.subcommand_name
         "util:backup"
@@ -89,7 +66,7 @@ module Rubber
       end
       
       def self.description
-        "Performs a cyclical backup by storing the results of COMMAND to the backup\ndirectory (and s3)"
+        "Performs a cyclical backup by storing the results of COMMAND to the backup\ndirectory (and the cloud)"
       end
       
       option ["-n", "--name"],
@@ -123,17 +100,13 @@ module Rubber
         system backup_cmd || fail("Command failed: '#{backup_cmd.inspect}'")
         puts "Backup created"
       
-        s3_prefix = "#{name}/"
-        backup_bucket = cloud_provider.backup_bucket
+        cloud_prefix = "#{name}/"
+        backup_bucket = Rubber.cloud.env.backup_bucket
         if backup_bucket
-          init_s3
-          unless AWS::S3::Bucket.list.find { |b| b.name == backup_bucket }
-            AWS::S3::Bucket.create(backup_bucket)
-          end
           newest = Dir.entries(directory).grep(/^[^.]/).sort_by {|f| File.mtime(File.join(directory,f))}.last
-          dest = "#{s3_prefix}#{newest}"
-          puts "Saving backup to S3: #{backup_bucket}:#{dest}"
-          AWS::S3::S3Object.store(dest, open(File.join(directory, newest)), backup_bucket)
+          dest = "#{cloud_prefix}#{newest}"
+          puts "Saving backup to cloud: #{backup_bucket}:#{dest}"
+          Rubber.cloud.storage(backup_bucket).store(dest, open(File.join(directory, newest)))
         end
       
         tdate = Date.today - age
@@ -147,11 +120,11 @@ module Rubber
         end
       
         if backup_bucket
-          puts "Cleaning S3 backups older than #{age} days from: #{backup_bucket}:#{s3_prefix}"
-          AWS::S3::Bucket.objects(backup_bucket, :prefix => s3_prefix).clone.each do |obj|
-            if Time.parse(obj.about["last-modified"]) < threshold
-              puts "Deleting #{obj.key}"
-              obj.delete
+          puts "Cleaning cloud backups older than #{age} days from: #{backup_bucket}:#{cloud_prefix}"
+          Rubber.cloud.storage(backup_bucket).walk_tree(cloud_prefix) do |f|
+            if f.last_modified < threshold
+              puts "Deleting #{f.key}"
+              f.destroy
             end
           end
         end
@@ -160,7 +133,6 @@ module Rubber
     end
   
     class BackupDb < Clamp::Command
-      include Rubber::Commands::Support
       
       def self.subcommand_name
         "util:backup_db"
@@ -173,7 +145,7 @@ module Rubber
       def self.description
         Rubber::Util.clean_indent( <<-EOS
           Performs a cyclical backup of the database by storing the results of COMMAND
-          to the backup directory (and s3)
+          to the backup directory (and the cloud)
         EOS
         )
       end
@@ -204,7 +176,7 @@ module Rubber
         
         
         time_stamp = Time.now.strftime("%Y-%m-%d_%H-%M")
-        backup_file = "#{directory}/#{RUBBER_ENV}_dump_#{time_stamp}.sql.gz"
+        backup_file = "#{directory}/#{Rubber.env}_dump_#{time_stamp}.sql.gz"
         FileUtils.mkdir_p(File.dirname(backup_file))
         
         # extra variables for command interpolation
@@ -215,24 +187,20 @@ module Rubber
         host = dbhost
         name = dbname
       
-        raise "No db_backup_cmd defined in rubber.yml, cannot backup!" unless rubber_env.db_backup_cmd
-        db_backup_cmd = rubber_env.db_backup_cmd.gsub(/%([^%]+)%/, '#{\1}')
+        raise "No db_backup_cmd defined in rubber.yml, cannot backup!" unless Rubber.config.db_backup_cmd
+        db_backup_cmd = Rubber.config.db_backup_cmd.gsub(/%([^%]+)%/, '#{\1}')
         db_backup_cmd = eval('%Q{' + db_backup_cmd + '}')
       
         puts "Backing up database with command: '#{db_backup_cmd}'"
         system db_backup_cmd || fail("Command failed: '#{db_backup_cmd.inspect}'")
         puts "Created backup: #{backup_file}"
       
-        s3_prefix = "db/"
-        backup_bucket = cloud_provider.backup_bucket
+        cloud_prefix = "db/"
+        backup_bucket = Rubber.cloud.env.backup_bucket
         if backup_bucket
-          init_s3
-          unless AWS::S3::Bucket.list.find { |b| b.name == backup_bucket }
-            AWS::S3::Bucket.create(backup_bucket)
-          end
-          dest = "#{s3_prefix}#{File.basename(backup_file)}"
-          puts "Saving db backup to S3: #{backup_bucket}:#{dest}"
-          AWS::S3::S3Object.store(dest, open(backup_file), backup_bucket)
+          dest = "#{cloud_prefix}#{File.basename(backup_file)}"
+          puts "Saving db backup to cloud: #{backup_bucket}:#{dest}"
+          Rubber.cloud.storage(backup_bucket).store(dest, open(backup_file))
         end
       
         tdate = Date.today - age
@@ -246,11 +214,11 @@ module Rubber
         end
       
         if backup_bucket
-          puts "Cleaning S3 backups older than #{age} days from: #{backup_bucket}:#{s3_prefix}"
-          AWS::S3::Bucket.objects(backup_bucket, :prefix => s3_prefix).clone.each do |obj|
-            if Time.parse(obj.about["last-modified"]) < threshold
-              puts "Deleting #{obj.key}"
-              obj.delete
+          puts "Cleaning cloud backups older than #{age} days from: #{backup_bucket}:#{cloud_prefix}"
+          Rubber.cloud.storage(backup_bucket).walk_tree(cloud_prefix) do |f|
+            if f.last_modified < threshold
+              puts "Deleting #{f.key}"
+              f.destroy
             end
           end
         end
@@ -259,20 +227,19 @@ module Rubber
 
     end
   
-    class RestoreDbS3 < Clamp::Command
-      include Rubber::Commands::Support
+    class RestoreDb < Clamp::Command
       
       def self.subcommand_name
-        "util:restore_db_s3"
+        "util:restore_db"
       end
 
       def self.subcommand_description
-        "Performs a restore of the database from s3"
+        "Performs a restore of the database"
       end
       
       option ["-f", "--filename"],
              "FILENAME",
-             "The key of S3 object to use\nMost recent if not supplied"
+             "The key of cloud object to use\nMost recent if not supplied"
       option ["-u", "--dbuser"],
              "DBUSER",
              "The database user to connect with\nRequired"
@@ -293,31 +260,36 @@ module Rubber
         pass = nil if pass && pass.strip.size == 0
         host = dbhost
       
-        raise "No db_restore_cmd defined in rubber.yml" unless rubber_env.db_restore_cmd
-        db_restore_cmd = rubber_env.db_restore_cmd.gsub(/%([^%]+)%/, '#{\1}')
+        raise "No db_restore_cmd defined in rubber.yml" unless Rubber.config.db_restore_cmd
+        db_restore_cmd = Rubber.config.db_restore_cmd.gsub(/%([^%]+)%/, '#{\1}')
         db_restore_cmd = eval('%Q{' + db_restore_cmd + '}')
       
-        # try to fetch a matching file from s3 (if backup_bucket given)
-        backup_bucket = cloud_provider.backup_bucket
+        # try to fetch a matching file from the cloud (if backup_bucket given)
+        backup_bucket = Rubber.cloud.env.backup_bucket
         raise "No backup_bucket defined in rubber.yml" unless backup_bucket
-        if (init_s3 &&
-            AWS::S3::Bucket.list.find { |b| b.name == backup_bucket })
-          s3objects = AWS::S3::Bucket.find(backup_bucket,
-                     :prefix => 'db/')
-          if filename
-            puts "trying to fetch #{filename} from s3"
-            data = s3objects.detect { |o| filename == o.key }
-          else
-            puts "trying to fetch last modified s3 backup"
-            data = s3objects.max {|a,b| a.about["last-modified"] <=> b.about["last-modified"] }
+        
+        key = nil
+        cloud_prefix = "db/"
+        if filename
+          key = "#{cloud_prefix}#{filename}"
+        else
+          puts "trying to fetch last modified cloud backup"
+          max = nil
+          Rubber.cloud.storage(backup_bucket).walk_tree(cloud_prefix) do |f|
+            if f.last_modified < threshold
+              max = f if max.nil? || f.last_modified > max.last_modified
+            end
           end
+          key = max.key
         end
-        raise "could not access backup file via s3" unless data
+        
+        raise "could not access backup file from cloud" unless key
       
-        puts "piping restore data to command [#{db_restore_cmd}]"
+        puts "piping restore data from #{backup_bucket}:#{key} to command [#{db_restore_cmd}]"
+        
         IO.popen(db_restore_cmd, 'wb') do |p|
-          data.value do |segment|
-            p.write segment
+          Rubber.cloud.storage(backup_bucket).fetch(key) do |chunk|
+            p.write chunk
           end
         end
       

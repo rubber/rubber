@@ -6,7 +6,8 @@ module Rubber
     def self.get_provider(provider, env, capistrano)
       require "rubber/cloud/#{provider}"
       clazz = Rubber::Cloud.const_get(provider.capitalize)
-      return clazz.new(env, capistrano)
+      provider_env = env.cloud_providers[provider]
+      return clazz.new(provider_env, capistrano)
     end
 
   end

@@ -14,10 +14,6 @@ class ZerigoTest < Test::Unit::TestCase
     @zone = @fog.zones.create(:domain => @domain)
   end
 
-  def teardown
-    Fog::Mock.reset
-  end
-
   def test_find_records
     # Set up some sample records.
     first = @zone.records.create(:value => '172.16.16.1', :name => 'host1', :domain => @domain, :type => 'A')

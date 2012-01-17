@@ -1,246 +1,292 @@
-require 'rubygems'
-require 'AWS'
-require 'aws/s3'
+require 'fog'
+require 'rubber/cloud/aws_storage'
 
 module Rubber
   module Cloud
-
+  
     class Aws < Base
+      
+      attr_reader :compute_provider, :storage_provider
 
       def initialize(env, capistrano)
         super(env, capistrano)
-        @aws_env = env.cloud_providers.aws
-        @ec2 = AWS::EC2::Base.new(:access_key_id => @aws_env.access_key, :secret_access_key => @aws_env.secret_access_key, :server => @aws_env.server_endpoint)
-        @ec2elb = AWS::ELB::Base.new(:access_key_id => @aws_env.access_key, :secret_access_key => @aws_env.secret_access_key, :server => @aws_env.server_endpoint)
-        AWS::S3::Base.establish_connection!(:access_key_id => @aws_env.access_key, :secret_access_key => @aws_env.secret_access_key, :server => @aws_env.server_endpoint)
+        credentials = {:aws_access_key_id => env.access_key,
+                       :aws_secret_access_key => env.secret_access_key,
+                       :region => env.region }
+        
+        @elb = ::Fog::AWS::ELB.new(credentials)
+        
+        credentials[:provider] = 'AWS'
+        @compute_provider = ::Fog::Compute.new(credentials)
+        @storage_provider = ::Fog::Storage.new(credentials)
+      end
+      
+      def storage(bucket)
+        return Rubber::Cloud::AwsStorage.new(@storage_provider, bucket)
       end
 
       def create_instance(ami, ami_type, security_groups, availability_zone)
-        response = @ec2.run_instances(:image_id => ami, :key_name => @aws_env.key_name, :instance_type => ami_type, :security_group => security_groups, :availability_zone => availability_zone)
-        instance_id = response.instancesSet.item[0].instanceId
+        response = @compute_provider.servers.create(:image_id => ami,
+                                                    :flavor_id => ami_type,
+                                                    :groups => security_groups,
+                                                    :availability_zone => availability_zone,
+                                                    :key_name => env.key_name)
+        instance_id = response.id
         return instance_id
       end
 
       def create_spot_instance_request(spot_price, ami, ami_type, security_groups, availability_zone)
-        response = @ec2.request_spot_instances(:spot_price => spot_price, :image_id => ami, :key_name => @aws_env.key_name, :instance_type => ami_type, :security_group => security_groups, :availability_zone => availability_zone)
-        request_id = response.spotInstanceRequestSet.item[0].spotInstanceRequestId
+        response = @compute_provider.spot_requests.create(:spot_price => spot_price,
+                                                          :image_id => ami,
+                                                          :flavor_id => ami_type,
+                                                          :groups => security_groups,
+                                                          :availability_zone => availability_zone,
+                                                          :key_name => env.key_name)
+        request_id = response.id
         return request_id
       end
 
       def describe_instances(instance_id=nil)
         instances = []
         opts = {}
-        opts[:instance_id] = instance_id if instance_id
+        opts["instance-id"] = instance_id if instance_id
 
-        response = @ec2.describe_instances(opts)
-        response.reservationSet.item.each do |ritem|
-          ritem.instancesSet.item.each do |item|
-            instance = {}
-            instance[:id] = item.instanceId
-            instance[:type] = item.instanceType
-            instance[:external_host] = item.dnsName
-            instance[:external_ip] = item.ipAddress
-            instance[:internal_host] = item.privateDnsName
-            instance[:internal_ip] = item.privateIpAddress
-            instance[:state] = item.instanceState.name
-            instance[:zone] = item.placement.availabilityZone
-            instance[:platform] = item.platform || 'linux'
-            instance[:root_device_type] = item.rootDeviceType
-            instances << instance
-          end
-        end if response.reservationSet
+        response = @compute_provider.servers.all(opts)
+        response.each do |item|
+          instance = {}
+          instance[:id] = item.id
+          instance[:type] = item.flavor_id
+          instance[:external_host] = item.dns_name
+          instance[:external_ip] = item.public_ip_address
+          instance[:internal_host] = item.private_dns_name
+          instance[:internal_ip] = item.private_ip_address
+          instance[:state] = item.state
+          instance[:zone] = item.availability_zone
+          instance[:platform] = item.platform || 'linux'
+          instance[:root_device_type] = item.root_device_type
+          instances << instance
+        end
 
         return instances
       end
 
+      def describe_spot_instance_requests(request_id=nil)
+        requests = []
+        opts = {}
+        opts["spot-instance-request-id"] = request_id if request_id
+        response = @compute_provider.spot_requests.all(opts)
+        response.each do |item|
+          request = {}
+          request[:id] = item.id
+          request[:spot_price] = item.price
+          request[:state] = item.state
+          request[:created_at] = item.created_at
+          request[:type] = item.flavor_id
+          request[:image_id] = item.image_id
+          request[:instance_id] = item.instance_id
+          requests << request
+        end
+        return requests
+      end
+
+
       def destroy_instance(instance_id)
-        response = @ec2.terminate_instances(:instance_id => instance_id)
+        response = @compute_provider.servers.get(instance_id).destroy()
       end
 
+      def destroy_spot_instance_request(request_id)
+        @compute_provider.spot_requests.get(request_id).destroy
+      end
+  
       def reboot_instance(instance_id)
-        response = @ec2.reboot_instances(:instance_id => instance_id)
+        response = @compute_provider.servers.get(instance_id).reboot()
       end
 
-      def stop_instance(instance_id)
+      def stop_instance(instance_id, force=false)
         # Don't force the stop process. I.e., allow the instance to flush its file system operations.
-        response = @ec2.stop_instances(:instance_id => instance_id, :force => false)
+        response = @compute_provider.servers.get(instance_id).stop(force)
       end
 
       def start_instance(instance_id)
-        response = @ec2.start_instances(:instance_id => instance_id)
+        response = @compute_provider.servers.get(instance_id).start()
       end
 
       def describe_availability_zones
         zones = []
-        response = @ec2.describe_availability_zones()
-        response.availabilityZoneInfo.item.each do |item|
+        response = @compute_provider.describe_availability_zones()
+        items = response.body["availabilityZoneInfo"] 
+        items.each do |item|
           zone = {}
-          zone[:name] = item.zoneName
-          zone[:state] =item.zoneState
+          zone[:name] = item["zoneName"]
+          zone[:state] =item["zoneState"]
           zones << zone
-        end if response.availabilityZoneInfo
+        end
         return zones
       end
 
       def create_security_group(group_name, group_description)
-        @ec2.create_security_group(:group_name => group_name, :group_description => group_description)
+        @compute_provider.security_groups.create(:name => group_name, :description => group_description)
       end
 
       def describe_security_groups(group_name=nil)
         groups = []
 
         opts = {}
-        opts[:group_name] = group_name if group_name
-        response = @ec2.describe_security_groups(opts)
+        opts["group-name"] = group_name if group_name
+        response = @compute_provider.security_groups.all(opts)
 
-        response.securityGroupInfo.item.each do |item|
+        response.each do |item|
           group = {}
-          group[:name] = item.groupName
-          group[:description] = item.groupDescription
+          group[:name] = item.name
+          group[:description] = item.description
 
-          item.ipPermissions.item.each do |ip_item|
+          item.ip_permissions.each do |ip_item|
             group[:permissions] ||= []
             rule = {}
 
-            rule[:protocol] = ip_item.ipProtocol
-            rule[:from_port] = ip_item.fromPort
-            rule[:to_port] = ip_item.toPort
+            rule[:protocol] = ip_item["ipProtocol"]
+            rule[:from_port] = ip_item["fromPort"]
+            rule[:to_port] = ip_item["toPort"]
 
-            ip_item.groups.item.each do |rule_group|
+            ip_item["groups"].each do |rule_group|
               rule[:source_groups] ||= []
               source_group = {}
-              source_group[:account] = rule_group.userId
-              source_group[:name] = rule_group.groupName
+              source_group[:account] = rule_group["userId"]
+              source_group[:name] = rule_group["groupName"]
               rule[:source_groups] << source_group
-            end if ip_item.groups
+            end if ip_item["groups"]
 
-            ip_item.ipRanges.item.each do |ip_range|
+            ip_item["ipRanges"].each do |ip_range|
               rule[:source_ips] ||= []
-              rule[:source_ips] << ip_range.cidrIp
-            end if ip_item.ipRanges
+              rule[:source_ips] << ip_range["cidrIp"]
+            end if ip_item["ipRanges"]
 
             group[:permissions] << rule
-          end if item.ipPermissions
+          end
 
           groups << group
           
-        end if response.securityGroupInfo
+        end
 
         return groups
       end
 
       def add_security_group_rule(group_name, protocol, from_port, to_port, source)
-        opts = {:group_name => group_name}
+        group = @compute_provider.security_groups.get(group_name)
         if source.instance_of? Hash
-          opts = opts.merge(:source_security_group_name => source[:name], :source_security_group_owner_id => source[:account])
+          group.authorize_group_and_owner(source[:name], source[:account])
         else
-          opts = opts.merge(:ip_protocol => protocol, :from_port => from_port, :to_port => to_port, :cidr_ip => source)
+          group.authorize_port_range(from_port.to_i..to_port.to_i, :ip_protocol => protocol, :cidr_ip => source)
         end
-        @ec2.authorize_security_group_ingress(opts)
       end
 
       def remove_security_group_rule(group_name, protocol, from_port, to_port, source)
-        opts = {:group_name => group_name}
+        group = @compute_provider.security_groups.get(group_name)
         if source.instance_of? Hash
-          opts = opts.merge(:source_security_group_name => source[:name], :source_security_group_owner_id => source[:account])
+          group.revoke_group_and_owner(source[:name], source[:account])
         else
-          opts = opts.merge(:ip_protocol => protocol, :from_port => from_port, :to_port => to_port, :cidr_ip => source)
+          group.revoke_port_range(from_port.to_i..to_port.to_i, :ip_protocol => protocol, :cidr_ip => source)
         end
-        @ec2.revoke_security_group_ingress(opts)
       end
 
       def destroy_security_group(group_name)
-        @ec2.delete_security_group(:group_name => group_name)
+        @compute_provider.security_groups.get(group_name).destroy
       end
 
       def create_static_ip
-        response = @ec2.allocate_address()
-        return response.publicIp
+        address = @compute_provider.addresses.create()
+        return address.public_ip
       end
 
       def attach_static_ip(ip, instance_id)
-        response = @ec2.associate_address(:instance_id => instance_id, :public_ip => ip)
-        return response.return == "true"
+        address = @compute_provider.addresses.get(ip)
+        server = @compute_provider.servers.get(instance_id)
+        response = (address.server = server)
+        return ! response.nil?
       end
 
       def detach_static_ip(ip)
-        response = @ec2.disassociate_address(:public_ip => ip)
-        return response.return == "true"
+        address = @compute_provider.addresses.get(ip)
+        response = (address.server = nil)
+        return ! response.nil?
       end
 
       def describe_static_ips(ip=nil)
         ips = []
         opts = {}
-        opts[:public_ip] = ip if ip
-        response = @ec2.describe_addresses(opts)
-        response.addressesSet.item.each do |item|
+        opts["public-ip"] = ip if ip
+        response = @compute_provider.addresses.all(opts)
+        response.each do |item|
           ip = {}
-          ip[:instance_id] = item.instanceId
-          ip[:ip] = item.publicIp
+          ip[:instance_id] = item.server_id
+          ip[:ip] = item.public_ip
           ips << ip
-        end if response.addressesSet
+        end
         return ips
       end
 
       def destroy_static_ip(ip)
-        response = @ec2.release_address(:public_ip => ip)
-        return response.return == "true"
+        address = @compute_provider.addresses.get(ip)
+        return address.destroy
       end
 
       def create_volume(size, zone)
-        response = @ec2.create_volume(:size => size.to_s, :availability_zone => zone)
-        return response.volumeId
+        volume = @compute_provider.volumes.create(:size => size.to_s, :availability_zone => zone)
+        return volume.id
       end
 
       def attach_volume(volume_id, instance_id, device)
-        response = @ec2.attach_volume(:volume_id => volume_id, :instance_id => instance_id, :device => device)
-        return response.status
+        volume = @compute_provider.volumes.get(volume_id)
+        server = @compute_provider.servers.get(instance_id)
+        volume.device = device
+        volume.server = server
+        return volume.status
       end
 
-      def detach_volume(volume_id)
-        @ec2.detach_volume(:volume_id => volume_id, :force => 'true')
+      def detach_volume(volume_id, force=true)
+        volume = @compute_provider.volumes.get(volume_id)
+        force ? volume.force_detach : (volume.server = nil)
+        return volume.status
       end
 
       def describe_volumes(volume_id=nil)
         volumes = []
         opts = {}
-        opts[:volume_id] = volume_id if volume_id
-        response = @ec2.describe_volumes(opts)
-        response.volumeSet.item.each do |item|
+        opts[:volume-id] = volume_id if volume_id
+        response = @compute_provider.volumes.all(opts)
+        response.each do |item|
           volume = {}
-          volume[:id] = item.volumeId
-          volume[:status] = item.status
-          if item.attachmentSet
+          volume[:id] = item.id
+          volume[:status] = item.state
+          if item.server_id
             attach = item.attachmentSet.item[0]
-            volume[:attachment_instance_id] = attach.instanceId
-            volume[:attachment_status] = attach.status
+            volume[:attachment_instance_id] = item.server_id
+            volume[:attachment_status] = item.attached_at ? "attached" : "waiting"
           end
           volumes << volume
-        end if response.volumeSet
+        end
         return volumes
       end
 
       def destroy_volume(volume_id)
-        @ec2.delete_volume(:volume_id => volume_id)
+        @compute_provider.volumes.get(volume_id).destroy
       end
 
       def create_image(image_name)
-        ec2_key = @aws_env.key_file
-        ec2_pk = @aws_env.pk_file
-        ec2_cert = @aws_env.cert_file
+        ec2_key = env.key_file
+        ec2_pk = env.pk_file
+        ec2_cert = env.cert_file
         ec2_key_dest = "/mnt/#{File.basename(ec2_key)}"
         ec2_pk_dest = "/mnt/#{File.basename(ec2_pk)}"
         ec2_cert_dest = "/mnt/#{File.basename(ec2_cert)}"
 
         # validate all needed config set
         ["key_file", "pk_file", "cert_file", "account", "secret_access_key", "image_bucket"].each do |k|
-          raise "Set #{k} in rubber.yml" unless "#{@aws_env[k]}".strip.size > 0
+          raise "Set #{k} in rubber.yml" unless "#{env[k]}".strip.size > 0
         end
+        raise "create_image can only be called from a capistrano scope" unless capistrano
         
-        # create the bucket if needed
-        unless AWS::S3::Bucket.list.find { |b| b.name == @aws_env.image_bucket }
-          AWS::S3::Bucket.create(@aws_env.image_bucket)
-        end
+        storage(env.image_bucket).ensure_bucket
         
         capistrano.put(File.read(ec2_key), ec2_key_dest)
         capistrano.put(File.read(ec2_pk), ec2_pk_dest)
@@ -253,7 +299,7 @@ module Rubber
           rvm use system
           export RUBYLIB=/usr/lib/site_ruby/
           unset RUBYOPT
-          nohup ec2-bundle-vol --batch -d /mnt -k #{ec2_pk_dest} -c #{ec2_cert_dest} -u #{@aws_env.account} -p #{image_name} -r #{arch} &> /tmp/ec2-bundle-vol.log &
+          nohup ec2-bundle-vol --batch -d /mnt -k #{ec2_pk_dest} -c #{ec2_cert_dest} -u #{env.account} -p #{image_name} -r #{arch} &> /tmp/ec2-bundle-vol.log &
           sleep 1
 
           echo "Creating image from instance volume..."
@@ -269,106 +315,77 @@ module Rubber
           export RUBYLIB=/usr/lib/site_ruby/
           unset RUBYOPT
           echo "Uploading image to S3..."
-          ec2-upload-bundle --batch -b #{@aws_env.image_bucket} -m /mnt/#{image_name}.manifest.xml -a #{@aws_env.access_key} -s #{@aws_env.secret_access_key}
+          ec2-upload-bundle --batch -b #{env.image_bucket} -m /mnt/#{image_name}.manifest.xml -a #{env.access_key} -s #{env.secret_access_key}
         CMD
 
-        image_location = "#{@aws_env.image_bucket}/#{image_name}.manifest.xml"
+        image_location = "#{env.image_bucket}/#{image_name}.manifest.xml"
         response = @ec2.register_image(:image_location => image_location)
         return response.imageId
       end
 
       def describe_images(image_id=nil)
         images = []
-        opts = {:owner_id => 'self'}
-        opts[:image_id] = image_id if image_id
-        response = @ec2.describe_images(opts)
-        response.imagesSet.item.each do |item|
+        opts = {"Owner" => "self"}
+        opts["image-id"] = image_id if image_id
+        response = @compute_provider.images.all(opts)
+        response.each do |item|
           image = {}
-          image[:id] = item.imageId
-          image[:location] = item.imageLocation
-          image[:root_device_type] = item.rootDeviceType
+          image[:id] = item.id
+          image[:location] = item.location
+          image[:root_device_type] = item.root_device_type
           images << image
-        end if response.imagesSet
+        end
         return images
       end
 
       def destroy_image(image_id)
-        image = describe_images(image_id).first
+        image = @compute_provider.images.get(image_id)
         raise "Could not find image: #{image_id}, aborting destroy_image" if image.nil?
-        image_location = image[:location]
-        bucket = image_location.split('/').first
-        image_name = image_location.split('/').last.gsub(/\.manifest\.xml$/, '')
 
-        @ec2.deregister_image(:image_id => image_id)
+        location_parts = image.location.split('/')
+        bucket = location_parts.first
+        image_name = location_parts.last.gsub(/\.manifest\.xml$/, '')
 
-        s3_bucket = AWS::S3::Bucket.find(bucket)
-        s3_bucket.objects(:prefix => image_name).clone.each do |obj|
-          obj.delete
+        image.deregister
+
+        storage(bucket).walk_tree(image_name) do |f|
+          f.destroy
         end
-        if s3_bucket.empty?
-          s3_bucket.delete
-        end
-      end
-
-      def destroy_spot_instance_request(request_id)
-        @ec2.cancel_spot_instance_requests :spot_instance_request_id => request_id
       end
 
       def describe_load_balancers(name=nil)
         lbs = []
-        opts = {}
-        opts[:load_balancer_names] = name if name
-        response = @ec2elb.describe_load_balancers(opts)
-        response.describeLoadBalancersResult.member.each do |member|
+        response = name.nil? ? @elb.load_balancers.all() : [@elb.load_balancers.get(name)].compact
+        response.each do |item|
           lb = {}
-          lb[:name] = member.loadBalancerName
-          lb[:dns_name] = member.dNSName
+          lb[:name] = item.id
+          lb[:dns_name] = item.dns_name
+          lb[:zones] = item.availability_zones
 
-          member.availabilityZones.member.each do |zone|
-            lb[:zones] ||= []
-            lb[:zones] << zone
-          end
-
-          member.listeners.member.each do |member|
+          item.listeners.each do |litem|
             listener = {}
-            listener[:protocol] = member.protocol
-            listener[:port] = member.loadBalancerPort
-            listener[:instance_port] = member.instancePort
+            listener[:protocol] = litem.protocol
+            listener[:port] = litem.lb_portPort
+            listener[:instance_port] = litem.instance_port
             lb[:listeners] ||= []
             lb[:listeners] << listener
           end
 
           lbs << lb
-        end if response.describeLoadBalancersResult
+        end
         return lbs
-      end
-
-      def describe_spot_instance_requests(request_id=nil)
-        requests = []
-        opts = {}
-        opts[:spot_instance_request_id] = request_id if request_id
-        response = @ec2.describe_spot_instance_requests(opts)
-        response.spotInstanceRequestSet.item.each do |item|
-          request = {}
-          request[:id] = item.spotInstanceRequestId
-          request[:spot_price] = item.spotPrice
-          request[:state] = item.state
-          request[:created_at] = item.createTime
-          request[:type] = item.launchSpecification.instanceType
-          request[:image_id] = item.launchSpecification.imageId
-          request[:instance_id] = item.instanceId
-          requests << request
-        end if response.spotInstanceRequestSet
-        return requests
       end
 
       # resource_id is any Amazon resource ID (e.g., instance ID or volume ID)
       # tags is a hash of tag_name => tag_value pairs
       def create_tags(resource_id, tags)
-        # Tags needs to be an array of hashes, not one big hash, so break it down.
-        @ec2.create_tags(:resource_id => resource_id, :tag => tags.collect { |k, v| { k.to_s => v.to_s } })
+        # Tags need to be created individually in fog
+        tags.each do |k, v|
+          @compute_provider.tags.create(:resource_id => resource_id,
+                                        :key => k.to_s, :value => v.to_s)
+        end
       end
-
+      
     end
 
   end

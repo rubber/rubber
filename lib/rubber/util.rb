@@ -3,14 +3,14 @@
 module Rubber
   module Util
 
-    def self.symbolize_keys(map)
+    def symbolize_keys(map)
       map.inject({}) do |options, (key, value)|
         options[key.to_sym || key] = value
         options
       end
     end
     
-    def self.stringify(val)
+    def stringify(val)
       case val
       when String
         val
@@ -24,7 +24,7 @@ module Rubber
       
     end
 
-    def self.parse_aliases(instance_aliases)
+    def parse_aliases(instance_aliases)
       aliases = []
       alias_patterns = instance_aliases.to_s.strip.split(/\s*,\s*/)
       alias_patterns.each do |a|
@@ -41,31 +41,31 @@ module Rubber
     end
 
     # Opens the file for writing by root
-    def self.sudo_open(path, perms, &block)
+    def sudo_open(path, perms, &block)
       open("|sudo tee #{path} > /dev/null", perms, &block)
     end
 
-    def self.is_rails?
+    def is_rails?
       File.exist?(File.join(RUBBER_ROOT, 'config', 'boot.rb'))
     end
 
-    def self.is_rails2?
+    def is_rails2?
       defined?(Rails) && defined?(Rails::VERSION) && Rails::VERSION::MAJOR == 2
     end
 
-    def self.is_rails3?
+    def is_rails3?
       defined?(Rails) && defined?(Rails::VERSION) && Rails::VERSION::MAJOR == 3
     end
 
-    def self.is_bundler?
+    def is_bundler?
       File.exist?(File.join(RUBBER_ROOT, 'Gemfile'))
     end
 
-    def self.rubber_as_plugin?
+    def rubber_as_plugin?
       File.exist?(File.join(RUBBER_ROOT, 'vendor/plugins/rubber'))
     end
 
-    def self.prompt(name, desc, required=false, default=nil)
+    def prompt(name, desc, required=false, default=nil)
       value = ENV.delete(name)
       msg = "#{desc}"
       msg << " [#{default}]" if default
@@ -75,22 +75,43 @@ module Rubber
         value = gets
       end
       value = value.size == 0 ? default : value
-      self.fatal "#{name} is required, pass using environment or enter at prompt" if required && ! value
+      fatal "#{name} is required, pass using environment or enter at prompt" if required && ! value
       return value
     end
 
-    def self.fatal(msg, code=1)
+    def fatal(msg, code=1)
       puts msg
       exit code
     end
 
     # remove leading whitespace from "here" strings so they look good in code
     # skips empty lines
-    def self.clean_indent(str)
+    def clean_indent(str)
       counts = str.lines.collect {|l| l.scan(/^\s*/).first.size }
       m = counts.reject {|x| x <= 1 }.min
       str.lines.collect {|l| l.size < m ? l : l[m..-1] }.join("")
     end
 
+    # execute the given block, retrying only when one of the given exceptions is raised
+    def retry_on_failure(*exception_list)
+      opts = exception_list.last.is_a?(Hash) ? exception_list.pop : {}
+      opts = {:retry_count => 3}.merge(opts)
+      retry_count = opts[:retry_count]
+      begin
+        yield
+      rescue *exception_list => e
+        if retry_count > 0
+          retry_count -= 1
+          Rubber.logger.info "Exception, trying again #{retry_count} more times"
+          sleep opts[:retry_sleep].to_i if opts[:retry_sleep] 
+          retry
+        else
+          Rubber.logger.error "Too many exceptions...re-raising"
+          raise
+        end
+      end
+    end
+
+    extend self
   end
 end

@@ -15,7 +15,7 @@ class CommandTest < Test::Unit::TestCase
     out = `rubber`
     assert out =~ /Subcommands:\n(.*)\nOptions:/m
     subcommands = $1.scan(/^\s*(\S+)\s*/).flatten
-    assert_equal ["config", "cron", "util:rotate_logs", "util:backup", "util:backup_db", "util:restore_db_s3", "vulcanize"], subcommands
+    assert_equal ["config", "cron", "util:rotate_logs", "util:backup", "util:backup_db", "util:restore_db", "vulcanize"], subcommands
   end
 
   def test_rubber_help_size

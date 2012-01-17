@@ -57,14 +57,13 @@ namespace :rubber do
     default_run_options[:shell] = "/bin/bash -l"
     default_run_options[:except] = { :platform => 'windows' }
 
-    # sharing a Net::HTTP instance across threads doesn't work, so create a new instance per thread
-    set :cloud, Rubber::ThreadSafeProxy.new { Rubber::Cloud::get_provider(rubber_env.cloud_provider || "aws", rubber_env, self) }
+    set :cloud, Rubber.cloud(self)
 
     load_roles() unless rubber_env.disable_auto_roles
     # NOTE: for some reason Capistrano requires you to have both the public and
     # the private key in the same folder, the public key should have the
     # extension ".pub".
-    ssh_options[:keys] = rubber_env.cloud_providers[rubber_env.cloud_provider].key_file
+    ssh_options[:keys] = cloud.env.key_file
     ssh_options[:timeout] = fetch(:ssh_timeout, 5)
   end
 

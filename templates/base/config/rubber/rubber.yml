@@ -36,16 +36,16 @@ domain: foo.com
 #
 cloud_providers:
   aws:
-    # REQUIRED The endpoint for the region server that you want to use.
+    # REQUIRED The AWS region that you want to use.
     # 
     # Options include
-    # us-east-1.ec2.amazonaws.com
-    # eu-west-1.ec2.amazonaws.com
-    # ap-northeast-1.ec2.amazonaws.com
-    # ap-southeast-1.ec2.amazonaws.com
-    # ap-southeast-2.ec2.amazonaws.com
+    # us-east-1
+    # eu-west-1
+    # ap-northeast-1
+    # ap-southeast-1
+    # ap-southeast-2
     #
-    server_endpoint: us-east-1.ec2.amazonaws.com
+    region: us-east-1
     
     # REQUIRED The amazon keys and account ID (digits only, no dashes) used to access the AWS API
     #

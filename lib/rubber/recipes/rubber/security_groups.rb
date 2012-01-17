@@ -117,7 +117,7 @@ namespace :rubber do
         # so we need to do this up frnot and remove duplicates before checking against the local rubber rules)
         cloud_group[:permissions].each do |rule|
           if rule[:source_groups]
-            rule.source_groups.each do |source_group|
+            rule[:source_groups].each do |source_group|
               rule_map = {:source_group_name => source_group[:name], :source_group_account => source_group[:account]}
               rule_map = Rubber::Util::stringify(rule_map)
               rule_maps << rule_map unless rule_maps.include?(rule_map)
