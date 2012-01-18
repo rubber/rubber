@@ -30,7 +30,7 @@ ruby_prefix: /usr/local/rvm
 
 rvm_prefix: /usr/local/rvm
   
-# lets us setup global envoronment to use rvm (also needed when running sudo)
+# lets us setup global environment to use rvm (also needed when running sudo)
 rvm_prepare: "source #{rvm_prefix}/scripts/rvm"
 
 # dirty hack to get the rvm gem home rather than bundler gem home
