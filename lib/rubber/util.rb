@@ -46,23 +46,15 @@ module Rubber
     end
 
     def is_rails?
-      File.exist?(File.join(RUBBER_ROOT, 'config', 'boot.rb'))
-    end
-
-    def is_rails2?
-      defined?(Rails) && defined?(Rails::VERSION) && Rails::VERSION::MAJOR == 2
-    end
-
-    def is_rails3?
-      defined?(Rails) && defined?(Rails::VERSION) && Rails::VERSION::MAJOR == 3
+      File.exist?(File.join(Rubber.root, 'config', 'boot.rb'))
     end
 
     def is_bundler?
-      File.exist?(File.join(RUBBER_ROOT, 'Gemfile'))
+      File.exist?(File.join(Rubber.root, 'Gemfile'))
     end
 
-    def rubber_as_plugin?
-      File.exist?(File.join(RUBBER_ROOT, 'vendor/plugins/rubber'))
+    def has_asset_pipeline?
+      is_rails? && Dir["#{Rubber.root}/*/assets"].size > 0
     end
 
     def prompt(name, desc, required=false, default=nil)

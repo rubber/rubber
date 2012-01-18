@@ -90,11 +90,6 @@ module Rubber
 
       protected
 
-      # helper to test for rails for optional templates
-      def rails?
-        Rubber::Util::is_rails?
-      end
-
       def find_dependencies(name)
         template_dir = File.join(self.class.source_root, name, '')
         unless File.directory?(template_dir)

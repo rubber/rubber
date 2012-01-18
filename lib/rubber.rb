@@ -76,7 +76,7 @@ require 'rubber/util'
 require 'rubber/cloud'
 require 'rubber/dns'
 
-if Rubber::Util::is_rails3?
+if defined?(Rails::Railtie)
   module Rubber
     require 'rubber/railtie'
   end
