@@ -1,4 +1,3 @@
-
 namespace :rubber do
 
   namespace :passenger_nginx do
@@ -26,7 +25,7 @@ namespace :rubber do
         wget -qN http://sysoev.ru/nginx/nginx-#{rubber_env.nginx_version}.tar.gz
         echo 'Unpacking'
         tar xf nginx-#{rubber_env.nginx_version}.tar.gz
-        passenger-install-nginx-module --auto --prefix=/opt/nginx --nginx-source-dir=$TMPDIR/nginx-#{rubber_env.nginx_version} --extra-configure-flags="--conf-path=/etc/nginx/nginx.conf --error-log-path=/var/log/nginx/error.log --http-log-path=/var/log/nginx/access.log --lock-path=/var/lock/nginx.lock --pid-path=/var/run/nginx.pid --sbin-path=/usr/sbin/nginx"
+        passenger-install-nginx-module --auto --prefix=/opt/nginx --nginx-source-dir=$TMPDIR/nginx-#{rubber_env.nginx_version} --extra-configure-flags="--conf-path=/etc/nginx/nginx.conf --error-log-path=/var/log/nginx/error.log --http-log-path=/var/log/nginx/access.log --lock-path=/var/lock/nginx.lock --pid-path=/var/run/nginx.pid --sbin-path=/usr/sbin/nginx --with-http_gzip_static_module"
       ENDSCRIPT
     end
 
