@@ -90,6 +90,10 @@ module Rubber
         # extra variables for command interpolation
         time_stamp = Time.now.strftime("%Y-%m-%d_%H-%M")
         dir = directory
+        
+        # differentiate by env
+        cloud_prefix = "#{name}/"
+        self.name = "#{Rubber.env}_#{self.name}"
 
         FileUtils.mkdir_p(directory)
       
@@ -100,7 +104,6 @@ module Rubber
         system backup_cmd || fail("Command failed: '#{backup_cmd.inspect}'")
         puts "Backup created"
       
-        cloud_prefix = "#{name}/"
         backup_bucket = Rubber.cloud.env.backup_bucket
         if backup_bucket
           newest = Dir.entries(directory).grep(/^[^.]/).sort_by {|f| File.mtime(File.join(directory,f))}.last
@@ -207,7 +210,7 @@ module Rubber
         threshold = Time.local(tdate.year, tdate.month, tdate.day)
         puts "Cleaning backups older than #{age} days"
         Dir["#{directory}/*"].each do |file|
-          if File.mtime(file) < threshold
+          if file =~ /#{Rubber.env}_dump_/ && File.mtime(file) < threshold
             puts "Deleting #{file}"
             FileUtils.rm_f(file)
           end
@@ -216,7 +219,7 @@ module Rubber
         if backup_bucket
           puts "Cleaning cloud backups older than #{age} days from: #{backup_bucket}:#{cloud_prefix}"
           Rubber.cloud.storage(backup_bucket).walk_tree(cloud_prefix) do |f|
-            if f.last_modified < threshold
+            if f.key =~ /#{Rubber.env}_dump_/ && f.last_modified < threshold
               puts "Deleting #{f.key}"
               f.destroy
             end
@@ -244,11 +247,14 @@ module Rubber
              "DBUSER",
              "The database user to connect with\nRequired"
       option ["-p", "--dbpass"],
-             "DBUSER",
+             "DBPASS",
              "The database password to connect with"
       option ["-h", "--dbhost"],
              "DBHOST",
              "The database host to connect to\nRequired"
+      option ["-n", "--dbname"],
+             "DBNAME",
+             "The database name to backup\nRequired"
 
       def execute
         signal_usage_error "DBUSER, DBHOST are required" unless dbuser && dbhost
@@ -259,6 +265,7 @@ module Rubber
         pass = dbpass
         pass = nil if pass && pass.strip.size == 0
         host = dbhost
+        name = dbname
       
         raise "No db_restore_cmd defined in rubber.yml" unless Rubber.config.db_restore_cmd
         db_restore_cmd = Rubber.config.db_restore_cmd.gsub(/%([^%]+)%/, '#{\1}')
@@ -276,11 +283,11 @@ module Rubber
           puts "trying to fetch last modified cloud backup"
           max = nil
           Rubber.cloud.storage(backup_bucket).walk_tree(cloud_prefix) do |f|
-            if f.last_modified < threshold
+            if f.key =~ /#{Rubber.env}_dump_/
               max = f if max.nil? || f.last_modified > max.last_modified
             end
           end
-          key = max.key
+          key = max.key if max
         end
         
         raise "could not access backup file from cloud" unless key

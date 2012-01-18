@@ -12,6 +12,6 @@
 %>
 
 # Backup redis DBs every hour.
-0 * * * * <%= Rubber.root %>/script/rubber cron --task util:backup --directory=/mnt/redis_backups --name=redis --command="nice zip -r \%dir\%/redis_\%time_stamp\%.zip <%= rubber_env.redis_db_dir %> -x \*temp\*.rdb"
+0 * * * * <%= Rubber.root %>/script/rubber cron --task util:backup --directory=/mnt/redis_backups --name=redis --command="nice zip -r \%dir\%/\%name\%_\%time_stamp\%.zip <%= rubber_env.redis_db_dir %> -x \*temp\*.rdb"
 
 <% end %>
