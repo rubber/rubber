@@ -13,6 +13,7 @@ run "ruby -I vendor/gems/rubber/lib vendor/gems/rubber/bin/rubber vulcanize #{te
 
 gsub_file 'Gemfile', /gem ["']rubber["'].*/, "gem 'rubber', :path => 'vendor/gems/rubber'"
 
+run "bundle install"
 generate(:scaffold, "post", "title:string", "body:text")
 
 gsub_file 'config/environment.rb', /^RAILS_GEM_VERSION/, '# RAILS_GEM_VERSION'
@@ -31,4 +32,3 @@ run "cp -f #{secret} config/rubber/rubber-secret.yml"
 chmod 'config/rubber/rubber-secret.yml', 0644
 gsub_file 'config/rubber/rubber-secret.yml', /dns_provider: .*/, ''
 
-run "bundle install"
