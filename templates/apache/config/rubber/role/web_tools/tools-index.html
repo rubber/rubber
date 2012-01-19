@@ -15,7 +15,7 @@
       <%
         tools_html_path = "/var/www"
         tools_html_prefix = "#{tools_html_path}/rubber-web-tools-"
-        Dir["#{tools_html_prefix}*"].each do |tools_file|
+        Dir["#{tools_html_prefix}*.html"].each do |tools_file|
           tool_path = tools_file.gsub(tools_html_path, '')
           tool_name = tools_file.gsub(tools_html_prefix, '').split('.').first
           tool_name = tool_name.capitalize
