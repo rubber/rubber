@@ -29,7 +29,6 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency 'capistrano', '>= 2.8.0'
-  s.add_dependency 'nettica'
   s.add_dependency 'thor'
   s.add_dependency 'clamp'
   s.add_dependency 'open4'

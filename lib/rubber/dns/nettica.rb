@@ -1,4 +1,9 @@
-require 'nettica/client'
+begin
+  require 'nettica/client'
+rescue LoadError
+  Rubber::Util.fail "Missing the nettica gem.  Install or add it to your Gemfile."
+end
+
 module Rubber
   module Dns
 
