@@ -10,7 +10,9 @@ namespace :rubber do
     task :setup_apt_sources do
       rubber.sudo_script 'configure_postgresql_repository', <<-ENDSCRIPT
         # PostgreSQL 9.1 is the default starting in Ubuntu 11.10.
-        if grep '10\\.' /etc/lsb-release; then
+        release=`lsb_release -sr`
+        needs_repo=`echo "$release < 11.10" | bc`
+        if [[ $needs_repo == 1 ]]; then
           add-apt-repository ppa:pitti/postgresql
         fi
       ENDSCRIPT
