@@ -2,24 +2,12 @@
   @read_cmd = 'crontab -l'
   @write_cmd = 'crontab -'
 
-  create_env = Proc.new do
-    ENV.select {|k, v| k =~ /rvm|ruby|bundler|gem|path/i }.collect do |k, v|
-      "#{k}='#{v}'"
-    end
-  end
-
-  if Rubber::Util::is_bundler?
-    env_lines = Bundler.with_clean_env &create_env
-  else
-    env_lines = create_env.call
-  end
 %>
 
-# cron clears out environment variables, so we need to add these in
-# to make sure we are running the correct ruby (rvm env vars, plus paths)
-<%- env_lines.each do |line| -%>
-<%= line %>
-<%- end -%>
+# cron clears out environment variables, but Rubber.root/script/rubber uses
+# "rvm do default" to run, so no longer any need to setup ruby env vars here,
+# all we need is PATH
+PATH=<%= ENV['PATH'] %>
 
 MAILTO=<%= rubber_env.admin_email %>
 # don't need to set RUBBER_ENV for each script since we set it for all cron here

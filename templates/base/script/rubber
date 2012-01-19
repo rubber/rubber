@@ -3,4 +3,6 @@
 export RUBBER_ROOT=`dirname $0`/..
 export BUNDLE_GEMFILE=$RUBBER_ROOT/Gemfile
 
-bundle exec rubber "$@"
+# run through "rvm do" so we work in crontab - default rvm ruby
+# version is set during bootstrap
+rvm default do bundle exec rubber "$@"
