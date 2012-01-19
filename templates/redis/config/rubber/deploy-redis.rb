@@ -9,7 +9,7 @@ namespace :rubber do
     task :setup_apt_sources, :roles => :redis do
       rubber.sudo_script 'configure_redis_repository', <<-ENDSCRIPT
         # redis 2.0 is the default starting in Ubuntu 11.04.
-        if grep '10\.' /etc/lsb-release; then
+        if grep '10\\.' /etc/lsb-release; then
           add-apt-repository ppa:soren/nova
         fi
       ENDSCRIPT

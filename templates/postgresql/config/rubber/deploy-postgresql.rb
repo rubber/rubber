@@ -1,3 +1,4 @@
+
 namespace :rubber do
   
   namespace :postgresql do
@@ -7,7 +8,12 @@ namespace :rubber do
     before "rubber:install_packages", "rubber:postgresql:setup_apt_sources"
 
     task :setup_apt_sources do
-      rsudo "add-apt-repository ppa:pitti/postgresql"
+      rubber.sudo_script 'configure_postgresql_repository', <<-ENDSCRIPT
+        # PostgreSQL 9.1 is the default starting in Ubuntu 11.10.
+        if grep '10\\.' /etc/lsb-release; then
+          add-apt-repository ppa:pitti/postgresql
+        fi
+      ENDSCRIPT
     end
     
     after "rubber:create", "rubber:postgresql:validate_db_roles"
@@ -22,7 +28,6 @@ namespace :rubber do
     end
 
     after "rubber:bootstrap", "rubber:postgresql:bootstrap"
-  
     
     # Bootstrap the production database config.  Db bootstrap is special - the
     # user could be requiring the rails env inside some of their config
@@ -31,7 +36,7 @@ namespace :rubber do
     task :bootstrap, :roles => [:postgresql_master, :postgresql_slave] do
       
       # Conditionally bootstrap for each node/role only if that node has not
-      # been boostrapped for that role before
+      # been bootstrapped for that role before
       master_instances = rubber_instances.for_role("postgresql_master") & rubber_instances.filtered  
       master_instances.each do |ic|
         task_name = "_bootstrap_postgresql_master_#{ic.full_name}".to_sym()
@@ -39,15 +44,20 @@ namespace :rubber do
           env = rubber_cfg.environment.bind("postgresql_master", ic.name)
           exists = capture("echo $(ls #{env.postgresql_data_dir}/ 2> /dev/null)")
           if exists.strip.size == 0
-            common_bootstrap("postgresql_master")
+            common_bootstrap
             sudo "/usr/lib/postgresql/#{rubber_env.postgresql_ver}/bin/initdb -D #{rubber_env.postgresql_data_dir}", :as => 'postgres'
             sudo "#{rubber_env.postgresql_ctl} start"
             sleep 5
 
             create_user_cmd = "CREATE USER #{env.db_user} WITH NOSUPERUSER CREATEDB NOCREATEROLE"
             create_user_cmd << "PASSWORD '#{env.db_pass}'" if env.db_pass
+
+            create_replication_user_cmd = "CREATE USER #{env.db_replication_user} WITH NOSUPERUSER NOCREATEROLE REPLICATION"
+            create_replication_user_cmd << "PASSWORD '#{env.db_replication_pass}'" if env.db_replication_pass
+
             rubber.sudo_script "create_master_db", <<-ENDSCRIPT
               sudo -u postgres psql -c "#{create_user_cmd}"
+              sudo -u postgres psql -c "#{create_replication_user_cmd}"
               sudo -u postgres psql -c "CREATE DATABASE #{env.db_name} WITH OWNER #{env.db_user}"
             ENDSCRIPT
           end
@@ -62,26 +72,16 @@ namespace :rubber do
           env = rubber_cfg.environment.bind("postgresql_slave", ic.name)
           exists = capture("echo $(ls #{env.postgresql_data_dir}/ 2> /dev/null)")
           if exists.strip.size == 0
-            common_bootstrap("postgresql_slave")
+            common_bootstrap
+            master = rubber_instances.for_role("postgresql_master").first
 
-            source = master = rubber_instances.for_role("postgresql_master").first
-
-            slave_pub_key = capture("cat /root/.ssh/id_dsa.pub")
-            sudo "echo \"#{slave_pub_key}\" >> /root/.ssh/authorized_keys", :hosts => [master.full_name]
-
-            base_backup_script = <<-ENDSCRIPT
-              sudo -u postgres psql -c "SELECT pg_start_backup('rubber_create_slave')";
-              rsync -a #{env.postgresql_data_dir}/* #{ic.full_name}:#{env.postgresql_data_dir}/ --exclude postmaster.pid --exclude recovery.* --exclude trigger_file;
-              sudo -u postgres psql -c "SELECT pg_stop_backup()"
-            ENDSCRIPT
-
-            sudo base_backup_script, :hosts => [master.full_name]
+            rsudo "/usr/lib/postgresql/#{env.postgresql_ver}/bin/pg_basebackup -D #{env.postgresql_data_dir} -U #{env.db_replication_user} -h #{master.full_name}", :as => 'postgres'
 
             # Gen just the slave-specific conf.
             rubber.run_config(:file => "role/postgresql_slave/", :force => true, :deploy_path => release_path)
 
             # Start up the server.
-            sudo "#{rubber_env.postgresql_ctl} start"
+            rsudo "#{rubber_env.postgresql_ctl} start"
             sleep 5
           end
         end
@@ -90,29 +90,8 @@ namespace :rubber do
       end
     end
 
-    after "rubber:munin:custom_install", "rubber:postgresql:install_munin_plugins"
-    after "rubber:postgresql:install_munin_plugins", "rubber:munin:restart"
-    task :install_munin_plugins, :roles => [:postgresql_master, :postgresql_slave] do
-      regular_plugins = %w[bgwriter checkpoints connections_db users xlog]
-      parameterized_plugins = %w[cache connections locks querylength scans transactions tuples]
-
-      commands = ['rm -f /etc/munin/plugins/postgres_*']
-
-      regular_plugins.each do |name|
-        commands << "ln -s /usr/share/munin/plugins/postgres_#{name} /etc/munin/plugins/postgres_#{name}"
-      end
-
-      parameterized_plugins.each do |name|
-        commands << "ln -s /usr/share/munin/plugins/postgres_#{name}_ /etc/munin/plugins/postgres_#{name}_#{rubber_env.db_name}"
-      end
-
-      rubber.sudo_script "install_postgresql_munin_plugins", <<-ENDSCRIPT
-        #{commands.join(';')}
-      ENDSCRIPT
-    end
-  
     # TODO: Make the setup/update happen just once per host
-    def common_bootstrap(role)
+    def common_bootstrap
       # postgresql package install starts postgresql, so stop it
       rsudo "#{rubber_env.postgresql_ctl} stop" rescue nil
       
@@ -121,7 +100,7 @@ namespace :rubber do
       rubber.update_code_for_bootstrap
 
       # Gen just the conf for the given postgresql role
-      rubber.run_config(:file => "role/#{role}\\|role/db/", :force => true, :deploy_path => release_path)
+      rubber.run_config(:file => "role/db/", :force => true, :deploy_path => release_path)
 
       # reconfigure postgresql so that it sets up data dir in /mnt with correct files
       dirs = [rubber_env.postgresql_data_dir, rubber_env.postgresql_archive_dir]
@@ -131,7 +110,7 @@ namespace :rubber do
         chmod 700 #{rubber_env.postgresql_data_dir}
       ENDSCRIPT
     end
-    
+
     desc <<-DESC
       Starts the postgresql daemons
     DESC
