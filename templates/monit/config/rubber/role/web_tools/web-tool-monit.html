@@ -1,0 +1,19 @@
+<%
+  @path = "/var/www/rubber-web-tools-monit.html"
+%>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+		<title>Rubber Monit Admin</title>
+	</head>
+	<body>
+		<h1>Rubber Monit Admin</h1>
+
+    <% rubber_instances.sort {|a,b| a.name <=> b.name }.each do |ic| %>
+        <li><a href="/monit_<%= ic.name %>/">Monit <%= ic.name %></a></li>
+    <% end %>
+
+	</body>
+</html>
+

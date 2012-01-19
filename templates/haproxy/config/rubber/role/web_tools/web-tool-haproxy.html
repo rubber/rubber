@@ -1,0 +1,18 @@
+<%
+  @path = "/var/www/rubber-web-tools-haproxy.html"
+%>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+		<title>Rubber HAProxy Admin</title>
+	</head>
+	<body>
+		<h1>Rubber HAProxy Admin</h1>
+
+    <% rubber_instances.for_role('haproxy').sort {|a,b| a.name <=> b.name }.each do |ic| %>
+        <li><a href="/haproxy_<%= ic.name %>/">HAProxy <%= ic.name %></a></li>
+    <% end %>
+
+	</body>
+</html>

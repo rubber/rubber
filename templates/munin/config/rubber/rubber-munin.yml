@@ -5,4 +5,5 @@ packages: [munin-node, munin-plugins-extra, heirloom-mailx]
 roles:
   web_tools:
     packages: [munin]
-
+  mysql:
+    packages: [libdbi-perl, libdbd-mysql, libcache-cache-perl] # for extended mysql munin plugins

@@ -26,10 +26,10 @@ db_log_dir: "#{db_root_dir}/log"
 # Capistrano needs db:primary role for migrate to work,
 # so we might as well just make consistent across the board
 role_dependencies:
-  mysql_master: ["db:primary=true"]
-  mysql_slave: [db]
-  db:primary=true: [mysql_master]
-  db: [mysql_slave]
+  mysql_master: [mysql, "db:primary=true"]
+  mysql_slave: [mysql, db]
+  db:primary=true: [mysql, mysql_master]
+  db: [mysql, mysql_slave]
 
 packages: [mysql-client, libmysqlclient15-dev]
 gems: [mysql]
@@ -39,9 +39,8 @@ roles:
     db_server_id: 1
   mysql_slave:
     db_server_id: 2
-  db:
+  mysql:
     packages: [
                 mysql-server,
-                maatkit, # useful mysql tools for replication
-                libdbi-perl, libdbd-mysql, libcache-cache-perl # for extended munin plugins
+                maatkit # useful mysql tools for replication
               ]

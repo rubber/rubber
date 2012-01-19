@@ -129,20 +129,6 @@ namespace :rubber do
       sleep 5
     end
     
-    before "rubber:munin:custom_install", "rubber:mysql:custom_install_munin"
-
-    desc <<-DESC
-      Installs some extra munin graphs
-    DESC
-    task :custom_install_munin, :roles => [:mysql_master, :mysql_slave] do
-      rubber.sudo_script 'install_munin_mysql', <<-ENDSCRIPT
-        if [ ! -f /usr/share/munin/plugins/mysql_ ]; then
-          wget --no-check-certificate -qN -O /usr/share/munin/plugins/mysql_ https://github.com/kjellm/munin-mysql/raw/master/mysql_
-          wget --no-check-certificate -qN -O /etc/munin/plugin-conf.d/mysql_.conf https://github.com/kjellm/munin-mysql/raw/master/mysql_.conf
-        fi
-      ENDSCRIPT
-    end
-
     desc <<-DESC
       Starts the mysql daemons
     DESC
