@@ -12,6 +12,7 @@ templates = default_template if templates.blank?
 run "ruby -I vendor/gems/rubber/lib vendor/gems/rubber/bin/rubber vulcanize #{templates}"
 
 gsub_file 'Gemfile', /gem ["']rubber["'].*/, "gem 'rubber', :path => 'vendor/gems/rubber'"
+append_to_file 'Gemfile', "gem 'therubyracer'\n"
 
 run "bundle install"
 generate(:scaffold, "post", "title:string", "body:text")
