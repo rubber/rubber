@@ -44,6 +44,9 @@ module Rubber
       option ["--task"],
              :flag,
              "Run the arguments with rubber"
+      option ["--ruby"],
+             :flag,
+             "Run the arguments with ruby"
       option ["--runner"],
              :flag,
              "Run the arguments with rails runner"
@@ -60,13 +63,21 @@ module Rubber
         log = logfile
         
         if task?
-          log = "#{rootdir}/log/cron-task-#{cmd[0]}-#{Time.now.tv_sec}.log"
+          ident = cmd[0].gsub(/\W+/, "_").gsub(/(^_+)|(_+$)/, '')[0..19]
+          log = "#{rootdir}/log/cron-task-#{ident}-#{Time.now.tv_sec}.log"
           cmd = ["rubber"] + cmd
+        elsif ruby?
+          ruby_code = cmd.join(' ')
+          ident = ruby_code.gsub(/\W+/, "_").gsub(/(^_+)|(_+$)/, '')[0..19]
+          log = "#{rootdir}/log/cron-ruby-#{ident}-#{Time.now.tv_sec}.log"
+          cmd = ["ruby", "-e", ruby_code]
         elsif runner?
-          log = "#{rootdir}/log/cron-runner-#{cmd[0].gsub(/\W+/, "_")}-#{Time.now.tv_sec}.log"
+          ident = cmd[0].gsub(/\W+/, "_").gsub(/(^_+)|(_+$)/, '')[0..19]
+          log = "#{rootdir}/log/cron-runner-#{ident}-#{Time.now.tv_sec}.log"
           cmd = ["rails", "runner"] + cmd
         elsif rake?
-          log = "#{rootdir}/log/cron-rake-#{cmd[0]}-#{Time.now.tv_sec}.log"
+          ident = cmd[0].gsub(/\W+/, "_").gsub(/(^_+)|(_+$)/, '')[0..19]
+          log = "#{rootdir}/log/cron-rake-#{ident}-#{Time.now.tv_sec}.log"
           cmd = ["rake"] + cmd
         end
         
