@@ -53,7 +53,7 @@ namespace :rubber do
     aliases = Rubber::Util::parse_aliases(instance_aliases)
 
     ENV.delete('ROLES') # so we don't get an error if people leave ROLES in env from :create CLI
-    destroy_instances(aliases, ENV['FORCE'] == 'true')
+    destroy_instances(aliases, ENV['FORCE'] =~ /^(t|y)/)
   end
 
   desc <<-DESC
@@ -61,7 +61,7 @@ namespace :rubber do
   DESC
   required_task :destroy_all do
     rubber_instances.each do |ic|
-      destroy_instance(ic.name, ENV['FORCE'] == 'true')
+      destroy_instance(ic.name, ENV['FORCE'] =~ /^(t|y)/)
     end
   end
 
