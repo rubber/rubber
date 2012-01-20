@@ -59,7 +59,7 @@ namespace :rubber do
             end
           end
 
-          queue_sizes = capture 'redis-cli --raw smembers resque:queues | while read x; do echo -n "$x "; echo "llen resque:queue:$x" | redis-cli --raw; done', :roles => :redis
+          queue_sizes = capture 'redis-cli --raw smembers resque:queues | while read x; do if [[ -z $x ]]; then continue; fi; echo -n "$x "; echo "llen resque:queue:$x" | redis-cli --raw; done', :roles => :redis
           queue_sizes = Hash[*queue_sizes.split]
 
           idle = []
