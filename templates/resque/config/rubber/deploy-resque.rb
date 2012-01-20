@@ -29,7 +29,7 @@ namespace :rubber do
       end
 
       # pauses deploy until all workers up so monit doesn't try and start them
-      before "rubber:monit:start", "rubber:resque:worker:wait_start"
+      before "rubber:post_start", "rubber:resque:worker:wait_start"
       task :wait_start, :roles => :resque_worker do
         logger.info "Waiting for resque worker pid files to show up"
 

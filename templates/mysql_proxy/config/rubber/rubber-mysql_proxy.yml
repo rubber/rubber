@@ -8,4 +8,7 @@
 # or 'mysql_master' for just master
 mysql_proxy_role: mysql_sql
 
+role_dependencies:
+  common: [mysql_proxy]
+
 packages: [mysql-proxy]

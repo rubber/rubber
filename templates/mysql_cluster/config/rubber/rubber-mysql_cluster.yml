@@ -20,6 +20,9 @@ db_restore_cmd: "zcat - | mysql -h %host% -u %user% --password=%pass% %name%"
 #
 db_data_dir: /mnt/mysql_cluster_data
 
+role_dependencies:
+  mysql_sql: [mysql]
+
 packages: [mysql-client, libmysql-ruby]
 
 

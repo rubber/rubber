@@ -13,7 +13,7 @@ namespace :rubber do
     desc <<-DESC
       Reconfigures munin
     DESC
-    task :install do
+    task :install, :roles => [:munin] do
       rubber.sudo_script 'setup_munin_plugins', <<-ENDSCRIPT
         munin-node-configure --shell --remove-also > /tmp/setup-munin-plugins 2> /dev/null || true
         sh /tmp/setup-munin-plugins
@@ -61,17 +61,17 @@ namespace :rubber do
     # after "deploy:restart", "rubber:munin:restart"
 
     desc "Start munin system monitoring"
-    task :start do
+    task :start, :roles => :munin do
       rsudo "service munin-node start"
     end
     
     desc "Stop munin system monitoring"
-    task :stop do
+    task :stop, :roles => :munin do
       rsudo "service munin-node stop; exit 0"
     end
     
     desc "Restart munin system monitoring"
-    task :restart do
+    task :restart, :roles => :munin do
       stop
       start
     end

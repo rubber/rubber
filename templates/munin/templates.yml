@@ -1,1 +1,2 @@
 description: The munin module
+skip_unknown_roles: true

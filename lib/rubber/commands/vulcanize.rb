@@ -90,6 +90,22 @@ module Rubber
 
       protected
 
+      def project_roles
+        return @project_roles if @project_roles
+        
+        @project_roles = Dir["#{destination_root}/config/rubber/role/*"].collect {|f| File.basename(f) }
+        @template_dependencies.each do |name|
+          template_dir = File.join(self.class.source_root, name, '')
+          Dir["#{template_dir}/config/rubber/rubber*.yml"].each do |yml|
+            rubber_yml = YAML.load(File.read(yml)) rescue {}
+            @project_roles.concat(rubber_yml['roles'].keys) rescue nil
+            @project_roles.concat(rubber_yml['role_dependencies'].keys) rescue nil
+            @project_roles.concat(rubber_yml['role_dependencies'].values) rescue nil
+          end
+        end
+        @project_roles = @project_roles.flatten.uniq
+      end
+      
       def find_dependencies(name)
         template_dir = File.join(self.class.source_root, name, '')
         unless File.directory?(template_dir)
@@ -124,6 +140,16 @@ module Rubber
           source_rel = f.gsub(/#{self.class.source_root}\//, '')
           dest_rel   = source_rel.gsub(/^#{name}\//, '')
 
+          if template_conf['skip_unknown_roles']
+            if f =~ /config\/rubber\/role\/([^\/]*)/
+              role = $1
+              if ! project_roles.include?(role)
+                say_status :skipping, dest_rel, :yellow
+                Find.prune
+              end
+            end
+          end
+          
           # Only include optional files when their conditions eval to true
           optional = template_conf['optional'][template_rel] rescue nil
           Find.prune if optional && ! eval(optional)

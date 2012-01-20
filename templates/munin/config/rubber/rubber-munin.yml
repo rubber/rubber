@@ -1,8 +1,11 @@
 # Uses admin_email from base
 
-packages: [munin-node, munin-plugins-extra, heirloom-mailx]
+role_dependencies:
+  common: [munin]
 
 roles:
+  munin:
+    packages: [munin-node, munin-plugins-extra, heirloom-mailx] 
   web_tools:
     packages: [munin]
   mysql:

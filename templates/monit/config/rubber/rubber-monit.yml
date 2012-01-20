@@ -2,5 +2,10 @@
 
 monit_admin_port: 2812
 
-packages: [monit]
+role_dependencies:
+  common: [monit]
+
+roles:
+  monit:
+    packages: [monit]
 

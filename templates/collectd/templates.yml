@@ -1,1 +1,2 @@
 description: The collectd monitoring module
+skip_unknown_roles: true
