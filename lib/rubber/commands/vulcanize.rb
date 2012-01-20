@@ -90,20 +90,36 @@ module Rubber
 
       protected
 
+      # figures out the roles that a project has by looking in the
+      # project's directory tree, as well as the roles the current
+      # vulcanize  will be contributing
       def project_roles
         return @project_roles if @project_roles
         
-        @project_roles = Dir["#{destination_root}/config/rubber/role/*"].collect {|f| File.basename(f) }
+        # first grab all the roles from the project
+        roles = []
+        roles.concat Dir["#{destination_root}/config/rubber/role/*"].collect {|f| File.basename(f) }
+        roles.concat Dir["#{destination_root}/script/*/role/*"].collect {|f| File.basename(f) }
+        Dir["#{destination_root}/config/rubber/rubber*.yml"].each do |yml|
+          rubber_yml = YAML.load(File.read(yml)) rescue {}
+          roles.concat(rubber_yml['roles'].keys) rescue nil
+          roles.concat(rubber_yml['role_dependencies'].keys) rescue nil
+          roles.concat(rubber_yml['role_dependencies'].values) rescue nil
+        end
+        roles << 'examples' # slight hack for collectd/munin scripts
+        
+        # then grab all the roles from templates we are currently vulcanizing
         @template_dependencies.each do |name|
           template_dir = File.join(self.class.source_root, name, '')
           Dir["#{template_dir}/config/rubber/rubber*.yml"].each do |yml|
             rubber_yml = YAML.load(File.read(yml)) rescue {}
-            @project_roles.concat(rubber_yml['roles'].keys) rescue nil
-            @project_roles.concat(rubber_yml['role_dependencies'].keys) rescue nil
-            @project_roles.concat(rubber_yml['role_dependencies'].values) rescue nil
+            roles.concat(rubber_yml['roles'].keys) rescue nil
+            roles.concat(rubber_yml['role_dependencies'].keys) rescue nil
+            roles.concat(rubber_yml['role_dependencies'].values) rescue nil
           end
         end
-        @project_roles = @project_roles.flatten.uniq
+        
+        @project_roles = roles.flatten.uniq
       end
       
       def find_dependencies(name)
@@ -140,8 +156,10 @@ module Rubber
           source_rel = f.gsub(/#{self.class.source_root}\//, '')
           dest_rel   = source_rel.gsub(/^#{name}\//, '')
 
+          # Don't copy over roles that aren't configured for the project
+          # Needed for crosscutting templates like munin/collectd/monit
           if template_conf['skip_unknown_roles']
-            if f =~ /config\/rubber\/role\/([^\/]*)/
+            if f =~ /config\/rubber\/role\/([^\/]*)/ || f =~ /script\/[^\/]*\/role\/([^\/]*)/
               role = $1
               if ! project_roles.include?(role)
                 say_status :skipping, dest_rel, :yellow
