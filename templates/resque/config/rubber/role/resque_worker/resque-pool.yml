@@ -1,0 +1,6 @@
+<%
+  @path = "#{Rubber.root}/config/resque-pool.yml"
+  worker_count = rubber_env.resque_worker_count.to_i
+%>
+
+'*': <%= rubber_env.resque_worker_count.to_i %>

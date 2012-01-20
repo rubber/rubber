@@ -15,29 +15,147 @@ namespace :rubber do
 
       desc "Starts resque workers"
       task :start, :roles => :resque_worker do
-        rsudo "cd #{current_path} && RUBBER_ENV=#{rails_env} ./script/resque_worker_management.rb start", :as => rubber_env.app_user
+        rsudo "#{current_path}/script/resque-pool-ctl start", :as => rubber_env.app_user
       end
 
-      desc "Stops resque workers"
+      desc "Stops resque workers and monitor"
       task :stop, :roles => :resque_worker do
-        rsudo "cd #{current_path} && RUBBER_ENV=#{rails_env} ./script/resque_worker_management.rb stop", :as => rubber_env.app_user
+        rsudo "#{current_path}/script/resque-pool-ctl stop"
+      end
+
+      desc "Force kill all resque workers and monitor"
+      task :force_stop, :roles => :resque_worker do
+        rsudo "#{current_path}/script/resque-pool-ctl force-stop"
       end
 
       desc "Restarts resque workers"
       task :restart, :roles => :resque_worker do
-        rsudo "cd #{current_path} && RUBBER_ENV=#{rails_env} ./script/resque_worker_management.rb restart", :as => rubber_env.app_user
+        rsudo "#{current_path}/script/resque-pool-ctl restart", :as => rubber_env.app_user
       end
 
-      # pauses deploy until all workers up so monit doesn't try and start them
-      before "rubber:post_start", "rubber:resque:worker:wait_start"
-      task :wait_start, :roles => :resque_worker do
-        logger.info "Waiting for resque worker pid files to show up"
+      desc "Continuously show worker stats"
+      task :stats, :roles => :resque_worker do
+        logger.level = 0
 
-        opts = get_host_options('resque_workers') do |worker_cfg|
-          worker_cfg.size.to_s
+        WorkerItem = Struct.new(:host, :pid, :process_type, :target, :start_time)
+        WorkerItem.class_eval do
+          def uid
+            "#{host}:#{pid}"
+          end
         end
 
-        run "while ((`ls #{current_path}/tmp/pids/resque_worker_*.pid 2> /dev/null | wc -l` < $CAPISTRANO:VAR$)); do sleep 1; done", opts
+        mutex = Mutex.new
+
+        while true do
+
+          host_data = {}
+          run "ps ax | grep '[r]esque.*:'; exit 0" do |channel, stream, data|
+            if data
+              host = channel.properties[:host].gsub(/\..*/, '')
+              mutex.synchronize do
+                host_data[host] ||= ""
+                host_data[host] << data
+              end
+            end
+          end
+
+          queue_sizes = capture 'redis-cli --raw smembers resque:queues | while read x; do echo -n "$x "; echo "llen resque:queue:$x" | redis-cli --raw; done', :roles => :redis
+          queue_sizes = Hash[*queue_sizes.split]
+
+          idle = []
+          starting = []
+          paused = []
+          parents = []
+          children = []
+
+          host_data.each do |host, data|
+            data.lines do |line|
+              line.chomp!
+              cols = line.split
+
+              # 12887 ?        Sl     0:01 resque-1.13.0: Forked 31395 at 1300564431
+              # 13054 ?        Sl     0:23 resque-1.13.0: Processing facebook since 1300565337
+              # 28561 ?        Sl     0:03 resque-1.13.0: Waiting for *index*
+
+              item = WorkerItem.new
+              item.host = host
+              item.pid = cols[0]
+              item.process_type = case cols[5]
+                when 'Processing' then :child
+                when 'Forked' then :parent
+                when 'Waiting' then (cols.delete_at(6); :idle)
+                when 'Starting' then :starting
+                when 'Paused' then :paused
+                else :unknown
+              end
+              item.target = cols[6]
+              item.start_time = cols[8].to_i
+
+              idle << item if item.process_type == :idle
+              starting << item if item.process_type == :starting
+              paused << item if item.process_type == :paused
+              parents << item if item.process_type == :parent
+              children << item if item.process_type == :child
+            end
+          end
+
+          pairs = {}
+          [*parents, *children].each {|item| pairs[item.uid] ||= [];  pairs[item.uid] << item}
+          stuck_parents = pairs.select{|item| item.size == 1 && item.first.type == :parent}
+          stuck_children = pairs.select{|item| item.size == 1 && item.first.type == :child}
+
+          print "\e[H\e[2J"
+          puts Time.now
+          puts ""
+
+          counts = children.group_by {|item| item.target || 'unknown' }
+          queue_sizes.each {|target, count| counts[target] ||= [] }
+
+          fmt = "%-37s %-7s"
+          puts fmt % ["Working", counts.values.collect(&:size).inject(0) { |sum, p| sum + p }]
+          puts fmt % ["Idle", idle.size]
+          puts fmt % ["Starting", starting.size]
+          puts fmt % ["Paused", paused.size]
+          puts fmt % ["Stuck Parents", stuck_parents.size]
+          puts fmt % ["Orphans", stuck_children.size]
+
+          puts ""
+          fmt = "%-37s %-10s %-10s"
+          puts fmt % %w{Queue Working Queued}
+          counts.sort.each do |target, items|
+            working = items.size
+            queued = queue_sizes[target].to_i
+            if working > 0 || queued > 0
+              puts fmt % [target, working, queued]
+            end
+          end
+
+          puts ""
+          fmt = "%-10s %-6s"
+          puts fmt % %w{Runtime Count}
+
+          times = [1, 5, 15, 30, 60, 120]
+          slow_times = [180, 540]
+          ages = children.group_by do |item|
+            runtime = Time.now.to_i - item.start_time
+            runtime = 0 if item.start_time == 0
+            [*times, *slow_times].find {|t| runtime < (t * 60)}
+          end
+
+          times.each do |t|
+            items = ages[t] || []
+            puts fmt % [t, items.size]
+          end
+          slow_times.each do |t|
+            items = ages[t] || []
+            slow_queues = items.collect(&:target).sort.uniq.join(', ')
+            puts "#{fmt} %s" % ["#{t}", items.size, slow_queues]
+          end
+          slow_queues = (ages[nil] || []).collect(&:target).sort.uniq.join(', ')
+          puts "#{fmt} %s" % [">#{slow_times.last}", (ages[nil] || []).size, slow_queues]
+
+          sleep 10
+        end
       end
       
     end

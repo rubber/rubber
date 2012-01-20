@@ -1,0 +1,73 @@
+#!/bin/bash
+
+root=`dirname $0`/..
+pidfile=$root/tmp/pids/resque-pool.pid
+
+
+# The pool manager responds to the following signals:
+#
+# HUP - reload the config file, reload logfiles, restart all workers.
+# QUIT - send QUIT to each worker parent and shutdown the manager after all workers are done.
+# INT - send QUIT to each worker parent and immediately shutdown manager
+# TERM - send TERM to each worker parent and immediately shutdown manager
+# WINCH - send QUIT to each worker, but keep manager running (send HUP to reload config and restart workers)
+# USR1/USR2/CONT - pass the signal on to all worker parents (see Resque docs).
+# Use HUP to help logrotate run smoothly and to change the number of workers per worker type.
+#
+# Resque workers respond to a few different signals:
+#
+# QUIT - Wait for child to finish processing then exit
+# TERM / INT - Immediately kill child then exit
+# USR1 - Immediately kill child but don't exit
+# USR2 - Don't start to process any new jobs
+# CONT - Start to process new jobs again after a USR2
+
+function start
+{
+  bundle exec resque-pool -d
+}
+
+function stop
+{
+  signal=$1
+  
+  if [[ -f $pidfile ]]; then
+    cat $pidfile | xargs kill -$signal
+    exit 0
+  fi
+}
+
+function restart
+{
+  if [[ -f $pidfile ]]; then
+    cat $pidfile | xargs kill -HUP;
+    if [[ $? != 0 ]]; then
+      start
+    fi
+  else
+    start
+  fi
+}
+
+cd $root
+mkdir -p `dirname $pidfile`
+
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop INT
+    ;;
+  force-stop)
+    stop TERM
+    ;;
+  restart)
+    restart
+    ;;
+  *)
+    echo "Usage: `basename $0` {start|stop|force-stop|restart}"
+    exit 1
+    ;;
+esac
+
