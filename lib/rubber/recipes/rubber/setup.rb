@@ -451,8 +451,60 @@ namespace :rubber do
     else
       rsudo "export DEBIAN_FRONTEND=noninteractive; apt-get -q -o Dpkg::Options::=--force-confold -y --force-yes install $CAPISTRANO:VAR$", opts
     end
+    
+    maybe_reboot
   end
+  
+  def multi_capture(cmd, opts={})
+    mutex = Mutex.new
+    host_data = {}
+    run(cmd, opts) do |channel, stream, data|
+      if data
+        host = channel.properties[:host]
+        mutex.synchronize do
+          host_data[host] ||= ""
+          host_data[host] << data
+        end
+      end
+    end
+    return host_data    
+  end
+  
+  def maybe_reboot
+    reboot_needed = multi_capture("echo $(ls /var/run/reboot-required 2> /dev/null)")
+    reboot_hosts = reboot_needed.collect {|k, v| v.strip.size > 0 ? k : nil}.compact
+    
+    if reboot_hosts.size > 0
 
+      ENV['REBOOT'] = 'y' if ENV['FORCE'] =~ /^(t|y)/
+      reboot = get_env('REBOOT', "Updates require a reboot on hosts #{reboot_hosts.inspect}, reboot [y/N]?", false)
+      reboot = (reboot =~ /^y/)
+      
+      if reboot
+
+        logger.info "Rebooting ..."
+        run("#{sudo} reboot", :hosts => reboot_hosts)
+        sleep 30
+
+        # since we rebooted, teardown the connections to force cap to reconnect
+        teardown_connections_to(sessions.keys)
+
+        reboot_hosts.each do |host|
+          direct_connection(host) do
+            run "echo"
+          end
+          logger.info "#{host} completed reboot"
+        end
+        
+      end
+      
+      # could take a while to reboot (or get answer from prompt), so
+      # we need to rebuild all capistrano connections in case they timed out
+      teardown_connections_to(sessions.keys)
+      
+    end
+  end
+        
   def custom_package(url_base, name, ver, install_test)
     rubber.sudo_script "install_#{name}", <<-ENDSCRIPT
       if [[ #{install_test} ]]; then
