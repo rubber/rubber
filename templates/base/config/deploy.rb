@@ -61,6 +61,6 @@ if Rubber::Util.has_asset_pipeline?
   load 'deploy/assets'
   callbacks[:after].delete_if {|c| c.source == "deploy:assets:precompile"}
   callbacks[:before].delete_if {|c| c.source == "deploy:assets:symlink"}
+  before "deploy:assets:precompile", "deploy:assets:symlink"
   after "rubber:config", "deploy:assets:precompile"
-  after "deploy:assets:precompile", "deploy:assets:symlink"
 end
