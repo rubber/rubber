@@ -7,7 +7,8 @@ class AwsTest < Test::Unit::TestCase
   context "aws" do
 
     setup do
-      env = OpenStruct.new(:access_key => "XXX", :secret_access_key => "YYY", :region => "us-east-1")
+      env = {'access_key' => "XXX", 'secret_access_key' => "YYY", 'region' => "us-east-1"}
+      env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil)
       @cloud = Rubber::Cloud::Aws.new(env, nil)
     end
 
