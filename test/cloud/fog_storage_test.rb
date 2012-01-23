@@ -1,10 +1,10 @@
 require File.expand_path(File.join(__FILE__, '../..', 'test_helper'))
-require 'rubber/cloud/aws_storage'
+require 'rubber/cloud/fog_storage'
 require 'ostruct'
 
-class AwsStorageTest < Test::Unit::TestCase
+class FogStorageTest < Test::Unit::TestCase
 
-  context "aws storage" do
+  context "fog storage" do
 
     setup do
       @provider = Fog::Storage.new(:provider => 'AWS',
@@ -12,17 +12,17 @@ class AwsStorageTest < Test::Unit::TestCase
                                    :aws_secret_access_key => 'YYY')
       @bucket = 'mybucket'
       @provider.put_bucket(@bucket)
-      @storage = Rubber::Cloud::AwsStorage.new(@provider, @bucket)
+      @storage = Rubber::Cloud::FogStorage.new(@provider, @bucket)
     end
 
     should "require a bucket" do
       
       assert_raise do
-        Rubber::Cloud::AwsStorage.new(@provider, nil)
+        Rubber::Cloud::FogStorage.new(@provider, nil)
       end
 
       assert_raise do
-        Rubber::Cloud::AwsStorage.new(@provider, "")
+        Rubber::Cloud::FogStorage.new(@provider, "")
       end
       
     end
@@ -31,7 +31,7 @@ class AwsStorageTest < Test::Unit::TestCase
       
       should "created bucket if not there" do
         assert @provider.directories.get('somebucket').nil?
-        @storage = Rubber::Cloud::AwsStorage.new(@provider, 'somebucket')
+        @storage = Rubber::Cloud::FogStorage.new(@provider, 'somebucket')
         @storage.ensure_bucket
         assert @provider.directories.get('somebucket')
       end
@@ -39,7 +39,7 @@ class AwsStorageTest < Test::Unit::TestCase
       should "still work if bucket already exists" do
         assert @provider.directories.create(:key => 'somebucket')
         assert @provider.directories.get('somebucket')
-        @storage = Rubber::Cloud::AwsStorage.new(@provider, 'somebucket')
+        @storage = Rubber::Cloud::FogStorage.new(@provider, 'somebucket')
         @storage.ensure_bucket
         assert @provider.directories.get('somebucket')
       end

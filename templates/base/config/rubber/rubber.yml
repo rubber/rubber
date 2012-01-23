@@ -31,8 +31,9 @@ domain: foo.com
 # rubber_secret: "#{File.expand_path('~') + '/.ec2' + (Rubber.env == 'production' ? '' : '_dev') + '/rubber-secret.yml' rescue ''}"
 
 # REQUIRED All known cloud providers with the settings needed to configure them
-# There's only one coud provider right now - Amazon Web Services
-# To implement another, clone lib/rubber/cloud/aws.rb
+# There's only one working cloud provider right now - Amazon Web Services
+# To implement another, clone lib/rubber/cloud/aws.rb or make the fog provider 
+# work in a generic fashion
 #
 cloud_providers:
   aws:
@@ -93,6 +94,17 @@ cloud_providers:
     # If a spot instance request can't be fulfilled in 3 minutes, fallback to on-demand instance creation.  If not set,
     # the default is infinite.
     # spot_instance_request_timeout: 180
+    
+  # Use an alternate cloud provider supported by fog.  This doesn't fully work
+  # yet due to differences in providers within fog, but gives you a starting
+  # point for contributing a new provider to rubber.  See rubber/lib/rubber/cloud(.rb)
+  fog:
+    credentials:
+      provider: rackspace
+      rackspace_api_key: 'XXX'
+      rackspace_username: 'YYY'
+    image_type: 123
+    image_id: 123
 
 # REQUIRED the cloud provider to use
 #

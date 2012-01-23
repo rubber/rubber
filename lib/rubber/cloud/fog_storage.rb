@@ -1,7 +1,7 @@
 module Rubber
   module Cloud
     
-    class AwsStorage
+    class FogStorage
 
       RETRYABLE_EXCEPTIONS = [Excon::Errors::Error]
 
