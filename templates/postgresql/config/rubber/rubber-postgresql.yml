@@ -2,7 +2,7 @@
 #
 db_user: "#{app_name[0,16]}"
 db_pass:
-db_name: "#{app_name}_#{RUBBER_ENV}"
+db_name: "#{app_name}_#{Rubber.env}"
 
 db_replication_user: replication
 db_replication_pass:

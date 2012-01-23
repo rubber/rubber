@@ -169,12 +169,12 @@ namespace :rubber do
 
       desc "Starts resque web tools"
       task :start, :roles => :resque_web do
-        rsudo "RAILS_ENV=#{RUBBER_ENV} resque-web --pid-file #{Rubber.root}/tmp/pids/resque_web.pid --port #{rubber_env.resque_web_port} --no-launch #{current_path}/config/initializers/resque.rb", :as => rubber_env.app_user
+        rsudo "RAILS_ENV=#{Rubber.env} resque-web --pid-file #{Rubber.root}/tmp/pids/resque_web.pid --port #{rubber_env.resque_web_port} --no-launch #{current_path}/config/initializers/resque.rb", :as => rubber_env.app_user
       end
 
       desc "Stops resque web tools"
       task :stop, :roles => :resque_web do
-        rsudo "RAILS_ENV=#{RUBBER_ENV} resque-web --pid-file #{Rubber.root}/tmp/pids/resque_web.pid --kill", :as => rubber_env.app_user
+        rsudo "RAILS_ENV=#{Rubber.env} resque-web --pid-file #{Rubber.root}/tmp/pids/resque_web.pid --kill", :as => rubber_env.app_user
       end
 
       desc "Restarts resque web tools"

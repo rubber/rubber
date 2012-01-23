@@ -15,7 +15,7 @@ module Rubber
       # We actually do NOT want the entire rails environment because it
       # complicates bootstrap (i.e. can't run config to create db because full
       # rails env needs db to exist as some plugin accesses model or something)
-      rails_boot_file = File.join(RUBBER_ROOT, 'config', 'boot.rb')
+      rails_boot_file = File.join(Rubber.root, 'config', 'boot.rb')
       require(rails_boot_file) if File.exists? rails_boot_file
     end
 

@@ -46,7 +46,7 @@ namespace :rubber do
   on :load, "rubber:init"
     
   required_task :init do
-    set :rubber_cfg, Rubber::Configuration.get_configuration(RUBBER_ENV)
+    set :rubber_cfg, Rubber::Configuration.get_configuration(Rubber.env)
     set :rubber_env, rubber_cfg.environment.bind()
     set :rubber_instances, rubber_cfg.instance
 

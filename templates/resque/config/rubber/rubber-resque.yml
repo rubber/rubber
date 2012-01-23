@@ -3,7 +3,7 @@ resque_web_port: 5678
 # list of workers with the queues to be run on each - on each worker instance,
 # a worker is run for each item in this list to handle the queues specified
 #
-resque_worker_count: "#{RUBBER_ENV == 'production' ? 4 : 2}"
+resque_worker_count: "#{Rubber.env == 'production' ? 4 : 2}"
 
 resque_workers:
   -

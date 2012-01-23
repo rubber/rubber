@@ -73,4 +73,4 @@ BuildReaper.number_of_builds_to_keep = 20
 
 # any files that you'd like to override in cruise, keep in ~/.cruise, and copy over when this file is loaded like this
 site_css = CRUISE_DATA_ROOT + "/site.css"
-FileUtils.cp site_css, RUBBER_ROOT + "/public/stylesheets/site.css" if File.exists? site_css
+FileUtils.cp site_css, Rubber.root + "/public/stylesheets/site.css" if File.exists? site_css

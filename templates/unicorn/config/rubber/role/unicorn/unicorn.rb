@@ -1,8 +1,8 @@
 <%
-  @path = "#{RUBBER_ROOT}/config/unicorn.rb"
+  @path = "#{Rubber.root}/config/unicorn.rb"
 %>
 worker_processes 2
-working_directory "<%= RUBBER_ROOT %>"
+working_directory "<%= Rubber.root %>"
 
 # This loads the application in the master process before forking
 # worker processes
@@ -19,8 +19,8 @@ listen "/var/run/unicorn.sock", :backlog => 64
 pid "/var/run/unicorn.pid"
 
 # Set the path of the log files inside the log folder of the testapp
-stderr_path "<%= RUBBER_ROOT %>/log/unicorn.stderr.log"
-stdout_path "<%= RUBBER_ROOT %>/log/unicorn.stdout.log"
+stderr_path "<%= Rubber.root %>/log/unicorn.stderr.log"
+stdout_path "<%= Rubber.root %>/log/unicorn.stdout.log"
 
 before_fork do |server, worker|
   ##
