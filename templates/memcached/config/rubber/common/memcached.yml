@@ -1,10 +1,10 @@
 <%
-  @path = "#{RUBBER_ROOT}/config/memcached.yml"
+  @path = "#{Rubber.root}/config/memcached.yml"
   @additive =  ["# rubber-memcached-start", "# rubber-memcached-end"]
 %>
 
 
-<%= RUBBER_ENV %>:
+<%= Rubber.env %>:
   memory: 256
   fragments: true
   benchmarking: false

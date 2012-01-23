@@ -1,12 +1,12 @@
 <%
-  @path = "#{RUBBER_ROOT}/config/mongrel_cluster.yml"
+  @path = "#{Rubber.root}/config/mongrel_cluster.yml"
 %>
 ---
 user: <%= rubber_env.app_user %>
 group: <%= rubber_env.app_user %>
-cwd: <%= RUBBER_ROOT %>
+cwd: <%= Rubber.root %>
 port: "<%= rubber_env.mongrel_base_port %>"
-environment: <%= RUBBER_ENV %>
+environment: <%= Rubber.env %>
 address: <%= rubber_env.host %>
 pid_file: tmp/pids/mongrel.pid
 servers: <%= rubber_env.mongrel_count %>

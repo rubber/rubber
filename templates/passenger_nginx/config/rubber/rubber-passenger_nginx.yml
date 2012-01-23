@@ -10,7 +10,7 @@ max_app_connections: 20
 use_ssl_key: false
 #if you use an ssl key, put your cert and key
 # in
-# #{RUBBER_ROOT}/config/#{rubber_env.domain} .crt and .key
+# #{Rubber.root}/config/#{rubber_env.domain} .crt and .key
 #otherwise defaults to key included with linux 
 
 

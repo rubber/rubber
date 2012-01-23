@@ -67,7 +67,7 @@ namespace :rubber do
   end
 
   def isolate_prefix
-    return "#{rubber_env.app_name}_#{RUBBER_ENV}_"
+    return "#{rubber_env.app_name}_#{Rubber.env}_"
   end
 
   def isolate_group_name(group_name)

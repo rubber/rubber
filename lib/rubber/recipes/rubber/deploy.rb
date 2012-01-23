@@ -72,15 +72,15 @@ namespace :rubber do
     if fetch(:push_instance_config, false)
       push_files = [rubber_instances.file] + rubber_cfg.environment.config_files
       push_files.each do |file|
-        dest_file = file.sub(/^#{RUBBER_ROOT}\/?/, '')
+        dest_file = file.sub(/^#{Rubber.root}\/?/, '')
         put(File.read(file), File.join(path, dest_file), :mode => "+r")
       end
     end
 
-    # if the user has defined a secret config file, then push it into RUBBER_ROOT/config/rubber
+    # if the user has defined a secret config file, then push it into Rubber.root/config/rubber
     secret = rubber_cfg.environment.config_secret
     if secret && File.exist?(secret)
-      base = rubber_cfg.environment.config_root.sub(/^#{RUBBER_ROOT}\/?/, '')
+      base = rubber_cfg.environment.config_root.sub(/^#{Rubber.root}\/?/, '')
       put(File.read(secret), File.join(path, base, File.basename(secret)), :mode => "+r")
     end
     

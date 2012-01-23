@@ -11,7 +11,7 @@ namespace :rubber do
       # Setup system to restart mongrel_cluster on reboot
       rubber.sudo_script 'setup_mongrel_init', <<-ENDSCRIPT
         mkdir -p /etc/mongrel_cluster
-        rm -f /etc/mongrel_cluster/#{application}-#{RUBBER_ENV}.yml && ln -s /mnt/#{application}-#{RUBBER_ENV}/current/config/mongrel_cluster.yml /etc/mongrel_cluster/#{application}-#{RUBBER_ENV}.yml
+        rm -f /etc/mongrel_cluster/#{application}-#{Rubber.env}.yml && ln -s /mnt/#{application}-#{Rubber.env}/current/config/mongrel_cluster.yml /etc/mongrel_cluster/#{application}-#{Rubber.env}.yml
         find #{rubber_env.rvm_version ? "$(rvm gemdir)" : "/usr/lib/ruby/gems"} -path "*/resources/mongrel_cluster" -exec cp {} /etc/init.d/ \\;
         chmod +x /etc/init.d/mongrel_cluster
         update-rc.d -f mongrel_cluster remove

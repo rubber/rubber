@@ -1,5 +1,5 @@
 <%
-  @path = "#{RUBBER_ROOT}/config/initializers/mysql_cluster_migrations.rb"
+  @path = "#{Rubber.root}/config/initializers/mysql_cluster_migrations.rb"
 %>
 
 # mysql adapter in rails hardcodes engine to be innodb, so if we want all

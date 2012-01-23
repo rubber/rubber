@@ -72,7 +72,7 @@ namespace :rubber do
     hosts_file = '/etc/hosts'
 
     # Generate /etc/hosts contents for the local machine from instance config
-    delim = "## rubber config #{rubber_env.domain} #{RUBBER_ENV}"
+    delim = "## rubber config #{rubber_env.domain} #{Rubber.env}"
     local_hosts = delim + "\n"
     rubber_instances.each do |ic|
       # don't add unqualified hostname in local hosts file since user may be
@@ -289,14 +289,14 @@ namespace :rubber do
   DESC
   after "rubber:config", "rubber:install_rails_gems" if (Rubber::Util::is_rails? && !Rubber::Util.is_bundler?)
   task :install_rails_gems do
-    rsudo "cd #{current_release} && RAILS_ENV=#{RUBBER_ENV} #{fetch(:rake, 'rake')} gems:install"
+    rsudo "cd #{current_release} && RAILS_ENV=#{Rubber.env} #{fetch(:rake, 'rake')} gems:install"
   end
 
   desc <<-DESC
     Convenience task for installing your defined set of ruby gems locally.
   DESC
   required_task :install_local_gems do
-    fatal("install_local_gems can only be run in development") if RUBBER_ENV != 'development'
+    fatal("install_local_gems can only be run in development") if Rubber.env != 'development'
     env = rubber_cfg.environment.bind(rubber_cfg.environment.known_roles)
     gems = env['gems']
     expanded_gem_list = []
