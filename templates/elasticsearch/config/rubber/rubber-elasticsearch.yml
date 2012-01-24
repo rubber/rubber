@@ -1,0 +1,13 @@
+elasticsearch_version: 0.18.7
+elasticsearch_prefix: /usr/local
+elasticsearch_dir: "#{elasticsearch_prefix}/elasticsearch-#{elasticsearch_version}"
+elasticsearch_gwfs_dir: "/mnt2/elasticsearch_gateway"
+elasticsearch_data_dir: "/mnt/elasticsearch/data"
+elasticsearch_work_dir: "/mnt/elasticsearch/work"
+elasticsearch_log_dir: "/mnt/elasticsearch/logs"
+elasticsearch_pid_file: "/var/run/elasticsearch.pid"
+elasticsearch_http_port: 9200
+
+roles:
+  elasticsearch:
+    packages: [openjdk-6-jdk]
