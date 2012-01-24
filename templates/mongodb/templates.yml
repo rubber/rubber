@@ -1,3 +1,1 @@
 description: MongoDB module
-dependent_templates:
-  - base

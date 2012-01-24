@@ -5,15 +5,15 @@ namespace :rubber do
     
     rubber.allow_optional_tasks(self)
     
-    before "rubber:install_packages", "rubber:mongodb:install"
+    before "rubber:install_packages", "rubber:mongodb:setup_apt_sources"
     after "rubber:install_packages", "rubber:mongodb:setup_paths"
   
-    task :install, :roles => :mongodb do
+    task :setup_apt_sources, :roles => :mongodb do
       # Setup apt sources to mongodb from 10gen
       sources = <<-SOURCES
         deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen
       SOURCES
-      sources.gsub!(/^ */, '')
+      sources.gsub!(/^[ \t]*/, '')
       put(sources, "/etc/apt/sources.list.d/mongodb.list") 
       rsudo "apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10"
     end
@@ -38,14 +38,15 @@ namespace :rubber do
       Stops the mongodb daemon
     DESC
     task :stop, :roles => :mongodb do
-      rsudo "service mongodb stop"
+      rsudo "service mongodb stop || true"
     end
     
     desc <<-DESC
       Restarts the mongodb daemon
     DESC
     task :restart, :roles => :mongodb do
-      rsudo "service mongodb restart"
+      stop
+      start
     end
     
   end
