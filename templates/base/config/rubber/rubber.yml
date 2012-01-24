@@ -166,10 +166,10 @@ stop_on_error_cmd: "function error_exit { exit 99; }; trap error_exit ERR"
 
 # OPTIONAL: The default set of roles to use when creating a staging instance
 # with "cap rubber:create_staging".  By default this uses all the known roles,
-# but this is not always desired for staging, so you can specify a different
-# set here
+# excluding slave roles, but this is not always desired for staging, so you can
+# specify a different set here
 #
-staging_roles: "web,app,db:primary=true"
+# staging_roles: "web,app,db:primary=true"
 
 
 # OPTIONAL: Lets one assign amazon elastic IPs (static IPs) to your instances

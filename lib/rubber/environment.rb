@@ -42,16 +42,26 @@ module Rubber
       end
 
       def known_roles
-        roles_dir = File.join(@config_root, "role")
+        return @known_roles if @known_roles
+        
         roles = []
-        if File.exist?(roles_dir)
-          roles = Dir.entries(roles_dir)
-          roles.delete_if {|d| d =~ /(^\..*)/}
-          roles += @items['roles'].keys
+        # all the roles known about in config directory
+        roles.concat Dir["#{@config_root}/role/*"].collect {|f| File.basename(f) }
+        
+        # all the roles known about in script directory
+        roles.concat Dir["#{Rubber.root}/script/*/role/*"].collect {|f| File.basename(f) }
+        
+        # all the roles known about in yml files
+        Dir["#{@config_root}/rubber*.yml"].each do |yml|
+          rubber_yml = YAML.load(File.read(yml)) rescue {}
+          roles.concat(rubber_yml['roles'].keys) rescue nil
+          roles.concat(rubber_yml['role_dependencies'].keys) rescue nil
+          roles.concat(rubber_yml['role_dependencies'].values) rescue nil
         end
-        return roles.compact.uniq
+        
+        @known_roles = roles.flatten.uniq.sort
       end
-
+      
       def current_host
         Socket::gethostname.gsub(/\..*/, '')
       end

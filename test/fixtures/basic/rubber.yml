@@ -20,3 +20,7 @@ hosts:
         var53: val53
       -
         var54: val54
+
+role_dependencies:
+  role3: [role4, role5]
+  

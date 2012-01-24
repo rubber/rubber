@@ -21,8 +21,7 @@ namespace :rubber do
     create_spot_instance = ENV.delete("SPOT_INSTANCE")
 
     if r == '*'
-      instance_roles = rubber_cfg.environment.known_roles
-      instance_roles = instance_roles.collect {|role| role == "db" ? "db:primary=true" : role }
+      instance_roles = rubber_cfg.environment.known_roles.reject {|r| r =~ /slave/ || r =~ /^db$/ }
     else
       instance_roles = r.split(",")
     end
@@ -201,17 +200,13 @@ namespace :rubber do
         roles = env.instance_roles.split(",") rescue []
       end
 
-      roles.each do |r|
-        role = Rubber::Configuration::RoleItem.parse(r)
-
-        # If user doesn't setup a primary db, then be nice and do it
-        if role.name == "db" && role.options["primary"] == nil && rubber_instances.for_role("db").size == 0
-          value = Capistrano::CLI.ui.ask("You do not have a primary db role, should #{instance_alias} be it [y/n]?: ")
-          role.options["primary"] = true if value =~ /^y/
-        end
-
-        ir << role
+      # If user doesn't setup a primary db, then be nice and do it
+      if ! roles.include?("db:primary=true") && rubber_instances.for_role("db").size == 0
+        value = Capistrano::CLI.ui.ask("You do not have a primary db role, should #{instance_alias} be it [y/n]?: ")
+        roles << "db:primary=true" if value =~ /^y/
       end
+      
+      ir.concat roles.collect {|r| Rubber::Configuration::RoleItem.parse(r) }
 
       # Add in roles that the given set of roles depends on
       ir = Rubber::Configuration::RoleItem.expand_role_dependencies(ir, get_role_dependencies)

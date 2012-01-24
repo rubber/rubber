@@ -5,7 +5,7 @@ class EnvironmentTest < Test::Unit::TestCase
 
   def test_known_roles
     env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures/basic")
-    assert_equal ['role1', 'role2'], env.known_roles, "list of know roles not correct"
+    assert_equal ['role1', 'role2', 'role3', 'role4', 'role5'], env.known_roles, "list of known roles not correct"
   end
 
   def test_env
