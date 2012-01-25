@@ -1,0 +1,42 @@
+graylog_server_version: "0.9.6"
+graylog_server_pkg_url: "https://github.com/downloads/Graylog2/graylog2-server/graylog2-server-#{graylog_server_version}.tar.gz"
+graylog_server_prefix: "/usr/local"
+graylog_server_dir: "#{graylog_server_prefix}/graylog2-server-#{graylog_server_version}"
+graylog_server_pid_file: "/var/run/graylog-server.pid"
+graylog_server_port: 12201
+graylog_server_syslog_port: 12514
+
+graylog_web_version: "0.9.6"
+graylog_web_pkg_url: "https://github.com/downloads/Graylog2/graylog2-web-interface/graylog2-web-interface-#{graylog_web_version}.tar.gz"
+graylog_web_prefix: "/usr/local"
+graylog_web_dir: "#{graylog_web_prefix}/graylog2-web-interface-#{graylog_web_version}"
+graylog_web_pid_file: "/var/run/graylog-web.pid"
+graylog_web_port: 3005
+
+graylog_web_username: admin
+graylog_web_password: admin1
+graylog_web_email: "#{admin_email}"
+
+graylog_mongo_database: graylog2
+graylog_elasticsearch_index: graylog2
+
+web_tools_proxies:
+  graylog:
+    role: graylog_web
+    port: "#{graylog_web_port}"
+    path: /
+
+role_dependencies:
+  web_tools: [graylog_web, graylog_server]
+  graylog_server: [graylog_mongodb, graylog_elasticsearch]
+  graylog_mongodb: [mongodb]
+  graylog_elasticsearch: [elasticsearch]
+
+roles:
+  graylog_server:
+    packages: [openjdk-6-jdk, mongodb-10gen]
+  graylog_web:
+    packages: [libcurl4-openssl-dev]
+    gems: [[passenger, "#{passenger_version || '3.0.7'}"]]
+
+gems: [gelf, graylog2_exceptions]
