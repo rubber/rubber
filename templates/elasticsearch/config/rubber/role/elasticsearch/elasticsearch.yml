@@ -149,7 +149,8 @@ cluster.name: <%= rubber_env.app_name %>
 
 # Path to directory where to store index data allocated for this node.
 #
-# path.data: /path/to/data
+path.data: <%= rubber_env.elasticsearch_data_dir %>
+
 #
 # Can optionally include more than one location, causing data to be striped across
 # the locations (à la RAID 0) on a file level, favouring locations with most free
@@ -159,11 +160,11 @@ cluster.name: <%= rubber_env.app_name %>
 
 # Path to temporary files:
 #
-# path.work: /path/to/work
+path.work: <%= rubber_env.elasticsearch_work_dir %>
 
 # Path to log files:
 #
-# path.logs: /path/to/logs
+path.logs: <%= rubber_env.elasticsearch_log_dir %>
 
 # Path to where plugins are installed:
 #
