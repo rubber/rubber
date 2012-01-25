@@ -19,7 +19,7 @@ namespace :rubber do
     after "rubber:bootstrap", "rubber:elasticsearch:bootstrap"
 
     task :bootstrap, :roles => :elasticsearch do
-      exists = capture("echo $(ls #{rubber_env.elasticsearch_dir}/config/elasticsearch.yml 2> /dev/null)")
+      exists = capture("echo $(ls /etc/init/elasticsearch.conf 2> /dev/null)")
       if exists.strip.size == 0
         # After everything installed on machines, we need the source tree
         # on hosts in order to run rubber:config for bootstrapping the db
