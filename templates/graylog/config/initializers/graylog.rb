@@ -7,7 +7,8 @@ if graylog_server
   Rails.logger = GELF::Logger.new(graylog_server.full_name,
                                   Rubber.config.graylog_server_port,
                                   'LAN',
-                                  'facility' => 'rails')
+                                  'facility' => 'rails',
+                                  'host' => Rubber.config.host)
 
   # See https://github.com/Graylog2/graylog2_exceptions/wiki
   Rails.application.config.middleware.use "Graylog2Exceptions",
