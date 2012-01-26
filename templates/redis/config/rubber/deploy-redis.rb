@@ -4,22 +4,9 @@ namespace :rubber do
 
     rubber.allow_optional_tasks(self)
 
-    before "rubber:install_packages", "rubber:redis:setup_apt_sources"
+    after "rubber:install_packages", "rubber:redis:install"
 
-    task :setup_apt_sources, :roles => :redis do
-      rubber.sudo_script 'configure_redis_repository', <<-ENDSCRIPT
-        # redis 2.0 is the default starting in Ubuntu 11.04.
-        release=`lsb_release -sr`
-        needs_repo=`echo "$release < 11.04" | bc`
-        if [[ $needs_repo == 1 ]]; then
-          add-apt-repository ppa:soren/nova
-        fi
-      ENDSCRIPT
-    end
-
-    after "rubber:install_packages", "rubber:redis:custom_install"
-
-    task :custom_install, :roles => :redis do
+    task :install, :roles => :redis do
       rubber.sudo_script 'install_redis', <<-ENDSCRIPT
         if ! redis-server --version | grep "#{rubber_env.redis_server_version}" &> /dev/null; then
           # Fetch the sources.
@@ -31,15 +18,10 @@ namespace :rubber do
           make
 
           # Install the binaries.
-          /etc/init.d/redis-server stop
+          make install
 
-          mv src/redis-benchmark /usr/bin/
-          mv src/redis-check-aof /usr/bin/
-          mv src/redis-check-dump /usr/bin/
-          mv src/redis-cli /usr/bin/
-          mv src/redis-server /usr/bin/
-
-          /etc/init.d/redis-server start
+          # create the user
+          if ! id redis &> /dev/null; then adduser --system --group redis; fi
 
           # Clean up after ourselves.
           cd ..
@@ -52,37 +34,45 @@ namespace :rubber do
     after "rubber:bootstrap", "rubber:redis:bootstrap"
 
     task :bootstrap, :roles => :redis do
-      rubber.sudo_script 'bootstrap_redis', <<-ENDSCRIPT
-        mkdir -p #{rubber_env.redis_db_dir}
-        chown -R redis:redis #{rubber_env.redis_db_dir}
-      ENDSCRIPT
-
-      # After everything installed on machines, we need the source tree
-      # on hosts in order to run rubber:config for bootstrapping the db
-      rubber.update_code_for_bootstrap
-
-      # Gen just the conf for cassandra
-      rubber.run_config(:file => "role/redis", :force => true, :deploy_path => release_path)
+      exists = capture("echo $(ls #{rubber_env.redis_db_dir} 2> /dev/null)")
+      if exists.strip.size == 0
+        
+        rubber.sudo_script 'bootstrap_redis', <<-ENDSCRIPT
+          mkdir -p #{rubber_env.redis_db_dir}
+          chown -R redis:redis #{rubber_env.redis_db_dir}
+        ENDSCRIPT
+  
+        # After everything installed on machines, we need the source tree
+        # on hosts in order to run rubber:config for bootstrapping the db
+        rubber.update_code_for_bootstrap
+  
+        # Gen just the conf for cassandra
+        rubber.run_config(:file => "role/redis", :force => true, :deploy_path => release_path)
+        
+      end
+      
+      restart
     end
 
     desc "Stops the redis server"
     task :stop, :roles => :redis, :on_error => :continue do
-      rsudo "/etc/init.d/redis-server stop"
+      rsudo "service redis-server stop || true"
     end
 
     desc "Starts the redis server"
     task :start, :roles => :redis do
-      rsudo "/etc/init.d/redis-server start"
+      rsudo "service redis-server start"
     end
 
     desc "Restarts the redis server"
     task :restart, :roles => :redis do
-      rsudo "/etc/init.d/redis-server restart"
+      stop
+      start
     end
 
     desc "Reloads the redis server"
     task :reload, :roles => :redis do
-      rsudo "/etc/init.d/redis-server restart"
+      restart
     end
 
   end

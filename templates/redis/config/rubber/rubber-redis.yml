@@ -1,4 +1,7 @@
 redis_server_version: 2.4.6
+redis_server_pid_file: /var/run/redis-server.pid
+redis_server_conf_file: /etc/redis/redis.conf
+redis_server_port: 6379
 
 redis_db_dir: /mnt/redis
 
@@ -10,4 +13,4 @@ role_dependencies:
 
 roles:
   redis:
-    packages: [redis-server]
+    packages: []
