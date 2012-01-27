@@ -7,3 +7,5 @@ dependent_templates:
   - monit
   - collectd
   - graphite
+  - graylog
+
