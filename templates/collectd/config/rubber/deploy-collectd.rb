@@ -27,12 +27,13 @@ namespace :rubber do
     
     desc "Stop collectd system monitoring"
     task :stop, :roles => :collectd do
-      rsudo "service collectd stop; exit 0"
+      rsudo "service collectd stop || true"
     end
     
     desc "Restart collectd system monitoring"
     task :restart, :roles => :collectd do
-      rsudo "service collectd restart; sleep 5"
+      stop
+      start
     end
 
     desc "Restart collectd rubber plugin"

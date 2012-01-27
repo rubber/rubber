@@ -24,9 +24,9 @@ namespace :rubber do
         if exists.strip.size == 0
           rubber.update_code_for_bootstrap
           rubber.run_config(:file => "role/graylog_server", :force => true, :deploy_path => release_path)
-        end
 
-        restart
+          restart
+        end
       end
 
       desc "Stops the graylog server"
@@ -82,8 +82,9 @@ namespace :rubber do
             # Create the Graylog Web admin account.
             ./script/rails runner "User.create(:login => '#{rubber_env.graylog_web_username}', :email => '#{rubber_env.graylog_web_email}', :password => '#{rubber_env.graylog_web_password}', :password_confirmation => '#{rubber_env.graylog_web_password}', :role => 'admin') if User.count == 0"
           ENDSCRIPT
+
+          restart
         end
-        restart
       end
 
       desc "Stops the graylog web"

@@ -48,10 +48,9 @@ namespace :rubber do
   
         # Gen just the conf for cassandra
         rubber.run_config(:file => "role/redis", :force => true, :deploy_path => release_path)
-        
-      end
       
-      restart
+        restart
+      end
     end
 
     desc "Stops the redis server"

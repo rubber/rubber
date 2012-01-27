@@ -164,29 +164,6 @@ namespace :rubber do
     namespace :web do
       rubber.allow_optional_tasks(self)
       
-      after "rubber:bootstrap", "rubber:resque:web:bootstrap"
-  
-      task :bootstrap, :roles => :resque_web do
-        exists = capture("echo $(ls #{rubber_env.redis_db_dir} 2> /dev/null)")
-        if exists.strip.size == 0
-          
-          rubber.sudo_script 'bootstrap_redis', <<-ENDSCRIPT
-            mkdir -p #{rubber_env.redis_db_dir}
-            chown -R redis:redis #{rubber_env.redis_db_dir}
-          ENDSCRIPT
-    
-          # After everything installed on machines, we need the source tree
-          # on hosts in order to run rubber:config for bootstrapping the db
-          rubber.update_code_for_bootstrap
-    
-          # Gen just the conf for cassandra
-          rubber.run_config(:file => "role/redis", :force => true, :deploy_path => release_path)
-          
-        end
-        
-        restart
-      end
-
       before "deploy:stop", "rubber:resque:web:stop"
       after "deploy:start", "rubber:resque:web:start"
       after "deploy:restart", "rubber:resque:web:restart"
@@ -204,7 +181,6 @@ namespace :rubber do
       desc "Restarts resque web tools"
       task :restart, :roles => :resque_web do
         stop
-        sleep 2
         start
       end
 

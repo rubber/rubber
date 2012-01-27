@@ -1,3 +1,5 @@
+graphite_dir: "/opt/graphite"
+graphite_server_pid_file: /var/run/graphite-server.pid
 graphite_server_port: 2003
 graphite_web_port: 2080
 

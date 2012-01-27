@@ -25,9 +25,9 @@ namespace :rubber do
         # on hosts in order to run rubber:config for bootstrapping the db
         rubber.update_code_for_bootstrap
         rubber.run_config(:file => "role/elasticsearch", :force => true, :deploy_path => release_path)
+
+        restart
       end
-      
-      restart
     end
 
     task :start, :roles => :elasticsearch do

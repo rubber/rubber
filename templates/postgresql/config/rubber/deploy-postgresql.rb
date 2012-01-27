@@ -124,14 +124,15 @@ namespace :rubber do
       Stops the postgresql daemons
     DESC
     task :stop, :roles => [:postgresql_master, :postgresql_slave] do
-      rsudo "#{rubber_env.postgresql_ctl} stop"
+      rsudo "#{rubber_env.postgresql_ctl} stop || true"
     end
   
     desc <<-DESC
       Restarts the postgresql daemons
     DESC
     task :restart, :roles => [:postgresql_master, :postgresql_slave] do
-      rsudo "#{rubber_env.postgresql_ctl} restart"
+      stop
+      start
     end
 
   end

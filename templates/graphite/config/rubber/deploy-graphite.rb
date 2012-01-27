@@ -153,18 +153,18 @@ namespace :rubber do
 
           rubber.run_config(:file => "role/graphite_server", :force => true, :deploy_path => release_path)
 
-          start
+          restart
         end
       end
 
       desc "Start graphite system monitoring"
       task :start, :roles => :graphite_server do
-        rsudo "cd /opt/graphite/ && ./bin/carbon-cache.py start"
+        rsudo "service graphite-server start"
       end
 
       desc "Stop graphite system monitoring"
       task :stop, :roles => :graphite_server do
-        rsudo "cd /opt/graphite/ && ./bin/carbon-cache.py stop"
+        rsudo "service graphite-server stop || true"
       end
 
       desc "Restart graphite system monitoring"
@@ -239,7 +239,7 @@ EOF
 
       desc "Stop graphite system monitoring"
       task :stop, :roles => :graphite_web do
-        rsudo "service apache2 stop; exit 0"
+        rsudo "service apache2 stop || true"
       end
 
       desc "Restart graphite system monitoring"
