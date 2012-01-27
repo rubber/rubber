@@ -17,7 +17,15 @@ namespace :rubber do
         ENDSCRIPT
       end
 
-      after "rubber:bootstrap", "rubber:graylog:server:bootstrap"
+      after "rubber:mongodb:bootstrap", "rubber:graylog:server:multi_dependency_bootstrap"
+      after "rubber:elasticsearch:bootstrap", "rubber:graylog:server:multi_dependency_bootstrap"
+      dependency_count = 0
+      task :multi_dependency_bootstrap do
+        dependency_count += 1
+        if dependency_count == 2
+          bootstrap
+        end
+      end
 
       task :bootstrap, :roles => :graylog_server do
         exists = capture("echo $(ls /etc/graylog2.conf 2> /dev/null)")
