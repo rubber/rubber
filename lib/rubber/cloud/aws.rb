@@ -1,4 +1,5 @@
 require 'rubber/cloud/fog'
+require 'rubber/cloud/aws_table_store'
 
 module Rubber
   module Cloud
@@ -18,6 +19,12 @@ module Rubber
         credentials[:provider] = 'AWS'
         env['credentials'] = credentials
         super(env, capistrano)
+      end
+      
+      def table_store(table_key)
+        creds = {:aws_access_key_id => env.access_key,
+                 :aws_secret_access_key => env.secret_access_key}
+        return Rubber::Cloud::AwsTableStore.new(creds, table_key)  
       end
       
       def create_image(image_name)

@@ -19,6 +19,10 @@ module Rubber
         return Rubber::Cloud::FogStorage.new(@storage_provider, bucket)
       end
 
+      def table_store(table_key)
+        raise NotImplementedError, "No table store available for generic fog adapter"
+      end
+
       def create_instance(ami, ami_type, security_groups, availability_zone)
         response = @compute_provider.servers.create(:image_id => ami,
                                                     :flavor_id => ami_type,

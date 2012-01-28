@@ -11,10 +11,12 @@ module Rubber
       include Enumerable
       include MonitorMixin
 
-      def initialize(file)
+      def initialize(opts={})
         super()
-        Rubber.logger.debug{"Reading rubber instances from #{file}"}
-        @file = file
+        
+        @file = opts[:file]
+        @cloud_key = opts[:cloud_key] #"RubberInstances-#{Rubber.env}"
+        
         @items = {}
         @artifacts = {'volumes' => {}, 'static_ips' => {}}
 
@@ -26,8 +28,23 @@ module Rubber
         @filter_roles, @filter_roles_negated = @filter_roles.partition {|f| f !~ /^-/ }
         @filter_roles_negated = @filter_roles_negated.collect {|f| f[1..-1] }
 
-        if File.exist?(@file)
-          item_list = File.open(@file) { |f| YAML.load(f) }
+        load()
+      end
+      
+      def load()
+        if @file
+          load_from_file(@file)
+        elsif @cloud_key
+          load_from_cloud(@cloud_key)
+        else
+          raise "Need to supply one of :file or :cloud_key"
+        end
+      end
+
+      def load_from_file(file)
+        Rubber.logger.debug{"Reading rubber instances from #{file}"}
+        if File.exist?(file)
+          item_list = File.open(file) { |f| YAML.load(f) }
           if item_list
             item_list.each do |i|
               if i.is_a? InstanceItem
@@ -39,16 +56,53 @@ module Rubber
           end
         end
       end
-
+      
+      def load_from_cloud(table_key)
+        Rubber.logger.debug{"Reading rubber instances from cloud table #{table_key}"}
+        store = Rubber.cloud.table_store(table_key)
+        items = store.find()
+        items.each do |name, data|
+          case name
+            when '_artifacts_'
+              @artifacts = data
+            else
+              ic = InstanceItem.from_hash(data.merge({'name' => name}))
+              @items[ic.name] = ic 
+          end
+        end
+      end
+      
       def save()
+        if @file
+          save_to_file(@file)
+        elsif @cloud_key
+          save_to_cloud(@cloud_key)
+        else
+          raise "Need to supply one of :file or :cloud_key"
+        end
+      end
+
+      def save_to_file(file)
         synchronize do
           data = []
           data.push(*@items.values)
           data.push(@artifacts)
-          File.open(@file, "w") { |f| f.write(YAML.dump(data)) }
+          File.open(file, "w") { |f| f.write(YAML.dump(data)) }
         end
       end
-
+      
+      def save_to_cloud(table_key)
+        store = Rubber.cloud.table_store(table_key)
+        
+        store.delete('_artifacts_')
+        store.put('_artifacts_', @artifacts)
+        
+        @items.values.each do |item|
+          store.delete(item.name)
+          store.put(item.name, item.to_hash)
+        end
+      end
+      
       def [](name)
         @items[name] || @items[name.gsub(/\..*/, '')]
       end
@@ -132,6 +186,27 @@ module Rubber
         @security_groups = security_group_list
       end
 
+      def self.from_hash(hash)
+        item = allocate
+        hash.each do |k, v|
+          sym = "@#{k}".to_sym
+          v = v.collect {|r| RoleItem.parse(r) } if k == 'roles'
+          item.instance_variable_set(sym, v)
+        end
+        return item
+      end
+      
+      def to_hash
+        hash = {}
+        instance_variables.each do |iv|
+          name = iv.to_s.gsub(/^@/, '')
+          value = instance_variable_get(iv)
+          value = value.collect {|r| r.to_s } if name == 'roles'
+          hash[name] = value
+        end
+        return hash
+      end
+      
       def full_name
         "#@name.#@domain"
       end
@@ -175,7 +250,7 @@ module Rubber
       end
 
       def self.parse(str)
-        data = str.split(':');
+        data = str.split(':')
         role = Rubber::Configuration::RoleItem.new(data[0])
         if data[1]
           data[1].split(';').each do |pair|

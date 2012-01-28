@@ -10,7 +10,11 @@ module Rubber
 
     def self.get_configuration(env=nil, root=nil)
       key = "#{env}-#{root}"
-      @@configurations[key] ||= ConfigHolder.new(env, root)
+      unless @@configurations[key]
+        @@configurations[key] = ConfigHolder.new(env, root)
+        @@configurations[key].load()
+      end
+      return @@configurations[key]
     end
 
     def self.rubber_env
@@ -28,12 +32,22 @@ module Rubber
 
     class ConfigHolder
       def initialize(env=nil, root=nil)
-        root = "#{Rubber.root}/config/rubber" unless root
-        instance_cfg =  "#{root}/instance" + (env ? "-#{env}.yml" : ".yml")
-        @environment = Environment.new("#{root}")
-        @instance = Instance.new(instance_cfg)
+        @env = env
+        @root = root || "#{Rubber.root}/config/rubber"
+        @environment = Environment.new("#{@root}")
       end
 
+      def load
+        is_cloud = @environment.instance_eval { @items }['instance_cloud_storage']
+        if is_cloud
+          key = "RubberInstances" +(@env ? "-#{@env}" : "")
+          @instance = Instance.new(:cloud_key => key)
+        else
+          instance_cfg =  "#{@root}/instance" + (@env ? "-#{@env}.yml" : ".yml")
+          @instance = Instance.new(:file => instance_cfg)
+        end
+      end
+      
       def environment
         @environment
       end

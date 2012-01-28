@@ -4,7 +4,7 @@ class InstanceTest < Test::Unit::TestCase
   include Rubber::Configuration
 
   def setup
-    @instance = Instance.new(Tempfile.new('testforrole').path)
+    @instance = Instance.new(:file => Tempfile.new('testforrole').path)
     @instance.add(@i1 = InstanceItem.new('host1', 'domain.com', [RoleItem.new('role1')], '', 'm1.small', 'ami-7000f019'))
     @instance.add(@i2 = InstanceItem.new('host2', 'domain.com', [RoleItem.new('role1')], '', 'm1.small', 'ami-7000f019'))
     @instance.add(@i3 = InstanceItem.new('host3', 'domain.com', [RoleItem.new('role2')], '', 'm1.small', 'ami-7000f019'))
