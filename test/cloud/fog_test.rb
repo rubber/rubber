@@ -2,14 +2,15 @@ require File.expand_path(File.join(__FILE__, '../..', 'test_helper'))
 require 'rubber/cloud/aws'
 require 'ostruct'
 
-class AwsTest < Test::Unit::TestCase
+class FogTest < Test::Unit::TestCase
 
-  context "aws" do
+  context "fog" do
 
     setup do
-      env = {'access_key' => "XXX", 'secret_access_key' => "YYY", 'region' => "us-east-1"}
+      env = {'credentials' =>
+                 {'rackspace_api_key' => "XXX", 'rackspace_username' => "YYY", 'provider' => "rackspace"}}
       env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil)
-      @cloud = Rubber::Cloud::Aws.new(env, nil)
+      @cloud = Rubber::Cloud::Fog.new(env, nil)
     end
 
     should "instantiate" do
@@ -18,11 +19,11 @@ class AwsTest < Test::Unit::TestCase
     end
 
     should "provide storage" do
-      assert @cloud.storage('mybucket')
+      assert_raises(Fog::Errors::MockNotImplemented) { @cloud.storage('mybucket') }
     end
 
-    should "provide table store" do
-      assert @cloud.table_store('somekey')
+    should "not provide table store" do
+      assert_raises { @cloud.table_store('somekey') }
     end
 
     should "create instance" do

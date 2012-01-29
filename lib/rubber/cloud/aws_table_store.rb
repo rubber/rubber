@@ -1,3 +1,5 @@
+require 'json'
+
 module Rubber
   module Cloud
     
@@ -11,10 +13,10 @@ module Rubber
         Rubber.logger
       end
       
-      def initialize(creds, table_key)
+      def initialize(provider, table_key)
         raise "table_key required" unless table_key && table_key.size > 0
         
-        @table_provider = ::Fog::AWS::SimpleDB.new(creds)
+        @table_provider = provider
         @table_key = table_key
         
         ensure_table_key
@@ -51,7 +53,7 @@ module Rubber
       end
       
       def get(key, attributes=[])
-        response = @table_provider.get_attributes(@table_key, key, attributes)
+        response = @table_provider.get_attributes(@table_key, key, 'AttributeName' => attributes)
         data = response.body['Attributes']
         return decode_attributes(data)
       end
@@ -66,25 +68,30 @@ module Rubber
         query << " " + (attributes ? attributes.join(", ") : '*')
         query << " from `#{@table_key}`"
         query << " where ItemName = '#{key}'" if key
-        query << " limit " + (opts[:limit] ? opts[:limit] : "200")
+        query << " limit " + (opts[:limit] ? opts[:limit].to_s : "200")
         
         query_opts = {}
-        query_opts["NextToken"] = opts[:offset] if opts[:offset]
+        query_opts["NextToken"] = opts[:offset].to_s if opts[:offset]
         
         response = @table_provider.select(query, query_opts)
 
         data = response.body['Items']
-        result = {}
+        result = TableResponse.new
         data.each do |name, attribs|
           result[name] = decode_attributes(attribs)
         end 
             
-        next_token = response.body['NextToken']
-        def result.next_offset
-          next_token
-        end
+        result.next_offset = response.body['NextToken']
         
         return result
+      end
+      
+      class TableResponse < Hash
+        attr_accessor :next_offset
+        
+        def initialize(*args)
+          super
+        end
       end
       
     end

@@ -10,10 +10,12 @@ module Rubber
         
         credentials = {
             :aws_access_key_id => env.access_key,
-            :aws_secret_access_key => env.secret_access_key,
-            :region => env.region
+            :aws_secret_access_key => env.secret_access_key
         }
         
+        @table_store = ::Fog::AWS::SimpleDB.new(credentials)
+        
+        credentials[:region] = env.region
         @elb = ::Fog::AWS::ELB.new(credentials)
         
         credentials[:provider] = 'AWS'
@@ -22,9 +24,7 @@ module Rubber
       end
       
       def table_store(table_key)
-        creds = {:aws_access_key_id => env.access_key,
-                 :aws_secret_access_key => env.secret_access_key}
-        return Rubber::Cloud::AwsTableStore.new(creds, table_key)  
+        return Rubber::Cloud::AwsTableStore.new(@table_store, table_key)  
       end
       
       def create_image(image_name)
