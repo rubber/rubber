@@ -73,32 +73,40 @@ module Rubber
       end
       
       def save()
-        if @file
-          save_to_file(@file)
-        elsif @cloud_key
-          save_to_cloud(@cloud_key)
-        else
-          raise "Need to supply one of :file or :cloud_key"
+        synchronize do
+          if @file
+            save_to_file(@file)
+          elsif @cloud_key
+            save_to_cloud(@cloud_key)
+          else
+            raise "Need to supply one of :file or :cloud_key"
+          end
         end
       end
 
       def save_to_file(file)
-        synchronize do
-          data = []
-          data.push(*@items.values)
-          data.push(@artifacts)
-          File.open(file, "w") { |f| f.write(YAML.dump(data)) }
-        end
+        data = []
+        data.push(*@items.values)
+        data.push(@artifacts)
+        File.open(file, "w") { |f| f.write(YAML.dump(data)) }
       end
       
       def save_to_cloud(table_key)
         store = Rubber.cloud.table_store(table_key)
         
-        store.delete('_artifacts_')
-        store.put('_artifacts_', @artifacts)
+        # delete all before writing to handle removals
+        store.find().each do |k, v|
+          store.delete(k)
+        end
         
+        # only write out non-empty artifacts
+        artifacts = @artifacts.select {|k, v| v.size > 0}
+        if artifacts.size > 0
+          store.put('_artifacts_', artifacts)
+        end
+        
+        # write out all the instance data
         @items.values.each do |item|
-          store.delete(item.name)
           store.put(item.name, item.to_hash)
         end
       end
