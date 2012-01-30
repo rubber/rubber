@@ -113,7 +113,7 @@ cloud_provider: aws
 # OPTIONAL: Store instance data in the cloud (simpledb)
 # if you need to port from file based storage, load the
 # rails console for the production env with this var _unset_, then:
-# Rubber.instances.save_to_cloud("RubberInstances-production") 
+# Rubber.instances.save_to_cloud("RubberInstances_your_app_name_production") 
 #
 # Similarly to port from cloud to file, load console with this var _set_:
 # Rubber.instances.save_to_file("#{Rubber.root}/config/rubber/instance-production.yml") 

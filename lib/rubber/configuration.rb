@@ -38,9 +38,10 @@ module Rubber
       end
 
       def load
-        is_cloud = @environment.instance_eval { @items }['instance_cloud_storage']
+        config = @environment.bind()
+        is_cloud = config['instance_cloud_storage']
         if is_cloud
-          key = "RubberInstances" +(@env ? "-#{@env}" : "")
+          key = "RubberInstances_#{config['app_name']}" +(@env ? "_#{@env}" : "")
           @instance = Instance.new(:cloud_key => key)
         else
           instance_cfg =  "#{@root}/instance" + (@env ? "-#{@env}.yml" : ".yml")
