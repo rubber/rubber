@@ -11,11 +11,10 @@ module Rubber
       include Enumerable
       include MonitorMixin
 
-      def initialize(opts={})
+      def initialize(instance_storage)
         super()
         
-        @file = opts[:file]
-        @cloud_key = opts[:cloud_key] #"RubberInstances-#{Rubber.env}"
+        @instance_storage = instance_storage
         
         @items = {}
         @artifacts = {'volumes' => {}, 'static_ips' => {}}
@@ -31,33 +30,40 @@ module Rubber
         load()
       end
       
-      def load()
-        if @file
-          load_from_file(@file)
-        elsif @cloud_key
-          load_from_cloud(@cloud_key)
-        else
-          raise "Need to supply one of :file or :cloud_key"
+      def load(instance_storage=@instance_storage)
+        case instance_storage
+          when /file:(.*)/
+            location = $1
+            File.open(location, 'r') {|f| load_from_file(f) } if File.exist?(location)
+          when /storage:(.*)/
+            location = $1
+            bucket = location.split("/")[0]
+            key = location.split("/")[1..-1].join("/")
+            data = Rubber.cloud.storage(bucket).fetch(key)
+            StringIO.open(data, 'r') {|f| load_from_file(f) }
+          when /table:(.*)/
+            location = $1
+            load_from_table(location)
+          else
+            raise "Invalid instance_storage: #{instance_storage}\n" +
+                "Must be one of file:, table:, storage:"
         end
       end
 
-      def load_from_file(file)
-        Rubber.logger.debug{"Reading rubber instances from #{file}"}
-        if File.exist?(file)
-          item_list = File.open(file) { |f| YAML.load(f) }
-          if item_list
-            item_list.each do |i|
-              if i.is_a? InstanceItem
-                @items[i.name] = i
-              elsif i.is_a? Hash
-                @artifacts.merge!(i)
-              end
+      def load_from_file(io)
+        item_list =  YAML.load(io.read)
+        if item_list
+          item_list.each do |i|
+            if i.is_a? InstanceItem
+              @items[i.name] = i
+            elsif i.is_a? Hash
+              @artifacts.merge!(i)
             end
           end
         end
       end
       
-      def load_from_cloud(table_key)
+      def load_from_table(table_key)
         Rubber.logger.debug{"Reading rubber instances from cloud table #{table_key}"}
         store = Rubber.cloud.table_store(table_key)
         items = store.find()
@@ -72,26 +78,36 @@ module Rubber
         end
       end
       
-      def save()
+      def save(instance_storage=@instance_storage)
         synchronize do
-          if @file
-            save_to_file(@file)
-          elsif @cloud_key
-            save_to_cloud(@cloud_key)
-          else
-            raise "Need to supply one of :file or :cloud_key"
+          case instance_storage
+            when /file:(.*)/
+              location = $1
+              File.open(location, 'w') {|f| save_to_file(f) }
+            when /storage:(.*)/
+              location = $1
+              bucket = location.split("/")[0]
+              key = location.split("/")[1..-1].join("/")
+              data = StringIO.open {|f| save_to_file(f); f.string }
+              Rubber.cloud.storage(bucket).store(key, data)
+            when /table:(.*)/
+              location = $1
+              save_to_table(location)
+            else
+              raise "Invalid instance_storage: #{instance_storage}\n" +
+                  "Must be one of file:, table:, storage:"
           end
         end
       end
 
-      def save_to_file(file)
+      def save_to_file(io)
         data = []
         data.push(*@items.values)
         data.push(@artifacts)
-        File.open(file, "w") { |f| f.write(YAML.dump(data)) }
+        io.write(YAML.dump(data))
       end
       
-      def save_to_cloud(table_key)
+      def save_to_table(table_key)
         store = Rubber.cloud.table_store(table_key)
         
         # delete all before writing to handle removals

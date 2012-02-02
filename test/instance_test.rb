@@ -6,7 +6,7 @@ class InstanceTest < Test::Unit::TestCase
   context "instance" do
   
     def setup
-      @instance = Instance.new(:file => Tempfile.new('testforrole').path)
+      @instance = Instance.new("file:#{Tempfile.new('testforrole').path}")
       @instance.add(@i1 = InstanceItem.new('host1', 'domain.com', [RoleItem.new('role1')], '', 'm1.small', 'ami-7000f019'))
       @instance.add(@i2 = InstanceItem.new('host2', 'domain.com', [RoleItem.new('role1')], '', 'm1.small', 'ami-7000f019'))
       @instance.add(@i3 = InstanceItem.new('host3', 'domain.com', [RoleItem.new('role2')], '', 'm1.small', 'ami-7000f019'))
@@ -188,16 +188,46 @@ class InstanceTest < Test::Unit::TestCase
     end
     
     context "cloud storage" do
+      require 'rubber/cloud/aws'
       
-      should "load from cloud when cloud_key given" do
-        Instance.any_instance.expects(:load_from_cloud)
-        Instance.new(:cloud_key => 'foobar')        
+      setup do
+        env = {'access_key' => "XXX", 'secret_access_key' => "YYY", 'region' => "us-east-1"}
+        env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil)
+        @cloud = Rubber::Cloud::Aws.new(env, nil)
+        @cloud.storage_provider.put_bucket('bucket')
+        Rubber.stubs(:cloud).returns(@cloud)
       end
       
-      should "save to cloud when cloud_key given" do
-        Instance.any_instance.expects(:load_from_cloud)
-        Instance.any_instance.expects(:save_to_cloud)
-        Instance.new(:cloud_key => 'foobar').save    
+      should "fail for invalid instance_storage protocol" do
+        Instance.new('file:baz')
+
+        @cloud.storage('bucket').store('key', '')
+        Instance.new('storage:bucket/key')
+        
+        Instance.any_instance.stubs(:load_from_table)
+        Instance.new('table:bar')
+        
+        assert_raises { Instance.new('foo:bar') }
+      end
+      
+      should "load and save from file when file given" do
+        location = "file:#{Tempfile.new('instancestorage').path}"
+        Instance.any_instance.expects(:load_from_file)
+        Instance.any_instance.expects(:save_to_file)
+        Instance.new(location).save        
+      end
+      
+      should "load and save from storage when storage given" do
+        @cloud.storage('bucket').store('key', '')
+        Instance.any_instance.expects(:load_from_file)
+        Instance.any_instance.expects(:save_to_file)
+        Instance.new('storage:bucket/key').save        
+      end
+      
+      should "load and save from table when table given" do
+        Instance.any_instance.expects(:load_from_table)
+        Instance.any_instance.expects(:save_to_table)
+        Instance.new('table:foobar').save        
       end
       
     end

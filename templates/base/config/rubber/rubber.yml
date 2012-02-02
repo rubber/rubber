@@ -110,15 +110,18 @@ cloud_providers:
 #
 cloud_provider: aws
 
-# OPTIONAL: Store instance data in the cloud (simpledb)
-# if you need to port from file based storage, load the
-# rails console for the production env with this var _unset_, then:
-# Rubber.instances.save_to_cloud("RubberInstances_your_app_name_production") 
+# OPTIONAL: Where to store instance data.
+# 
+# Allowed forms are:
+# filesystem: "file:#{Rubber.root}/config/rubber/instance-#{Rubber.env}.yml"
+# cloud storage (s3): "storage:#{cloud_provider.aws.backup_bucket}/RubberInstances_#{app_name}/instance-#{Rubber.env}.yml"
+# cloud table (simpledb): "table:RubberInstances_#{app_name}_#{Rubber.env}"
 #
-# Similarly to port from cloud to file, load console with this var _set_:
-# Rubber.instances.save_to_file("#{Rubber.root}/config/rubber/instance-production.yml") 
+# If you need to port between forms, load the rails console then:
+# Rubber.instances.save(location)
+# where location is one of the allowed forms for this variable
 #
-# instance_cloud_storage: true
+# instance_storage: "file:#{Rubber.root}/config/rubber/instance-#{Rubber.env}.yml"
 
 # OPTIONAL: Define security groups
 # Each security group is a name associated with a sequence of maps where the

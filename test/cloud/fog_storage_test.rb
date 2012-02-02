@@ -154,6 +154,14 @@ class FogStorageTest < Test::Unit::TestCase
       assert_equal yielded_value, 'my chunk'
     end
     
+    should "stream a file for non-existent key" do
+      yielded_value = 'x'
+      
+      @storage.fetch("path/filename", {}) { |chunk| yielded_value = chunk }
+    
+      assert_equal 'x', yielded_value
+    end
+    
     context 'deleting a file' do
       should 'require a filename' do
         assert_raise do
