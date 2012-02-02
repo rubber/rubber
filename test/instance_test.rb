@@ -231,12 +231,21 @@ class InstanceTest < Test::Unit::TestCase
       end
       
       should "backup on save when desired" do
-        location = "file:#{Tempfile.new('instancestorage').path}"
-        backup = "file:#{Tempfile.new('instancestoragebackup').path}"
+        location_file = Tempfile.new('instancestorage').path
+        location = "file:#{location_file}"
+        backup_file = Tempfile.new('instancestoragebackup').path
+        backup = "file:#{backup_file}"
         
-        Instance.any_instance.expects(:load_from_file)
-        Instance.any_instance.expects(:save_to_file).twice
-        Instance.new(location, :backup => backup).save        
+        
+        instance = Instance.new(location, :backup => backup) 
+        instance.add(@i1 = InstanceItem.new('host1', 'domain.com', [RoleItem.new('role1')], '', 'm1.small', 'ami-7000f019'))
+        instance.save
+        
+        location_data = File.read(location_file)
+        backup_data = File.read(backup_file)
+        assert location_data.size > 0
+        assert backup_data.size > 0
+        assert_equal location_data, backup_data
       end
       
     end
