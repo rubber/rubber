@@ -230,6 +230,15 @@ class InstanceTest < Test::Unit::TestCase
         Instance.new('table:foobar').save        
       end
       
+      should "backup on save when desired" do
+        location = "file:#{Tempfile.new('instancestorage').path}"
+        backup = "file:#{Tempfile.new('instancestoragebackup').path}"
+        
+        Instance.any_instance.expects(:load_from_file)
+        Instance.any_instance.expects(:save_to_file).twice
+        Instance.new(location, :backup => backup).save        
+      end
+      
     end
     
     context "instance items" do

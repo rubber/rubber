@@ -11,11 +11,12 @@ module Rubber
       include Enumerable
       include MonitorMixin
 
-      def initialize(instance_storage)
+      def initialize(instance_storage, opts={})
         super()
         
         @instance_storage = instance_storage
-        
+        @opts = opts
+      
         @items = {}
         @artifacts = {'volumes' => {}, 'static_ips' => {}}
 
@@ -78,7 +79,7 @@ module Rubber
         end
       end
       
-      def save(instance_storage=@instance_storage)
+      def save(instance_storage=@instance_storage, backup=@opts[:backup])
         synchronize do
           case instance_storage
             when /file:(.*)/
@@ -98,6 +99,8 @@ module Rubber
                   "Must be one of file:, table:, storage:"
           end
         end
+        
+        save(backup, false) if backup
       end
 
       def save_to_file(io)

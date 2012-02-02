@@ -123,6 +123,15 @@ cloud_provider: aws
 #
 # instance_storage: "file:#{Rubber.root}/config/rubber/instance-#{Rubber.env}.yml"
 
+# OPTIONAL: Where to store a backup of the instance data
+#
+# This is most useful when using a remote store in case you end up
+# wiping the single copy of your instance data.  When using the file
+# store, the instance file is typically under version control with
+# your project code, so that provides some safety.
+#
+# instance_storage_backup: "storage:#{cloud_provider.aws.backup_bucket}/RubberInstances_#{app_name}/instance-#{Rubber.env}-#{Time.now.strftime('%Y%m%d-%H%M%S')}.yml"
+
 # OPTIONAL: Define security groups
 # Each security group is a name associated with a sequence of maps where the
 # keys are the parameters to the ec2 AuthorizeSecurityGroupIngress API
