@@ -50,7 +50,7 @@ task :changelog do
   end
 
   # Generate changelog from repo
-  log=`git log --pretty='format:%s <%h> [%cn]' #{newest_tag}..#{HEAD}`
+  log=`git log --pretty='format:%s <%h> [%cn]' #{newest_tag}..HEAD`
 
   # Strip out maintenance entries
   log = log.lines.to_a.delete_if do |l|
@@ -71,8 +71,10 @@ task :changelog do
   end
 
   # Commit and push
-  sh "git ci -m'Updated changelog' #{changelog_file}"
-  sh "git push"
+  unless ENV['NO_PUSH']
+    sh "git ci -m'Updated changelog' #{changelog_file}"
+    sh "git push"
+  end
 end
 
 desc 'Test the rubber plugin.'
