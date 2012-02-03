@@ -1,4 +1,72 @@
+2.0.0.pre1 (02/03/2012)
+----------
+
+New Features:
+============
+
+Refactored cloud layer to use fog, implement rubber use of aws/s3 with fog
+Abstract out s3 to go through rubber cloud layer (fog)
+Allow simpledb, s3 or alternate file for instance storage, with backups to same
+Added Graylog recipe
+Added Elasticsearch recipe
+Added Unicorn recipe [Thanks Alex Kremer]
+Added Graphite recipe
+Added Collectd recipe
+Added Graylog to complete_passenger template
+Make collectd/graphite default instead of munin
+Use resque-pool to manage resque workers
+Option to reboot if neccessary after package update
+Added a rubber binary and used it for running everything (cron, etc, removed dependency on rake)
+
+Improvements:
+============
+
+Start using upstart for all daemons (complete_passenger_postgresql, resque, graylog) 
+Better discovery of roles, default staging instance to these roles
+Replace global RUBBER_* vars in ruby with Rubber.*
+Bump image to latest 10.04
+check harder when determining project roles <7570d47> [Matt Conway]
+Cleanup crosscutting templates (monit, munin, collectd) to be self contained
+Remove hard dependency on nettica and lazy load it
+Upgraded config for PostgreSQL 9.1. [Thanks Kevin Menard]
+Upgraded to redis 2.4. [Thanks Kevin Menard]
+Bump rvm/ruby/rake/rubygems versions
+Bump passenger version
+Asset pipeline support for rails 3.1, cleanup some rails detection issues
+Extract fog dns from zerigo to allow other providers
+Respawn cap/rake with bundler if needed
+Proxy services on their own tools subhost to avoid issues with rewriting paths in CSS and JS [Thanks Kevin Menard]
+Automate web tools proxy mappings for IP aliases in /etc/host, dns, and web_tools index and vhosts files
+Added a rails template for creating a rails app to test rubber
+Include instance_type in rubber:describe
+Replaced zerigo_dns gem usage with fog [Thanks Kevin Menard]
+
+
+Bug Fixes:
+==========
+
+fix mongo monit to remove pidfile or mongo won't start
+fix mongo bootstrap
+make start/stop consistent, only restart when bootstrap necessary
+fix redis bootstrap
+fix resque_web bootstrap
+update redis to use upstart, thereby removing hackish dual install
+fix rvm installer url
+add back in base postgresql role
+fix db backup host
+validate config set, create image bucket on bundle
+made setup_remote_aliases update /etc/hosts for each host directly, preserve ordering to be consistent with setup_local_aliases
+Fix volume mounting [Thanks Alex Kremer]
+We shouldn't have a dependency on plpythonu. [Thanks Kevin Menard]
+Fixes to nginx/passenger [Thanks Ajay Kumar G]
+make sure open4 gets bundled
+fix create_staging for pre-existing instance
+Ensure Zerigo makes calls using XML in 3.1 [Thanks Alex Kremer]
+Fix suggestion in rubber.yml on how to list availability zones. [Thanks Maxim Chernyak aka hakunin]
+Locked the default version of Ruby down to a particular patch release so by default an entire cluster will use the same ruby [Thanks Kevin Menard]
+
 1.15.0 (09/13/2011)
+-----
 
 New Features:
 ============
@@ -31,7 +99,6 @@ Fixed an environmental issue running ntpdate (thanks Will Koehler)
 Fixed compatibility issues with the Psych parser used in Ruby 1.9.2 (thanks Kevin Menard)
 Fixed timing issue with multiple resque workers starting (thanks Matt Conway)
 Fixed an issue with hostnames that happen to be monit commands (thanks Michael Glass)
-
 
 1.14.1 (06/02/2011)
 -----
