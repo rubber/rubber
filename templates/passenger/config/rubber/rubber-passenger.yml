@@ -11,6 +11,6 @@ role_dependencies:
 
 roles:
   passenger:
-    packages: [apache2-mpm-prefork, apache2-prefork-dev, libcurl4-openssl-dev]
+    packages: [apache2-mpm-prefork, apache2-prefork-dev, libcurl4-openssl-dev, libapache2-mod-xsendfile]
     gems: [fastthread, rack, [passenger, "#{passenger_version}"]]
 
