@@ -60,7 +60,7 @@ module Rubber
           fqdn << "#{opts[:domain]}"
         end
 
-        hosts = fqdn ? zone.records.find(fqdn) : zone.records.all
+        hosts = fqdn ? (zone.records.find(fqdn) rescue []) : zone.records.all
         hosts.each do |h|
           keep = true
 

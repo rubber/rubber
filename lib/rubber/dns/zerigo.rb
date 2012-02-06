@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'fog'
+require 'rubber/dns/fog'
 
 module Rubber
   module Dns
@@ -9,12 +10,14 @@ module Rubber
       def initialize(env)
         super(env)
 
-        @client = Fog::DNS.new({
+        @client = ::Fog::DNS.new({
             :provider     => 'zerigo',
-            :zerigo_email => provider_env.email,
-            :zerigo_token => provider_env.token
+            :zerigo_email => env.email,
+            :zerigo_token => env.token
           })
       end
-
+    
+    end
+    
   end
 end
