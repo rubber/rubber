@@ -2,8 +2,20 @@
 namespace :rubber do
 
   namespace :nginx do
-  
+    
     rubber.allow_optional_tasks(self)
+    
+    before "rubber:install_packages", "rubber:nginx:install"
+    
+    task :install, :roles => :nginx do
+      # Setup apt sources for current nginx
+      sources = <<-SOURCES
+        deb http://nginx.org/packages/ubuntu/ lucid nginx
+        deb-src http://nginx.org/packages/ubuntu/ lucid nginx
+      SOURCES
+      sources.gsub!(/^ */, '')
+      put(sources, "/etc/apt/sources.list.d/nginx.list")     
+    end
     
     # serial_task can only be called after roles defined - not normally a problem, but
     # rubber auto-roles don't get defined till after all tasks are defined
