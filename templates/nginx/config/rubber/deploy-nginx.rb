@@ -14,7 +14,8 @@ namespace :rubber do
         deb-src http://nginx.org/packages/ubuntu/ lucid nginx
       SOURCES
       sources.gsub!(/^ */, '')
-      put(sources, "/etc/apt/sources.list.d/nginx.list")     
+      put(sources, "/etc/apt/sources.list.d/nginx.list")
+      rsudo "wget -qO- http://nginx.org/keys/nginx_signing.key | apt-key add -"  
     end
     
     # serial_task can only be called after roles defined - not normally a problem, but
