@@ -8,13 +8,7 @@ module Rubber
     class Zerigo < Fog
 
       def initialize(env)
-        super(env)
-
-        @client = ::Fog::DNS.new({
-            :provider     => 'zerigo',
-            :zerigo_email => env.email,
-            :zerigo_token => env.token
-          })
+        super(env.merge({"credentials" => { "provider" => 'zerigo', "zerigo_email" => env.email, "zerigo_token" => env.token }}))
       end
     
     end

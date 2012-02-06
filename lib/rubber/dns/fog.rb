@@ -10,6 +10,8 @@ module Rubber
       
       def initialize(env)
         super(env)
+        creds = Rubber::Util.symbolize_keys(env.credentials)
+        @client = ::Fog::DNS.new(creds)
       end
 
       def host_to_opts(host)
