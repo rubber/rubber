@@ -65,7 +65,7 @@ namespace :rubber do
     opts = ""
     opts += " --no_post" if options[:no_post]
     opts += " --force" if options[:force]
-    opts += " --file=#{options[:file]}" if options[:file]
+    opts += " --file=\"#{options[:file]}\"" if options[:file]
 
     # Need to do this so we can work with staging instances without having to
     # checkin instance file between create and bootstrap, as well as during a deploy
