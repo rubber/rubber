@@ -56,7 +56,7 @@ module Rubber
       def multipart_store(key, data, opts={})
         raise "a key is required" unless key && key.size > 0
         
-        opts = {:chunk_size => (5242880)}.merge(opts)
+        opts = {:chunk_size => (5 * 2**20)}.merge(opts)
   
         chunk = data.read(opts[:chunk_size])
   
