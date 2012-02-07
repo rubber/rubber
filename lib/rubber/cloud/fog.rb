@@ -238,26 +238,23 @@ module Rubber
         server = @compute_provider.servers.get(instance_id)
         volume.device = device
         volume.server = server
-        return volume.status
       end
 
       def detach_volume(volume_id, force=true)
         volume = @compute_provider.volumes.get(volume_id)
         force ? volume.force_detach : (volume.server = nil)
-        return volume.status
       end
 
       def describe_volumes(volume_id=nil)
         volumes = []
         opts = {}
-        opts[:volume-id] = volume_id if volume_id
+        opts[:'volume-id'] = volume_id if volume_id
         response = @compute_provider.volumes.all(opts)
         response.each do |item|
           volume = {}
           volume[:id] = item.id
           volume[:status] = item.state
           if item.server_id
-            attach = item.attachmentSet.item[0]
             volume[:attachment_instance_id] = item.server_id
             volume[:attachment_status] = item.attached_at ? "attached" : "waiting"
           end

@@ -382,7 +382,7 @@ namespace :rubber do
     detach_volume(volume_id)
 
     logger.info "Deleting volume #{volume_id}"
-    cloud.destroy_volume(volume_id)
+    cloud.destroy_volume(volume_id) rescue logger.info("Volume did not exist in cloud")
 
     logger.info "Removing volume #{volume_id} from rubber instances file"
     artifacts = rubber_instances.artifacts
