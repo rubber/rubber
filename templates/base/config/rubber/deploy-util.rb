@@ -15,7 +15,7 @@ namespace :rubber do
             
       task_name = "_backup_db_#{selected_db_instance.full_name}".to_sym()
       task task_name, :hosts => selected_db_instance.full_name do
-        rsudo "cd #{current_path} && RUBBER_ENV=#{Rubber.env} ./script/rubber util:backup_db --directory=/mnt/db_backups --dbuser=#{rubber_env.db_user} --dbpass=#{rubber_env.db_pass} --dbname=#{rubber_env.db_name} --dbhost=#{rubber_env.db_host}"
+        rsudo "cd #{current_path} && RUBBER_ENV=#{Rubber.env} ./script/rubber util:backup_db --directory=/mnt/db_backups --dbuser=#{rubber_env.db_user} --dbpass=#{rubber_env.db_pass} --dbname=#{rubber_env.db_name} --dbhost=#{selected_db_instance.full_name}"
       end
       send task_name
     end
@@ -31,7 +31,7 @@ namespace :rubber do
       for instance in master_instances+slaves
         task_name = "_restore_db_cloud_#{instance.full_name}".to_sym()
         task task_name, :hosts => instance.full_name do
-          rsudo "cd #{current_path} && RUBBER_ENV=#{Rubber.env} ./script/rubber util:restore_db --filename=#{filename} --dbuser=#{rubber_env.db_user} --dbpass=#{rubber_env.db_pass} --dbname=#{rubber_env.db_name} --dbhost=#{rubber_env.db_host}"
+          rsudo "cd #{current_path} && RUBBER_ENV=#{Rubber.env} ./script/rubber util:restore_db --filename=#{filename} --dbuser=#{rubber_env.db_user} --dbpass=#{rubber_env.db_pass} --dbname=#{rubber_env.db_name} --dbhost=#{instance.full_name}"
         end
         send task_name
       end
