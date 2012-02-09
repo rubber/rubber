@@ -71,7 +71,7 @@ class FogStorageTest < Test::Unit::TestCase
     
       should "multipart files over 5 mb" do
         @storage.expects(:singlepart_store).never
-        data = 'a' * (5 * 10**6 + 1)
+        data = 'a' * (5 * 2**20 + 1)
     
         #FIXME: Fog mock for initiate_multipart_upload isn't implemented. Remove mocks when it is
         @provider.expects(:initiate_multipart_upload).returns(OpenStruct.new(:body => {'UploadId' => 'fake-upload-id'}))
