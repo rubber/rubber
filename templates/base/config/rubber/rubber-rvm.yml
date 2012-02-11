@@ -7,6 +7,7 @@
 #   aptitude install curl bison build-essential zlib1g-dev libssl-dev libreadline5-dev libxml2-dev git-core
 # For IronRuby (if you wish to use it) you will need:
 #   aptitude install curl mono-2.0-devel
+# For Ubuntu Natty or newer, change libreadline5-dev to libreadline-gplv2-dev
 
 packages: [build-essential, git-core, subversion, curl, autoconf, bison, ruby, zlib1g-dev, libssl-dev, libreadline5-dev, libxml2-dev, libyaml-dev]
 
