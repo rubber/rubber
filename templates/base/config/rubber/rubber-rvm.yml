@@ -8,7 +8,7 @@
 # For IronRuby (if you wish to use it) you will need:
 #   aptitude install curl mono-2.0-devel
 
-packages: [build-essential, git-core, subversion, curl, autoconf, bison, ruby, zlib1g-dev, libssl-dev, libreadline5-dev, libxml2-dev, libyaml-dev]
+packages: [build-essential, git-core, subversion, curl, autoconf, bison, ruby, zlib1g-dev, libssl-dev, libreadline6-dev, libxml2-dev, libyaml-dev]
 
 # REQUIRED: the version of rvm itself
 rvm_version: 1.10.2
