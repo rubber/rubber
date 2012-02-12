@@ -25,11 +25,12 @@ namespace :rubber do
       
       created_vols = created_vols.compact.uniq
       raid_specs = env.raid_volumes || []
+      raid_volume_list = raid_specs.collect {|vol| vol["source_devices"]}.join(" ")
       raid_specs.each do |raid_spec|
         # we want to format if we created the ec2 volumes, or if we don't have any
         # ec2 volumes and are just creating raid array from ephemeral stores
-        format = raid_spec['source_devices'].all? {|dev| created_vols.include?(dev)}
-        setup_raid_volume(ic, raid_spec, format)
+        format = raid_spec['source_devices'].all? {|dev| created_vols.include?(dev.gsub("xv","s"))}
+        setup_raid_volume(ic, raid_spec, format, raid_volume_list)
       end
 
       lvm_volume_group_specs = env.lvm_volume_groups || []
@@ -109,11 +110,7 @@ namespace :rubber do
         print "."
         sleep 2
         volume = cloud.describe_volumes(vol_id).first
-        if volume[:attachment_status] == "attached"
-          print "."
-          sleep 2
-          break
-        end
+        break if volume[:attachment_status] == "attached"
       end
       print "\n"
 
@@ -128,7 +125,7 @@ namespace :rubber do
               fi
               mv /etc/fstab /etc/fstab.bak
               cat /etc/fstab.bak | grep -v '#{vol_spec['mount']}' > /etc/fstab
-              if grep '11\.04' /etc/lsb-release; then
+              if [ `lsb_release -r -s | sed 's/[.].*//'` -gt "10" ]; then
 		 device=`echo #{vol_spec['device']} | sed 's/sd/xvd/'`
 	      else
 		 device='#{vol_spec['device']}'
@@ -216,26 +213,34 @@ namespace :rubber do
     end
   end
 
-  def setup_raid_volume(ic, raid_spec, create=false)
+  def setup_raid_volume(ic, raid_spec, create=false, raid_volume_list=nil)
     if create
       mdadm_init = "yes | mdadm --create #{raid_spec['device']} --metadata=1.1 --level #{raid_spec['raid_level']} --raid-devices #{raid_spec['source_devices'].size} #{raid_spec['source_devices'].sort.join(' ')}"
     else
       mdadm_init = "yes | mdadm --assemble #{raid_spec['device']} #{raid_spec['source_devices'].sort.join(' ')}"
     end
-
+    
     task :_setup_raid_volume, :hosts => ic.external_ip do
       rubber.sudo_script 'setup_raid_volume', <<-ENDSCRIPT
         if ! grep -qE '#{raid_spec['device']}|#{raid_spec['mount']}' /etc/fstab; then
           if mount | grep -q '#{raid_spec['mount']}'; then
             umount '#{raid_spec['mount']}'
           fi
-          mv /etc/fstab /etc/fstab.bak
-          cat /etc/fstab.bak | grep -vE '#{raid_spec['device']}|#{raid_spec['mount']}' > /etc/fstab
-          echo '#{raid_spec['device']} #{raid_spec['mount']} #{raid_spec['filesystem']} #{raid_spec['mount_opts'] ? raid_spec['mount_opts'] : 'noatime'} 0 0 # rubber raid volume' >> /etc/fstab
-
-          # seems to help devices initialize, otherwise mdadm fails because
+          
+          # wait for devices to initialize, otherwise mdadm fails because
           # device not ready even though ec2 says the volume is attached
-          fdisk -l &> /dev/null
+          echo 'Waiting for devices'
+          cnt=0
+          while ! [[ -b #{raid_spec['source_devices'] * " && -b "} ]]; do
+            if [[ "$cnt" -eq "15" ]]; then
+              echo 'Timed out waiting for EBS volumes to initialize.'
+              exit 1
+            fi
+            echo '.'
+            sleep 2
+            let "cnt = $cnt + 1"
+          done
+          echo 'Devices ready'
 
           #{mdadm_init}
 
@@ -243,16 +248,23 @@ namespace :rubber do
           echo $((30*1024)) > /proc/sys/dev/raid/speed_limit_min
 
           echo 'MAILADDR #{rubber_env.admin_email}' > /etc/mdadm/mdadm.conf
-          echo 'DEVICE /dev/hd*[0-9] /dev/sd*[0-9]' >> /etc/mdadm/mdadm.conf
-          mdadm --detail --scan >> /etc/mdadm/mdadm.conf
+          echo 'DEVICE #{raid_volume_list}' >> /etc/mdadm/mdadm.conf
+          mdadm --detail --scan | sed s/name=.*\\ // >> /etc/mdadm/mdadm.conf
+          
+          update-initramfs -u
 
           mv /etc/rc.local /etc/rc.local.bak
           echo "mdadm --assemble --scan" > /etc/rc.local
           chmod +x /etc/rc.local
+          
+          mv /etc/fstab /etc/fstab.bak
+          cat /etc/fstab.bak | grep -vE '#{raid_spec['device']}|#{raid_spec['mount']}' > /etc/fstab
+          echo '#{raid_spec['device']} #{raid_spec['mount']} #{raid_spec['filesystem']} #{raid_spec['mount_opts'] ? raid_spec['mount_opts'] : 'noatime'} 0 0 # rubber raid volume' >> /etc/fstab
 
           #{('yes | mkfs -t ' + raid_spec['filesystem'] + ' ' + raid_spec['filesystem_opts'] + ' ' + raid_spec['device']) if create}
           mkdir -p '#{raid_spec['mount']}'
           mount '#{raid_spec['mount']}'
+                 
         fi
       ENDSCRIPT
     end
