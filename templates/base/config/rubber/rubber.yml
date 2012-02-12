@@ -130,7 +130,7 @@ cloud_provider: aws
 # store, the instance file is typically under version control with
 # your project code, so that provides some safety.
 #
-# instance_storage_backup: "storage:#{cloud_provider.aws.backup_bucket}/RubberInstances_#{app_name}/instance-#{Rubber.env}-#{Time.now.strftime('%Y%m%d-%H%M%S')}.yml"
+# instance_storage_backup: "storage:#{cloud_providers.aws.backup_bucket}/RubberInstances_#{app_name}/instance-#{Rubber.env}-#{Time.now.strftime('%Y%m%d-%H%M%S')}.yml"
 
 # OPTIONAL: Define security groups
 # Each security group is a name associated with a sequence of maps where the
