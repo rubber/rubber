@@ -250,14 +250,23 @@ stop_on_error_cmd: "function error_exit { exit 99; }; trap error_exit ERR"
 #
 #     # for raid array, you'll need to add mdadm to packages.  Likewise,
 #     # xfsprogs is needed for xfs filesystem support
+#     #
 #     packages: [xfsprogs, mdadm]
 #     raid_volumes:
 #       - device: /dev/md0 # OS device to to create raid array on
 #         mount: /mnt/fast # The directory to mount this array to
+#         mount_opts: 'nobootwait' # Recent Ubuntu versions require this flag or SSH will not start on reboot
 #         filesystem: xfs # the filesystem to create on array
 #         filesystem_opts: -f # the filesystem opts in mkfs
 #         raid_level: 0 # the raid level to use for the array
-#         source_devices: [/dev/sdx, /dev/sdy] # the source EBS devices we are creating raid array from
+#         # if you're using Ubuntu 11.x or later (Natty, Oneiric, Precise, etc)
+#         # you will want to specify the source devices in their /dev/xvd format
+#         # see https://bugs.launchpad.net/ubuntu/+source/linux/+bug/684875 for
+#         # more information.
+#         # NOTE: Only make this change for raid source_devices, NOT generic
+#         # volume commands above.
+#         source_devices: [/dev/sdx, /dev/sdy] # the source EBS devices we are creating raid array from (Ubuntu Lucid or older)
+#         source_devices: [/dev/xvdx, /dev/xvdy] # the source EBS devices we are creating raid array from (Ubuntu Natty or newer)
 #
 #     # for LVM volumes, you'll need to add lvm2 to packages.  Likewise,
 #     # xfsprogs is needed for xfs filesystem support
