@@ -70,7 +70,14 @@ namespace :rubber do
     # Need to do this so we can work with staging instances without having to
     # checkin instance file between create and bootstrap, as well as during a deploy
     if fetch(:push_instance_config, false)
-      push_files = [rubber_instances.file] + rubber_cfg.environment.config_files
+      push_files = rubber_cfg.environment.config_files
+
+      # If we're using a local instance file, push that up.  This isn't necessary when storing in S3 or SimpleDB.
+      if rubber_instances.instance_storage =~ /^file:(.*)/
+        location = $1
+        push_files << location
+      end
+
       push_files.each do |file|
         dest_file = file.sub(/^#{Rubber.root}\/?/, '')
         put(File.read(file), File.join(path, dest_file), :mode => "+r")

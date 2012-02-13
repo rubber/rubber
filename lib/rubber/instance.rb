@@ -7,7 +7,7 @@ module Rubber
     # Contains the ec2 instance configuration defined in instance.yml
     #
     class Instance
-      attr_reader :file, :artifacts
+      attr_reader :instance_storage, :artifacts
       include Enumerable
       include MonitorMixin
 
