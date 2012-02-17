@@ -1,0 +1,6 @@
+role_dependencies:
+  mysql: [xtrabackup]
+  percona: [xtrabackup]  
+roles:
+  xtrabackup:
+    packages: [xtrabackup]
