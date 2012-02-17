@@ -14,7 +14,7 @@ mkdir -p /mnt/db_restore
 # Write STDIN into file
 cat > /mnt/db_restore/current.tar.gz
 cd /mnt/db_restore
-tar xzvif current.tar.gz
+tar xzvf current.tar.gz
 echo 'Stopping MySQL'
 if [ -z "`service mysql stop | grep 'done'`" ] ; then
 	echo "ERROR: Couldn't stop mysql daemon."
