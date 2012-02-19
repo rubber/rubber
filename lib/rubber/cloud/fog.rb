@@ -34,7 +34,7 @@ module Rubber
       end
 
       def create_spot_instance_request(spot_price, ami, ami_type, security_groups, availability_zone)
-        response = @compute_provider.spot_requests.create(:spot_price => spot_price,
+        response = @compute_provider.spot_requests.create(:price => spot_price,
                                                           :image_id => ami,
                                                           :flavor_id => ami_type,
                                                           :groups => security_groups,
