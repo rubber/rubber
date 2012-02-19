@@ -101,7 +101,7 @@ namespace :rubber do
           end
 
           pairs = {}
-          [*parents, *children].each {|item| pairs[item.uid] ||= [];  pairs[item.uid] << item}
+          (parents + children).each {|item| pairs[item.uid] ||= [];  pairs[item.uid] << item}
           stuck_parents = pairs.select{|item| item.size == 1 && item.first.type == :parent}
           stuck_children = pairs.select{|item| item.size == 1 && item.first.type == :child}
 
@@ -140,7 +140,7 @@ namespace :rubber do
           ages = children.group_by do |item|
             runtime = Time.now.to_i - item.start_time
             runtime = 0 if item.start_time == 0
-            [*times, *slow_times].find {|t| runtime < (t * 60)}
+            (times + slow_times).find {|t| runtime < (t * 60)}
           end
 
           times.each do |t|
