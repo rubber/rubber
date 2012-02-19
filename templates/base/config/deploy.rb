@@ -36,6 +36,7 @@ set :push_instance_config, Rubber.env != 'production'
 # Allows the tasks defined to fail gracefully if there are no hosts for them.
 # Comment out or use "required_task" for default cap behavior of a hard failure
 rubber.allow_optional_tasks(self)
+
 # Wrap tasks in the deploy namespace that have roles so that we can use FILTER
 # with something like a deploy:cold which tries to run deploy:migrate but can't
 # because we filtered out the :db role
@@ -44,6 +45,17 @@ namespace :deploy do
   tasks.values.each do |t|
     if t.options[:roles]
       task t.name, t.options, &t.body
+    end
+  end
+end
+
+namespace :deploy do
+  namespace :assets do
+    rubber.allow_optional_tasks(self)
+    tasks.values.each do |t|
+      if t.options[:roles]
+        task t.name, t.options, &t.body
+      end
     end
   end
 end
