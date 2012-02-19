@@ -14,7 +14,7 @@ web_tools_proxies:
     role: graphite_web
     port: "#{graphite_web_port}"
     path: /
-    
+
 roles:
   graphite_web:
     packages: [python-django python-django-tagging apache2 libapache2-mod-wsgi python-cairo python-memcache memcached sqlite3 bzr zip]

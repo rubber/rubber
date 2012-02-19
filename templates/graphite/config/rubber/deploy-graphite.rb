@@ -67,7 +67,7 @@ namespace :rubber do
         fi
       ENDSCRIPT
     end
-    
+
     task :install_graphite_from_repo, :roles => [:graphite_server, :graphite_web] do
       rubber.sudo_script 'install_graphite_from_repo', <<-ENDSCRIPT
         if [[ ! -d "/opt/graphite" ]]; then
