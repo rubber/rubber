@@ -52,10 +52,10 @@ namespace :rubber do
             sleep 5
 
             create_user_cmd = "CREATE USER #{env.db_user} WITH NOSUPERUSER CREATEDB NOCREATEROLE"
-            create_user_cmd << "PASSWORD '#{env.db_pass}'" if env.db_pass
+            create_user_cmd << " PASSWORD '#{env.db_pass}'" if env.db_pass
 
             create_replication_user_cmd = "CREATE USER #{env.db_replication_user} WITH NOSUPERUSER NOCREATEROLE REPLICATION"
-            create_replication_user_cmd << "PASSWORD '#{env.db_replication_pass}'" if env.db_replication_pass
+            create_replication_user_cmd << " PASSWORD '#{env.db_replication_pass}'" if env.db_replication_pass
 
             rubber.sudo_script "create_master_db", <<-ENDSCRIPT
               sudo -u postgres psql -c "#{create_user_cmd}"
