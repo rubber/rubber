@@ -2,6 +2,7 @@ require 'erb'
 require 'find'
 require 'fileutils'
 require 'rubber/util'
+require 'tempfile'
 
 module Rubber
   module Configuration
@@ -118,10 +119,25 @@ module Rubber
           open("#{config_path}.bak", 'w') { |f| f.write(orig) } if config_path && config.backup
 
           # Write out transformed file
-          writer = config_path || "|#{config.write_cmd}"
-          open(writer, 'w') do |pipe|
-            pipe.write(result)
+          if config_path
+            open(config_path, 'w') do |pipe|
+              pipe.write(result)
+            end
+
+          # Handle write_cmd by dumping the body to a file and then piping that into the command.
+          else
+            file = Tempfile.new('rubber_write_cmd')
+
+            begin
+              file.write(result)
+              file.close
+
+              system("cat #{file.path} | #{config.write_cmd}")
+            ensure
+              file.unlink
+            end
           end
+
           if config.write_cmd && ! fake_root && $?.exitstatus != 0
             raise "Config command failed execution:  #{config.write_cmd}"
           end
