@@ -1,6 +1,6 @@
 require "resque"
 
-redis_server = Rubber.instances.for_role('redis_slave').first.full_name rescue nil
+redis_server = Rubber.instances.for_role('redis_master').first.full_name rescue nil
 redis_server ||= 'localhost' if Rubber.env == 'development'
 Resque.redis = "#{redis_server}:6379"
 
