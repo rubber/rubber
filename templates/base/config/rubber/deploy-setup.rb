@@ -75,7 +75,7 @@ namespace :rubber do
         if [[ "#{repository}" =~ "@" ]]; then
           # Get host key for src machine to prevent ssh from failing
           rm -f ~/.ssh/known_hosts
-          ! ssh -o 'StrictHostKeyChecking=no' #{repository.gsub(/:.*/, '')} &> /dev/null
+          ssh -o 'StrictHostKeyChecking=no' #{repository.gsub(/:.*/, '')} &> /dev/null || true
         fi
       ENDSCRIPT
     end
