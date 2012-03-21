@@ -10,7 +10,7 @@ postgresql_synchronous_replication: false
 
 # REQUIRED: The command to use to do a full backup of your database using
 #           "rubber util:backup_db"
-db_backup_cmd: "nice sudo -u postgres pg_dumpall -U postgres | gzip -c > %backup_file%"
+db_backup_cmd: "set -e -o pipefail; nice sudo -u postgres pg_dumpall -U postgres | gzip -c > %backup_file%"
 
 # REQUIRED: The command to use to restore the database using
 #           "rake util:restore_db"
