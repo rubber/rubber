@@ -7,14 +7,6 @@ resque_pool_pid_file: /var/run/resque-pool.pid
 #
 resque_worker_count: "#{Rubber.env == 'production' ? 4 : 2}"
 
-resque_workers:
-  -
-    queues: "*"
-    poll_interval: 1
-  -
-    queues: "*"
-    poll_interval: 1
-
 gems: [yajl-ruby, resque, resque-pool]
 
 web_tools_proxies:
