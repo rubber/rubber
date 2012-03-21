@@ -33,6 +33,15 @@ set :keep_releases, 3
 # the safety of forcing it to be checked in for production.
 set :push_instance_config, Rubber.env != 'production'
 
+# don't waste time bundling gems that don't need to be there 
+set :bundle_without, [:development, :test, :staging] if Rubber.env == 'production'
+
+# Allow us to do N hosts at a time for all tasks - useful when trying
+# to figure out which host in a large set is down:
+# RUBBER_ENV=production MAX_HOSTS=1 cap invoke COMMAND=hostname
+max_hosts = ENV['MAX_HOSTS'].to_i
+default_run_options[:max_hosts] = max_hosts if max_hosts > 0
+
 # Allows the tasks defined to fail gracefully if there are no hosts for them.
 # Comment out or use "required_task" for default cap behavior of a hard failure
 rubber.allow_optional_tasks(self)
@@ -65,7 +74,19 @@ Dir["#{File.dirname(__FILE__)}/rubber/deploy-*.rb"].each do |deploy_file|
   load deploy_file
 end
 
-after "deploy", "deploy:cleanup"
+# capistrano's deploy:cleanup doesn't play well with FILTER
+after "deploy", "cleanup"
+after "deploy:migrations", "cleanup"
+task :cleanup, :except => { :no_release => true } do
+  count = fetch(:keep_releases, 5).to_i
+  
+  rsudo <<-CMD
+    all=$(ls -x1 #{releases_path} | sort -n);
+    keep=$(ls -x1 #{releases_path} | sort -n | tail -n #{count});
+    remove=$(comm -23 <(echo -e "$all") <(echo -e "$keep"));
+    for r in $remove; do rm -rf #{releases_path}/$r; done;
+  CMD
+end
 
 if Rubber::Util.has_asset_pipeline?
   # load asset pipeline tasks, and reorder them to run after
