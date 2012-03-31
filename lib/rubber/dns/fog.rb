@@ -35,7 +35,7 @@ module Rubber
       end
 
       def find_or_create_zone(domain)
-        zone = @client.zones.all.find {|z| z.domain =~ /#{domain}\.?/}
+        zone = @client.zones.all.find {|z| z.domain =~ /^#{domain}\.?/}
         if ! zone
           zone = @client.zones.create(:domain => domain)
         end
