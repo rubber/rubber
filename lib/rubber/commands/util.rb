@@ -156,6 +156,9 @@ module Rubber
       option ["-d", "--directory"],
              "DIRECTORY",
              "The directory to stage backups into\nRequired"
+      option ["-f", "--filename"],
+             "FILENAME",
+             "The name of the backup file"
       option ["-u", "--dbuser"],
              "DBUSER",
              "The database user to connect with\nRequired"
@@ -177,9 +180,12 @@ module Rubber
       def execute
         signal_usage_error "DIRECTORY, DBUSER, DBHOST, DBNAME are required" unless directory && dbuser && dbhost && dbname
         
-        
         time_stamp = Time.now.strftime("%Y-%m-%d_%H-%M")
-        backup_file = "#{directory}/#{Rubber.env}_dump_#{time_stamp}.sql.gz"
+        if filename
+          backup_file = "#{directory}/#{filename}"
+        else
+          backup_file = "#{directory}/#{Rubber.env}_dump_#{time_stamp}.sql.gz"
+        end
         FileUtils.mkdir_p(File.dirname(backup_file))
         
         # extra variables for command interpolation
