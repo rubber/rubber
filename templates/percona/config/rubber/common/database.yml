@@ -1,0 +1,12 @@
+<%
+  @path = "#{Rubber.root}/config/database.yml"
+%>
+
+<%= Rubber.env %>:
+  adapter: <%= YAML::load(File.open("#{Rubber.root}/config/database.yml"))["production"]["adapter"] %>
+  encoding: utf8
+  database: <%= rubber_env.db_name %>
+  username: <%= rubber_env.db_user %>
+  password: <%= rubber_env.db_pass %>
+  host: <%= rubber_instances.for_role('db', 'primary' => true).first.full_name %>
+  pool: 5
