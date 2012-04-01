@@ -34,10 +34,26 @@ class FogTest < Test::Unit::TestCase
         zone0 = @dns.find_or_create_zone("example1.com")
         
         assert_equal 1, @dns.client.zones.all.size
-        zone1 = @dns.client.zones.all.find {|z| z.domain =~ /example1.com/ }
+        zone1 = @dns.client.zones.all.find {|z| z.domain =~ /^example1.com/ }
         assert zone1
         assert_equal zone0.id, zone1.id
         assert_equal zone0.domain, zone1.domain
+      end
+      
+      should "match the same domain that was passed" do
+        @dns = Rubber::Dns::Fog.new(@env)
+    
+        assert_equal 0, @dns.client.zones.all.size
+        
+        zone0 = @dns.find_or_create_zone("abcfoo.com")
+        zone1 = @dns.find_or_create_zone("foo.com")
+        
+        assert_equal 2, @dns.client.zones.all.size
+        
+        zone2 = @dns.client.zones.all.find {|z| z.domain =~ /^foo.com/ }
+        assert zone2
+        assert_equal zone1.id, zone2.id
+        assert_equal zone1.domain, zone2.domain
       end
       
       should "do nothing if domain already exists" do
@@ -49,7 +65,7 @@ class FogTest < Test::Unit::TestCase
         zone0 = @dns.find_or_create_zone("example1.com")
         
         assert_equal 1, @dns.client.zones.all.size
-        zone1 = @dns.client.zones.all.find {|z| z.domain =~ /example1.com/ }
+        zone1 = @dns.client.zones.all.find {|z| z.domain =~ /^example1.com/ }
         assert_equal zone0.id, zone1.id
         assert_equal zone0.domain, zone1.domain
       end
