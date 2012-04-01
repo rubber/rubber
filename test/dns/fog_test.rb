@@ -34,7 +34,7 @@ class FogTest < Test::Unit::TestCase
         zone0 = @dns.find_or_create_zone("example1.com")
         
         assert_equal 1, @dns.client.zones.all.size
-        zone1 = @dns.client.zones.all.find {|z| z.domain =~ /example1.com/ }
+        zone1 = @dns.client.zones.all.find {|z| z.domain =~ /^example1.com/ }
         assert zone1
         assert_equal zone0.id, zone1.id
         assert_equal zone0.domain, zone1.domain
@@ -49,7 +49,7 @@ class FogTest < Test::Unit::TestCase
         zone0 = @dns.find_or_create_zone("example1.com")
         
         assert_equal 1, @dns.client.zones.all.size
-        zone1 = @dns.client.zones.all.find {|z| z.domain =~ /example1.com/ }
+        zone1 = @dns.client.zones.all.find {|z| z.domain =~ /^example1.com/ }
         assert_equal zone0.id, zone1.id
         assert_equal zone0.domain, zone1.domain
       end
