@@ -1,5 +1,5 @@
-passenger_version: 3.0.7
-nginx_version: 1.0.0
+passenger_version: 3.0.11
+nginx_version: 1.0.11
 passenger_root: "#{rvm_gem_home}/gems/passenger-#{passenger_version}"
 passenger_ruby: "#{rvm_prefix}/wrappers/#{`bash -l -c 'rvm strings #{rvm_ruby}'`.strip}/ruby"
 passenger_lib: "#{passenger_root}/ext/nginx"
@@ -16,5 +16,5 @@ use_ssl_key: false
 
 roles:
   passenger_nginx:
-    packages: [libcurl4-openssl-dev]
+    packages: [libcurl4-openssl-dev, libpcre3-dev]
     gems: [[passenger, "#{passenger_version}"]]
