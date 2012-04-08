@@ -95,8 +95,10 @@ module Rubber
         
         # set current directory to rootdir
         Dir.chdir(rootdir)
-  
-        status = Open4::popen4(*cmd) do |pid, stdin, stdout, stderr|
+
+        # Open4 forks, which JRuby doesn't support.  But JRuby added a popen4-compatible method on the IO class,
+        # so we can use that instead.
+        status = (defined?(JRUBY_VERSION) ? IO : Open4).popen4(*cmd) do |pid, stdin, stdout, stderr|
           File.open(log, "w") do | fh |
             threads = []
             threads <<  Thread.new(stdout) do |stdout|
