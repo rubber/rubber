@@ -110,7 +110,12 @@ module Rubber
             threads.each { |t| t.join }
           end
         end
-        
+
+        # JRuby's open4 doesn't return a Process::Status object when invoked with a block, but rather returns the
+        # block expression's value.  The Process::Status is stored as $?, so we need to normalize the status
+        # object if on JRuby.
+        status = $? if defined?(JRUBY_VERSION)
+
         result = status.exitstatus
         if result != 0
           puts ""
