@@ -21,12 +21,6 @@ namespace :rubber do
       ENDSCRIPT
     end
 
-    after "rubber:setup_app_permissions", "rubber:passenger:setup_passenger_permissions"
-
-    task :setup_passenger_permissions, :roles => :passenger do
-      rsudo "chown #{rubber_env.app_user}:#{rubber_env.app_user} #{current_path}/config/environment.rb"
-    end
-
     # passenger does things differently for rack apps, so if this is a rails app, remove config.ru
     # to stop passenger from treating this like a rack app
     after "deploy:update_code", "rubber:passenger:remove_config_ru" if Rubber::Util.is_rails?
