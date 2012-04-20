@@ -1,0 +1,11 @@
+zookeeper_version: 3.3.5
+zookeeper_package_url: "http://www.ecoficial.com/am/zookeeper/stable/zookeeper-#{zookeeper_version}.tar.gz"
+zookeeper_install_dir: "/usr/local/zookeeper-#{zookeeper_version}"
+zookeeper_data_dir: /mnt/zookeeper/data
+zookeeper_pid_file: "#{zookeeper_data_dir}/zookeeper_server.pid"
+zookeeper_log_file: "#{zookeeper_data_dir}/zookeeper.log"
+zookeeper_client_port: 2181
+
+roles:
+  zookeeper:
+    packages: [openjdk-6-jdk]
