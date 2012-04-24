@@ -43,7 +43,7 @@ namespace :rubber do
     if ! fetch(:rubber_code_was_updated, false)
       deploy.update_code
     end
-    deploy.symlink
+    deploy.create_symlink
     deploy.migrate
     deploy.start
   end
