@@ -1,0 +1,33 @@
+# The intended way to setup a jenkins ci instance for your project is to run
+# it in its own environment e.g.:
+# RUBBER_ENV=jenkins cap rubber:create ALIAS=jenkins
+# RUBBER_ENV=jenkins cap rubber:bootstrap
+
+jenkins_web_port: 80
+jenkins_web_ssl_port: 443
+jenkins_proxy_port: 8080
+jenkins_build_home: /var/lib/jenkins
+
+# the roles we need installed for jenkins to test our app,
+# typically the persistence layer is sufficient, and apache
+# for proxying to java server
+role_dependencies:
+  jenkins: [apache, postgresql_master]
+
+security_groups:
+  jenkins_web:
+    description: "To open up port #{jenkins_web_port}/#{jenkins_web_ssl_port} for http server on jenkins role"
+    rules:
+      - protocol: tcp
+        from_port: "#{jenkins_web_port}"
+        to_port: "#{jenkins_web_port}"
+        source_ips: [0.0.0.0/0]
+      - protocol: tcp
+        from_port: "#{jenkins_web_ssl_port}"
+        to_port: "#{jenkins_web_ssl_port}"
+        source_ips: [0.0.0.0/0]
+
+roles:
+  jenkins:
+    assigned_security_groups: [jenkins_web]
+    packages: [sun-java6-jdk, jenkins]
