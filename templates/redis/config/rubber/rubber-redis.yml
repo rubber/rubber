@@ -14,4 +14,4 @@ role_dependencies:
 
 roles:
   redis:
-    packages: []
+    packages: [zip]
