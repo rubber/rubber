@@ -1,7 +1,6 @@
-
 rubber_collectd_runner: "script/collectd/collectd-runner.rb"
 collectd_graphite_plugin_version: 6107730c56b4ede27631
-packages: [collectd libperl5.10]
+packages: [collectd libperl-dev]
 collectd_syslog: daemon
 
 role_dependencies:
