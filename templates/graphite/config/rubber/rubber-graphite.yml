@@ -19,4 +19,4 @@ roles:
   graphite_web:
     packages: [python-django, python-django-tagging, apache2, libapache2-mod-wsgi, python-cairo, python-memcache, memcached, sqlite3, bzr, zip]
   collectd:
-    packages: [libperl5.10]
+    packages: [libperl-dev]
