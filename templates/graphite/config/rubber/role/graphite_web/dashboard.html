@@ -1,0 +1,385 @@
+<!--
+<%
+  @path = "/opt/graphite/webapp/content/dashboard.html"
+%>
+
+Simple graphite dashboard cycler for use on a large display - e.g. googletv/chrome on a wall mounted TV
+ 
+-->
+
+<html>
+<head>
+  <title>Graphite TV Dashboards</title>
+
+  <style type="text/css">
+    body {
+      background-color: black;
+    }
+
+    .dashboard-title {
+      color: yellow;
+      text-align: center;
+    }
+
+    #paused_popup {
+      display: none;
+      background-color: gray;
+      color: black;
+      position: absolute;
+      top: 0%;
+      left: 0%;
+      padding: 10px;
+    }
+  </style>
+
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.js"></script>
+
+  <script type="text/javascript">
+
+    //  To test this locally, edit ROOT_URL to point to graphite webapp
+    //  To allow xhttp to graphite from html loaded from local file, run chrome with:
+    // /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome  --disable-web-security
+    
+    var ROOT_URL = window.location.href.indexOf('file:') >= 0 ? "https://:8443" : "";
+
+    function Dashboards(reloadAfterCycles, pageCount) {
+      var self = this;
+
+      self.reloadAfterCycles = reloadAfterCycles;
+      self.pageCount = pageCount;
+      self.cycleCount = 0;
+      self.pages = [];
+      self.pagesTmp = [];
+      self.pageIdx = -1;
+
+      self.reloadDashboards = function() {
+        self.pages = [];
+        self.pagesTmp = [];
+        return $.when(self.dashboardList()).pipe(self.detailFromDashboardList).then(function() {
+          console.log("Committing dashboard pages");
+
+          self.pagesTmp.sort(function(x,y) {
+            if (x.name() < y.name())
+             return -1;
+            if (x.name() > y.name())
+             return 1;
+            return 0;
+          });
+            
+          $.each(self.pagesTmp, function(i, dashboard) {
+             if (dashboard.graphCount() > self.pageCount)
+             {
+               var totalPages = Math.ceil(dashboard.graphCount() / self.pageCount);
+               console.log("Splitting dashboard " + dashboard.name() + " into " + totalPages + " pages");
+               
+               for(i=0; i < totalPages; i++)
+               {
+                 var name = dashboard.name() + " " + (i+1) + "/" + totalPages;
+                 self.pages.push(dashboard.subset(name, i * self.pageCount, self.pageCount));
+                 console.log("Committed " + name +  " " + i * self.pageCount + " " + self.pageCount);  
+               }
+             }
+             else
+             {
+               self.pages.push(dashboard);
+             }
+          });
+            
+        });
+      }
+
+      self.dashboardList = function() {
+        console.log("Fetching all dashboards");
+
+        return $.getJSON(ROOT_URL + '/graphite/dashboard/find/', {'query': ''});
+      }
+
+      self.detailFromDashboardList = function(data) {
+        console.log("Got all dashboards");
+        console.log(data);
+
+        var chain = [];
+        var dashboards = data["dashboards"];
+        $.each(dashboards, function(i, dashboard) {
+          var detailRequest = self.dashboardDetail(dashboard);
+          chain.push(detailRequest);
+        });
+        return $.when.apply($, chain);
+      }
+
+      self.dashboardDetail = function(dashboard) {
+        var name = dashboard["name"];
+        console.log("Fetching dashboard detail for " + name);
+
+        return $.getJSON(ROOT_URL + '/graphite/dashboard/load/' + name, {}, function(data) {
+
+          console.log("Got dashboard detail for " + name);
+          console.log(data);
+
+          self.pagesTmp.push(new Dashboard(data));
+        });
+      }
+
+      self.renderNextPage = function() {
+        if (self.pages.length == 0)
+        {
+          console.log("No dashboard pages to render");
+          return;
+        }
+
+        // always wrap around page idx when it gets too big
+        self.pageIdx = (self.pageIdx + 1) % self.pages.length;
+
+        console.log("Rendering next page " + self.pageIdx + "/" + self.pages.length);
+        var result = self.pages[self.pageIdx].render();
+
+        // reload dashboards on last page so its ready when we wrap around
+        if (self.pageIdx == (self.pages.length - 1))
+        {
+          self.cycleCount++;
+          if ((self.cycleCount % self.reloadAfterCycles) == 0)
+          {
+            self.reloadDashboards();
+          }
+        }
+
+        return result;
+      }
+
+      self.renderPrevPage = function() {
+        if (self.pages.length == 0)
+        {
+          console.log("No dashboard pages to render");
+          return;
+        }
+
+        // always wrap around page idx when it gets too big
+        self.pageIdx = self.pageIdx - 1
+        if (self.pageIdx < 0) self.pageIdx = self.pages.length - 1;
+
+        console.log("Rendering prev page " + self.pageIdx + "/" + self.pages.length);
+        var result = self.pages[self.pageIdx].render();
+
+        // reload dashboards on last page so its ready when we wrap around
+        if (self.pageIdx == 0)
+        {
+          self.cycleCount++;
+          if ((self.cycleCount % self.reloadAfterCycles) == 0)
+          {
+            self.reloadDashboards();
+          }
+          return;
+        }
+
+        return result;
+      }
+    }
+
+    function Dashboard(apiData) {
+      var self = this;
+      
+      self.apiData = apiData;
+
+      self.name = function() {
+        return self.apiData["state"]["name"];
+      }
+                
+      self.graphCount = function() {
+        return self.apiData["state"]["graphs"].length;
+      }
+                
+      self.subset = function(newName, startIdx, howMany) {
+        var newData = $.extend(true, {}, self.apiData);
+        newData["state"]["name"] = newName;
+        newData["state"]["graphs"] = newData["state"]["graphs"].splice(startIdx, howMany);
+        var newDash = new Dashboard(newData);
+        return newDash;
+      }
+
+      self.extractUrls = function() {
+        var defaultParams = self.apiData["state"]["defaultGraphParams"];
+        defaultParams = $.extend(true, {}, defaultParams); // deep copy
+
+        defaultParams["width"] = "1050";
+        defaultParams["height"] = "550";
+        defaultParams["lineWidth"] = "3";
+        
+        if (! defaultParams["from"]) defaultParams["from"] = "-24hours";
+        if (! defaultParams["until"]) defaultParams["until"] = "now";
+        if (! defaultParams["title"]) defaultParams["title"] = "No Title";
+
+        var urls = $.map(self.apiData["state"]["graphs"], function(e, i) {
+          var defn = e[1];
+          var params = $.extend(true, {}, defaultParams); // deep copy
+          params = $.extend(true, params, defn); // deep copy
+          params["target"] = params["target"][0];
+
+          var url = ROOT_URL + "/graphite/render?" + $.param(params);
+
+          return url;
+        });
+        return urls;
+      }
+
+      self.render = function()
+      {
+        var name = self.apiData["state"]["name"];
+        var dbdiv = $('<div class="dashboard"/>');
+
+        var title = $('<div class="dashboard-title"/>')
+        dbdiv.append(title);
+        title.append(name);
+
+        var images = $('<div class="dashboard-images"/>');
+        dbdiv.append(images);
+
+        var urls = self.extractUrls();
+        $.each(urls, function(i, url) {
+          var img = $("<img/>", {'src': url});
+          images.append(img);
+        });
+
+        return dbdiv;
+      }
+
+    }
+
+    function View(dashboards, pageDelay, pauseDelay) {
+      var self = this;
+
+      self.pageDelay = pageDelay;
+      self.pauseDelay = pauseDelay;
+
+      self.eventLoopDelay = 1000;
+      self.eventLoopCount = 0;
+      self.paused = false;
+
+      self.dashboards = dashboards;
+
+      self.eventLoop = function()
+      {
+        if (self.paused)
+        {
+          console.log("paused");
+        }
+        else if(self.dashboards.pages.length == 0)
+        {
+          console.log("Waiting for dashboards");
+          self.eventLoopCount = 0;
+        }
+        else
+        {
+          var offset = (self.eventLoopCount * self.eventLoopDelay) % self.pageDelay;
+          if (offset == 0)
+          {
+            console.log("Rendering next page")
+            self.renderPage('next');
+          }
+          self.eventLoopCount++;
+        }
+
+        setTimeout(self.eventLoop, self.eventLoopDelay);
+      }
+
+      self.registerKeyBindings = function() {
+        $(document).keydown(function(e){
+          if (e.keyCode == 32) {
+            self.togglePause();
+            return false;
+          }
+          if (e.keyCode == 37) {
+            console.log( "left pressed" );
+            self.renderPage('prev');
+            return false;
+          }
+          if (e.keyCode == 39) {
+            console.log( "right pressed" );
+            self.renderPage('next');
+            return false;
+          }
+        });
+      }
+
+      self.togglePause = function() {
+        self.paused ? self.unPause() : self.pause();
+        if (self.paused) setTimeout(self.unPause, self.pauseDelay);
+      }
+
+      self.pause = function() {
+        self.paused = true;
+        $('#paused_popup').show();
+        console.log("paused: " + self.paused);
+      }
+
+      self.unPause = function() {
+        self.paused = false;
+        $('#paused_popup').hide();
+        console.log("paused: " + self.paused);
+      }
+
+      self.renderPage = function(direction)
+      {
+        var dbdiv = null;
+        if (direction == 'next')
+        {
+          dbdiv = self.dashboards.renderNextPage();
+        }
+        else if (direction = 'prev')
+        {
+          dbdiv = self.dashboards.renderPrevPage();
+        }
+        else
+        {
+          console.log("Bad direction: " + direction);
+          return;
+        }
+
+        if (dbdiv)
+        {
+          $('#main').fadeOut('slow', function() {
+            $(".dashboard").remove();
+            $("#main").append(dbdiv);
+            $("#main").fadeIn('slow');
+          });
+        }
+      }
+
+    }
+
+
+    function urlParams()
+    {
+      var vars = [], hash;
+      var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+      for(var i = 0; i < hashes.length; i++)
+      {
+        hash = hashes[i].split('=');
+        vars.push(hash[0]);
+        vars[hash[0]] = hash[1];
+      }
+      return vars;
+    }
+
+    $(document).ready(function () {
+      var reloadAfterCycles = urlParams()["reloadAfterCycles"] ? parseInt(urlParams()["reloadAfterCycles"]) : 5;
+      var pageCount = urlParams()["pageCount"] ? parseInt(urlParams()["pageCount"]) : 4;
+      var pageDelay = urlParams()["pageDelay"] ? parseInt(urlParams()["pageDelay"]) : 30000;
+      var pauseDelay = urlParams()["pauseDelay"] ? parseInt(urlParams()["pauseDelay"]) : 30000;
+
+      var dashboards = new Dashboards(reloadAfterCycles, pageCount);
+      dashboards.reloadDashboards();
+
+      var view = new View(dashboards, pageDelay, pauseDelay);
+      view.registerKeyBindings();
+      view.eventLoop();
+    });
+
+
+  </script>
+</head>
+
+<div id="main">
+    <div id="paused_popup">Paused</div>
+</div>
+
+</html>
