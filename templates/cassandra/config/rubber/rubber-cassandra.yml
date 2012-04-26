@@ -1,18 +1,56 @@
-cassandra_version: 2010-05-05_14-04-54
+cassandra_version: 1.0.9
 cassandra_prefix: /usr/local
 cassandra_dir: "#{cassandra_prefix}/apache-cassandra-#{cassandra_version}"
-cassandra_data_dir: "/var/lib/cassandra/data"
-cassandra_commitlog_dir: "/var/lib/cassandra/commitlog"
-cassandra_log_dir: "/var/log/cassandra"
-cassandra_pid_file: "/var/run/cassandra.pid"
-cassandra_pkg_url: "http://hudson.zones.apache.org/hudson/job/Cassandra/lastSuccessfulBuild/artifact/cassandra/build/apache-cassandra-#{cassandra_version}-bin.tar.gz"
+cassandra_mnt_base: "/mnt/cassandra"
+cassandra_data_dirs: ["#{cassandra_mnt_base}/data"]
+cassandra_saved_caches_dir: "#{cassandra_mnt_base}/saved_caches"
+cassandra_commitlog_dir: "#{cassandra_mnt_base}/commitlog"
+cassandra_log_dir: "#{cassandra_mnt_base}/log"
+cassandra_pid_file: "#{cassandra_mnt_base}/cassandra.pid"
+cassandra_pkg_url: "http://mirrors.gigenet.com/apache/cassandra/#{cassandra_version}/apache-cassandra-#{cassandra_version}-bin.tar.gz"
 cassandra_rpc_port: 9160
 cassandra_storage_port: 7070
 cassandra_jmx_port: 8181
+cassandra_mx4j_port: 8182
+cassandra_ssl_storage_port: 7001
 
 role_dependencies:
   cassandra_seed: [cassandra]
-  
+
 roles:
   cassandra:
     packages: [openjdk-6-jdk]
+
+cassandra_keyspaces:
+    - name: <%= rubber_env.app_name.capitalize %>
+      replica_placement_strategy: org.apache.cassandra.locator.RackUnawareStrategy
+      replication_factor: 1
+      column_families:
+        - name: Standard1
+          compare_with: BytesType
+
+        - name: Standard2
+          compare_with: UTF8Type
+          read_repair_chance: 0.1
+          keys_cached: 100
+
+        - name: StandardByUUID1
+          compare_with: TimeUUIDType
+
+        - name: Super1
+          column_type: Super
+          compare_with: BytesType
+          compare_subcolumns_with: BytesType
+
+        - name: Super2
+          column_type: Super
+          compare_subcolumns_with: UTF8Type
+          preload_row_cache: true
+          rows_cached: 10000
+          keys_cached: 50
+          comment: 'A column family with supercolumns, whose column and subcolumn names are UTF8 strings'
+
+        - name: Super3
+          column_type: Super
+          compare_with: LongType
+          comment: 'A column family with supercolumns, whose column names are Longs (8 bytes)'
