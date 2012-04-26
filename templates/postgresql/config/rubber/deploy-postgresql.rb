@@ -102,7 +102,7 @@ namespace :rubber do
       rubber.update_code_for_bootstrap
 
       # Gen just the conf for the given postgresql role
-      rubber.run_config(:file => "role/db/", :force => true, :deploy_path => release_path)
+      rubber.run_config(:file => "role/(db|postgresql)/", :force => true, :deploy_path => release_path)
 
       # reconfigure postgresql so that it sets up data dir in /mnt with correct files
       dirs = [rubber_env.postgresql_data_dir, rubber_env.postgresql_archive_dir]
