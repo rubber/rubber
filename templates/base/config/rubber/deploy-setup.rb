@@ -40,12 +40,21 @@ namespace :rubber do
     after "rubber:base:install_rvm", "rubber:base:install_rvm_ruby"
     task :install_rvm_ruby do
       opts = get_host_options('rvm_ruby')
+      
+      # sudo_script only takes a single hash with host -> VAR, so combine our
+      # two vars with a delimiter so we can extract them out in the bash script
+      install_opts = get_host_options('rvm_install_options')
+      install_opts.each do |k, v|
+        opts[k] = "#{opts[k]}^^#{v}"
+      end
+      
       install_rvm_ruby_script = <<-ENDSCRIPT
-        rvm_ver=$1
+        rvm_ver=${1##*^^}
+        install_opts=${1%%^^*}
         if [[ ! `rvm list default 2> /dev/null` =~ "$rvm_ver" ]]; then
           echo "RVM is compiling/installing ruby $rvm_ver, this may take a while"
 
-          nohup rvm install $rvm_ver &> /tmp/install_rvm_ruby.log &
+          nohup rvm install $rvm_ver $install_opts &> /tmp/install_rvm_ruby.log &
           sleep 1
 
           while true; do

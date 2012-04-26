@@ -15,7 +15,10 @@ rvm_version: 1.10.2
 
 # REQUIRED: Set to the rvm version string for the ruby version you wish to use
 # Run "rvm list known" to see the list of possible options
-rvm_ruby: 1.9.3-p0
+rvm_ruby: 1.9.3-p125
+
+# OPTIONAL: Extra args to pass to rvm when installing ruby
+# rvm_install_options: "--patch falcon,debug --force-autoconf -j 3"
 
 # REQUIRED: Set to version of RubyGems you want RVM to install. Note that older RVMs do not
 # know about newer RubyGems.  So you may need to bump your rvm_version to get the latest RubyGems release.
