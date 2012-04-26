@@ -18,7 +18,27 @@ run "bundle install"
 generate(:scaffold, "post", "title:string", "body:text")
 
 gsub_file 'config/environment.rb', /^RAILS_GEM_VERSION/, '# RAILS_GEM_VERSION'
-gsub_file 'config/deploy.rb', /set :deploy_via, :copy/, "set :deploy_via, :copy\nset :copy_compression, :zip"
+
+copy_with_symlink = <<-EOS
+require 'capistrano/recipes/deploy/strategy/copy'
+set :deploy_via, :copy
+set :copy_compression, :zip
+# monkey patch so that zip includes symlinked contents for vendored rubber for testing
+module ::Capistrano
+  module Deploy
+    module Strategy
+      class Copy < Base
+          # The compression method to use, defaults to :gzip.
+          def compression
+            Compression.new("zip",     %w(zip -qr), %w(unzip -q))
+          end
+      end
+    end
+  end
+end
+EOS
+
+gsub_file 'config/deploy.rb', /set :deploy_via, :copy/, copy_with_symlink
 gsub_file 'config/rubber/rubber.yml', /packages: \[/, "packages: [zip, "
 
 # gsub_file 'config/rubber/rubber.yml', /rubber, /, ''
