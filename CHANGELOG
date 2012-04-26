@@ -1,4 +1,13 @@
-2.0.0.pre1 (02/03/2012)
+2.0.1
+-----
+
+Improvements:
+============
+
+Upgraded to redis 2.4.11 from 2.4.6
+Upgraded to RVM 1.13.0 from 1.10.2
+
+2.0.0 (04/24/2012)
 ----------
 
 New Features:
@@ -17,6 +26,8 @@ Make collectd/graphite default instead of munin
 Use resque-pool to manage resque workers
 Option to reboot if neccessary after package update
 Added a rubber binary and used it for running everything (cron, etc, removed dependency on rake)
+Added JRuby support
+
 
 Improvements:
 ============
@@ -40,6 +51,7 @@ Automate web tools proxy mappings for IP aliases in /etc/host, dns, and web_tool
 Added a rails template for creating a rails app to test rubber
 Include instance_type in rubber:describe
 Replaced zerigo_dns gem usage with fog [Thanks Kevin Menard]
+Changed PostgreSQL defaults to make better use of memory for shared_buffers
 
 
 Bug Fixes:
@@ -64,6 +76,7 @@ fix create_staging for pre-existing instance
 Ensure Zerigo makes calls using XML in 3.1 [Thanks Alex Kremer]
 Fix suggestion in rubber.yml on how to list availability zones. [Thanks Maxim Chernyak aka hakunin]
 Locked the default version of Ruby down to a particular patch release so by default an entire cluster will use the same ruby [Thanks Kevin Menard]
+Ruby 1.9.3 fixes with nginx
 
 1.15.0 (09/13/2011)
 -----

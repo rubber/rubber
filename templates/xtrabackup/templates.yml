@@ -1,0 +1,1 @@
+description: "The xtrabackup module for MySQL/Percona Servers. When vulcanized, this module will replace itself as the Rubber database backup method. After vulcanization, simply run cap rubber:bootstrap (you can filter for DB roles if you like) and cap deploy."

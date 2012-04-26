@@ -1,0 +1,16 @@
+<%
+  @read_cmd = 'crontab -l'
+  @write_cmd = 'crontab -'
+  @additive = ["# rubber-mysql-start", "# rubber-mysql-end"]
+%>
+
+<%
+  # Backup db every 3 hours to secondary db if available, else primary db
+  backup_db_host = rubber_instances.for_role('db', {}).first rescue nil
+  backup_db_host ||= rubber_instances.for_role('db', 'primary' => true).first
+  if backup_db_host.name == rubber_env.host
+%>
+
+0 */3 * * * <%= Rubber.root %>/script/rubber cron --task util:backup_db --directory=/mnt/db_backups --dbuser=<%= rubber_env.db_user %> --dbpass=<%= rubber_env.db_pass %> --dbname=<%= rubber_env.db_name %> --dbhost=<%= backup_db_host.full_name %>
+
+<% end %>

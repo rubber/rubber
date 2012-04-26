@@ -1,4 +1,4 @@
-redis_server_version: 2.4.6
+redis_server_version: 2.4.11
 redis_server_pid_file: /var/run/redis-server.pid
 redis_server_conf_file: /etc/redis.conf
 redis_server_log_file: /var/log/redis-server.log
@@ -14,4 +14,4 @@ role_dependencies:
 
 roles:
   redis:
-    packages: []
+    packages: [zip]
