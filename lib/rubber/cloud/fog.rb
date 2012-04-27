@@ -28,7 +28,8 @@ module Rubber
                                                     :flavor_id => ami_type,
                                                     :groups => security_groups,
                                                     :availability_zone => availability_zone,
-                                                    :key_name => env.key_name)
+                                                    :key_name => env.key_name,
+                                                    :block_device_mapping => env.block_device_mapping)
         instance_id = response.id
         return instance_id
       end
