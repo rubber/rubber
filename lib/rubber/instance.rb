@@ -234,6 +234,10 @@ module Rubber
         return hash
       end
       
+      def <=>(rhs)
+        name <=> rhs.name
+      end
+      
       def full_name
         "#@name.#@domain"
       end

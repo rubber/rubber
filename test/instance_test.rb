@@ -2,17 +2,21 @@ require File.expand_path(File.join(__FILE__, '..', 'test_helper'))
 
 class InstanceTest < Test::Unit::TestCase
   include Rubber::Configuration
+  
+  def instance_setup
+    @instance = Instance.new("file:#{Tempfile.new('testforrole').path}")
+    @instance.add(@i1 = InstanceItem.new('host1', 'domain.com', [RoleItem.new('role1')], '', 'm1.small', 'ami-7000f019'))
+    @instance.add(@i2 = InstanceItem.new('host2', 'domain.com', [RoleItem.new('role1')], '', 'm1.small', 'ami-7000f019'))
+    @instance.add(@i3 = InstanceItem.new('host3', 'domain.com', [RoleItem.new('role2')], '', 'm1.small', 'ami-7000f019'))
+    @instance.add(@i4 = InstanceItem.new('host4', 'domain.com', [RoleItem.new('role2', 'primary' => true)], '', 'm1.small', 'ami-7000f019'))
+  end
 
   context "instance" do
   
-    def setup
-      @instance = Instance.new("file:#{Tempfile.new('testforrole').path}")
-      @instance.add(@i1 = InstanceItem.new('host1', 'domain.com', [RoleItem.new('role1')], '', 'm1.small', 'ami-7000f019'))
-      @instance.add(@i2 = InstanceItem.new('host2', 'domain.com', [RoleItem.new('role1')], '', 'm1.small', 'ami-7000f019'))
-      @instance.add(@i3 = InstanceItem.new('host3', 'domain.com', [RoleItem.new('role2')], '', 'm1.small', 'ami-7000f019'))
-      @instance.add(@i4 = InstanceItem.new('host4', 'domain.com', [RoleItem.new('role2', 'primary' => true)], '', 'm1.small', 'ami-7000f019'))
+    setup do
+      instance_setup
     end
-
+    
     context "for_role" do
     
       should "give the right instances for selected role" do
@@ -31,7 +35,7 @@ class InstanceTest < Test::Unit::TestCase
       should "not filter for empty FILTER(_ROLES)" do
         ENV['FILTER'] = nil
         ENV['FILTER_ROLES'] = nil
-        setup
+        instance_setup
         assert_equal 4, @instance.filtered().size 
       end
     
@@ -39,79 +43,79 @@ class InstanceTest < Test::Unit::TestCase
       should "filter hosts" do
         ENV['FILTER_ROLES'] = nil
         ENV['FILTER'] = 'host1'
-        setup
-        assert_equal [@i1], @instance.filtered(), 'should have only filtered host'
+        instance_setup
+        assert_equal [@i1].sort, @instance.filtered().sort, 'should have only filtered host'
         
         ENV['FILTER'] = 'host2 , host4'
-        setup
-        assert_equal [@i2, @i4], @instance.filtered(), 'should have only filtered hosts'
+        instance_setup
+        assert_equal [@i2, @i4].sort, @instance.filtered().sort, 'should have only filtered hosts'
     
         ENV['FILTER'] = '-host2'
-        setup
-        assert_equal [@i1, @i3, @i4], @instance.filtered(), 'should not have negated hosts'
+        instance_setup
+        assert_equal [@i1, @i3, @i4].sort, @instance.filtered().sort, 'should not have negated hosts'
     
         ENV['FILTER'] = 'host1,host2,-host2'
-        setup
-        assert_equal [@i1], @instance.filtered(), 'should not have negated hosts'
+        instance_setup
+        assert_equal [@i1].sort, @instance.filtered().sort, 'should not have negated hosts'
     
         ENV['FILTER'] = 'host1~host3'
-        setup
-        assert_equal [@i1, @i2, @i3], @instance.filtered(), 'should allow range in filter'
+        instance_setup
+        assert_equal [@i1, @i2, @i3].sort, @instance.filtered().sort, 'should allow range in filter'
     
         ENV['FILTER'] = '-host1~-host3'
-        setup
-        assert_equal [@i4], @instance.filtered(), 'should allow negative range in filter'
+        instance_setup
+        assert_equal [@i4].sort, @instance.filtered().sort, 'should allow negative range in filter'
     
         ENV['FILTER'] = '-host1'
         ENV['FILTER_ROLES'] = 'role1'
-        setup
-        assert_equal [@i2], @instance.filtered(), 'should not have negated roles'
+        instance_setup
+        assert_equal [@i2].sort, @instance.filtered().sort, 'should not have negated roles'
       end
     
       should "filter roles" do
         ENV['FILTER'] = nil
         ENV['FILTER_ROLES'] = 'role1'
-        setup
-        assert_equal [@i1, @i2], @instance.filtered(), 'should have only filtered roles'
+        instance_setup
+        assert_equal [@i1, @i2].sort, @instance.filtered().sort, 'should have only filtered roles'
     
         ENV['FILTER_ROLES'] = 'role1 , role2'
-        setup
-        assert_equal [@i1, @i2, @i3, @i4], @instance.filtered(), 'should have only filtered roles'
+        instance_setup
+        assert_equal [@i1, @i2, @i3, @i4].sort, @instance.filtered().sort, 'should have only filtered roles'
     
         ENV['FILTER_ROLES'] = '-role1'
-        setup
-        assert_equal [@i3, @i4], @instance.filtered(), 'should not have negated roles'
+        instance_setup
+        assert_equal [@i3, @i4].sort, @instance.filtered().sort, 'should not have negated roles'
     
         ENV['FILTER_ROLES'] = 'role1~role2'
-        setup
-        assert_equal [@i1, @i2, @i3, @i4], @instance.filtered(), 'should allow range in filter'
+        instance_setup
+        assert_equal [@i1, @i2, @i3, @i4].sort, @instance.filtered().sort, 'should allow range in filter'
     
         ENV['FILTER_ROLES'] = '-role1~-role2'
-        setup
-        assert_equal [], @instance.filtered(), 'should allow negative range in filter'
+        instance_setup
+        assert_equal [].sort, @instance.filtered().sort, 'should allow negative range in filter'
       end
     
       should "validate filters" do
         ENV['FILTER'] = "nohost"
-        setup
+        instance_setup
         assert_raises do
           @instance.filtered()
         end
     
         ENV['FILTER'] = "-nohost"
-        setup
+        instance_setup
         assert_raises do
           @instance.filtered()
         end
     
         ENV['FILTER_ROLES'] = "norole"
-        setup
+        instance_setup
         assert_raises do
           @instance.filtered()
         end
     
         ENV['FILTER_ROLES'] = "-norole"
-        setup
+        instance_setup
         assert_raises do
           @instance.filtered()
         end
@@ -148,8 +152,10 @@ class InstanceTest < Test::Unit::TestCase
     should "convert to a string" do
       assert_equal "a", RoleItem.new('a').to_s
       assert_equal "a:b=c", RoleItem.new('a', {'b' => 'c'}).to_s
-      assert_equal "a:b=c;d=e", RoleItem.new('a', {'b' => 'c', 'd' => 'e'}).to_s
-      assert_equal "a:b=true;c=false", RoleItem.new('a', {'b' => true, 'c' => false}).to_s
+      str = RoleItem.new('a', {'b' => 'c', 'd' => 'e'}).to_s
+      assert ["a:b=c;d=e", "a:d=e;b=c"].include?(str)
+      assert_equal "a:b=true", RoleItem.new('a', {'b' => true}).to_s
+      assert_equal "a:b=false", RoleItem.new('a', {'b' => false}).to_s
     end
   
     context "role dependencies" do
