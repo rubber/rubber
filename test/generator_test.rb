@@ -188,7 +188,7 @@ class GeneratorTest < Test::Unit::TestCase
   end
 
   def list_dir(dir)
-    l = Dir.entries(dir)
+    l = Dir.entries(dir).sort
     l.delete_if {|d| d =~ /(^\.+$)|\.bak$/}
   end
 
