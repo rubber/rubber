@@ -76,7 +76,7 @@ module Rubber
       end
 
       def self.valid_templates()
-        valid = Dir.entries(self.source_root).delete_if {|e| e =~  /(^\.)|svn|CVS/ }
+        Dir.entries(self.source_root).delete_if {|e| e =~  /(^\.)|svn|CVS/ }.sort
       end
 
       desc "vulcanize TEMPLATE", ""
