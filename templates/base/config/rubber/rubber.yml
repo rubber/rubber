@@ -82,6 +82,19 @@ cloud_providers:
     image_type: m1.small
     image_id: "#{ %w{m1.small c1.medium}.include?(image_type) ? 'ami-4fd00726' : 'ami-35de095c' }"
 
+    # OPTIONAL: Provide option to enlarge EBS image's default size
+    # According to Fog help:
+    # * 'BlockDeviceMapping'<~Array>: array of hashes
+    #   * 'DeviceName'<~String> - where the volume will be exposed to instance
+    #   * 'VirtualName'<~String> - volume virtual device name
+    #   * 'Ebs.SnapshotId'<~String> - id of snapshot to boot volume from
+    #   * 'Ebs.VolumeSize'<~String> - size of volume in GiBs required unless snapshot is specified
+    #   * 'Ebs.DeleteOnTermination'<~String> - specifies whether or not to delete the volume on instance termination
+    #
+    # block_device_mapping:
+    #   - DeviceName: /dev/sda1
+    #     Ebs.VolumeSize: 32
+
     # OPTIONAL: EC2 spot instance request support.
     #
     # Enables the creation of spot instance requests.  Rubber will wait synchronously until the request is fulfilled,
