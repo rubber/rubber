@@ -5,10 +5,18 @@ namespace :rubber do
   
     rubber.allow_optional_tasks(self)
 
-    after "rubber:install_packages", "rubber:apache:custom_install"
+    after "rubber:install_packages", "rubber:apache:install"
 
-    task :custom_install, :roles => :apache do
-      rsudo "a2dissite default"
+    task :install, :roles => :apache do
+      rubber.sudo_script 'install_apache', <<-ENDSCRIPT
+        a2dissite default
+
+        # TODO: remove this once 12.04 is fixed
+        # https://bugs.launchpad.net/ubuntu/+source/mod-proxy-html/+bug/964397
+        if [[ ! -f /usr/lib/libxml2.so.2 ]]; then
+          ln -sf /usr/lib/x86_64-linux-gnu/libxml2.so.2 /usr/lib/libxml2.so.2
+        fi
+      ENDSCRIPT
     end
 
     # serial_task can only be called after roles defined - not normally a problem, but
