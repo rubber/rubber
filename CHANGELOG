@@ -6,6 +6,8 @@ Improvements:
 
 Upgraded to redis 2.4.11 from 2.4.6
 Upgraded to RVM 1.13.0 from 1.10.2
+Upgraded to Ubuntu 12.04
+Assorted fixes/workarounds for 12.04
 
 2.0.0 (04/24/2012)
 ----------
