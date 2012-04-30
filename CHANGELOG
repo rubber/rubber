@@ -1,13 +1,26 @@
-2.0.1
------
+2.0.1 (04/29/2012)
+----------
+
+New Features:
+============
+
+[base] Added the ability to supply additional arguments to RVM (e.g., to install additional patches or modify compile arguments)
+[graphite_web] Added a simple graphite dashboard suitable for TV display
 
 Improvements:
 ============
 
-Upgraded to redis 2.4.11 from 2.4.6
-Upgraded to RVM 1.13.0 from 1.10.2
-Upgraded to Ubuntu 12.04
-Assorted fixes/workarounds for 12.04
+[redis] Upgraded to redis 2.4.11 from 2.4.6
+[base] Upgraded to RVM 1.13.0 from 1.10.2
+[base] Upgraded to Ubuntu 12.04
+
+Bug Fixes:
+=========
+
+[base] Assorted fixes/workarounds for 12.04
+[collectd] Fixed an issue with libperl and collectd
+[redis] Fixed an issue with the redis role not installing the zip packaged, needed for backup
+
 
 2.0.0 (04/24/2012)
 ----------
