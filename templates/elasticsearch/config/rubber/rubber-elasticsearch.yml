@@ -9,4 +9,4 @@ elasticsearch_http_port: 9200
 
 roles:
   elasticsearch:
-    packages: [openjdk-6-jdk]
+    packages: [openjdk-7-jdk]
