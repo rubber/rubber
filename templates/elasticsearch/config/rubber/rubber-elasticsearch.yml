@@ -1,4 +1,4 @@
-elasticsearch_version: 0.18.7
+elasticsearch_version: 0.19.3
 elasticsearch_prefix: /usr/local
 elasticsearch_dir: "#{elasticsearch_prefix}/elasticsearch-#{elasticsearch_version}"
 elasticsearch_data_dir: "/mnt/elasticsearch/data"
