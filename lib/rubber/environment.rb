@@ -134,7 +134,7 @@ module Rubber
 
         def expand_string(val)
           while val =~ /\#\{[^\}]+\}/
-            val = eval('%Q{' + val + '}', binding)
+            val = eval('%Q{' + val + '}', binding, __FILE__)
           end
           val = true if val =="true"
           val = false if val == "false"
