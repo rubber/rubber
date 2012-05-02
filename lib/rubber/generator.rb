@@ -144,8 +144,14 @@ module Rubber
 
           # Set file permissions and owner if needed
           FileUtils.chmod(config.perms, config_path) if config.perms && config_path
-          FileUtils.chown(config.owner, config.group, config_path) if config_path && (config.owner || config.group)
-
+          if config_path && (config.owner || config.group)
+            if fake_root
+              Rubber.logger.info("Not performing chown (#{config.owner}:#{config.group}) as a fake root was given")
+            else
+              FileUtils.chown(config.owner, config.group, config_path) 
+            end
+          end
+          
           # Run post transform command if needed
           if config.post
             if fake_root
