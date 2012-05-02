@@ -26,7 +26,7 @@ namespace :rubber do
     after "deploy:update_code", "rubber:passenger:remove_config_ru" if Rubber::Util.is_rails?
 
     task :remove_config_ru, :roles => :passenger do
-      rsudo "rm -f  #{current_release}/config.ru"
+      rsudo "rm -f #{releases_path}/*/config.ru"
     end
 
     # passenger depends on apache for start/stop/restart, just need these defined
