@@ -9,7 +9,7 @@ namespace :rubber do
   
     task :install, :roles => :zookeeper do
       rubber.sudo_script 'install_zookeeper', <<-ENDSCRIPT
-        if [[ ! -f "#{rubber_env.zookeeper_install_dir}" ]]; then
+        if [[ ! -d "#{rubber_env.zookeeper_install_dir}" ]]; then
           # Fetch the sources.
           wget -qNP /tmp #{rubber_env.zookeeper_package_url}
           tar -C #{File.dirname rubber_env.zookeeper_install_dir} -zxf /tmp/#{File.basename rubber_env.zookeeper_package_url}
