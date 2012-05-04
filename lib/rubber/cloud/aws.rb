@@ -51,7 +51,6 @@ module Rubber
         arch = case arch when /i\d86/ then "i386" else arch end
 
         capistrano.sudo_script "create_bundle", <<-CMD
-          rvm use system
           export RUBYLIB=/usr/lib/site_ruby/
           unset RUBYOPT
           nohup ec2-bundle-vol --batch -d /mnt -k #{ec2_pk_dest} -c #{ec2_cert_dest} -u #{env.account} -p #{image_name} -r #{arch} &> /tmp/ec2-bundle-vol.log &
@@ -66,7 +65,6 @@ module Rubber
         CMD
 
         capistrano.sudo_script "register_bundle", <<-CMD
-          rvm use system
           export RUBYLIB=/usr/lib/site_ruby/
           unset RUBYOPT
           echo "Uploading image to S3..."

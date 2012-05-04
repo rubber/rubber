@@ -4,9 +4,7 @@
 
 %>
 
-# cron clears out environment variables, but Rubber.root/script/rubber uses
-# "rvm do default" to run, so no longer any need to setup ruby env vars here,
-# all we need is PATH
+# cron clears out environment variables. All we need is PATH.
 PATH=<%= ENV['PATH'] %>
 
 MAILTO=<%= rubber_env.admin_email %>
