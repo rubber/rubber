@@ -38,7 +38,7 @@ namespace :rubber do
 
     after "rubber:base:install_ruby_build", "rubber:base:install_ruby"
     task :install_ruby do
-      rubber.sudo_script "install_ruby_build", <<-ENDSCRIPT
+      rubber.sudo_script "install_ruby", <<-ENDSCRIPT
       if [[ ! -d #{rubber_env.ruby_path} ]]; then
         ruby-build #{rubber_env.ruby_version} #{rubber_env.ruby_path}
 
