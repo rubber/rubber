@@ -19,12 +19,3 @@ ruby_version: 1.9.3-p194
 
 # REQUIRED: Installation path for ruby.
 ruby_path: "/usr/local/rubies/#{ruby_version}"
-
-# OPTIONAL: Set to version of RubyGems you want to install. Default is to install the latest at time of instance creation.
-#rubygems_version: 1.8.24
-
-# OPTIONAL: Set to version of rake you want to install. Default is to install the latest at time of instance creation.
-#rake_version: 0.9.2.2
-
-# OPTIONAL: Set to version of bundle you want to install. Default is to install the latest at time of instance creation.
-#bundle_version: 1.1.3
