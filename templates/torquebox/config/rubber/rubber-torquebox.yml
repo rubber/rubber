@@ -1,4 +1,4 @@
-torquebox_version: 2.0.2
+torquebox_version: 2.0.3
 torquebox_prefix: /opt
 torquebox_dir: "#{torquebox_prefix}/torquebox"
 torquebox_pid_file: "#{torquebox_dir}/jboss/standalone/torquebox.pid"
