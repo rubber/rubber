@@ -12,6 +12,9 @@ namespace :rubber do
           wget --no-check-certificate -qNP /tmp https://github.com/downloads/elasticsearch/elasticsearch/elasticsearch-#{rubber_env.elasticsearch_version}.zip
           unzip -d #{rubber_env.elasticsearch_prefix} /tmp/elasticsearch-#{rubber_env.elasticsearch_version}.zip
           rm /tmp/elasticsearch-#{rubber_env.elasticsearch_version}.zip
+
+          #{rubber_env.elasticsearch_dir}/bin/plugin -install mobz/elasticsearch-head
+          
         fi
       ENDSCRIPT
     end
