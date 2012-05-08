@@ -7,13 +7,16 @@ require 'test/unit'
 require 'mocha'
 require 'shoulda-context'
 require 'pp'
+require 'ap'
 require 'tempfile'
-
 require 'fog'
-Fog.mock!
 
 class Test::Unit::TestCase
-  def teardown
+  setup do
+    Fog.mock!
+  end
+  
+  teardown do
     Fog::Mock.reset    
   end
 end
