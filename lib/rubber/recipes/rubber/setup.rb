@@ -472,11 +472,21 @@ namespace :rubber do
   
   def maybe_reboot
     reboot_needed = multi_capture("echo $(ls /var/run/reboot-required 2> /dev/null)")
-    reboot_hosts = reboot_needed.collect {|k, v| v.strip.size > 0 ? k : nil}.compact
-    
+    reboot_hosts = reboot_needed.collect {|k, v| v.strip.size > 0 ? k : nil}.compact.sort
+
+    # Figure out which hosts are bootstrapping for the first time so we can auto reboot
+    auto_reboot = multi_capture("echo $(ls #{deploy_to} 2> /dev/null)")
+    auto_reboot_hosts = auto_reboot.collect {|k, v| v.strip.size == 0 ? k : nil}.compact.sort
+
     if reboot_hosts.size > 0
 
-      ENV['REBOOT'] = 'y' if ENV['FORCE'] =~ /^(t|y)/
+      # automatically reboot if FORCE or if all the hosts that need rebooting
+      # are bootstrapping for the first time
+      if ENV['FORCE'] =~ /^(t|y)/ || reboot_hosts == auto_reboot_hosts
+        ENV['REBOOT'] = 'y'
+        logger.info "Updates require a reboot on hosts #{reboot_hosts.inspect}"
+      end
+      
       reboot = get_env('REBOOT', "Updates require a reboot on hosts #{reboot_hosts.inspect}, reboot [y/N]?", false)
       reboot = (reboot =~ /^y/)
       
