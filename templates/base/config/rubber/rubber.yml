@@ -9,7 +9,7 @@ app_user: app
 admin_email: "root@#{full_host}"
 
 # OPTIONAL: If not set, you won't be able to access web_tools
-# server (munin stats, monit status, etc)
+# server (graphite, graylog, monit status, haproxy status, etc)
 # web_tools_user: admin
 # web_tools_password: sekret
 
