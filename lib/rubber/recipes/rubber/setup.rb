@@ -475,6 +475,7 @@ namespace :rubber do
     reboot_hosts = reboot_needed.collect {|k, v| v.strip.size > 0 ? k : nil}.compact.sort
 
     # Figure out which hosts are bootstrapping for the first time so we can auto reboot
+    # If there is no deployed app directory, then we have never bootstrapped. 
     auto_reboot = multi_capture("echo $(ls #{deploy_to} 2> /dev/null)")
     auto_reboot_hosts = auto_reboot.collect {|k, v| v.strip.size == 0 ? k : nil}.compact.sort
 
