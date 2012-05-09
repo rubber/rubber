@@ -6,8 +6,6 @@
 #
 dns_providers:
   fog:
-    name_includes_domain: true
-    name_includes_trailing_period: true
     credentials:
      provider: aws
      aws_access_key_id: "#{cloud_providers.aws.access_key}"

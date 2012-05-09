@@ -12,8 +12,10 @@ module Rubber
         super(env)
         creds = Rubber::Util.symbolize_keys(env.credentials)
         @client = ::Fog::DNS.new(creds)
-        @name_includes_domain = env.name_includes_domain
-        @name_includes_trailing_period = env.name_includes_trailing_period
+        if creds[:provider] == 'aws'
+          @name_includes_domain = true
+          @name_includes_trailing_period = true
+        end
       end
       
       def normalize_name(name, domain)

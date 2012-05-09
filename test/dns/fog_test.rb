@@ -14,9 +14,7 @@ class FogTest < Test::Unit::TestCase
     access_key = secret['cloud_providers']['aws']['access_key']
     access_secret = secret['cloud_providers']['aws']['secret_access_key']
     env = {'credentials' =>
-               {'provider' => 'aws', 'aws_access_key_id' => access_key, 'aws_secret_access_key' => access_secret},
-           'name_includes_domain' => true,
-           'name_includes_trailing_period' => true}
+               {'provider' => 'aws', 'aws_access_key_id' => access_key, 'aws_secret_access_key' => access_secret}}
     # no mocks for aws dns yet
     @envs << Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil)
   end
