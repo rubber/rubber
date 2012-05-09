@@ -44,16 +44,20 @@ module Rubber
       
       def host_to_opts(host)
         name, domain = normalize_name(host.name || '', host.zone.domain)
-
         opts = {}
         opts[:id] = host.id if host.respond_to?(:id) && host.id
         opts[:host] = name
         opts[:domain] = domain
         opts[:type] = host.type
-        opts[:data] = Array(host.value).first if host.value
         opts[:ttl] = host.ttl.to_i if host.ttl
         opts[:priority] = host.priority if host.respond_to?(:priority) && host.priority
-        
+
+        if host.respond_to?(:alias_target) && ! host.alias_target.nil?
+          opts[:data] = host.alias_target
+        else
+          opts[:data] = Array(host.value).first if host.value
+        end
+
         return opts
       end
 
@@ -62,10 +66,18 @@ module Rubber
         
         host[:name] = name  
         host[:type] =  opts[:type]
-        host[:value] = opts[:data] if opts[:data]
         host[:ttl] = opts[:ttl] if opts[:ttl]
         host[:priority] = opts[:priority] if opts[:priority]
-        
+
+        if opts[:data]
+          # Route 53 allows creation of ALIAS records, which will always be a Hash in the DNS config.
+          if opts[:data].is_a?(Hash)
+            host[:alias_target] = opts[:data]
+          else
+            host[:value] = opts[:data]
+          end
+        end
+
         return host
       end
 
