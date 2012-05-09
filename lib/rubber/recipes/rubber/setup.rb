@@ -194,7 +194,7 @@ namespace :rubber do
         record = provider.setup_opts(record)
         if matching.size == 1
           match = matching.first
-          if  provider.host_records_equal?(record, match)
+          if provider.host_records_equal?(record, match)
             logger.info "Simple dns record already up to date: #{record[:host]}.#{record[:domain]}:#{record[:type]} => #{record[:data]}"
           else
             logger.info "Updating simple dns record: #{record[:host]}.#{record[:domain]}:#{record[:type]} => #{record[:data]}"
