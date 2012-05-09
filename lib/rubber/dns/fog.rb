@@ -101,7 +101,9 @@ module Rubber
         if fqdn
           hosts = hosts.find_all do |r|
             attributes = host_to_opts(r)
-            host, domain = attributes[:host], attributes[:domain]
+
+            # Route 53 encodes the asterisk character ('*') as octal.  Translate it here so rubber is consistent.
+            host, domain = attributes[:host].gsub("\\052", "*"), attributes[:domain]
             
             fog_fqdn = ""
             fog_fqdn << "#{host}." if host && ! host.strip.empty?
