@@ -8,13 +8,14 @@ New Features:
 Improvements:
 ============
 
-[core] Auto-add domain name to host records in Route53 so user-facing config is much simpler
+[core] Auto-add domain name to host records in Route 53 so user-facing config is much simpler
 [passenger] Upgraded to Passenger 3.0.12 from 3.0.11
 
 Bug Fixes:
 =========
 
 [core] Fixed an issue with wildcard hosts in Route 53.
+[core] Fixed an issue with creating an MX record in Route 53 (NB: we still cannot create multiple MX records).
 [collect] Fixed an issue deploying if a graphite_server doesn't exist in the cluster
 
 
