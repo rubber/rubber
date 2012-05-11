@@ -49,6 +49,14 @@ dns_providers:
 #      data: 1.1.1.1
 #      type: A
 #
+#    # tld ALIAS record -- Route53 extension to point tld at an Elastic Load Balancer group
+#    - host: ''
+#      domain: example.com
+#      type: A
+#      data:
+#        hosted_zone_id: XXYYZZ
+#        dns_name: my-app-elb-group.us-east-1.elb.amazonaws.com
+#
 #    # simple CNAME record
 #    - host: otherbar
 #      domain: foo.com
