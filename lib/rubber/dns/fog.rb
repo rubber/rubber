@@ -48,14 +48,22 @@ module Rubber
         name, domain = normalize_name(host.name || '', host.zone.domain)
         opts = {}
         opts[:id] = host.id if host.respond_to?(:id) && host.id
-        opts[:host] = name
+        opts[:host] = fix_hostname(name)
         opts[:domain] = domain
         opts[:type] = host.type
         opts[:ttl] = host.ttl.to_i if host.ttl
         opts[:priority] = host.priority if host.respond_to?(:priority) && host.priority
 
         if host.respond_to?(:alias_target) && ! host.alias_target.nil?
-          opts[:data] = host.alias_target
+
+          # Convert from camel-case to snake-case for Route 53 ALIAS records so the match the rubber config format.
+          opts[:data] = {
+            'hosted_zone_id' => host.alias_target['HostedZoneId'],
+            'dns_name' => host.alias_target['DNSName'].split('.')[0..-1].join('.')
+          }
+
+          # Route 53 ALIAS records do not have a TTL, so delete the rubber-supplied default value.
+          opts.delete(:ttl)
         else
           opts[:data] = Array(host.value).first if host.value
         end
@@ -72,9 +80,11 @@ module Rubber
         host[:priority] = opts[:priority] if opts[:priority]
 
         if opts[:data]
-          # Route 53 allows creation of ALIAS records, which will always be a Hash in the DNS config.
+          # Route 53 allows creation of ALIAS records, which will always be a Hash in the DNS config.  ALIAS records
+          # cannot have a TTL.
           if opts[:data].is_a?(Hash)
             host[:alias_target] = opts[:data]
+            host.delete(:ttl)
           else
             host[:value] = opts[:data]
           end
@@ -117,7 +127,7 @@ module Rubber
             attributes = host_to_opts(r)
 
             # Route 53 encodes the asterisk character ('*') as octal.  Translate it here so rubber is consistent.
-            host, domain = attributes[:host].gsub("\\052", "*"), attributes[:domain]
+            host, domain = fix_hostname(attributes[:host]), attributes[:domain]
             
             fog_fqdn = ""
             fog_fqdn << "#{host}." if host && ! host.strip.empty?
@@ -185,6 +195,11 @@ module Rubber
 
           result || raise("Failed to update host #{h.hostname}, #{h.errors.full_messages.join(', ')}")
         end
+      end
+
+      def fix_hostname(host)
+        # Route 53 encodes asterisks in their ASCII octal representation.
+        host.gsub("\\052", "*")
       end
 
     end
