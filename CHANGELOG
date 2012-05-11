@@ -1,3 +1,23 @@
+2.0.3 (05/11/2012)
+
+New Features:
+============
+
+[core] Support for Route53 ALIAS records so the zone apex can be pointed at ELB groups
+
+Improvements:
+============
+
+[core] Auto-add domain name to host records in Route53 so user-facing config is much simpler
+[passenger] Upgraded to Passenger 3.0.12 from 3.0.11
+
+Bug Fixes:
+=========
+
+[core] Fixed an issue with wildcard hosts in Route 53.
+[collect] Fixed an issue deploying if a graphite_server doesn't exist in the cluster
+
+
 2.0.2 (05/08/2012)
 
 New Features:
