@@ -73,18 +73,29 @@ module Rubber
 
       def opts_to_host(opts, host={})
         name, domain = denormalize_name(opts[:host], opts[:domain])
-        
-        host[:name] = name  
+
+        host[:name] = name
         host[:type] =  opts[:type]
         host[:ttl] = opts[:ttl] if opts[:ttl]
         host[:priority] = opts[:priority] if opts[:priority]
 
         if opts[:data]
-          # Route 53 allows creation of ALIAS records, which will always be a Hash in the DNS config.  ALIAS records
-          # cannot have a TTL.
-          if opts[:data].is_a?(Hash)
-            host[:alias_target] = opts[:data]
-            host.delete(:ttl)
+          creds = Rubber::Util.symbolize_keys(env.credentials)
+
+          if creds[:provider] == 'aws'
+            # Route 53 requires the priority to be munged with the data value.
+            if opts[:type] =~ /MX/i
+              host[:value] = "#{opts[:priority]} #{opts[:data]}"
+            else
+              # Route 53 allows creation of ALIAS records, which will always be a Hash in the DNS config.  ALIAS records
+              # cannot have a TTL.
+              if opts[:data].is_a?(Hash)
+                host[:alias_target] = opts[:data]
+                host.delete(:ttl)
+              else
+                host[:value] = opts[:data]
+              end
+            end
           else
             host[:value] = opts[:data]
           end
