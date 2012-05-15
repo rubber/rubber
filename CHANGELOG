@@ -1,4 +1,16 @@
+2.0.4 (05/15/2012)
+------------------
+
+Bug Fixes:
+=========
+
+[apache] make sure admin uis know we are ssl so they generate correct urls <b6409da>
+[collectd] fix syntax error <205a07a>
+[resque] use puma to run resque server as a rackup with rails environment loaded so resque-retry can find job classes <518eb27>
+
+
 2.0.3 (05/11/2012)
+------------------
 
 New Features:
 ============
@@ -20,6 +32,7 @@ Bug Fixes:
 
 
 2.0.2 (05/08/2012)
+------------------
 
 New Features:
 ============
@@ -49,7 +62,7 @@ Bug Fixes:
 
 
 2.0.1 (04/29/2012)
-----------
+------------------
 
 New Features:
 ============
@@ -73,7 +86,7 @@ Bug Fixes:
 
 
 2.0.0 (04/24/2012)
-----------
+------------------
 
 New Features:
 ============
@@ -144,7 +157,7 @@ Locked the default version of Ruby down to a particular patch release so by defa
 Ruby 1.9.3 fixes with nginx
 
 1.15.0 (09/13/2011)
------
+-------------------
 
 New Features:
 ============
@@ -179,13 +192,13 @@ Fixed timing issue with multiple resque workers starting (thanks Matt Conway)
 Fixed an issue with hostnames that happen to be monit commands (thanks Michael Glass)
 
 1.14.1 (06/02/2011)
------
+-------------------
 
 Upgraded the version of RVM installed by default
 Switched from using our own installation method to using the new RVM installer
 
 1.14.0 (06/02/2011)
------
+-------------------
 
 Projects using bundler will now run rake with bundle exec
 Added ability to lockdown the version of rake that RVM will install (vulcanize base for the changes)
