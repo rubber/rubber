@@ -69,9 +69,10 @@ module Rubber
         "Performs a cyclical backup by storing the results of COMMAND to the backup\ndirectory (and the cloud)"
       end
       
-      option ["-n", "--name"],
+      option ["-n", "--name", "--backup_name"],
              "NAME",
-             "What to name the backup\nRequired"
+             "What to name the backup\nRequired",
+             :attribute_name => :name
       option ["-d", "--directory"],
              "DIRECTORY",
              "The directory to stage backups into\nRequired"
@@ -86,7 +87,13 @@ module Rubber
 
       def execute
         signal_usage_error "NAME, DIRECTORY and COMMAND are required" unless name && directory && command
-        
+
+        # As it turns out, :name is a bad name for this setting because the interpolated string for it is "%name%",
+        # but glibc treats "%n" as a string format character used for stack overflow attacks and strips it out.  This
+        # only seems to affect JRuby at the moment.  We use :backup_name as the new alias, but retain :name around
+        # so we don't break backups on people.
+        backup_name = name
+
         # extra variables for command interpolation
         time_stamp = Time.now.strftime("%Y-%m-%d_%H-%M")
         dir = directory
