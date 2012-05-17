@@ -7,25 +7,25 @@ namespace :rubber do
     task :install_ruby_build do
       rubber.sudo_script "install_ruby_build", <<-ENDSCRIPT
       if [[ ! `ruby-build --version 2> /dev/null` =~ "#{rubber_env.ruby_build_version}" ]]; then
-        wget -q https://github.com/sstephenson/ruby-build/tarball/v#{rubber_env.ruby_build_version} -O ruby-build.tar.gz
+        wget -q /tmp https://github.com/sstephenson/ruby-build/tarball/v#{rubber_env.ruby_build_version} -O /tmp/ruby-build.tar.gz
 
         # Install ruby-build.
-        tar zxf ruby-build.tar.gz
-        cd sstephenson-ruby-build-*
+        tar -C /tmp -zxf /tmp/ruby-build.tar.gz
+        cd /tmp/sstephenson-ruby-build-*
         ./install.sh
 
         # Clean up after ourselves.
-        cd ..
-        rm -rf sstephenson-ruby-build-*
-        rm ruby-build.tar.gz
+        cd /root
+        rm -rf /tmp/sstephenson-ruby-build-*
+        rm /tmp/ruby-build.tar.gz
 
-        # Set up the .gemrc file
-        if [[ ! -f ~/.gemrc ]]; then
-          echo "--- " >> ~/.gemrc
-        fi
+        # Get rid of RVM if this is an older rubber installation.
+        if type rvm &> /dev/null; then
+          rvm implode
 
-        if ! grep -q 'gem: ' ~/.gemrc; then
-          echo "gem: --no-ri --no-rdoc" >> ~/.gemrc
+          rm -rf /usr/local/rvm
+          rm /usr/bin/rvm*
+          rm ~/.gemrc
         fi
       fi
       ENDSCRIPT
@@ -39,10 +39,11 @@ namespace :rubber do
     after "rubber:base:install_ruby_build", "rubber:base:install_ruby"
     task :install_ruby do
       rubber.sudo_script "install_ruby", <<-ENDSCRIPT
-      if [[ ! -d #{rubber_env.ruby_path} ]]; then
+      if [[ ! `ruby --version 2> /dev/null` =~ "#{rubber_env.ruby_version}" ]]; then
         ruby-build #{rubber_env.ruby_version} #{rubber_env.ruby_path}
 
-        echo "export PATH=#{rubber_env.ruby_path}/bin:$PATH" > /etc/profile.d/rubber.sh
+        echo "export RUBYOPT=rubygems\nexport PATH=#{rubber_env.ruby_path}/bin:$PATH" > /etc/profile.d/ruby.sh
+        echo "--- \ngem: --no-ri --no-rdoc" > /etc/gemrc
       fi
       ENDSCRIPT
     end
