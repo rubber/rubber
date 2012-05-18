@@ -40,7 +40,16 @@ namespace :rubber do
     task :install_ruby do
       rubber.sudo_script "install_ruby", <<-ENDSCRIPT
       if [[ ! `ruby --version 2> /dev/null` =~ "#{rubber_env.ruby_version}" ]]; then
-        ruby-build #{rubber_env.ruby_version} #{rubber_env.ruby_path}
+        echo "Compiling and installing ruby $rvm_ver.  This may take a while ..."
+
+        nohup ruby-build #{rubber_env.ruby_version} #{rubber_env.ruby_path} &> /tmp/install_ruby.log &
+        sleep 1
+
+        while true; do
+          if ! ps ax | grep -q "[r]uby-build"; then break; fi
+          echo -n .
+          sleep 5
+        done
 
         echo "export RUBYOPT=rubygems\nexport PATH=#{rubber_env.ruby_path}/bin:$PATH" > /etc/profile.d/ruby.sh
         echo "--- \ngem: --no-ri --no-rdoc" > /etc/gemrc
