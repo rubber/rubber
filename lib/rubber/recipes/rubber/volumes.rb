@@ -139,6 +139,7 @@ namespace :rubber do
               while ! [[ -b #{vol_spec['device']} ]]; do
                 if [[ "$cnt" -eq "15" ]]; then
                   echo 'Timed out waiting for EBS device to be ready.'
+                  mv /etc/fstab.bak /etc/fstab
                   exit 1
                 fi
                 echo '.'
