@@ -1,0 +1,5 @@
+<%
+  @path = '/etc/apache2/mods-available/proxy_cluster.load'
+  @post = 'a2enmod proxy_cluster && a2enmod proxy_ajp'
+%>
+LoadModule proxy_cluster_module /usr/lib/apache2/modules/mod_proxy_cluster.so
