@@ -1,3 +1,28 @@
+2.0.5 (06/12/2012)
+------------------
+
+New Features:
+============
+[torquebox] Initial work on a TorqueBox template. <160557b>
+[torquebox] Merge pull request #154 from wr0ngway/add_torquebox <d750ecb>
+[torquebox] [torquebox] Bumped to TorqueBox 2.0.3 from 2.0.2. <2851768>
+[torquebox] [torquebox] Do rolling deploys with TorqueBox so the site doesn't go down when deploying. <8582889>
+
+Bug Fixes:
+=========
+
+[core] force older version of net-ssh till issues get resolved <5b8c2f7>
+[core] Fix typo causing Ubuntu 11+ to time out waiting for incorrect volume id <cf1dfa4>
+[core] Merge pull request #168 from akremer/fstab_fix <9d2e6fc>
+[core] Restore fstab.bak if EBS times out <b27cc79>
+[apache] use dash instead of another subdomain level for web tool proxy hosts to prevent ssl complaints with wildcard certs <8237bac>
+[cassandra, collectd, elasticsearch, graphite, graylog, jenkins, mongodb, mysql_cluster, redis, zookeeper] be more strict in selecting role directory during bootstrap <f8818e4>
+[complete_passenger_nginx] Changed passenger_nginx role dependencies so that web_tools can be run on a separate instance. <8a3cefb>
+[complete_passenger_nginx] Merge pull request #166 from rwc9u/web_tools_nginx_multi_instance <44ec7e1>
+[passenger_nginx] Changed nginx.conf to only include the tools.conf on an instance that has the web_tools role. See the following thread where this change was discussed: <376428f>
+[passenger_nginx] Merge pull request #165 from rwc9u/web_tools_nginx <88ab69a>
+
+
 2.0.4 (05/15/2012)
 ------------------
 
