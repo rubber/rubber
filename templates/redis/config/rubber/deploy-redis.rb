@@ -47,7 +47,7 @@ namespace :rubber do
         rubber.update_code_for_bootstrap
   
         # Gen just the conf for cassandra
-        rubber.run_config(:file => "role/redis", :force => true, :deploy_path => release_path)
+        rubber.run_config(:file => "role/redis/", :force => true, :deploy_path => release_path)
       
         restart
       end
