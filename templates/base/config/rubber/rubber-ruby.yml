@@ -11,7 +11,7 @@
 packages: [build-essential, git-core, subversion, curl, autoconf, bison, ruby, zlib1g-dev, libssl-dev, libreadline6-dev, libxml2-dev, libyaml-dev]
 
 # REQUIRED: The version of ruby-build to use for building ruby.
-ruby_build_version: 20120423
+ruby_build_version: 20120524
 
 # REQUIRED: Set to the version string for the ruby version you wish to use
 # Run "ruby-build --definitions" to see the list of possible options
