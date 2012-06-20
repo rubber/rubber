@@ -7,7 +7,7 @@ namespace :rubber do
     task :install_ruby_build do
       rubber.sudo_script "install_ruby_build", <<-ENDSCRIPT
       if [[ ! `ruby-build --version 2> /dev/null` =~ "#{rubber_env.ruby_build_version}" ]]; then
-        wget -q /tmp https://github.com/sstephenson/ruby-build/tarball/v#{rubber_env.ruby_build_version} -O /tmp/ruby-build.tar.gz
+        wget -q https://github.com/sstephenson/ruby-build/tarball/v#{rubber_env.ruby_build_version} -O /tmp/ruby-build.tar.gz
 
         # Install ruby-build.
         tar -C /tmp -zxf /tmp/ruby-build.tar.gz
