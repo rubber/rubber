@@ -1,0 +1,5 @@
+<%
+  @path = "/root/.pgpass"
+  @perms = 0600
+%>
+<%= rubber_instances.for_role("postgresql_master").first.full_name %>:5432:*:<%= rubber_env.db_replication_user %>:<%= rubber_env.db_replication_pass ? rubber_env.db_replication_pass : "" %>
