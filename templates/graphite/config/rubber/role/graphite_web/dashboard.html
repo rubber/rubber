@@ -212,10 +212,12 @@ Simple graphite dashboard cycler for use on a large display - e.g. googletv/chro
           var defn = e[1];
           var params = $.extend(true, {}, defaultParams); // deep copy
           params = $.extend(true, params, defn); // deep copy
-          params["target"] = params["target"][0];
 
-          var url = ROOT_URL + "/render?" + $.param(params);
-
+          // graphite only works with target=abc&target=xyz not with
+          // standard form of target[]=abc&target[]=xyz
+          var encoded_params = $.param(params).replace(/target%5B%5D=/g, "target=");
+          var url = ROOT_URL + "/render?" + encoded_params;
+          
           return url;
         });
         return urls;
