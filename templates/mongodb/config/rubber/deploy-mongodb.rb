@@ -23,7 +23,7 @@ namespace :rubber do
       exists = capture("echo $(ls #{rubber_env.mongodb_data_dir} 2> /dev/null)")
       if exists.strip.size == 0
         rubber.update_code_for_bootstrap
-        rubber.run_config(:file => "role/mongodb", :force => true, :deploy_path => release_path)
+        rubber.run_config(:file => "role/mongodb/", :force => true, :deploy_path => release_path)
 
         restart
       end

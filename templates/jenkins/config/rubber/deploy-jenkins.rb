@@ -23,7 +23,7 @@ namespace :rubber do
       exists = capture("echo $(ls /etc/apache2/jenkins.auth 2> /dev/null)")
       if exists.strip.size == 0
         rubber.update_code_for_bootstrap
-        rubber.run_config(:file => "role/jenkins", :force => true, :deploy_path => release_path)
+        rubber.run_config(:file => "role/jenkins/", :force => true, :deploy_path => release_path)
 
         restart
         rubber.apache.restart

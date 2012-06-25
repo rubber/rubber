@@ -1,0 +1,5 @@
+<%
+  @path = '/etc/apache2/mods-available/manager.load'
+  @post = 'a2enmod manager'
+%>
+LoadModule manager_module /usr/lib/apache2/modules/mod_manager.so

@@ -12,6 +12,9 @@ namespace :rubber do
           wget --no-check-certificate -qNP /tmp https://github.com/downloads/elasticsearch/elasticsearch/elasticsearch-#{rubber_env.elasticsearch_version}.zip
           unzip -d #{rubber_env.elasticsearch_prefix} /tmp/elasticsearch-#{rubber_env.elasticsearch_version}.zip
           rm /tmp/elasticsearch-#{rubber_env.elasticsearch_version}.zip
+
+          #{rubber_env.elasticsearch_dir}/bin/plugin -install mobz/elasticsearch-head
+          
         fi
       ENDSCRIPT
     end
@@ -24,7 +27,7 @@ namespace :rubber do
         # After everything installed on machines, we need the source tree
         # on hosts in order to run rubber:config for bootstrapping the db
         rubber.update_code_for_bootstrap
-        rubber.run_config(:file => "role/elasticsearch", :force => true, :deploy_path => release_path)
+        rubber.run_config(:file => "role/elasticsearch/", :force => true, :deploy_path => release_path)
 
         restart
       end

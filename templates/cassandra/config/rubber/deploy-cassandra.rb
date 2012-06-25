@@ -64,7 +64,7 @@ namespace :rubber do
 
 
             # Gen just the conf for cassandra
-            rubber.run_config(:file => "role/cassandra", :force => true, :deploy_path => release_path)
+            rubber.run_config(:file => "role/cassandra/", :force => true, :deploy_path => release_path)
           end
         end
         send task_name

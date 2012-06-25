@@ -85,7 +85,7 @@ namespace :rubber do
       # graphite web app)
       if ic.role_names.include?('web_tools')
         Array(rubber_env.web_tools_proxies).each do |name, settings|
-          hosts_data << "#{name}.#{ic.full_name}"
+          hosts_data << "#{name}-#{ic.full_name}"
         end
       end
       
@@ -123,7 +123,7 @@ namespace :rubber do
       # graphite web app)
       if ic.role_names.include?('web_tools')
         Array(rubber_env.web_tools_proxies).each do |name, settings|
-          hosts_data << "#{name}.#{ic.full_name}"
+          hosts_data << "#{name}-#{ic.full_name}"
         end
       end
       
@@ -194,7 +194,7 @@ namespace :rubber do
         record = provider.setup_opts(record)
         if matching.size == 1
           match = matching.first
-          if  provider.host_records_equal?(record, match)
+          if provider.host_records_equal?(record, match)
             logger.info "Simple dns record already up to date: #{record[:host]}.#{record[:domain]}:#{record[:type]} => #{record[:data]}"
           else
             logger.info "Updating simple dns record: #{record[:host]}.#{record[:domain]}:#{record[:type]} => #{record[:data]}"
@@ -408,7 +408,7 @@ namespace :rubber do
       # graphite web app)
       if instance_item.role_names.include?('web_tools')
         Array(rubber_env.web_tools_proxies).each do |name, settings|
-          provider.update("#{name}.#{instance_item.name}", instance_item.external_ip)
+          provider.update("#{name}-#{instance_item.name}", instance_item.external_ip)
         end
       end
     end
@@ -426,7 +426,7 @@ namespace :rubber do
       # graphite web app)
       if instance_item.role_names.include?('web_tools')
         Array(rubber_env.web_tools_proxies).each do |name, settings|
-          provider.destroy("#{name}.#{instance_item.name}")
+          provider.destroy("#{name}-#{instance_item.name}")
         end
       end
     end
@@ -472,11 +472,22 @@ namespace :rubber do
   
   def maybe_reboot
     reboot_needed = multi_capture("echo $(ls /var/run/reboot-required 2> /dev/null)")
-    reboot_hosts = reboot_needed.collect {|k, v| v.strip.size > 0 ? k : nil}.compact
-    
+    reboot_hosts = reboot_needed.collect {|k, v| v.strip.size > 0 ? k : nil}.compact.sort
+
+    # Figure out which hosts are bootstrapping for the first time so we can auto reboot
+    # If there is no deployed app directory, then we have never bootstrapped. 
+    auto_reboot = multi_capture("echo $(ls #{deploy_to} 2> /dev/null)")
+    auto_reboot_hosts = auto_reboot.collect {|k, v| v.strip.size == 0 ? k : nil}.compact.sort
+
     if reboot_hosts.size > 0
 
-      ENV['REBOOT'] = 'y' if ENV['FORCE'] =~ /^(t|y)/
+      # automatically reboot if FORCE or if all the hosts that need rebooting
+      # are bootstrapping for the first time
+      if ENV['FORCE'] =~ /^(t|y)/ || reboot_hosts == auto_reboot_hosts
+        ENV['REBOOT'] = 'y'
+        logger.info "Updates require a reboot on hosts #{reboot_hosts.inspect}"
+      end
+      
       reboot = get_env('REBOOT', "Updates require a reboot on hosts #{reboot_hosts.inspect}, reboot [y/N]?", false)
       reboot = (reboot =~ /^y/)
       

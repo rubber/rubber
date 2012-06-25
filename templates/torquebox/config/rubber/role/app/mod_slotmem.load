@@ -1,0 +1,5 @@
+<%
+  @path = '/etc/apache2/mods-available/slotmem.load'
+  @post = 'a2enmod slotmem && rm -f /etc/apache2/logs && ln -s /var/log/apache2 /etc/apache2/logs'
+%>
+LoadModule slotmem_module /usr/lib/apache2/modules/mod_slotmem.so

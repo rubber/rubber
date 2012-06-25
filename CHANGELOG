@@ -1,13 +1,93 @@
-2.0.2
+2.0.5 (06/12/2012)
+------------------
+
+New Features:
+============
+[torquebox] Initial work on a TorqueBox template. <160557b>
+[torquebox] Merge pull request #154 from wr0ngway/add_torquebox <d750ecb>
+[torquebox] [torquebox] Bumped to TorqueBox 2.0.3 from 2.0.2. <2851768>
+[torquebox] [torquebox] Do rolling deploys with TorqueBox so the site doesn't go down when deploying. <8582889>
+
+Bug Fixes:
+=========
+
+[core] force older version of net-ssh till issues get resolved <5b8c2f7>
+[core] Fix typo causing Ubuntu 11+ to time out waiting for incorrect volume id <cf1dfa4>
+[core] Merge pull request #168 from akremer/fstab_fix <9d2e6fc>
+[core] Restore fstab.bak if EBS times out <b27cc79>
+[apache] use dash instead of another subdomain level for web tool proxy hosts to prevent ssl complaints with wildcard certs <8237bac>
+[cassandra, collectd, elasticsearch, graphite, graylog, jenkins, mongodb, mysql_cluster, redis, zookeeper] be more strict in selecting role directory during bootstrap <f8818e4>
+[complete_passenger_nginx] Changed passenger_nginx role dependencies so that web_tools can be run on a separate instance. <8a3cefb>
+[complete_passenger_nginx] Merge pull request #166 from rwc9u/web_tools_nginx_multi_instance <44ec7e1>
+[passenger_nginx] Changed nginx.conf to only include the tools.conf on an instance that has the web_tools role. See the following thread where this change was discussed: <376428f>
+[passenger_nginx] Merge pull request #165 from rwc9u/web_tools_nginx <88ab69a>
+
+
+2.0.4 (05/15/2012)
+------------------
+
+Bug Fixes:
+=========
+
+[apache] make sure admin uis know we are ssl so they generate correct urls <b6409da>
+[collectd] fix syntax error <205a07a>
+[resque] use puma to run resque server as a rackup with rails environment loaded so resque-retry can find job classes <518eb27>
+
+
+2.0.3 (05/11/2012)
+------------------
+
+New Features:
+============
+
+[core] Support for Route53 ALIAS records so the zone apex can be pointed at ELB groups
 
 Improvements:
 ============
 
+[core] Auto-add domain name to host records in Route 53 so user-facing config is much simpler
+[passenger] Upgraded to Passenger 3.0.12 from 3.0.11
+
+Bug Fixes:
+=========
+
+[core] Fixed an issue with wildcard hosts in Route 53.
+[core] Fixed an issue with creating an MX record in Route 53 (NB: we still cannot create multiple MX records).
+[collect] Fixed an issue deploying if a graphite_server doesn't exist in the cluster
+
+
+2.0.2 (05/08/2012)
+------------------
+
+New Features:
+============
+
+[graylog] Added an admin UI for ElasticSearch
+
+Improvements:
+============
+
+[base] Use ntpd instead of cron for syncing time
+[core] Auto-reboot for kernel updates on initial instance bootstrap rather than prompting the user to reboot
 [redis] Upgraded to redis 2.4.12 from 2.4.11
+
+Bug Fixes:
+=========
+
+[core] Fixed issue with Route 53 DNS not updating records properly
+[core] Wait for EBS volumes to be fully attached before trying to format them
+[core] Fixed issue with running `rubber config` locally
+[collectd] Made the runner executable
+[graphite] Fixed some broken URLs in the dashboard
+[passenger] Fixed issue with using a path to config.ru before capistrano completed setting it up.
+[resque] Replaced a hard-coded reference to the resque-pool PID file with the rubber configured one
+[resque] Append to the resque-pool.log file rather than overwrite it 
+[zookeeper] Fixed the detection of an existing zookeeper installation
+
 
 
 2.0.1 (04/29/2012)
-----------
+------------------
 
 New Features:
 ============
@@ -31,7 +111,7 @@ Bug Fixes:
 
 
 2.0.0 (04/24/2012)
-----------
+------------------
 
 New Features:
 ============
@@ -102,7 +182,7 @@ Locked the default version of Ruby down to a particular patch release so by defa
 Ruby 1.9.3 fixes with nginx
 
 1.15.0 (09/13/2011)
------
+-------------------
 
 New Features:
 ============
@@ -137,13 +217,13 @@ Fixed timing issue with multiple resque workers starting (thanks Matt Conway)
 Fixed an issue with hostnames that happen to be monit commands (thanks Michael Glass)
 
 1.14.1 (06/02/2011)
------
+-------------------
 
 Upgraded the version of RVM installed by default
 Switched from using our own installation method to using the new RVM installer
 
 1.14.0 (06/02/2011)
------
+-------------------
 
 Projects using bundler will now run rake with bundle exec
 Added ability to lockdown the version of rake that RVM will install (vulcanize base for the changes)

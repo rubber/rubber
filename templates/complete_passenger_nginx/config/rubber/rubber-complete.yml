@@ -1,6 +1,7 @@
 role_dependencies:
   web: [haproxy]
   app: [passenger_nginx]
+  web_tools: [passenger_nginx]
 
 web_port: 80
 web_ssl_port: 443
