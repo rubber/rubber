@@ -3,4 +3,5 @@
 # like resque-retry reference job classes from one's environment within
 # the web ui
 require ::File.expand_path('../environment',  __FILE__)
-run Resque::Server
+run Rack::URLMap.new \
+  "/resque" => Resque::Server.new
