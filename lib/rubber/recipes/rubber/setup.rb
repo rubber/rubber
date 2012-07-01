@@ -85,7 +85,7 @@ namespace :rubber do
       # graphite web app)
       if ic.role_names.include?('web_tools')
         Array(rubber_env.web_tools_proxies).each do |name, settings|
-          hosts_data << "#{name}.#{ic.full_name}"
+          hosts_data << "#{name}-#{ic.full_name}"
         end
       end
       
@@ -123,7 +123,7 @@ namespace :rubber do
       # graphite web app)
       if ic.role_names.include?('web_tools')
         Array(rubber_env.web_tools_proxies).each do |name, settings|
-          hosts_data << "#{name}.#{ic.full_name}"
+          hosts_data << "#{name}-#{ic.full_name}"
         end
       end
       
@@ -408,7 +408,7 @@ namespace :rubber do
       # graphite web app)
       if instance_item.role_names.include?('web_tools')
         Array(rubber_env.web_tools_proxies).each do |name, settings|
-          provider.update("#{name}.#{instance_item.name}", instance_item.external_ip)
+          provider.update("#{name}-#{instance_item.name}", instance_item.external_ip)
         end
       end
     end
@@ -426,7 +426,7 @@ namespace :rubber do
       # graphite web app)
       if instance_item.role_names.include?('web_tools')
         Array(rubber_env.web_tools_proxies).each do |name, settings|
-          provider.destroy("#{name}.#{instance_item.name}")
+          provider.destroy("#{name}-#{instance_item.name}")
         end
       end
     end

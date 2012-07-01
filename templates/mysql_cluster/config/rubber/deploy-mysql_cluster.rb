@@ -60,7 +60,7 @@ namespace :rubber do
         task task_name, :hosts => ic.full_name do
           exists = capture("if grep -c rubber.*mysql_mgm /etc/mysql/ndb_mgmd.cnf &> /dev/null; then echo exists; fi")
           if exists.strip.size == 0
-            rubber.run_config(:file => "role/mysql_mgm", :deploy_path => release_path)
+            rubber.run_config(:file => "role/mysql_mgm/", :deploy_path => release_path)
             rsudo "service mysql-ndb-mgm start"
           end
         end
@@ -72,7 +72,7 @@ namespace :rubber do
         task task_name, :hosts => ic.full_name do
           exists = capture("if grep -c rubber.*mysql_data /etc/mysql/my.cnf &> /dev/null; then echo exists; fi")
           if exists.strip.size == 0
-            rubber.run_config(:file => "role/mysql_data", :deploy_path => release_path)
+            rubber.run_config(:file => "role/mysql_data/", :deploy_path => release_path)
             rsudo "service mysql-ndb start-initial"
           end
         end
@@ -84,7 +84,7 @@ namespace :rubber do
         task task_name, :hosts => ic.full_name do
           exists = capture("if grep -c rubber.*mysql_sql /etc/mysql/my.cnf &> /dev/null; then echo exists; fi")
           if exists.strip.size == 0
-            rubber.run_config(:file => "role/mysql_sql", :deploy_path => release_path)
+            rubber.run_config(:file => "role/mysql_sql/", :deploy_path => release_path)
             rsudo "service mysql start"
             env = rubber_cfg.environment.bind()
             # For mysql 5.0 cluster, need to create users and database for EVERY sql node

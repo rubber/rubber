@@ -27,7 +27,7 @@ namespace :rubber do
         # After everything installed on machines, we need the source tree
         # on hosts in order to run rubber:config for bootstrapping the db
         rubber.update_code_for_bootstrap
-        rubber.run_config(:file => "role/elasticsearch", :force => true, :deploy_path => release_path)
+        rubber.run_config(:file => "role/elasticsearch/", :force => true, :deploy_path => release_path)
 
         restart
       end

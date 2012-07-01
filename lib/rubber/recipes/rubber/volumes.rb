@@ -136,9 +136,10 @@ namespace :rubber do
 		          # Ensure volume is ready before running mkfs on it.
 		          echo 'Waiting for device'
               cnt=0
-              while ! [[ -b #{vol_spec['device']} ]]; do
+              while ! [[ -b $device ]]; do
                 if [[ "$cnt" -eq "15" ]]; then
                   echo 'Timed out waiting for EBS device to be ready.'
+                  mv /etc/fstab.bak /etc/fstab
                   exit 1
                 fi
                 echo '.'
