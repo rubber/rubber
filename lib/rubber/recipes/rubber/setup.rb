@@ -371,7 +371,7 @@ namespace :rubber do
   task :set_timezone do
     opts = get_host_options('timezone')
     rsudo "echo $CAPISTRANO:VAR$ > /etc/timezone", opts
-    rsudo "cp /usr/share/zoneinfo/$CAPISTRANO:VAR$ /etc/localtime", opts
+    rsudo "ln -sf /usr/share/zoneinfo/$CAPISTRANO:VAR$ /etc/localtime", opts
     # restart syslog so that times match timezone
     sudo_script 'restart_syslog', <<-ENDSCRIPT
       if [[ -x /etc/init.d/sysklogd ]]; then
