@@ -13,4 +13,4 @@ mod_cluster_version: 1.2.0
 
 roles:
   torquebox:
-    packages: [openjdk-7-jdk libaio1]
+    packages: [openjdk-7-jdk, libaio1, unzip]
