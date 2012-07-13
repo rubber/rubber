@@ -1,0 +1,7 @@
+resque_scheduler_pid_file: /var/run/resque-scheduler.pid
+resque_scheduler_log_file: /var/log/resque-scheduler.log
+
+gems: [resque-scheduler]
+
+role_dependencies:
+  web_tools: [resque_scheduler]

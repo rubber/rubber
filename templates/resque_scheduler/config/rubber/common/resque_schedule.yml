@@ -1,0 +1,9 @@
+<%
+  @path = "#{Rubber.root}/config/resque_schedule.yml"
+%>
+
+myjob:
+  cron: 0 * * * *
+  class: MyJob
+  queue: scheduler
+  description: Schedules MyJob.  Runs every hour on the hour.
