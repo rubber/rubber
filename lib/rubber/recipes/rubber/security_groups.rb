@@ -43,7 +43,7 @@ namespace :rubber do
 
   def setup_security_groups(host=nil, roles=[])
     env = rubber_cfg.environment.bind(roles, host)
-    security_group_defns = env.security_groups
+    security_group_defns = Hash[env.security_groups.to_a]
     if env.auto_security_groups
       sghosts = (rubber_instances.collect{|ic| ic.name } + [host]).uniq.compact
       sgroles = (rubber_instances.all_roles + roles).uniq.compact
