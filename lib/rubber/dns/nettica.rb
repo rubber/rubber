@@ -10,8 +10,8 @@ module Rubber
     class Nettica < Base
 
       def initialize(env)
-        super(env, "nettica")
-        @client = ::Nettica::Client.new(provider_env.user, provider_env.password)
+        super(env)
+        @client = ::Nettica::Client.new(env.user, env.password)
       end
 
       def check_status(response)
