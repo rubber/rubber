@@ -10,6 +10,13 @@ module Rubber
       end
     end
     
+    def stringify_keys(map)
+      map.inject({}) do |options, (key, value)|
+        options[key.to_s || key] = value
+        options
+      end
+    end
+    
     def stringify(val)
       case val
       when String
