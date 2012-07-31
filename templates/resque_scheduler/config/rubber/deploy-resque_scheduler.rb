@@ -29,7 +29,7 @@ namespace :rubber do
     task :wait_start, :roles => :resque_scheduler do
       logger.info "Waiting for scheduler daemon pid file to show up"
 
-      run "while ! test -f #{current_path}/tmp/pids/resque_scheduler.pid; do sleep 1; done"
+      run "while ! test -f #{rubber_env.resque_scheduler_pid_file}; do sleep 1; done"
     end
 
 
