@@ -1,3 +1,12 @@
+2.0.8 (08/01/2012)
+------------------
+
+[core] fix update of dns for instances <f57145c>
+[core] Merge commits shouldn't be in the changelog. <bdff81a>
+[core] Another typo fix. <bcc2381>
+[core] Fixed a typo. <2c8ec30>
+[core] Simplified new features in 2.0.6 release to highlight what was added. <a9a1ba1>
+
 2.0.7 (08/01/2012)
 ------------------
 
