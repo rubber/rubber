@@ -15,7 +15,7 @@ Added a template for resque-scheduler.
 Improvements:
 ============
 [core] multi-host rubber:reboot <56ef06f>
-[core] update nettica to work with new ruber-dns.yml format <1bfa525>
+[core] update nettica to work with new rubber-dns.yml format <1bfa525>
 [base] format change to better support multi-value records like MX, round robin A, etc refactor to better handle route53/zerigo differences in fog add export_dns_records to allow dumping from provider to a rubber-dns.yml format <7c806cf>
 [base] update base ami <be8c0f4>
 
