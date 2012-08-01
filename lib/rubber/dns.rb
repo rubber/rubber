@@ -8,8 +8,8 @@ module Rubber
       if provider == 'fog'
         # TODO: remove backwards compatibility in next major release
         
-        puts "deprecated dns provider config: #{env.inspect}"
         provider_env = env.dns_providers['fog']
+        puts "deprecated dns provider config: #{provider_env}"
         creds = provider_env.credentials
         real_provider = creds.provider
         require "rubber/dns/#{real_provider}"
