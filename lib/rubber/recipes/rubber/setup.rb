@@ -211,7 +211,6 @@ namespace :rubber do
 
       changes = Hash[(rubber_records.to_a - provider_records.to_a) | (provider_records.to_a - rubber_records.to_a)]
 
-      logger.info "Applying #{changes.size} changes"
       changes.each do |key, record|
         old_record = provider_records[key]
         new_record = rubber_records[key]
