@@ -10,44 +10,30 @@
 
 New Features:
 ============
-[resque_scheduler] Merge pull request #194 from messick/resque_scheduler_template <dc20ecb>
-[resque_scheduler] Rake task file must end in .rake not .rb <03a7cfa>
-[resque_scheduler] append to log on restart <eadd00a>
-[resque_scheduler] enable scheduler tabs in resque-web ui <3e68509>
-[resque_scheduler] first pass at a resque scheduler template <e9e0111>
-[resque_scheduler] log output from resque-scheduler upstart job <91c3790>
-[resque_scheduler] redirect error to log as well <d75b96a>
-[resque_scheduler] use resque_scheduler PID path from yaml file. <e699193>
+Added a template for resque-scheduler.
 
 Improvements:
 ============
 [core] multi-host rubber:reboot <56ef06f>
-[core] update nettica to work with new ruber-dns.yml format <1bfa525>
+[core] update nettica to work with new rubber-dns.yml format <1bfa525>
 [base] format change to better support multi-value records like MX, round robin A, etc refactor to better handle route53/zerigo differences in fog add export_dns_records to allow dumping from provider to a rubber-dns.yml format <7c806cf>
 [base] update base ami <be8c0f4>
 
 Bug Fixes:
 =========
-[core] isoalte security groups from global namespace so having a key with the same name as a capistrano role doesn't cause problems <41ba2cf>
+[core] isolate security groups from global namespace so having a key with the same name as a capistrano role doesn't cause problems <41ba2cf>
 [core] make cron logs more user friendly and prevent exponential explosion of files in log dir due to interaction with rubber:util:rotate_logs <7e11a7f>
 [core] fix nettica support (fix super call, credentials) <14fd048>
-[core] Merge pull request #192 from garrytan/master <837d8be>
 [core] don't attempt to read a non-existant instance file in cloud storage <c4d11ac>
-[core] Merge pull request #173 from viniciusnz/master <d7e8f9f>
 [core] Avoid error if localtime file already exists <cff1fb4>
-[base] Merge pull request #190 from davebenvenuti/ssh_env_whitelist <48260c9>
 [base] whitelist ssh-related variables in sudoers so capistrano tasks can take advantage of ssh-agent forwarding <1009e7b>
-[collectd] Merge pull request #191 from davebenvenuti/passenger_sudoers_fix <09511a8>
 [collectd] add to env variable whitelist rather than overwrite it <dff23f7>
 [elasticsearch] Ensure unzip package present for elasticsearch <40af636>
 [graphite] fix for multiple targets in graph defn <b72c469>
-[jenkins] Merge pull request #171 from ScotterC/patch-1 <133aa3e>
 [jenkins] removed hardcoded application, thanks to scotterc for finding this <b5b26b4>
 [jenkins] sun-java6 fails on Ubuntu 10.04 <88779a9>
 [passenger] Removed the code to remove config.ru from Rails apps as it's no longer needed in Passenger 3. <517d23e>
 [postgresql] Fixed an issue with PostgreSQL messing with casing on us. <72e63b5>
-[resque] Merge pull request #174 from messick/resque_fix <dc70092>
-[resque] Merge pull request #179 from messick/resque_redis_fix <d2d436c>
 [resque] connect to redis_master role, rather than just redis <f778dc8>
 [resque] explicitly make Rubber.root a string <c0852b2>
 [resque] placeholder config for dev <d855381>
