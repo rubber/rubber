@@ -21,7 +21,7 @@ Improvements:
 
 Bug Fixes:
 =========
-[core] isoalte security groups from global namespace so having a key with the same name as a capistrano role doesn't cause problems <41ba2cf>
+[core] isolate security groups from global namespace so having a key with the same name as a capistrano role doesn't cause problems <41ba2cf>
 [core] make cron logs more user friendly and prevent exponential explosion of files in log dir due to interaction with rubber:util:rotate_logs <7e11a7f>
 [core] fix nettica support (fix super call, credentials) <14fd048>
 [core] Merge pull request #192 from garrytan/master <837d8be>
