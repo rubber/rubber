@@ -178,8 +178,6 @@ namespace :rubber do
     return record
   end
 
-  require 'ap'
-  
   desc <<-DESC
     Sets up the additional dns records supplied in the dns_records config in rubber.yml
   DESC
