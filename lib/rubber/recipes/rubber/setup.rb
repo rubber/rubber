@@ -219,11 +219,11 @@ namespace :rubber do
           # already exists in provider, so modify it
           diff = Hash[(old_record.to_a - new_record.to_a) | (new_record.to_a - old_record.to_a)]
           logger.info "Updating dns record: #{old_record.inspect} changes: #{diff.inspect}"
-          #provider.update_host_record(old_record, new_record)
+          provider.update_host_record(old_record, new_record)
         elsif !old_record && new_record
           # doesn't yet exist in provider, so create it
           logger.info "Creating dns record: #{new_record.inspect}"
-          #provider.create_host_record(new_record)
+          provider.create_host_record(new_record)
         elsif old_record && ! new_record
           # ignore these since it shows all the instances created by rubber
           #
