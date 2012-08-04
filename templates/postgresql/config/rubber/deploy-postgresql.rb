@@ -1,4 +1,3 @@
-
 namespace :rubber do
   
   namespace :postgresql do
@@ -58,9 +57,9 @@ namespace :rubber do
             create_replication_user_cmd << " PASSWORD '#{env.db_replication_pass}'" if env.db_replication_pass
 
             rubber.sudo_script "create_master_db", <<-ENDSCRIPT
-              sudo -u postgres psql -c "#{create_user_cmd}"
-              sudo -u postgres psql -c "#{create_replication_user_cmd}"
-              sudo -u postgres psql -c "CREATE DATABASE #{env.db_name} WITH OWNER #{env.db_user}"
+              sudo -i -u postgres psql -c "#{create_user_cmd}"
+              sudo -i -u postgres psql -c "#{create_replication_user_cmd}"
+              sudo -i -u postgres psql -c "CREATE DATABASE #{env.db_name} WITH OWNER #{env.db_user}"
             ENDSCRIPT
           end
         end
