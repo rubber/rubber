@@ -133,7 +133,7 @@ module Rubber
         
         if opts[:host] && opts[:host] != '*'
           found_host = zone.records.all(:name => host[:name], :type => host[:type], :max_items => 1).first
-          found_host = nil if found_host.name != "#{host[:name]}." && found_host.type != host[:type]
+          found_host = nil if found_host && found_host.name != "#{host[:name]}." && found_host.type != host[:type]
           hosts = Array(found_host)
         else
           hosts = all_hosts(zone)

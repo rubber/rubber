@@ -123,6 +123,12 @@ class AwsTest < Test::Unit::TestCase
           assert_equal ['1.1.1.2'], attributes[:data]
         end
         
+        should "find no records" do
+          # Wildcard search.
+          records = @dns.find_host_records(:host => 'foo', :domain => @domain)
+          assert_equal 0, records.size
+        end
+      
         should "find_records" do
           # Set up some sample records.
           created = []
