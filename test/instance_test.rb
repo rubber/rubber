@@ -226,7 +226,10 @@ class InstanceTest < Test::Unit::TestCase
       should "create new instance in filesystem when instance file doesn't exist" do
         tempfile = Tempfile.new('instancestorage')
         location = "file:#{tempfile.path}"
+
+        tempfile.close
         tempfile.unlink
+
         Instance.any_instance.expects(:load_from_file).never
         Instance.any_instance.expects(:save_to_file)
         Instance.new(location).save
