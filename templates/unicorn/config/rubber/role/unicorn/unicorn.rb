@@ -22,6 +22,13 @@ pid "/var/run/unicorn.pid"
 stderr_path "<%= Rubber.root %>/log/unicorn.stderr.log"
 stdout_path "<%= Rubber.root %>/log/unicorn.stdout.log"
 
+# Because of Capistano, we need to tell unicorn where find the current Gemfile
+# Read about Unicorn, Capistrano, and Bundler here:
+# http://unicorn.bogomips.org/Sandbox.html
+before_exec do |server|
+  ENV['BUNDLE_GEMFILE'] = "<%= Rubber.root %>/Gemfile"
+end
+
 before_fork do |server, worker|
   ##
   # When sent a USR2, Unicorn will suffix its pidfile with .oldbin and
