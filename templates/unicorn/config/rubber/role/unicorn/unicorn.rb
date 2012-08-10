@@ -1,5 +1,6 @@
 <%
   @path = "#{Rubber.root}/config/unicorn.rb"
+  current_path = "/mnt/#{rubber_env.app_name}-#{Rubber.env}/current"
 %>
 worker_processes 2
 working_directory "<%= Rubber.root %>"
@@ -26,7 +27,7 @@ stdout_path "<%= Rubber.root %>/log/unicorn.stdout.log"
 # Read about Unicorn, Capistrano, and Bundler here:
 # http://unicorn.bogomips.org/Sandbox.html
 before_exec do |server|
-  ENV['BUNDLE_GEMFILE'] = "<%= Rubber.root %>/Gemfile"
+  ENV['BUNDLE_GEMFILE'] = "<%= current_path %>/Gemfile"
 end
 
 before_fork do |server, worker|
