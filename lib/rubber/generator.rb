@@ -25,8 +25,8 @@ module Rubber
 
       def run
         config_dirs = []
-        config_dirs << "#{@config_dir}/common/**/**"
         @roles.sort.each {|role| config_dirs <<  "#{@config_dir}/role/#{role}/**/**" }
+        config_dirs << "#{@config_dir}/common/**/**"
         config_dirs << "#{@config_dir}/host/#{@host}/**/**"
 
         pat = Regexp.new(file_pattern) if file_pattern

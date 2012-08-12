@@ -30,7 +30,7 @@ namespace :rubber do
   # deploy:migrations doesn't call update, so we need an additional trigger for
   # it
   after "deploy:update", "rubber:config"
-  after "deploy:rollback_code", "rubber:config"
+  after "deploy:rollback:revision", "rubber:config"
   before "deploy:migrate", "rubber:config"
 
   desc <<-DESC
