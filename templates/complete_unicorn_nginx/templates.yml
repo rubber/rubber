@@ -2,7 +2,8 @@ description: A fairly complete and scalable deployment setup using unicorn and n
 dependent_templates:
   - base
   - haproxy
-  - unicorn_nginx
+  - nginx
+  - unicorn
   - monit
   - collectd
   - graphite
