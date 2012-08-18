@@ -41,7 +41,7 @@ module Rubber
             bucket = location.split("/")[0]
             key = location.split("/")[1..-1].join("/")
             data = Rubber.cloud.storage(bucket).fetch(key)
-            StringIO.open(data, 'r') {|f| load_from_file(f) }
+            StringIO.open(data, 'r') {|f| load_from_file(f) } if data
           when /table:(.*)/
             location = $1
             load_from_table(location)

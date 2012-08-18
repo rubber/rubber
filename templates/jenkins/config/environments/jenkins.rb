@@ -1,4 +1,4 @@
-Appleton::Application.configure do
+Rails.application.class.configure do
   # Settings specified here will take precedence over those in config/application.rb
 
   # In the development environment your application's code is reloaded on

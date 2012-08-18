@@ -1,4 +1,4 @@
-zookeeper_version: 3.3.5
+zookeeper_version: 3.3.6
 zookeeper_package_url: "http://www.ecoficial.com/am/zookeeper/stable/zookeeper-#{zookeeper_version}.tar.gz"
 zookeeper_install_dir: "/usr/local/zookeeper-#{zookeeper_version}"
 zookeeper_data_dir: /mnt/zookeeper/data

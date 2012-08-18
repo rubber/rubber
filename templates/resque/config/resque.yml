@@ -1,0 +1,4 @@
+# this is a placeholder for development.  for the production version, see config/rubber/common/resque.yml
+environments:
+  development: 'localhost:6379'
+  test: 'localhost:6379'

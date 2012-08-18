@@ -21,14 +21,6 @@ namespace :rubber do
       ENDSCRIPT
     end
 
-    # passenger does things differently for rack apps, so if this is a rails app, remove config.ru
-    # to stop passenger from treating this like a rack app
-    after "deploy:update_code", "rubber:passenger:remove_config_ru" if Rubber::Util.is_rails?
-
-    task :remove_config_ru, :roles => :passenger do
-      rsudo "rm -f #{releases_path}/*/config.ru"
-    end
-
     # passenger depends on apache for start/stop/restart, just need these defined
     # as apache hooks into standard deploy lifecycle
     

@@ -56,28 +56,25 @@ module Rubber
       parameter "COMMAND ...", "the command to run"
 
       def execute
-        self.rootdir ||= Rubber.root
-        self.logfile ||= "#{Rubber.root}/log/cron-sh-#{Time.now.tv_sec}.log"
-        
         cmd = command_list
+        self.rootdir ||= Rubber.root
+        ident = cmd[0].gsub(/\W+/, "_").gsub(/(^_+)|(_+$)/, '')[0..19]
+        self.logfile ||= "#{Rubber.root}/log/cron-sh-#{ident}.log"
         log = logfile
         
         if task?
-          ident = cmd[0].gsub(/\W+/, "_").gsub(/(^_+)|(_+$)/, '')[0..19]
-          log = "#{rootdir}/log/cron-task-#{ident}-#{Time.now.tv_sec}.log"
+          log = "#{rootdir}/log/cron-task-#{ident}.log"
           cmd = ["rubber"] + cmd
         elsif ruby?
           ruby_code = cmd.join(' ')
           ident = ruby_code.gsub(/\W+/, "_").gsub(/(^_+)|(_+$)/, '')[0..19]
-          log = "#{rootdir}/log/cron-ruby-#{ident}-#{Time.now.tv_sec}.log"
+          log = "#{rootdir}/log/cron-ruby-#{ident}.log"
           cmd = ["ruby", "-e", ruby_code]
         elsif runner?
-          ident = cmd[0].gsub(/\W+/, "_").gsub(/(^_+)|(_+$)/, '')[0..19]
-          log = "#{rootdir}/log/cron-runner-#{ident}-#{Time.now.tv_sec}.log"
+          log = "#{rootdir}/log/cron-runner-#{ident}.log"
           cmd = ["rails", "runner"] + cmd
         elsif rake?
-          ident = cmd[0].gsub(/\W+/, "_").gsub(/(^_+)|(_+$)/, '')[0..19]
-          log = "#{rootdir}/log/cron-rake-#{ident}-#{Time.now.tv_sec}.log"
+          log = "#{rootdir}/log/cron-rake-#{ident}.log"
           cmd = ["rake"] + cmd
         end
         
@@ -99,7 +96,8 @@ module Rubber
         # Open4 forks, which JRuby doesn't support.  But JRuby added a popen4-compatible method on the IO class,
         # so we can use that instead.
         status = (defined?(JRUBY_VERSION) ? IO : Open4).popen4(*cmd) do |pid, stdin, stdout, stderr|
-          File.open(log, "w") do | fh |
+          File.open(log, "a") do | fh |
+            fh.puts "\nrubber:cron running #{cmd.inspect} at #{Time.now}\n"
             threads = []
             threads <<  Thread.new(stdout) do |stdout|
                stdout.each { |line| $stdout.puts line if echoout?; fh.print line; fh.flush }

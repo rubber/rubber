@@ -1,3 +1,55 @@
+2.0.8 (08/01/2012)
+------------------
+
+[core] fix update of dns for instances <f57145c>
+[core] Merge commits shouldn't be in the changelog. <bdff81a>
+[core] Another typo fix. <bcc2381>
+[core] Fixed a typo. <2c8ec30>
+[core] Simplified new features in 2.0.6 release to highlight what was added. <a9a1ba1>
+
+2.0.7 (08/01/2012)
+------------------
+
+[core] remove useless log msg <09c1a16>
+[core] fix deprecation msg <c52c35f>
+[core] uncomment the code that updates dns <df46f39>
+
+2.0.6 (08/01/2012)
+------------------
+
+New Features:
+============
+Added a template for resque-scheduler.
+
+Improvements:
+============
+[core] multi-host rubber:reboot <56ef06f>
+[core] update nettica to work with new rubber-dns.yml format <1bfa525>
+[base] format change to better support multi-value records like MX, round robin A, etc refactor to better handle route53/zerigo differences in fog add export_dns_records to allow dumping from provider to a rubber-dns.yml format <7c806cf>
+[base] update base ami <be8c0f4>
+
+Bug Fixes:
+=========
+[core] isolate security groups from global namespace so having a key with the same name as a capistrano role doesn't cause problems <41ba2cf>
+[core] make cron logs more user friendly and prevent exponential explosion of files in log dir due to interaction with rubber:util:rotate_logs <7e11a7f>
+[core] fix nettica support (fix super call, credentials) <14fd048>
+[core] don't attempt to read a non-existant instance file in cloud storage <c4d11ac>
+[core] Avoid error if localtime file already exists <cff1fb4>
+[base] whitelist ssh-related variables in sudoers so capistrano tasks can take advantage of ssh-agent forwarding <1009e7b>
+[collectd] add to env variable whitelist rather than overwrite it <dff23f7>
+[elasticsearch] Ensure unzip package present for elasticsearch <40af636>
+[graphite] fix for multiple targets in graph defn <b72c469>
+[jenkins] removed hardcoded application, thanks to scotterc for finding this <b5b26b4>
+[jenkins] sun-java6 fails on Ubuntu 10.04 <88779a9>
+[passenger] Removed the code to remove config.ru from Rails apps as it's no longer needed in Passenger 3. <517d23e>
+[postgresql] Fixed an issue with PostgreSQL messing with casing on us. <72e63b5>
+[resque] connect to redis_master role, rather than just redis <f778dc8>
+[resque] explicitly make Rubber.root a string <c0852b2>
+[resque] placeholder config for dev <d855381>
+[resque] rails_env was changed to Rubber.env a while ago I believe <2376db2>
+[torquebox] Ensure unzip package present for torquebox <7f4d7aa>
+[zookeeper] fix zookeeper server ids <3273b53>
+
 2.0.5 (06/12/2012)
 ------------------
 

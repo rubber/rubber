@@ -9,7 +9,7 @@ elasticsearch_http_port: 9200
 
 roles:
   elasticsearch:
-    packages: [openjdk-7-jdk]
+    packages: [openjdk-7-jdk, unzip]
 
 web_tools_proxies:
   elasticsearch:
