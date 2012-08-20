@@ -18,7 +18,7 @@ module Rubber
       
       option ["--host", "-h"], "HOST", "Override the instance's host for generation"
       option ["--roles", "-r"], "ROLES", "Override the instance's roles for generation" do |str|
-        str.split(",")
+        str.split(/\s*,\s*/)
       end
       option ["--file", "-p"], "FILE", "Only generate files matching the given pattern"
       option ["--no_post", "-n"], :flag, "Skip running post commands"

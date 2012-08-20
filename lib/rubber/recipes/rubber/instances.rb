@@ -23,7 +23,7 @@ namespace :rubber do
     if r == '*'
       instance_roles = rubber_cfg.environment.known_roles.reject {|r| r =~ /slave/ || r =~ /^db$/ }
     else
-      instance_roles = r.split(",")
+      instance_roles = r.split(/\s*,\s*/)
     end
     
     create_instances(aliases, instance_roles, create_spot_instance)
@@ -100,7 +100,7 @@ namespace :rubber do
     instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
     r = get_env('ROLES', "Instance roles (e.g. web,app,db:primary=true)", true)
 
-    instance_roles = r.split(",")
+    instance_roles = r.split(/\s*,\s*/)
 
     ir = []
     instance_roles.each do |r|
@@ -129,7 +129,7 @@ namespace :rubber do
     instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
     r = get_env('ROLES', "Instance roles (e.g. web,app,db:primary=true)", true)
 
-    instance_roles = r.split(",")
+    instance_roles = r.split(/\s*,\s*/)
 
     ir = []
     instance_roles.each do |r|
@@ -199,7 +199,7 @@ namespace :rubber do
       roles = instance_roles
       if roles.size == 0
         env = rubber_cfg.environment.bind(nil, instance_alias)
-        roles = env.instance_roles.split(",") rescue []
+        roles = env.instance_roles.split(/\s*,\s*/) rescue []
       end
 
       # If user doesn't setup a primary db, then be nice and do it
