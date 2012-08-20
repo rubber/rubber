@@ -1,25 +1,30 @@
 2.1.0 (08/20/2012)
 ------------------
 
-[core] Re-enabled JRuby head now that an important bug has been fixed. <cee7f3c>
-[core] more friendly split for arguments, fixes #196 <5af6777>
-[core] Update README.md <f436395>
-[core] Trying to use just the Oracle JDK to get JRuby tests running on travis. <62e2d7b>
-[core] We need to close a file before we can unlink it in JRuby >= 1.7. <beb7bf0>
-[core] Merge pull request #200 from messick/raid_patch_1 <311b5ab>
-[core] with stopping exec queue, mdadm will not be able to create RAID array <5662653>
-[core] Handle finding a host for an empty domain, fixes #199 <6ba2181>
-[core] Removing JRuby head until http://jira.codehaus.org/browse/JRUBY-6815 is fixed. <50ea51f>
-[base] allow port specific source_group rules in security_groups, allow source_groups to refer to groups in other projects <b6dba33>
-[postgresql] Added sudo flag to change $HOME when running Postgresql commands <b3ff1ff>
-[postgresql] Merge pull request #198 from infamouse/patch-1 <c22b08c>
+New Features:
+============
+
+[unicorn] Added unicorn, complete_unicorn template, thanks messick!
+
+Improvements:
+============
+
 [redis] Bumped the redis version from 2.4.12 to 2.4.16. <ab6923e>
-[unicorn] Merge pull request #201 from messick/unicorn_template_fixes <bddf999>
-[unicorn] Merge pull request #202 from messick/unicorn_template_fixes <4b6d9ce>
-[unicorn] Tell unicorn where to find current Gemfile <961195a>
-[unicorn] Use current_path vs Rubber.root for Unicorn stuff. <c748824>
-[unicorn] add upstart conf file for unicorn <f02e661>
 [zookeeper] bumped up zookeeper to 3.3.6 <409dbac>
+[nginx, passenger_nginx, resque] Add nginx web_tools proxies with same strategy as apache, thanks messick!
+[core] updated fog ~> 1.5
+
+Bug Fixes:
+=========
+
+[base] allow port specific source_group rules in security_groups, allow source_groups to refer to groups in other projects <b6dba33>
+[postgresql] Added sudo flag to change $HOME when running Postgresql commands, thanks infamouse <b3ff1ff>
+[core] Handle finding a host for an empty domain, fixes #199 <6ba2181>
+[core] with stopping exec queue, mdadm will not be able to create RAID array, thanks messick! <5662653>
+[core] more friendly split for arguments, fixes #196 <5af6777>
+[core] We need to close a file before we can unlink it in JRuby >= 1.7. <beb7bf0>
+[core] call fatal, not fail method - fixes #204 <56fb7dd>
+
 
 2.0.8 (08/01/2012)
 ------------------
