@@ -136,6 +136,20 @@ cloud_provider: aws
 # keys are the parameters to the ec2 AuthorizeSecurityGroupIngress API
 # source_security_group_name, source_security_group_owner_id
 # ip_protocol, from_port, to_port, cidr_ip
+# If you want to use a source_group outside of this project, add "external_group: true"
+# to prevent group_isolation from mangling its name, e.g.  to give access to graphite
+# server to other projects
+#
+# security_groups:
+#   graphite_server:
+#     description: The graphite_server security group to allow projects to send graphite data
+#     rules:
+#       - source_group_name: yourappname_production_collectd
+#         source_group_account: 123456
+#         external_group: true
+#         protocol: tcp
+#         from_port: "#{graphite_server_port}"
+#         to_port: "#{graphite_server_port}"
 #
 security_groups:
   default:

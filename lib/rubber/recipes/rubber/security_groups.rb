@@ -37,7 +37,7 @@ namespace :rubber do
       security_groups += roles
     end
     security_groups = security_groups.uniq.compact.reject {|x| x.empty? }
-    security_groups = security_groups.collect {|x| isolate_group_name(x) } if env.isolate_security_groups
+    security_groups = security_groups.collect {|x| isolate_group_name(x) }
     return security_groups
   end
 
@@ -71,19 +71,27 @@ namespace :rubber do
   end
 
   def isolate_group_name(group_name)
-    new_name = "#{isolate_prefix}#{group_name}"
-    return new_name
+    if rubber_env.isolate_security_groups
+      group_name =~ /^#{isolate_prefix}/ ? group_name : "#{isolate_prefix}#{group_name}"
+    else
+      group_name
+    end
   end
 
   def isolate_groups(groups)
     renamed = {}
     groups.each do |name, group|
-      new_name = name =~ /^#{isolate_prefix}/ ? name : isolate_group_name(name)
+      new_name = isolate_group_name(name)
       new_group =  Marshal.load(Marshal.dump(group))
       new_group['rules'].each do |rule|
         old_ref_name = rule['source_group_name']
-        if old_ref_name && old_ref_name !~ /^#{isolate_prefix}/
-          rule['source_group_name'] = isolate_group_name(old_ref_name)
+        if old_ref_name
+          # don't mangle names if the user specifies this is an external group they are giving access to.
+          # remove the external_group key to allow this to match with groups retrieved from cloud 
+          is_external = rule.delete('external_group')
+          if ! is_external && old_ref_name !~ /^#{isolate_prefix}/
+            rule['source_group_name'] = isolate_group_name(old_ref_name)
+          end
         end
       end
       renamed[new_name] = new_group
@@ -95,7 +103,7 @@ namespace :rubber do
     return unless groups
 
     groups = Rubber::Util::stringify(groups)
-    groups = isolate_groups(groups) if rubber_env.isolate_security_groups
+    groups = isolate_groups(groups)
     group_keys = groups.keys.clone()
     
     # For each group that does already exist in cloud
@@ -110,15 +118,31 @@ namespace :rubber do
         # sync rules
         logger.debug "Security Group already in cloud, syncing rules: #{group_name}"
         group = groups[group_name]
+        
+        # convert the special case default rule into what it actually looks like when
+        # we query ec2 so that we can match things up when syncing
         rules = group['rules'].clone
+        group['rules'].each do |rule|
+          if [2, 3].include?(rule.size) && rule['source_group_name'] && rule['source_group_account']
+            rules << rule.merge({'protocol' => 'tcp', 'from_port' => '1', 'to_port' => '65535' })
+            rules << rule.merge({'protocol' => 'udp', 'from_port' => '1', 'to_port' => '65535' })
+            rules << rule.merge({'protocol' => 'icmp', 'from_port' => '-1', 'to_port' => '-1' })
+            rules.delete(rule)
+          end
+        end
+        
         rule_maps = []
 
         # first collect the rule maps from the request (group/user pairs are duplicated for tcp/udp/icmp,
         # so we need to do this up frnot and remove duplicates before checking against the local rubber rules)
         cloud_group[:permissions].each do |rule|
-          if rule[:source_groups]
-            rule[:source_groups].each do |source_group|
-              rule_map = {:source_group_name => source_group[:name], :source_group_account => source_group[:account]}
+          source_groups = rule.delete(:source_groups)
+          if source_groups
+            source_groups.each do |source_group|
+              rule_map = rule.clone
+              rule_map.delete(:source_ips)
+              rule_map[:source_group_name] = source_group[:name]
+              rule_map[:source_group_account] = source_group[:account]
               rule_map = Rubber::Util::stringify(rule_map)
               rule_maps << rule_map unless rule_maps.include?(rule_map)
             end
@@ -145,7 +169,7 @@ namespace :rubber do
             if answer =~ /^y/
               rule_map = Rubber::Util::symbolize_keys(rule_map)
               if rule_map[:source_group_name]
-                cloud.remove_security_group_rule(group_name, nil, nil, nil, {:name => rule_map[:source_group_name], :account => rule_map[:source_group_account]})
+                cloud.remove_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], {:name => rule_map[:source_group_name], :account => rule_map[:source_group_account]})
               else
                 rule_map[:source_ips].each do |source_ip|
                   cloud.remove_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], source_ip)
@@ -160,7 +184,7 @@ namespace :rubber do
           logger.debug "Missing rule, creating: #{rule_map.inspect}"
           rule_map = Rubber::Util::symbolize_keys(rule_map)
           if rule_map[:source_group_name]
-            cloud.add_security_group_rule(group_name, nil, nil, nil, {:name => rule_map[:source_group_name], :account => rule_map[:source_group_account]})
+            cloud.add_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], {:name => rule_map[:source_group_name], :account => rule_map[:source_group_account]})
           else
             rule_map[:source_ips].each do |source_ip|
               cloud.add_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], source_ip)
@@ -191,7 +215,7 @@ namespace :rubber do
         logger.debug "Creating new rule: #{rule_map.inspect}"
         rule_map = Rubber::Util::symbolize_keys(rule_map)
         if rule_map[:source_group_name]
-          cloud.add_security_group_rule(group_name, nil, nil, nil, {:name => rule_map[:source_group_name], :account => rule_map[:source_group_account]})
+          cloud.add_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], {:name => rule_map[:source_group_name], :account => rule_map[:source_group_account]})
         else
           rule_map[:source_ips].each do |source_ip|
             cloud.add_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], source_ip)
