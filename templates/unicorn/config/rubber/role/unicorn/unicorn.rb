@@ -1,5 +1,6 @@
 <%
   @path = "#{Rubber.root}/config/unicorn.rb"
+  current_path = "/mnt/#{rubber_env.app_name}-#{Rubber.env}/current"
 %>
 worker_processes 2
 working_directory "<%= Rubber.root %>"
@@ -21,6 +22,13 @@ pid "/var/run/unicorn.pid"
 # Set the path of the log files inside the log folder of the testapp
 stderr_path "<%= Rubber.root %>/log/unicorn.stderr.log"
 stdout_path "<%= Rubber.root %>/log/unicorn.stdout.log"
+
+# Because of Capistano, we need to tell unicorn where find the current Gemfile
+# Read about Unicorn, Capistrano, and Bundler here:
+# http://unicorn.bogomips.org/Sandbox.html
+before_exec do |server|
+  ENV['BUNDLE_GEMFILE'] = "<%= current_path %>/Gemfile"
+end
 
 before_fork do |server, worker|
   ##

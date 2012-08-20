@@ -258,7 +258,9 @@ namespace :rubber do
           done
           echo 'Devices ready'
 
+          udevadm control --stop-exec-queue
           #{mdadm_init}
+          udevadm control --start-exec-queue
 
           # set reconstruction speed
           echo $((30*1024)) > /proc/sys/dev/raid/speed_limit_min
