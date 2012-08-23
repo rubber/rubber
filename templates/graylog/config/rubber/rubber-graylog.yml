@@ -37,6 +37,6 @@ roles:
     packages: [openjdk-6-jdk, mongodb-10gen]
   graylog_web:
     packages: [libcurl4-openssl-dev]
-    gems: [[passenger, "#{passenger_version || '3.0.7'}"]]
+    gems: [puma]
 
 gems: [gelf, graylog2_exceptions, graylog2-resque]

@@ -81,9 +81,13 @@ namespace :rubber do
           rubber.update_code_for_bootstrap
 
           rubber.run_config(:file => "role/graylog_web/", :force => true, :deploy_path => release_path)
-          
+
           rubber.sudo_script 'bootstrap_graylog_web', <<-ENDSCRIPT
             cd #{rubber_env.graylog_web_dir}
+
+            # Add puma to the Gemfile so we can run the server.
+            echo "gem 'puma'" >> Gemfile
+
             export RAILS_ENV=production
             bundle install
 
