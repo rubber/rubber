@@ -1,16 +1,18 @@
-torquebox_version: 2.0.3
+torquebox_version: 2.1.0
 torquebox_prefix: /opt
 torquebox_dir: "#{torquebox_prefix}/torquebox"
+torquebox_log_dir: /var/log/torquebox
 torquebox_pid_file: "#{torquebox_dir}/jboss/standalone/torquebox.pid"
 torquebox_http_port: 9090
 torquebox_https_port: 9443
 torquebox_ajp_port: 8009
 
-backstage_user: rubber
-backstage_password: rubber
+backstage_user: nirvdrum
+backstage_password: negativetwenty
 
 mod_cluster_version: 1.2.0
 
 roles:
   torquebox:
-    packages: [openjdk-7-jdk, libaio1, unzip]
+    packages: [openjdk-7-jdk libaio1, unzip]
+    gems: [[torquebox, "#{torquebox_version}"]]
