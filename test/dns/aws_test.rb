@@ -10,7 +10,7 @@ class AwsTest < Test::Unit::TestCase
       setup do
         env = {'access_key' => get_secret('cloud_providers.aws.access_key') || 'xxx',
                'access_secret' => get_secret('cloud_providers.aws.secret_access_key') || 'yyy'}
-        @env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil)
+        @env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil, nil)
 
         @dns = Rubber::Dns::Aws.new(@env)
         destroy_test_domains(@dns)
@@ -26,7 +26,7 @@ class AwsTest < Test::Unit::TestCase
                      }
                  }
           }
-          @env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil)
+          @env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil, nil)
           
           provider = Rubber::Dns::get_provider(@env.dns_provider, @env)
           assert provider

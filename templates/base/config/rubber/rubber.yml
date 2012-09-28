@@ -302,8 +302,8 @@ stop_on_error_cmd: "function error_exit { exit 99; }; trap error_exit ERR"
 #
 # var_name: var_value
 
-# All variables can also be overridden on the role and/or host level by creating
-# a sub level to the config under roles and hosts
+# All variables can also be overridden on the role, environment and/or host level by creating
+# a sub level to the config under roles, environments and hosts.  The precedence is host, environment, role
 # e.g. to install mysql only on db role, and awstats only on web01:
 
 # OPTIONAL: Role specific overrides
@@ -312,6 +312,13 @@ stop_on_error_cmd: "function error_exit { exit 99; }; trap error_exit ERR"
 #     packages: []
 #   somerole2:
 #     myconfig: someval
+
+# OPTIONAL: Environment specific overrides
+# environments:
+#   staging:
+#     myconfig: otherval
+#   production:
+#     myconfig: val
 
 # OPTIONAL: Host specific overrides
 # hosts:

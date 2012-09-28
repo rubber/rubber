@@ -8,7 +8,7 @@ class ZerigoTest < Test::Unit::TestCase
       setup do
         env = {'email' => get_secret('dns_providers.zerigo.email') || 'xxx',
                'token' => get_secret('dns_providers.zerigo.token') || 'yyy'}
-        @env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil)
+        @env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil, nil)
 
         @dns = Rubber::Dns::Zerigo.new(@env)
         destroy_test_domains(@dns)
@@ -25,7 +25,7 @@ class ZerigoTest < Test::Unit::TestCase
                      }
                  }
           }
-          @env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil)
+          @env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil, nil)
           
           provider = Rubber::Dns::get_provider(@env.dns_provider, @env)
           assert provider

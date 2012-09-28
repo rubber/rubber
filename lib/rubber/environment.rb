@@ -9,11 +9,14 @@ module Rubber
     # the host/role passed into bind
     class Environment
       attr_reader :config_root
+      attr_reader :config_env
       attr_reader :config_files
       attr_reader :config_secret
 
-      def initialize(config_root)
+      def initialize(config_root, env)
         @config_root = config_root
+        @config_env = env
+        
         @config_files = ["#{@config_root}/rubber.yml"]
         @config_files += Dir["#{@config_root}/rubber-*.yml"].sort
 
@@ -71,7 +74,7 @@ module Rubber
       end
       
       def bind(roles = nil, host = nil)
-        BoundEnv.new(@items, roles, host)
+        BoundEnv.new(@items, roles, host, config_env)
       end
 
       # combine old and new into a single value:
@@ -160,10 +163,12 @@ module Rubber
       class BoundEnv < HashValueProxy
         attr_reader :roles
         attr_reader :host
+        attr_reader :env
 
-        def initialize(global, roles, host)
+        def initialize(global, roles, host, env)
           @roles = roles
           @host = host
+          @env = env
           bound_global = bind_config(global)
           super(nil, bound_global)
         end
@@ -176,11 +181,15 @@ module Rubber
         def bind_config(global)
           global = global.clone()
           role_overrides = global.delete("roles") || {}
+          env_overrides = global.delete("environments") || {}
           host_overrides = global.delete("hosts") || {}
           Array(roles).each do |role|
             Array(role_overrides[role]).each do |k, v|
               global[k] = Environment.combine(global[k], v)
             end
+          end
+          Array(env_overrides[env]).each do |k, v|
+            global[k] = Environment.combine(global[k], v)
           end
           Array(host_overrides[host]).each do |k, v|
             global[k] = Environment.combine(global[k], v)

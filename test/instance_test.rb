@@ -198,7 +198,7 @@ class InstanceTest < Test::Unit::TestCase
       
       setup do
         env = {'access_key' => "XXX", 'secret_access_key' => "YYY", 'region' => "us-east-1"}
-        env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil)
+        env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil, nil)
         @cloud = Rubber::Cloud::Aws.new(env, nil)
         @cloud.storage_provider.put_bucket('bucket')
         Rubber.stubs(:cloud).returns(@cloud)
