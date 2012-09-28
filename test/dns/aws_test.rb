@@ -18,8 +18,7 @@ class AwsTest < Test::Unit::TestCase
       
       context "compatibility" do
         should "create using old credential style" do
-          env = {'dns_provider' => 'fog',
-                 'dns_providers' => {
+          env = {'dns_providers' => {
                      'fog' => {
                          'credentials' => {
                             'provider' => 'aws', 'aws_access_key_id' => 'xxx', 'aws_secret_access_key' => 'yyy'
@@ -189,6 +188,31 @@ class AwsTest < Test::Unit::TestCase
           assert_equal "host#{max - 1}", records.first[:host]
         end
       
+        should "use defaults not supplied by record" do
+          env = {'access_key' => get_secret('cloud_providers.aws.access_key') || 'xxx',
+                 'access_secret' => get_secret('cloud_providers.aws.secret_access_key') || 'yyy',
+                 'domain' => "#{TEST_DOMAIN}5.com",
+                 'type' => 'A',
+                 'ttl' => 345}
+          @env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil, nil)
+  
+          @dns = Rubber::Dns::Aws.new(@env)
+
+          @dns.create_host_record({:host => 'newhost', :data => ['1.1.1.1']})
+
+          @zone = @dns.find_or_create_zone(env['domain'])
+          assert_equal @zone.records.all.size, 1
+          record = @zone.records.first
+          attributes = @dns.host_to_opts(record)
+        
+          assert_equal 'newhost',             attributes[:host]
+          assert_equal ['1.1.1.1'],             attributes[:data]
+          assert_equal env['domain'],               attributes[:domain]
+          assert_equal env['type'],                   attributes[:type]
+          assert_equal env['ttl'],                   attributes[:ttl]
+          
+        end
+        
       end
 
    end
