@@ -194,6 +194,7 @@ namespace :rubber do
       rubber_records = {}
       records.each do |record|
         record = Rubber::Util.symbolize_keys(record)
+        record = provider.setup_opts(record) # assign defaults        
         key = record_key(record)
         rubber_records[key] ||= []
         rubber_records[key] << record
