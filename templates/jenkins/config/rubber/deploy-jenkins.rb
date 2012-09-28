@@ -17,7 +17,7 @@ namespace :rubber do
       rsudo "wget -q -O - http://pkg.jenkins-ci.org/debian/jenkins-ci.org.key | sudo apt-key add -"
     end
 
-    after "rubber:bootstrap", "rubber:jenkins:bootstrap"
+    after "rubber:apache:bootstrap", "rubber:jenkins:bootstrap"
 
     task :bootstrap, :roles => :jenkins do
       exists = capture("echo $(ls /etc/apache2/jenkins.auth 2> /dev/null)")
