@@ -171,30 +171,28 @@ module Rubber
 
       def add_security_group_rule(group_name, protocol, from_port, to_port, source)
         group = @compute_provider.security_groups.get(group_name)
+        opts = {:ip_protocol => protocol || 'tcp'}
+        
         if source.instance_of? Hash
-          if protocol
-            groupstr = "#{source[:account]}:#{source[:name]}"
-            group.authorize_port_range(from_port.to_i..to_port.to_i, :ip_protocol => protocol, :group => groupstr)
-          else
-            group.authorize_group_and_owner(source[:name], source[:account])
-          end
+          opts[:group] = {source[:account] => source[:name]}
         else
-          group.authorize_port_range(from_port.to_i..to_port.to_i, :ip_protocol => protocol, :cidr_ip => source)
+          opts[:cidr_ip] = source
         end
+        
+        group.authorize_port_range(from_port.to_i..to_port.to_i, opts)
       end
 
       def remove_security_group_rule(group_name, protocol, from_port, to_port, source)
         group = @compute_provider.security_groups.get(group_name)
+        opts = {:ip_protocol => protocol || 'tcp'}
+        
         if source.instance_of? Hash
-          if protocol
-            groupstr = "#{source[:account]}:#{source[:name]}"
-            group.revoke_port_range(from_port.to_i..to_port.to_i, :ip_protocol => protocol, :group => groupstr)
-          else
-            group.revoke_group_and_owner(source[:name], source[:account])
-          end
+          opts[:group] = {source[:account] => source[:name]}
         else
-          group.revoke_port_range(from_port.to_i..to_port.to_i, :ip_protocol => protocol, :cidr_ip => source)
+          opts[:cidr_ip] = source
         end
+        
+        group.revoke_port_range(from_port.to_i..to_port.to_i, opts)
       end
 
       def destroy_security_group(group_name)
