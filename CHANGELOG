@@ -1,3 +1,36 @@
+2.1.1 (10/02/2012)
+------------------
+
+New Features:
+============
+[base] add ability to override by environment in rubber*.yml <f4c4af3>
+[couchbase, monit] add couchbase template <550dff4>
+
+Improvements:
+============
+[core] Updated sudo_script to sudo to any user. <288ef5d>
+[apache, jenkins] create an apache bootstrap so jenkins template doesn't have to duplicate logic <5862791>
+[complete_passenger, passenger] do a rolling passenger restart by tieing into apache rolling restart <065d757>
+[complete_passenger] dont do health check over ssl by default (Fails with self signed cert) <a5a8da7>
+[graylog] Updated graylog from 0.9.6 to 0.9.6p1. <864795c>
+[graylog] Use puma instead of passenger for graylog-web, since it works much better with JRuby. <7419705>
+[jenkins] Added support for backing up Jenkins. <a44162d>
+[jenkins] Fixed Jenkins config. <bbaa6f4>
+[jenkins] Make sure we have the header module enabled for the config to work. <93d03d8>
+[jenkins] The module is "headers", not "header". <4057334>
+[passenger] Bumped rubber from 3.0.12 to 3.0.15. <bc408f1>
+[passenger_nginx] Updated Nginx config to improve performance of asset pipeline. <7184327>
+[torquebox] Updated TorqueBox config from 2.0.3 to 2.1.0. <13a0268>
+
+Bug Fixes:
+=========
+[core] fix merging of alias records <d314857>
+[core] Refactor to avoid fog deprecation, fixes #222 <43ea42f>
+[core] assign defaults for partial records in rubber-dns.yml when running setup_dns_records <a72a701>
+[monit] monit check for resque scheduler - fixes #221 <34a4fde>
+[mysql] Delete anonymous MySQL user when bootstrapping the db. Fixes #185 (pull request #212) <ce84ff2>
+[torquebox] Always use the rubber system JRuby with Torquebox. <9c03a02>
+
 2.1.0 (08/20/2012)
 ------------------
 
