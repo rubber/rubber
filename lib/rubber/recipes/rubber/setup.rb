@@ -173,7 +173,12 @@ namespace :rubber do
       record[:type] ||= r[:type]
       record[:ttl] ||= r[:ttl] if r[:ttl]
       record[:data] ||= []
-      record[:data].concat(Array(r[:data]))
+      case r[:data]
+        when nil then ;
+        when Array then record[:data].concat(r[:data])
+        else
+          record[:data] << r[:data]
+      end
     end
     return record
   end
