@@ -89,7 +89,12 @@ module Rubber
         if old.is_a?(Hash) && new.is_a?(Hash)
           value = old.clone
           new.each do |nk, nv|
-            value[nk] = combine(value[nk], nv)
+            if nk[0] == '^'
+              nk = nk[1..-1]
+              value[nk] = combine(nil, nv)
+            else
+              value[nk] = combine(value[nk], nv)
+            end
           end
         elsif old.is_a?(Array) && new.is_a?(Array)
           value = old | new

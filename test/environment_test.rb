@@ -75,6 +75,13 @@ class EnvironmentTest < Test::Unit::TestCase
     assert_equal({1 => {1 => "1", 2 => "2"}}, env.combine({1 => {1 => "1"}}, {1 => {2 => "2"}}), "Maps should be unioned recursively when combined")
   end
 
+  def test_combine_override
+    env = Rubber::Configuration::Environment
+    assert_equal({"x" => 4, "y" => 2, "z" => 3}, env.combine({"x" => 1, "y" => 2}, {"^x" => 4, "z" => 3}), "scalars should override")
+    assert_equal({"x" => [3, 4]}, env.combine({"x" => [1, 2]}, {"^x" => [3, 4]}), "lists should override")
+    assert_equal({"x" => {"y" => [3, 4]}}, env.combine({"x" => {"y" => [1, 2]}}, {"x" => {"^y" => [3, 4]}}), "Maps should override recursively")
+  end
+
   def test_expansion
     env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures/expansion", 'test')
     e = env.bind()
