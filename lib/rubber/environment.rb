@@ -36,7 +36,7 @@ module Rubber
         Rubber.logger.debug{"Reading rubber configuration from #{file}"}
         if File.exist?(file)
           begin
-            @items = Environment.combine(@items, YAML.load_file(file) || {})
+            @items = Environment.combine(@items, YAML::load(ERB.new(IO.read(file)).result) || {})
           rescue Exception => e
             Rubber.logger.error{"Unable to read rubber configuration from #{file}"}
             raise
@@ -56,7 +56,7 @@ module Rubber
         
         # all the roles known about in yml files
         Dir["#{@config_root}/rubber*.yml"].each do |yml|
-          rubber_yml = YAML.load(File.read(yml)) rescue {}
+          rubber_yml = YAML::load(ERB.new(IO.read(yml)).result) rescue {}
           roles.concat(rubber_yml['roles'].keys) rescue nil
           roles.concat(rubber_yml['role_dependencies'].keys) rescue nil
           roles.concat(rubber_yml['role_dependencies'].values) rescue nil

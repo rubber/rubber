@@ -152,4 +152,10 @@ class EnvironmentTest < Test::Unit::TestCase
     assert_equal "50.1.1.1", e['var1']
   end
 
+  def test_erb_yml
+    env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures/basic", 'test')
+    e = env.bind()
+    assert_equal [0, 1, 2], e["erb_var"], 'should be able to generate env using erb'    
+  end
+  
 end

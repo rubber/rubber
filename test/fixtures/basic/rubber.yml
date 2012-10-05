@@ -28,4 +28,8 @@ environments:
 
 role_dependencies:
   role3: [role4, role5]
-  
+
+erb_var:
+<% 3.times do |i| %>
+  - <%= i %>
+<% end %>
