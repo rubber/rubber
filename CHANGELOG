@@ -17,7 +17,6 @@ Improvements:
 [jenkins] Added support for backing up Jenkins. <a44162d>
 [jenkins] Fixed Jenkins config. <bbaa6f4>
 [jenkins] Make sure we have the header module enabled for the config to work. <93d03d8>
-[jenkins] The module is "headers", not "header". <4057334>
 [passenger] Bumped rubber from 3.0.12 to 3.0.15. <bc408f1>
 [passenger_nginx] Updated Nginx config to improve performance of asset pipeline. <7184327>
 [torquebox] Updated TorqueBox config from 2.0.3 to 2.1.0. <13a0268>
