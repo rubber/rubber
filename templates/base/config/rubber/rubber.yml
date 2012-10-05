@@ -298,7 +298,7 @@ stop_on_error_cmd: "function error_exit { exit 99; }; trap error_exit ERR"
 
 # OPTIONAL: You can also define your own variables here for use when
 # transforming config files, and they will be available in your config
-# templates as  <%= rubber_env.var_name %>
+# templates as  <%%= rubber_env.var_name %>
 #
 # var_name: var_value
 
