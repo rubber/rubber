@@ -1,3 +1,12 @@
+2.1.2 (10/05/2012)
+------------------
+
+New Features:
+============
+
+[core] Allowing marking of a config variable as overriding the ones that come before it, so that non-scalar values (lists/maps) get overridden instead of combined <3d66fc8>
+[core] Allow erb in rubber*.yml <60e6394>
+
 2.1.1 (10/02/2012)
 ------------------
 
