@@ -12,7 +12,7 @@ namespace :rubber do
       rubber.sudo_script 'setup_mongrel_init', <<-ENDSCRIPT
         mkdir -p /etc/mongrel_cluster
         rm -f /etc/mongrel_cluster/#{application}-#{Rubber.env}.yml && ln -s /mnt/#{application}-#{Rubber.env}/current/config/mongrel_cluster.yml /etc/mongrel_cluster/#{application}-#{Rubber.env}.yml
-        find #{rubber_env.rvm_version ? "$(rvm gemdir)" : "/usr/lib/ruby/gems"} -path "*/resources/mongrel_cluster" -exec cp {} /etc/init.d/ \\;
+        find #{rubber_env.ruby_path} -path "*/resources/mongrel_cluster" -exec cp {} /etc/init.d/ \\;
         chmod +x /etc/init.d/mongrel_cluster
         update-rc.d -f mongrel_cluster remove
         update-rc.d mongrel_cluster defaults 99 00

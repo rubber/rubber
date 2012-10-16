@@ -8,6 +8,3 @@ export RUBBER_ENV=<%= Rubber.env %>
 export RAILS_ENV=<%= Rubber.env %>
 alias current="cd <%= current_path %>"
 alias release="cd <%= Rubber.root %>"
-
-# Always use rubygems
-export RUBYOPT="rubygems"
