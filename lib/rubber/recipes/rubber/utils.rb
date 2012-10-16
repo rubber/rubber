@@ -170,9 +170,12 @@ namespace :rubber do
   end
 
   def sudo_script(name, contents, opts = {})
+    user = opts.delete(:as)
     args = opts.delete(:script_args)
     script = prepare_script(name, contents)
-    run "#{sudo} bash -l #{script} #{args}", opts
+
+    sudo_args = user ? "-H -u #{user}" : ""
+    run "#{sudo} #{sudo_args} bash -l #{script} #{args}", opts
   end
 
   def top.rsudo(command, opts = {}, &block)

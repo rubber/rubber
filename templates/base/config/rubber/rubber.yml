@@ -9,7 +9,7 @@ app_user: app
 admin_email: "root@#{full_host}"
 
 # OPTIONAL: If not set, you won't be able to access web_tools
-# server (munin stats, monit status, etc)
+# server (graphite, graylog, monit status, haproxy status, etc)
 # web_tools_user: admin
 # web_tools_password: sekret
 
@@ -75,11 +75,11 @@ cloud_providers:
 
     # REQUIRED: the ami and instance type for creating instances
     # The Ubuntu images at http://alestic.com/ work well
-    # Ubuntu 12.04 Precise instance-store 64-bit: ami-3c994355
+    # Ubuntu 12.04 Precise instance-store 64-bit: ami-eafa5883
     #
     # m1.small or m1.large or m1.xlarge
     image_type: m1.small
-    image_id: ami-3c994355
+    image_id: ami-eafa5883
 
     # OPTIONAL: EC2 spot instance request support.
     #
@@ -136,6 +136,20 @@ cloud_provider: aws
 # keys are the parameters to the ec2 AuthorizeSecurityGroupIngress API
 # source_security_group_name, source_security_group_owner_id
 # ip_protocol, from_port, to_port, cidr_ip
+# If you want to use a source_group outside of this project, add "external_group: true"
+# to prevent group_isolation from mangling its name, e.g.  to give access to graphite
+# server to other projects
+#
+# security_groups:
+#   graphite_server:
+#     description: The graphite_server security group to allow projects to send graphite data
+#     rules:
+#       - source_group_name: yourappname_production_collectd
+#         source_group_account: 123456
+#         external_group: true
+#         protocol: tcp
+#         from_port: "#{graphite_server_port}"
+#         to_port: "#{graphite_server_port}"
 #
 security_groups:
   default:
@@ -169,7 +183,7 @@ prompt_for_security_group_sync: true
 # OPTIONAL: The packages to install on all instances
 # You can install a specific version of a package by using a sub-array of pkg, version
 # For example, packages: [[rake, 0.7.1], irb]
-packages: [postfix, build-essential, git-core, ec2-ami-tools, libxslt-dev]
+packages: [postfix, build-essential, git-core, ec2-ami-tools, libxslt-dev, ntp]
 
 # OPTIONAL: gem sources to setup for rubygems
 # gemsources: ["http://rubygems.org", "http://gems.github.com"]
@@ -284,12 +298,12 @@ stop_on_error_cmd: "function error_exit { exit 99; }; trap error_exit ERR"
 
 # OPTIONAL: You can also define your own variables here for use when
 # transforming config files, and they will be available in your config
-# templates as  <%= rubber_env.var_name %>
+# templates as  <%%= rubber_env.var_name %>
 #
 # var_name: var_value
 
-# All variables can also be overridden on the role and/or host level by creating
-# a sub level to the config under roles and hosts
+# All variables can also be overridden on the role, environment and/or host level by creating
+# a sub level to the config under roles, environments and hosts.  The precedence is host, environment, role
 # e.g. to install mysql only on db role, and awstats only on web01:
 
 # OPTIONAL: Role specific overrides
@@ -298,6 +312,13 @@ stop_on_error_cmd: "function error_exit { exit 99; }; trap error_exit ERR"
 #     packages: []
 #   somerole2:
 #     myconfig: someval
+
+# OPTIONAL: Environment specific overrides
+# environments:
+#   staging:
+#     myconfig: otherval
+#   production:
+#     myconfig: val
 
 # OPTIONAL: Host specific overrides
 # hosts:

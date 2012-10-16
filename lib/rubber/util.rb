@@ -10,6 +10,13 @@ module Rubber
       end
     end
     
+    def stringify_keys(map)
+      map.inject({}) do |options, (key, value)|
+        options[key.to_s || key] = value
+        options
+      end
+    end
+    
     def stringify(val)
       case val
       when String
@@ -29,7 +36,7 @@ module Rubber
       alias_patterns = instance_aliases.to_s.strip.split(/\s*,\s*/)
       alias_patterns.each do |a|
         if a =~ /~/
-          range = a.split(/~/)
+          range = a.split(/\s*~\s*/)
           range_items = (range.first..range.last).to_a
           raise "Invalid range, '#{a}', sequence generated no items" if range_items.size == 0
           aliases.concat(range_items)

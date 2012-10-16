@@ -1,0 +1,7 @@
+<%
+  @read_cmd = 'crontab -l'
+  @write_cmd = 'crontab -'
+  @additive = ["# rubber-confluence-start", "# rubber-confluence-end"]
+%>
+
+0 2 * * * cd <%= Rubber.root %> && ./bin/rubber cron --task util:backup --directory=/mnt/jenkins_backups --name=jenkins --command="nice zip -r \%dir\%/jenkins_<%= rubber_env.host %>_\%time_stamp\%.zip <%= rubber_env.jenkins_build_home %>  -x \*.bundler\* \*bundler\* \*.gem\* \*.java\* \*.dbus\* \*.mozilla\*"

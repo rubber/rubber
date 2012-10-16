@@ -18,14 +18,25 @@ namespace :rubber do
         fi
       ENDSCRIPT
     end
+    
+    after "rubber:bootstrap", "rubber:apache:bootstrap"
+
+    task :bootstrap, :roles => :apache do
+      exists = capture("grep 'empty ports file' /etc/apache2/ports.conf || true")
+      if exists.strip.size == 0
+        rubber.update_code_for_bootstrap
+        rubber.run_config(:file => "role/apache", :force => true, :deploy_path => release_path)
+      end
+    end
+    
 
     # serial_task can only be called after roles defined - not normally a problem, but
     # rubber auto-roles don't get defined till after all tasks are defined
     on :load do
-      rubber.serial_task self, :serial_restart, :roles => :apache do
+      rubber.serial_task self, :serial_restart, :roles => [:app, :apache] do
         rsudo "service apache2 stop; service apache2 start"
       end
-      rubber.serial_task self, :serial_reload, :roles => :apache do
+      rubber.serial_task self, :serial_reload, :roles => [:app, :apache] do
         rsudo "if ! ps ax | grep -v grep | grep -c apache2 &> /dev/null; then service apache2 start; else service apache2 reload; fi"
       end
     end

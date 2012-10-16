@@ -1,7 +1,7 @@
 begin
   require 'nettica/client'
 rescue LoadError
-  Rubber::Util.fail "Missing the nettica gem.  Install or add it to your Gemfile."
+  Rubber::Util.fatal "Missing the nettica gem.  Install or add it to your Gemfile."
 end
 
 module Rubber
@@ -10,8 +10,8 @@ module Rubber
     class Nettica < Base
 
       def initialize(env)
-        super(env, "nettica")
-        @client = ::Nettica::Client.new(provider_env.user, provider_env.password)
+        super(env)
+        @client = ::Nettica::Client.new(env.user, env.password)
       end
 
       def check_status(response)
@@ -31,13 +31,12 @@ module Rubber
         return response
       end
 
-      def find_host_records(opts = {})
+      def find_hosts(opts = {})
         opts = setup_opts(opts, [:host, :domain])
 
         result = []
         hn = opts[:host]
         ht = opts[:type]
-        hd = opts[:data]
 
         domain_info = find_or_create_zone(opts[:domain])
 
@@ -49,37 +48,49 @@ module Rubber
           if ht && h.recordType != ht && ht != '*'
             keep = false
           end
-          if hd && h.data != hd
-            keep = false
-          end
-          result << record_to_opts(h) if keep
+          result << h if keep
         end
 
         return result
       end
 
+      def find_host_records(opts = {})
+        hosts = find_hosts(opts)
+        group = {}
+        hosts.each do |h|
+          key = "#{h.hostName}.#{h.domainName} #{h.recordType}"
+          group[key] ||= []
+          group[key] << h
+        end
+        result = group.values.collect {|h| hosts_to_opts(h).merge(:domain => opts[:domain])}
+        return result
+      end
+      
       def create_host_record(opts = {})
         opts = setup_opts(opts, [:host, :data, :domain, :type, :ttl])
         find_or_create_zone(opts[:domain])
-        record = opts_to_record(opts)
-        check_status @client.add_record(record)
+        opts_to_hosts(opts).each do |host|
+          check_status @client.add_record(host)
+        end
       end
 
       def destroy_host_record(opts = {})
-        find_host_records(opts).each do |h|
-          record = opts_to_record(h)
-          check_status @client.delete_record(record)
+        opts = setup_opts(opts, [:host, :domain])
+
+        find_hosts(opts).each do |h|
+          check_status @client.delete_record(h)
         end
       end
 
       def update_host_record(old_opts = {}, new_opts = {})
-        old_opts = setup_opts(old_opts, [:host, :domain])
-        new_opts = setup_opts(new_opts.merge(:no_defaults =>true), [])
-        find_host_records(old_opts).each do |h|
-          old_record = opts_to_record(h)
-          new_record = opts_to_record(h.merge(new_opts))
-          check_status @client.update_record(old_record, new_record)
-        end
+        old_opts = setup_opts(old_opts, [:host, :domain, :type])
+        new_opts = setup_opts(new_opts, [:host, :domain, :type, :data])
+
+        # Tricky to update existing hosts since nettica needs a separate host
+        # entry for multiple records of same type (MX, etc), so take the easy
+        # way out and destroy/create instead of update
+        destroy_host_record(old_opts)
+        create_host_record(new_opts)
       end
 
       private
@@ -95,27 +106,54 @@ module Rubber
         end
         return domain_info
       end
-
-      def opts_to_record(opts)
-        record = @client.create_domain_record(opts[:domain],
-                                              opts[:host],
-                                              opts[:type],
-                                              opts[:data],
-                                              opts[:ttl],
-                                              opts[:priority] || 0)
-        return record
-      end
-
-      def record_to_opts(record)
+      
+      # multiple hosts with same name/type convert to a single rubber-dns.yml opts format
+      def hosts_to_opts(hosts)
         opts = {}
-        opts[:host] = record.hostName || ''
-        opts[:domain] = record.domainName
-        opts[:type] = record.recordType
-        opts[:data] = record.data if record.data
-        opts[:ttl] = record.tTL if record.tTL
-        opts[:priority] = record.priority if record.priority
+        
+        hosts.each do |record|
+          opts[:host] ||= record.hostName || ''
+          opts[:domain] ||= record.domainName
+          opts[:type] ||= record.recordType
+          opts[:ttl] ||= record.tTL if record.tTL
+
+          opts[:data] ||= []
+          if opts[:type] =~ /MX/i
+            opts[:data] << {:priority => record.priority, :value => record.data}
+          else
+            opts[:data] << record.data
+          end
+        end
+        
         return opts
       end
+
+      # a single rubber-dns.yml opts format converts to multiple hosts with same name/type 
+      def opts_to_hosts(opts)
+        hosts = []
+        
+        opts[:data].each do |o|
+          
+          data, priority = nil, 0
+          if o.kind_of?(Hash) && o[:priority]
+            priority = o[:priority]
+            data = o[:value]
+          else
+            data = o
+          end
+          
+          host = @client.create_domain_record(opts[:domain],
+                                              opts[:host],
+                                              opts[:type],
+                                              data,
+                                              opts[:ttl],
+                                              priority)
+          hosts << host
+        end
+        
+        return hosts
+      end
+      
     end
 
   end

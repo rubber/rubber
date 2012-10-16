@@ -9,11 +9,14 @@ module Rubber
     # the host/role passed into bind
     class Environment
       attr_reader :config_root
+      attr_reader :config_env
       attr_reader :config_files
       attr_reader :config_secret
 
-      def initialize(config_root)
+      def initialize(config_root, env)
         @config_root = config_root
+        @config_env = env
+        
         @config_files = ["#{@config_root}/rubber.yml"]
         @config_files += Dir["#{@config_root}/rubber-*.yml"].sort
 
@@ -33,7 +36,7 @@ module Rubber
         Rubber.logger.debug{"Reading rubber configuration from #{file}"}
         if File.exist?(file)
           begin
-            @items = Environment.combine(@items, YAML.load_file(file) || {})
+            @items = Environment.combine(@items, YAML::load(ERB.new(IO.read(file)).result) || {})
           rescue Exception => e
             Rubber.logger.error{"Unable to read rubber configuration from #{file}"}
             raise
@@ -53,7 +56,7 @@ module Rubber
         
         # all the roles known about in yml files
         Dir["#{@config_root}/rubber*.yml"].each do |yml|
-          rubber_yml = YAML.load(File.read(yml)) rescue {}
+          rubber_yml = YAML::load(ERB.new(IO.read(yml)).result) rescue {}
           roles.concat(rubber_yml['roles'].keys) rescue nil
           roles.concat(rubber_yml['role_dependencies'].keys) rescue nil
           roles.concat(rubber_yml['role_dependencies'].values) rescue nil
@@ -71,7 +74,7 @@ module Rubber
       end
       
       def bind(roles = nil, host = nil)
-        BoundEnv.new(@items, roles, host)
+        BoundEnv.new(@items, roles, host, config_env)
       end
 
       # combine old and new into a single value:
@@ -86,7 +89,12 @@ module Rubber
         if old.is_a?(Hash) && new.is_a?(Hash)
           value = old.clone
           new.each do |nk, nv|
-            value[nk] = combine(value[nk], nv)
+            if nk[0] == '^'
+              nk = nk[1..-1]
+              value[nk] = combine(nil, nv)
+            else
+              value[nk] = combine(value[nk], nv)
+            end
           end
         elsif old.is_a?(Array) && new.is_a?(Array)
           value = old | new
@@ -160,10 +168,12 @@ module Rubber
       class BoundEnv < HashValueProxy
         attr_reader :roles
         attr_reader :host
+        attr_reader :env
 
-        def initialize(global, roles, host)
+        def initialize(global, roles, host, env)
           @roles = roles
           @host = host
+          @env = env
           bound_global = bind_config(global)
           super(nil, bound_global)
         end
@@ -176,11 +186,15 @@ module Rubber
         def bind_config(global)
           global = global.clone()
           role_overrides = global.delete("roles") || {}
+          env_overrides = global.delete("environments") || {}
           host_overrides = global.delete("hosts") || {}
           Array(roles).each do |role|
             Array(role_overrides[role]).each do |k, v|
               global[k] = Environment.combine(global[k], v)
             end
+          end
+          Array(env_overrides[env]).each do |k, v|
+            global[k] = Environment.combine(global[k], v)
           end
           Array(host_overrides[host]).each do |k, v|
             global[k] = Environment.combine(global[k], v)

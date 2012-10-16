@@ -5,11 +5,9 @@
 #          This lets rubber update a dynamic dns service with the instance alias and ip
 #
 dns_providers:
-  fog:
-    credentials:
-     provider: aws
-     aws_access_key_id: "#{cloud_providers.aws.access_key}"
-     aws_secret_access_key: "#{cloud_providers.aws.secret_access_key}"
+  aws:
+    access_key: "#{cloud_providers.aws.access_key}"
+    access_secret: "#{cloud_providers.aws.secret_access_key}"
     type: A
     ttl: 300
   nettica:
@@ -35,51 +33,57 @@ dns_providers:
 #  dns_records:
 #    # simple A record
 #    - host: bar
-#      data: 1.1.1.1
+#      data: [1.1.1.1]
 #
 #    # more detailed A record
 #    - host: bar
 #      domain: otherdomain.com
-#      data: 1.1.1.1
+#      data: [1.1.1.1]
 #      type: A
 #      ttl: 300
 #
 #    # tld A record
 #    - host: ''
-#      data: 1.1.1.1
+#      data: [1.1.1.1]
 #      type: A
+#
+#    # tld ALIAS record -- Route53 extension to point tld at an Elastic Load Balancer group
+#    - host: ''
+#      domain: example.com
+#      type: A
+#      data:
+#        - hosted_zone_id: XXYYZZ
+#          dns_name: my-app-elb-group.us-east-1.elb.amazonaws.com
 #
 #    # simple CNAME record
 #    - host: otherbar
 #      domain: foo.com
-#      data: bar.foo.com
+#      data: [bar.foo.com]
 #      type: CNAME
 #      ttl: 300
 #
-#    # 2 of the same A records is a round robin dns
+#    # Round robin dns record
 #    - host: rr
 #      domain: foo.com
-#      data: 1.1.1.1
-#      type: A
-#      ttl: 300
-#    - host: rr
-#      domain: foo.com
-#      data: 1.1.1.2
+#      data: [1.1.1.1, 1.1.1.2]
 #      type: A
 #      ttl: 300
 #
 #    # A record, grabbing ip from instance config
 #    - host: baz
 #      domain: foo.com
-#      data: "#{rubber_instances.for_role('web').first.external_ip}"
+#      data: ["#{rubber_instances.for_role('web').first.external_ip}"]
 #      type: A
 #      ttl: 300
 #
 #    # MX record
 #    - host: ''
 #      domain: foo.com
-#      data: mail.foo.com
+#      data:
+#        - priority: 5
+#          value: mail1.foo.com
+#        - priority: 10
+#          value: mail2.foo.com
 #      type: MX
 #      ttl: 300
-#      priority: 10
 

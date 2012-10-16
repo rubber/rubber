@@ -198,7 +198,7 @@ class InstanceTest < Test::Unit::TestCase
       
       setup do
         env = {'access_key' => "XXX", 'secret_access_key' => "YYY", 'region' => "us-east-1"}
-        env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil)
+        env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil, nil)
         @cloud = Rubber::Cloud::Aws.new(env, nil)
         @cloud.storage_provider.put_bucket('bucket')
         Rubber.stubs(:cloud).returns(@cloud)
@@ -220,7 +220,19 @@ class InstanceTest < Test::Unit::TestCase
         location = "file:#{Tempfile.new('instancestorage').path}"
         Instance.any_instance.expects(:load_from_file)
         Instance.any_instance.expects(:save_to_file)
-        Instance.new(location).save        
+        Instance.new(location).save
+      end
+
+      should "create new instance in filesystem when instance file doesn't exist" do
+        tempfile = Tempfile.new('instancestorage')
+        location = "file:#{tempfile.path}"
+
+        tempfile.close
+        tempfile.unlink
+
+        Instance.any_instance.expects(:load_from_file).never
+        Instance.any_instance.expects(:save_to_file)
+        Instance.new(location).save
       end
       
       should "load and save from storage when storage given" do
@@ -229,7 +241,13 @@ class InstanceTest < Test::Unit::TestCase
         Instance.any_instance.expects(:save_to_file)
         Instance.new('storage:bucket/key').save        
       end
-      
+
+      should "create a new instance in cloud storage when the instance file doesn't exist" do
+        Instance.any_instance.expects(:load_from_file).never
+        Instance.any_instance.expects(:save_to_file)
+        Instance.new('storage:bucket/key').save
+      end
+
       should "load and save from table when table given" do
         Instance.any_instance.expects(:load_from_table)
         Instance.any_instance.expects(:save_to_table)

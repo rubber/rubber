@@ -34,7 +34,7 @@ module Rubber
       def initialize(env=nil, root=nil)
         @env = env
         @root = root || "#{Rubber.root}/config/rubber"
-        @environment = Environment.new("#{@root}")
+        @environment = Environment.new("#{@root}", @env)
       end
 
       def load

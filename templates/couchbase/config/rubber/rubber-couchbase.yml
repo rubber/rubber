@@ -1,0 +1,25 @@
+couchbase_version: 1.8.1
+couchbase_pkg_url: "http://packages.couchbase.com/releases/#{couchbase_version}/couchbase-server-community_x86_64_#{couchbase_version}.deb"
+
+couchbase_pid_file: /opt/couchbase/var/lib/couchbase/couchbase-server.pid
+couchbase_cli: /opt/couchbase/bin/couchbase-cli
+couchbase_db_dir: /mnt/couchbase/data
+
+couchbase_admin_username: Administrator
+couchbase_admin_password: password
+
+couchbase_buckets:
+  - name: "default"
+    type: couchbase
+    size: 200
+    replicas: 1
+    port: 11211
+  - name: "#{app_name}"
+    type: couchbase
+    size: 200
+    replicas: 1
+    port: 11222
+
+gems: [couchbase]
+
+packages: [libcouchbase-dev]

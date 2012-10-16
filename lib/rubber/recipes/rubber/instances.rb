@@ -23,7 +23,7 @@ namespace :rubber do
     if r == '*'
       instance_roles = rubber_cfg.environment.known_roles.reject {|r| r =~ /slave/ || r =~ /^db$/ }
     else
-      instance_roles = r.split(",")
+      instance_roles = r.split(/\s*,\s*/)
     end
     
     create_instances(aliases, instance_roles, create_spot_instance)
@@ -68,9 +68,11 @@ namespace :rubber do
     Reboot the EC2 instance for the give ALIAS
   DESC
   required_task :reboot do
-    instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
+    instance_aliases = get_env('ALIAS', "Instance alias (e.g. web01 or web01~web05,web09)", true)
+    
+    aliases = Rubber::Util::parse_aliases(instance_aliases)
     ENV.delete('ROLES') # so we don't get an error if people leave ROLES in env from :create CLI
-    reboot_instance(instance_alias)
+    reboot_instances(aliases, ENV['FORCE'] =~ /^(t|y)/)
   end
 
   desc <<-DESC
@@ -98,7 +100,7 @@ namespace :rubber do
     instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
     r = get_env('ROLES', "Instance roles (e.g. web,app,db:primary=true)", true)
 
-    instance_roles = r.split(",")
+    instance_roles = r.split(/\s*,\s*/)
 
     ir = []
     instance_roles.each do |r|
@@ -127,7 +129,7 @@ namespace :rubber do
     instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
     r = get_env('ROLES', "Instance roles (e.g. web,app,db:primary=true)", true)
 
-    instance_roles = r.split(",")
+    instance_roles = r.split(/\s*,\s*/)
 
     ir = []
     instance_roles.each do |r|
@@ -197,7 +199,7 @@ namespace :rubber do
       roles = instance_roles
       if roles.size == 0
         env = rubber_cfg.environment.bind(nil, instance_alias)
-        roles = env.instance_roles.split(",") rescue []
+        roles = env.instance_roles.split(/\s*,\s*/) rescue []
       end
 
       # If user doesn't setup a primary db, then be nice and do it
@@ -443,15 +445,21 @@ namespace :rubber do
     setup_aliases
   end
   
+  def reboot_instances(instance_aliases, force=false)
+    instance_aliases.each do |instance_alias|
+      reboot_instance(instance_alias, force)
+    end
+  end
+  
   # Reboots the given ec2 instance
-  def reboot_instance(instance_alias)
+  def reboot_instance(instance_alias, force=false)
     instance_item = rubber_instances[instance_alias]
     fatal "Instance does not exist: #{instance_alias}" if ! instance_item
 
     env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
 
-    value = Capistrano::CLI.ui.ask("About to REBOOT #{instance_alias} (#{instance_item.instance_id}) in mode #{Rubber.env}.  Are you SURE [yes/NO]?: ")
-    fatal("Exiting", 0) if value != "yes"
+    value = Capistrano::CLI.ui.ask("About to REBOOT #{instance_alias} (#{instance_item.instance_id}) in mode #{Rubber.env}.  Are you SURE [yes/NO]?: ") unless force
+    fatal("Exiting", 0) if value != "yes" && ! force
 
     logger.info "Rebooting instance alias=#{instance_alias}, instance_id=#{instance_item.instance_id}"
 

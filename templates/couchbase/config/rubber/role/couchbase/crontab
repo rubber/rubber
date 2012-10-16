@@ -1,0 +1,8 @@
+<%
+  @read_cmd = 'crontab -l'
+  @write_cmd = 'crontab -'
+  @additive = ['# start-couchbase-crontab', '# end-couchbase-crontab']
+%>
+
+# Backup couchbase DBs every 3 hours.
+# 0 */3 * * * <%= Rubber.root %>/script/rubber cron --task util:backup --directory=/mnt/couchbase_backups --name=couchbase --command="nice cbbackup  <%= rubber_env.couchbase_db_dir %> \%dir\%/\%name\%_<%= rubber_env.host %>_\%time_stamp\%"

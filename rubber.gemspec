@@ -29,16 +29,19 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency 'capistrano', '~> 2.12'
+  # TODO: force older version of net-ssh till connectivity issues with 2.5.x get resolved
+  s.add_dependency 'net-ssh', '~> 2.4.0'
   s.add_dependency 'thor'
   s.add_dependency 'clamp'
   s.add_dependency 'open4'
-  s.add_dependency 'fog', '~> 1.2'
+  s.add_dependency 'fog', '~> 1.6'
   s.add_dependency 'json'
   
   s.add_development_dependency('rake')
   s.add_development_dependency('test-unit')
   s.add_development_dependency('shoulda-context')
   s.add_development_dependency('mocha')
+  s.add_development_dependency('awesome_print')
 end
 
 

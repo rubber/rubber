@@ -126,11 +126,27 @@ namespace :rubber do
               mv /etc/fstab /etc/fstab.bak
               cat /etc/fstab.bak | grep -v '#{vol_spec['mount']}' > /etc/fstab
               if [ `lsb_release -r -s | sed 's/[.].*//'` -gt "10" ]; then
-		 device=`echo #{vol_spec['device']} | sed 's/sd/xvd/'`
-	      else
-		 device='#{vol_spec['device']}'
-	      fi
-		 echo "$device #{vol_spec['mount']} #{vol_spec['filesystem']} #{vol_spec['mount_opts'] ? vol_spec['mount_opts'] : 'noatime'} 0 0 # rubber volume #{vol_id}" >> /etc/fstab
+		            device=`echo #{vol_spec['device']} | sed 's/sd/xvd/'`
+	            else
+		            device='#{vol_spec['device']}'
+	            fi
+		 
+		          echo "$device #{vol_spec['mount']} #{vol_spec['filesystem']} #{vol_spec['mount_opts'] ? vol_spec['mount_opts'] : 'noatime'} 0 0 # rubber volume #{vol_id}" >> /etc/fstab
+		          
+		          # Ensure volume is ready before running mkfs on it.
+		          echo 'Waiting for device'
+              cnt=0
+              while ! [[ -b $device ]]; do
+                if [[ "$cnt" -eq "15" ]]; then
+                  echo 'Timed out waiting for EBS device to be ready.'
+                  mv /etc/fstab.bak /etc/fstab
+                  exit 1
+                fi
+                echo '.'
+                sleep 2
+                let "cnt = $cnt + 1"
+              done
+              echo 'Device ready'
 
               #{('yes | mkfs -t ' + vol_spec['filesystem'] + ' ' + '$device') if created}
               #{("mkdir -p '#{vol_spec['mount']}'") if vol_spec['mount']}
@@ -242,7 +258,9 @@ namespace :rubber do
           done
           echo 'Devices ready'
 
+          udevadm control --stop-exec-queue
           #{mdadm_init}
+          udevadm control --start-exec-queue
 
           # set reconstruction speed
           echo $((30*1024)) > /proc/sys/dev/raid/speed_limit_min

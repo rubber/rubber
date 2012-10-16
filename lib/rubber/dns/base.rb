@@ -15,10 +15,10 @@ module Rubber
         else
           if find_host_records(:host => host).size == 0
             puts "Creating dynamic DNS: #{host} => #{ip}"
-            create_host_record(:host => host, :data => ip)
+            create_host_record(:host => host, :data => [ip])
           else
             puts "Updating dynamic DNS: #{host} => #{ip}"
-            update_host_record({:host => host}, {:host => host, :data => ip})
+            update_host_record({:host => host}, {:host => host, :data => [ip]})
           end
         end
       end
@@ -31,7 +31,7 @@ module Rubber
       end
 
       def up_to_date(host, ip)
-        find_host_records(:host => host).any? {|host| host[:data] == ip}
+        find_host_records(:host => host).any? {|host| host[:data].include?(ip) }
       end
 
       def create_host_record(opts = {})

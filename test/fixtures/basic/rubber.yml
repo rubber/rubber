@@ -21,6 +21,15 @@ hosts:
       -
         var54: val54
 
+environments:
+  env1:
+    var1: env1val1
+    var2: env1val2
+
 role_dependencies:
   role3: [role4, role5]
-  
+
+erb_var:
+<% 3.times do |i| %>
+  - <%= i %>
+<% end %>

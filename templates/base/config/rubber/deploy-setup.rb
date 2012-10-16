@@ -80,5 +80,17 @@ namespace :rubber do
       ENDSCRIPT
     end
 
+    # Update /etc/sudoers so that SSH-related environment variables so capistrano/rubber tasks can take advantage of ssh-agent forwarding
+    before "rubber:bootstrap", "rubber:base:update_sudoers"
+    task :update_sudoers do
+      rubber.sudo_script "update_sudoers", <<-ENDSCRIPT
+        if [[ ! `grep 'SSH_CLIENT SSH_TTY SSH_CONNECTION SSH_AUTH_SOCK' /etc/sudoers` =~ "SSH_CLIENT SSH_TTY SSH_CONNECTION SSH_AUTH_SOCK" ]]; then
+          echo '' >> /etc/sudoers
+          echo '# whitelist SSH-related environment variables so capistrano tasks can take advantage of ssh-agent forwarding' >> /etc/sudoers
+          echo 'Defaults env_keep += "SSH_CLIENT SSH_TTY SSH_CONNECTION SSH_AUTH_SOCK"' >> /etc/sudoers
+        fi
+      ENDSCRIPT
+    end
+
   end
 end

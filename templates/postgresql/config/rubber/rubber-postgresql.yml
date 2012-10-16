@@ -1,8 +1,8 @@
 # REQUIRED: The credentials for creating/accessing your app's database
 #
-db_user: "#{app_name[0,16]}"
+db_user: "#{app_name[0,16].downcase}"
 db_pass:
-db_name: "#{app_name}_#{Rubber.env}"
+db_name: "#{app_name.downcase}_#{Rubber.env}"
 
 db_replication_user: replication
 db_replication_pass:

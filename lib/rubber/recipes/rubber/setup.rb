@@ -85,7 +85,7 @@ namespace :rubber do
       # graphite web app)
       if ic.role_names.include?('web_tools')
         Array(rubber_env.web_tools_proxies).each do |name, settings|
-          hosts_data << "#{name}.#{ic.full_name}"
+          hosts_data << "#{name}-#{ic.full_name}"
         end
       end
       
@@ -123,7 +123,7 @@ namespace :rubber do
       # graphite web app)
       if ic.role_names.include?('web_tools')
         Array(rubber_env.web_tools_proxies).each do |name, settings|
-          hosts_data << "#{name}.#{ic.full_name}"
+          hosts_data << "#{name}-#{ic.full_name}"
         end
       end
       
@@ -161,80 +161,101 @@ namespace :rubber do
     end
   end
 
+  def record_key(record)
+    "#{record[:host]}.#{record[:domain]} #{record[:type]}"
+  end
+  
+  def convert_to_new_dns_format(records)
+    record = {}
+    records.each do |r|
+      record[:host] ||= r[:host]
+      record[:domain] ||= r[:domain]
+      record[:type] ||= r[:type]
+      record[:ttl] ||= r[:ttl] if r[:ttl]
+      record[:data] ||= []
+      case r[:data]
+        when nil then ;
+        when Array then record[:data].concat(r[:data])
+        else
+          record[:data] << r[:data]
+      end
+    end
+    return record
+  end
+
   desc <<-DESC
     Sets up the additional dns records supplied in the dns_records config in rubber.yml
   DESC
   required_task :setup_dns_records do
     records = rubber_env.dns_records
     if records && rubber_env.dns_provider
-      provider = Rubber::Dns::get_provider(rubber_env.dns_provider, rubber_env)
-
-      # collect the round robin records (those with the same host/domain/type)
-      rr_records = []
-      records.each_with_index do |record, i|
-        m = records.find_all {|r| record['host'] == r['host'] && record['domain'] == r['domain'] && record['type'] == r['type']}
-        m = m.sort {|a,b| a.object_id <=> b.object_id}
-        rr_records << m if m.size > 1 && ! rr_records.include?(m)
-      end
-
-      # simple records are those that aren't round robin ones
-      simple_records = records - rr_records.flatten
       
-      # for each simple record, create or update as necessary
-      simple_records.each do |record|
-        matching = provider.find_host_records(:host => record['host'], :domain =>record['domain'], :type => record['type'])
-        if matching.size > 1
-          msg =  "Multiple records in dns provider, but not in rubber.yml\n"
-          msg << "Round robin records need to be in both, or neither.\n"
-          msg << "Please fix manually:\n"
-          msg << matching.pretty_inspect
-          fatal(msg)
-        end
+      provider_name = rubber_env.dns_provider
+      provider = Rubber::Dns::get_provider(provider_name, rubber_env)
+      
+      # records in rubber_env.dns_records can either have a value which
+      # is an array, or multiple equivalent (same host+type)items with
+      # value being a string, so try and normalize them
+      rubber_records = {}
+      records.each do |record|
+        record = Rubber::Util.symbolize_keys(record)
+        record = provider.setup_opts(record) # assign defaults        
+        key = record_key(record)
+        rubber_records[key] ||= []
+        rubber_records[key] << record
+      end
+      rubber_records = Hash[rubber_records.collect {|key, records| [key, convert_to_new_dns_format(records)] }]
 
-        record = provider.setup_opts(record)
-        if matching.size == 1
-          match = matching.first
-          if  provider.host_records_equal?(record, match)
-            logger.info "Simple dns record already up to date: #{record[:host]}.#{record[:domain]}:#{record[:type]} => #{record[:data]}"
-          else
-            logger.info "Updating simple dns record: #{record[:host]}.#{record[:domain]}:#{record[:type]} => #{record[:data]}"
-            provider.update_host_record(match, record)
-          end
-        else
-          logger.info "Creating simple dns record: #{record[:host]}.#{record[:domain]}:#{record[:type]} => #{record[:data]}"
-          provider.create_host_record(record)
+      provider_records = {}
+      domains = rubber_records.values.collect {|r| r[:domain] }.uniq
+      precords = domains.collect {|d| provider.find_host_records(:host => '*', :type => '*', :domain => d) }.flatten
+      precords.each do |record|
+        key = record_key(record)
+        raise "unmerged provider records" if provider_records[key] 
+        provider_records[key] = record
+      end
+
+      changes = Hash[(rubber_records.to_a - provider_records.to_a) | (provider_records.to_a - rubber_records.to_a)]
+
+      changes.each do |key, record|
+        old_record = provider_records[key]
+        new_record = rubber_records[key]
+        if old_record && new_record
+          # already exists in provider, so modify it
+          diff = Hash[(old_record.to_a - new_record.to_a) | (new_record.to_a - old_record.to_a)]
+          logger.info "Updating dns record: #{old_record.inspect} changes: #{diff.inspect}"
+          provider.update_host_record(old_record, new_record)
+        elsif !old_record && new_record
+          # doesn't yet exist in provider, so create it
+          logger.info "Creating dns record: #{new_record.inspect}"
+          provider.create_host_record(new_record)
+        elsif old_record && ! new_record
+          # ignore these since it shows all the instances created by rubber
+          #
+          #logger.info "Provider record doesn't exist locally: #{old_record.inspect}"
+          #if ENV['FORCE']
+          #  destroy_dns_record = ENV['FORCE'] =~ /^(t|y)/
+          #else
+          #  destroy_dns_record = get_env('DESTROY_DNS', "Destroy DNS record in provider [y/N]?", true)
+          #end
+          #provider.destroy_host_record(old_record) if destroy_dns_record
         end
       end
 
-      # group round robin records
-      rr_records.each do |rr_group|
-        host = rr_group.first['host']
-        domain = rr_group.first['domain']
-        type = rr_group.first['type']
-        matching = provider.find_host_records(:host => host, :domain => domain, :type => type)
-
-        # remove from consideration the local records that are the same as remote ones
-        matching.clone.each do |r|
-          rr_group.delete_if {|rg| provider.host_records_equal?(r, rg) }
-          matching.delete_if {|rg| provider.host_records_equal?(r, rg) }
-        end
-        if rr_group.size == 0 && matching.size == 0
-          logger.info "Round robin dns records already up to date: #{host}.#{domain}:#{type}"
-        end
-
-        # create the local records that don't exist remotely
-        rr_group.each do |r|
-          r = provider.setup_opts(r)
-          logger.info "Creating round robin dns record: #{r[:host]}.#{r[:domain]}:#{r[:type]} => #{r[:data]}"
-          provider.create_host_record(r)
-        end
-        
-        # remove the remote records that don't exist locally
-        matching.each do |r|
-          logger.info "Removing round robin dns record: #{r[:host]}.#{r[:domain]}:#{r[:type]} => #{r[:data]}"
-          provider.destroy_host_record(r)
-        end
-      end
+    end
+  end
+  
+  desc <<-DESC
+    Exports dns records from your provider into the format readable by rubber in rubber-dns.yml
+  DESC
+  required_task :export_dns_records do
+    if rubber_env.dns_provider
+      
+      provider_name = rubber_env.dns_provider
+      provider = Rubber::Dns::get_provider(provider_name, rubber_env)
+      
+      provider_records = provider.find_host_records(:host => '*', :type => '*', :domain => rubber_env.domain)
+      puts({'dns_records' => provider_records.collect {|r| Rubber::Util.stringify_keys(r)}}.to_yaml)
     end
   end
 
@@ -371,7 +392,7 @@ namespace :rubber do
   task :set_timezone do
     opts = get_host_options('timezone')
     rsudo "echo $CAPISTRANO:VAR$ > /etc/timezone", opts
-    rsudo "cp /usr/share/zoneinfo/$CAPISTRANO:VAR$ /etc/localtime", opts
+    rsudo "ln -sf /usr/share/zoneinfo/$CAPISTRANO:VAR$ /etc/localtime", opts
     # restart syslog so that times match timezone
     sudo_script 'restart_syslog', <<-ENDSCRIPT
       if [[ -x /etc/init.d/sysklogd ]]; then
@@ -408,7 +429,7 @@ namespace :rubber do
       # graphite web app)
       if instance_item.role_names.include?('web_tools')
         Array(rubber_env.web_tools_proxies).each do |name, settings|
-          provider.update("#{name}.#{instance_item.name}", instance_item.external_ip)
+          provider.update("#{name}-#{instance_item.name}", instance_item.external_ip)
         end
       end
     end
@@ -426,7 +447,7 @@ namespace :rubber do
       # graphite web app)
       if instance_item.role_names.include?('web_tools')
         Array(rubber_env.web_tools_proxies).each do |name, settings|
-          provider.destroy("#{name}.#{instance_item.name}")
+          provider.destroy("#{name}-#{instance_item.name}")
         end
       end
     end
@@ -472,11 +493,22 @@ namespace :rubber do
   
   def maybe_reboot
     reboot_needed = multi_capture("echo $(ls /var/run/reboot-required 2> /dev/null)")
-    reboot_hosts = reboot_needed.collect {|k, v| v.strip.size > 0 ? k : nil}.compact
-    
+    reboot_hosts = reboot_needed.collect {|k, v| v.strip.size > 0 ? k : nil}.compact.sort
+
+    # Figure out which hosts are bootstrapping for the first time so we can auto reboot
+    # If there is no deployed app directory, then we have never bootstrapped. 
+    auto_reboot = multi_capture("echo $(ls #{deploy_to} 2> /dev/null)")
+    auto_reboot_hosts = auto_reboot.collect {|k, v| v.strip.size == 0 ? k : nil}.compact.sort
+
     if reboot_hosts.size > 0
 
-      ENV['REBOOT'] = 'y' if ENV['FORCE'] =~ /^(t|y)/
+      # automatically reboot if FORCE or if all the hosts that need rebooting
+      # are bootstrapping for the first time
+      if ENV['FORCE'] =~ /^(t|y)/ || reboot_hosts == auto_reboot_hosts
+        ENV['REBOOT'] = 'y'
+        logger.info "Updates require a reboot on hosts #{reboot_hosts.inspect}"
+      end
+      
       reboot = get_env('REBOOT', "Updates require a reboot on hosts #{reboot_hosts.inspect}, reboot [y/N]?", false)
       reboot = (reboot =~ /^y/)
       

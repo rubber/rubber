@@ -151,7 +151,7 @@ namespace :rubber do
         if exists.strip.size == 0
           rubber.update_code_for_bootstrap
 
-          rubber.run_config(:file => "role/graphite_server", :force => true, :deploy_path => release_path)
+          rubber.run_config(:file => "role/graphite_server/", :force => true, :deploy_path => release_path)
 
           restart
         end
@@ -206,7 +206,7 @@ namespace :rubber do
         if exists.strip.size == 0
           rubber.update_code_for_bootstrap
 
-          rubber.run_config(:file => "role/graphite_web", :force => true, :deploy_path => release_path)
+          rubber.run_config(:file => "role/graphite_web/", :force => true, :deploy_path => release_path)
 
           # django email validation barfs on localhost, but for full_host to work
           # in admin_email, we need a env with host defined

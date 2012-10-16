@@ -9,7 +9,7 @@ namespace :rubber do
   
     task :install, :roles => :zookeeper do
       rubber.sudo_script 'install_zookeeper', <<-ENDSCRIPT
-        if [[ ! -f "#{rubber_env.zookeeper_install_dir}" ]]; then
+        if [[ ! -d "#{rubber_env.zookeeper_install_dir}" ]]; then
           # Fetch the sources.
           wget -qNP /tmp #{rubber_env.zookeeper_package_url}
           tar -C #{File.dirname rubber_env.zookeeper_install_dir} -zxf /tmp/#{File.basename rubber_env.zookeeper_package_url}
@@ -25,7 +25,7 @@ namespace :rubber do
       exists = capture("echo $(ls #{rubber_env.zookeeper_data_dir} 2> /dev/null)")
       if exists.strip.size == 0
         rubber.update_code_for_bootstrap
-        rubber.run_config(:file => "role/zookeeper", :force => true, :deploy_path => release_path)
+        rubber.run_config(:file => "role/zookeeper/", :force => true, :deploy_path => release_path)
 
         restart
       end

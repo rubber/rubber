@@ -36,7 +36,7 @@ Simple graphite dashboard cycler for use on a large display - e.g. googletv/chro
 
   <script type="text/javascript">
 
-    //  To test this locally, edit ROOT_URL to point to graphite webapp
+    //  To test this locally, edit ROOT_URL to point to graphite webapp (without trailing slash)
     //  To allow xhttp to graphite from html loaded from local file, run chrome with:
     // /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome  --disable-web-security
     
@@ -91,7 +91,7 @@ Simple graphite dashboard cycler for use on a large display - e.g. googletv/chro
       self.dashboardList = function() {
         console.log("Fetching all dashboards");
 
-        return $.getJSON(ROOT_URL + '/graphite/dashboard/find/', {'query': ''});
+        return $.getJSON(ROOT_URL + '/dashboard/find/', {'query': ''});
       }
 
       self.detailFromDashboardList = function(data) {
@@ -111,7 +111,7 @@ Simple graphite dashboard cycler for use on a large display - e.g. googletv/chro
         var name = dashboard["name"];
         console.log("Fetching dashboard detail for " + name);
 
-        return $.getJSON(ROOT_URL + '/graphite/dashboard/load/' + name, {}, function(data) {
+        return $.getJSON(ROOT_URL + '/dashboard/load/' + name, {}, function(data) {
 
           console.log("Got dashboard detail for " + name);
           console.log(data);
@@ -212,10 +212,12 @@ Simple graphite dashboard cycler for use on a large display - e.g. googletv/chro
           var defn = e[1];
           var params = $.extend(true, {}, defaultParams); // deep copy
           params = $.extend(true, params, defn); // deep copy
-          params["target"] = params["target"][0];
 
-          var url = ROOT_URL + "/graphite/render?" + $.param(params);
-
+          // graphite only works with target=abc&target=xyz not with
+          // standard form of target[]=abc&target[]=xyz
+          var encoded_params = $.param(params).replace(/target%5B%5D=/g, "target=");
+          var url = ROOT_URL + "/render?" + encoded_params;
+          
           return url;
         });
         return urls;
