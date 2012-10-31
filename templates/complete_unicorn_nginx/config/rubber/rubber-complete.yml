@@ -1,7 +1,7 @@
 role_dependencies:
   web: [haproxy]
-  app: [unicorn_nginx]
-  web_tools: [unicorn_nginx]
+  app: [unicorn]
+  web_tools: [nginx]
 
 web_port: 80
 web_ssl_port: 443
