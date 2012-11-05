@@ -1,5 +1,5 @@
 zookeeper_version: 3.3.6
-zookeeper_package_url: "http://www.ecoficial.com/am/zookeeper/stable/zookeeper-#{zookeeper_version}.tar.gz"
+zookeeper_package_url: "http://www.globalish.com/am/zookeeper/zookeeper-#{zookeeper_version}/zookeeper-#{zookeeper_version}.tar.gz"
 zookeeper_install_dir: "/usr/local/zookeeper-#{zookeeper_version}"
 zookeeper_data_dir: /mnt/zookeeper/data
 zookeeper_pid_file: "#{zookeeper_data_dir}/zookeeper_server.pid"
