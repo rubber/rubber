@@ -17,7 +17,7 @@ namespace :rubber do
 
     task :custom_install, :roles => :sphinx do
       # install sphinx from source
-      ver = "0.9.9"
+      ver = "2.0.6"
       rubber.sudo_script 'install_sphinx', <<-ENDSCRIPT
         # check if already installed
         if [ -x /usr/local/bin/searchd ]
@@ -32,10 +32,10 @@ namespace :rubber do
         TMPDIR=`mktemp -d` || exit 1
         cd $TMPDIR
         echo 'Downloading'
-        wget -qN http://www.sphinxsearch.com/files/sphinx-#{ver}.tar.gz
+        wget -qN http://sphinxsearch.com/files/sphinx-#{ver}-release.tar.gz
         echo 'Unpacking'
-        tar xf sphinx-#{ver}.tar.gz
-        cd sphinx-#{ver}
+        tar xf sphinx-#{ver}-release.tar.gz
+        cd sphinx-#{ver}-release
         ./configure
         make
         make install
