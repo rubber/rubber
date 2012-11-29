@@ -1,5 +1,4 @@
 role_dependencies:
-  web: [haproxy]
   app: [unicorn]
   web_tools: [nginx]
 
