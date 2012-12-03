@@ -321,7 +321,7 @@ module Rubber
         "Obfuscates rubber-secret.yml using encryption"
       end
       
-      option ["-r", "--secretfile"],
+      option ["-f", "--secretfile"],
              "SECRETFILE",
              "The rubber_secret file\n (default: <Rubber.config.rubber_secret>)"
       

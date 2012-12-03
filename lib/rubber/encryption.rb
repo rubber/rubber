@@ -12,14 +12,14 @@ module Rubber
     end
     
     def decode_encrypt_key(key)
-      data = Base64.strict_decode64(key)
+      data = Base64.decode64(key)
       parts = data.split(":")
       raise "Invalid encryption key" if parts.size != 2 
       return *parts
     end
 
     def encode_encrypt_key(key, iv)
-      key = Base64.strict_encode64("#{key}:#{iv}")
+      key = Base64.encode64("#{key}:#{iv}")
       return key
     end
     

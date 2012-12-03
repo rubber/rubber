@@ -19,15 +19,15 @@ class UtilTest < Test::Unit::TestCase
     
     should "encrypt and decrypt rubber-secret.yml" do
       fixture_dir = File.expand_path("#{File.dirname(__FILE__)}/../fixtures/secret")
-      out = `#{@rubber} util:obfuscate_rubber_secret -r #{fixture_dir}/secret.yml -k #{@key}`
+      out = `#{@rubber} util:obfuscate_rubber_secret -f '#{fixture_dir}/secret.yml' -k '#{@key}'`
       assert_equal 0, $?, "Process failed, output: #{out}"
       assert out.size > 0
       assert_no_match /secret_key: secret_val/, out
       
       tempfile = Tempfile.new('encryptedsecret')
-      open(tempfile, "w") {|f| f.write(out) }
+      open(tempfile.path, "w") {|f| f.write(out) }
       
-      out2 = `#{@rubber} util:obfuscate_rubber_secret -r #{tempfile.path} -k #{@key} -d`
+      out2 = `#{@rubber} util:obfuscate_rubber_secret -f '#{tempfile.path}' -k '#{@key}' -d`
       assert_equal 0, $?, "Process failed, output: #{out2}"
       assert out2.size > 0
       assert_match /secret_key: secret_val/, out2
