@@ -1,6 +1,8 @@
 require 'yaml'
 require 'socket'
 require 'delegate'
+require 'rubber/encryption'
+
 
 module Rubber
   module Configuration
@@ -28,15 +30,17 @@ module Rubber
         
         @items = {}
         @config_files.each { |file| read_config(file) }
-        @config_secret = bind().rubber_secret
-        read_config(@config_secret) if @config_secret
+
+        read_secret_config
       end
       
       def read_config(file)
         Rubber.logger.debug{"Reading rubber configuration from #{file}"}
         if File.exist?(file)
           begin
-            @items = Environment.combine(@items, YAML::load(ERB.new(IO.read(file)).result) || {})
+            data = IO.read(file)
+            data = yield(data) if block_given?
+            @items = Environment.combine(@items, YAML::load(ERB.new(data).result) || {})
           rescue Exception => e
             Rubber.logger.error{"Unable to read rubber configuration from #{file}"}
             raise
@@ -44,6 +48,21 @@ module Rubber
         end
       end
 
+      def read_secret_config
+        bound = bind()
+        @config_secret = bound.rubber_secret
+        if @config_secret
+          obfuscation_key = bound.rubber_secret_key
+          if obfuscation_key
+            read_config(@config_secret) do |data|
+              Rubber::Encryption.decrypt(data, obfuscation_key)
+            end
+          else
+            read_config(@config_secret)
+          end
+        end
+      end
+      
       def known_roles
         return @known_roles if @known_roles
         

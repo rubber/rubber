@@ -139,6 +139,18 @@ class EnvironmentTest < Test::Unit::TestCase
     assert_equal "secret_val", e['secret_key'], 'env should have gotten setting from secret file'    
   end
 
+  def test_obfuscated_secret_env
+    env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures/basic", 'test')
+    e = env.bind()
+    assert_nil e['rubber_secret'], 'env should not have secret set'
+    
+    fixture_dir = File.expand_path("#{File.dirname(__FILE__)}/fixtures/obfuscated")
+    env = Rubber::Configuration::Environment.new(fixture_dir, 'test')
+    e = env.bind()
+    assert_equal "#{fixture_dir}/secret.yml", e['rubber_secret'], 'env should have secret set'
+    assert_equal "secret_val", e['secret_key'], 'env should have gotten setting from secret file'    
+  end
+
   def test_nested_ref
     env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures/nested", 'test')
     e = env.bind()

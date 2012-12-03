@@ -64,7 +64,7 @@ module Rubber
         
         if task?
           log = "#{rootdir}/log/cron-task-#{ident}.log"
-          cmd = ["rubber"] + cmd
+          cmd = [$0] + cmd
         elsif ruby?
           ruby_code = cmd.join(' ')
           ident = ruby_code.gsub(/\W+/, "_").gsub(/(^_+)|(_+$)/, '')[0..19]

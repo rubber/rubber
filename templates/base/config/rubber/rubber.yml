@@ -30,6 +30,11 @@ domain: foo.com
 #
 # rubber_secret: "#{File.expand_path('~') + '/.ec2' + (Rubber.env == 'production' ? '' : '_dev') + '/rubber-secret.yml' rescue ''}"
 
+# OPTIONAL: Encryption key that was used to obfuscate the contents of rubber-secret.yml with "rubber util:obfuscate_rubber_secret" 
+# Not that much better when stored in here, but you could use a ruby snippet in here to fetch it from a key server or something
+#
+# rubber_secret_key: "XXXyyy=="
+
 # REQUIRED All known cloud providers with the settings needed to configure them
 # There's only one working cloud provider right now - Amazon Web Services
 # To implement another, clone lib/rubber/cloud/aws.rb or make the fog provider 
