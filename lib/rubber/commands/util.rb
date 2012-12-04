@@ -311,10 +311,10 @@ module Rubber
       
     end
 
-    class ObfuscateRubberSecret < Clamp::Command
+    class Obfuscation < Clamp::Command
       
       def self.subcommand_name
-        "util:obfuscate_rubber_secret"
+        "util:obfuscation"
       end
 
       def self.subcommand_description

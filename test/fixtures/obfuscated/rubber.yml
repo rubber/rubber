@@ -1,3 +1,3 @@
 
 rubber_secret: "#{File.expand_path(__FILE__ + '/../../../test/fixtures/obfuscated/secret.yml')}"
-rubber_secret_key: "MC44NTE1ODY1Mjk3OTk3NjA2OjAuNzkzODcxMzAxNDAwMjU0NA=="
+rubber_secret_key: "d87b9e15c741655d16fb72c3b0b57b7b"

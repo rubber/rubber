@@ -1,57 +1,41 @@
 require 'openssl'
-require 'digest/sha2'
 require 'base64'
 
 module Rubber
   module Encryption
     
-    def generate_encrypt_key
-      key = rand.to_s
-      iv = rand.to_s
-      encode_encrypt_key(key, iv)
+    def cipher_algorithm
+      OpenSSL::Cipher.new("AES-256-CBC")
     end
     
-    def decode_encrypt_key(key)
-      data = Base64.decode64(key)
-      parts = data.split(":")
-      raise "Invalid encryption key" if parts.size != 2 
-      return *parts
+    def cipher_digest
+      OpenSSL::Digest.new("SHA256")
     end
-
-    def encode_encrypt_key(key, iv)
-      key = Base64.encode64("#{key}:#{iv}")
-      return key
+    
+    def generate_encrypt_key
+      OpenSSL::Digest.hexdigest('md5', rand.to_s)
     end
     
     def encrypt(payload, secret)
-      sha256 = Digest::SHA2.new(256)
-      aes = OpenSSL::Cipher.new("AES-256-CFB")
+      cipher = cipher_algorithm
+
+      cipher.encrypt
+      cipher.pkcs5_keyivgen(cipher_digest.hexdigest(secret))
       
-      key, iv = decode_encrypt_key(secret)
-      key = sha256.digest(key)
-      
-      aes.encrypt
-      aes.key = key
-      aes.iv = iv
-      encrypted_data = aes.update(payload) + aes.final
+      encrypted_data = cipher.update(payload) + cipher.final
       encoded_encrypted_data = Base64.encode64(encrypted_data)
       
       return encoded_encrypted_data
     end
     
     def decrypt(encoded_encrypted_data, secret)
-      sha256 = Digest::SHA2.new(256)
-      aes = OpenSSL::Cipher.new("AES-256-CFB")
+      cipher = cipher_algorithm
 
-      key, iv = decode_encrypt_key(secret)
-      key = sha256.digest(key)
-      
-      aes.decrypt
-      aes.key = key
-      aes.iv = iv
+      cipher.decrypt
+      cipher.pkcs5_keyivgen(cipher_digest.hexdigest(secret))
       
       encrypted_data = Base64.decode64(encoded_encrypted_data)
-      payload = aes.update(encrypted_data) + aes.final
+      payload = cipher.update(encrypted_data) + cipher.final
       
       return payload
     end
