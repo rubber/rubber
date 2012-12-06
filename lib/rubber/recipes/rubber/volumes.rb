@@ -72,8 +72,8 @@ namespace :rubber do
     detach_volume(volume_id)
   end
 
-  def create_volume(size, zone)
-    volumeId = cloud.create_volume(size.to_s, zone)
+  def create_volume(size, zone, volume_type, iops)
+    volumeId = cloud.create_volume(size.to_s, zone, volume_type, iops.to_s)
     fatal "Failed to create volume" if volumeId.nil?
     return volumeId
   end
@@ -91,7 +91,7 @@ namespace :rubber do
     # first create the volume if we don't have a global record (artifacts) for it
     if ! vol_id
       logger.info "Creating volume for #{ic.full_name}:#{vol_spec['device']}"
-      vol_id = create_volume(vol_spec['size'], vol_spec['zone'])
+      vol_id = create_volume(vol_spec['size'], vol_spec['zone'], vol_spec['type'], vol_spec['iops'])
       artifacts['volumes'][key] = vol_id
       rubber_instances.save
       created = vol_spec['device']

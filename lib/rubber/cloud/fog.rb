@@ -23,12 +23,13 @@ module Rubber
         raise NotImplementedError, "No table store available for generic fog adapter"
       end
 
-      def create_instance(ami, ami_type, security_groups, availability_zone)
+      def create_instance(ami, ami_type, security_groups, availability_zone, ebs_optimized)
         response = @compute_provider.servers.create(:image_id => ami,
                                                     :flavor_id => ami_type,
                                                     :groups => security_groups,
                                                     :availability_zone => availability_zone,
-                                                    :key_name => env.key_name)
+                                                    :key_name => env.key_name,
+                                                    :ebs_optimized => ebs_optimized)
         instance_id = response.id
         return instance_id
       end
@@ -236,8 +237,9 @@ module Rubber
         return address.destroy
       end
 
-      def create_volume(size, zone)
-        volume = @compute_provider.volumes.create(:size => size.to_s, :availability_zone => zone)
+      def create_volume(size, zone, volume_type, iops)
+        volume = @compute_provider.volumes.create(:size => size.to_s,   :availability_zone => zone,
+                                                  :type => volume_type, :iops => iops)
         return volume.id
       end
 
