@@ -2,6 +2,8 @@ graphite_dir: "/opt/graphite"
 graphite_server_pid_file: /var/run/graphite-server.pid
 graphite_server_port: 2003
 graphite_web_port: 2080
+graphite_carbon_port: 8002
+graphite_storage_dir: /mnt/graphite_storage
 
 # uncomment out the repo version to install from given repo version
 # graphite_repo_version: 426
