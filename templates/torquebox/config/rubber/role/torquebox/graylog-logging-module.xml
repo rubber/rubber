@@ -1,0 +1,9 @@
+<%
+  @path = "#{rubber_env.torquebox_dir}/jboss/modules/org/graylog2/logging/main/module.xml"
+%>
+<module xmlns="urn:jboss:module:1.0" name="org.graylog2.logging">
+<resources>
+  <resource-root path="gelfj-1.0.1.jar"/>
+  <resource-root path="json-simple-1.1.1.jar"/>
+</resources>
+</module>

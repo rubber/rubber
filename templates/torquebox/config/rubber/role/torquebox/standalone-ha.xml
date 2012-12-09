@@ -1,5 +1,6 @@
 <%
         @path = "#{rubber_env.torquebox_dir}/jboss/standalone/configuration/standalone-ha.xml"
+        graylog_server = rubber_instances.for_role("graylog_server").first
         %><?xml version='1.0' encoding='UTF-8'?>
 <server xmlns='urn:jboss:domain:1.3'>
 <extensions>
@@ -44,6 +45,7 @@
   <extension module='org.torquebox.jobs'/>
   <extension module='org.projectodd.polyglot.hasingleton'/>
   <extension module='org.projectodd.polyglot.cache'/>
+  <extension module="org.projectodd.polyglot.stomp"/>
 </extensions>
 <system-properties>
   <property name='org.apache.tomcat.util.http.ServerCookie.FWD_SLASH_IS_SEPARATOR' value='false'/>
@@ -92,6 +94,18 @@
       <suffix value='.yyyy-MM-dd'/>
       <append value='true'/>
     </periodic-rotating-file-handler>
+    <% if graylog_server %>
+    <custom-handler name='GRAYLOG' class='org.graylog2.logging.GelfHandler' module='org.graylog2.logging'>
+      <level name='INFO'/>
+      <properties>
+        <property name='graylogHost' value='<%= graylog_server.full_name %>'/>
+        <property name='graylogPort' value='<%= rubber_env.graylog_server_port %>'/>
+        <property name='originHost' value='<%= rubber_env.host %>'/>
+        <property name='facility' value='torquebox'/>
+        <property name='extractStacktrace' value='true'/>
+      </properties>
+    </custom-handler>
+    <% end %>
     <logger category='com.arjuna'>
       <level name='WARN'/>
     </logger>
@@ -112,6 +126,9 @@
       <handlers>
         <handler name='CONSOLE'/>
         <handler name='FILE'/>
+        <% if graylog_server %>
+        <handler name='GRAYLOG'/>
+        <% end %>
       </handlers>
     </root-logger>
     <logger category='org.jboss.jca.adapters.jdbc.extensions.mysql'>
@@ -222,9 +239,9 @@
         <file-store/>
       </replicated-cache>
       <!--
-      ~  Clustered cache used internally by EJB subsytem for managing the client-mapping(s) of
-      ~                 the socketbinding referenced by the EJB remoting connector
-      -->
+        ~  Clustered cache used internally by EJB subsytem for managing the client-mapping(s) of
+        ~                 the socketbinding referenced by the EJB remoting connector
+        -->
       <replicated-cache name='remote-connector-client-mappings' mode='SYNC' batching='true'/>
       <distributed-cache name='dist' mode='ASYNC' batching='true' l1-lifespan='0'>
         <eviction strategy='LRU' max-entries='10000'/>
@@ -566,7 +583,7 @@
   <subsystem xmlns='urn:jboss:domain:torquebox-bootstrap:1.0'/>
   <subsystem xmlns='urn:jboss:domain:torquebox-core:1.0'/>
   <subsystem xmlns='urn:jboss:domain:torquebox-messaging:1.0'/>
-  <subsystem xmlns='urn:jboss:domain:torquebox-stomp:1.0' socket-binding='stomp'/>
+  <subsystem xmlns='urn:jboss:domain:torquebox-stomp:1.0'/>
   <subsystem xmlns='urn:jboss:domain:torquebox-web:1.0'/>
   <subsystem xmlns='urn:jboss:domain:torquebox-security:1.0'/>
   <subsystem xmlns='urn:jboss:domain:torquebox-services:1.0'/>
@@ -574,6 +591,7 @@
   <subsystem xmlns='urn:jboss:domain:torquebox-jobs:1.0'/>
   <subsystem xmlns='urn:jboss:domain:polyglot-hasingleton:1.0'/>
   <subsystem xmlns='urn:jboss:domain:polyglot-cache:1.0'/>
+  <subsystem xmlns="urn:jboss:domain:polyglot-stomp:1.0" socket-binding="stomp"/>
 </profile>
 <interfaces>
   <interface name='management'>
@@ -585,9 +603,9 @@
   <!-- TODO - only show this if the jacorb subsystem is added  -->
   <interface name='unsecure'>
     <!--
-    ~  Used for IIOP sockets in the standard configuration.
-    ~                  To secure JacORB you need to setup SSL
-    -->
+      ~  Used for IIOP sockets in the standard configuration.
+      ~                  To secure JacORB you need to setup SSL
+      -->
     <inet-address value='${jboss.bind.address.unsecure:127.0.0.1}'/>
   </interface>
 </interfaces>
