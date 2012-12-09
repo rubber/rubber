@@ -21,53 +21,6 @@ namespace :rubber do
       ENDSCRIPT
     end
 
-    # graphite collectd plugin needs newer collectd (>= 4.9)
-    before "rubber:install_packages", "rubber:graphite:setup_apt_backport_of_collectd"
-
-    task :setup_apt_backport_of_collectd do
-      sources = <<-EOF
-        deb http://gb.archive.ubuntu.com/ubuntu/ maverick main universe
-        deb-src http://gb.archive.ubuntu.com/ubuntu/ maverick main universe
-      EOF
-      sources.gsub!(/^[ \t]*/, '')
-
-      prefs = <<-EOF
-        Package: *
-        Pin: release a=maverick
-        Pin-Priority: 400
-
-        Package: libxml2
-        Pin: release a=maverick
-        Pin-Priority: 900
-
-        Package: libxml2-dev
-        Pin: release a=maverick
-        Pin-Priority: 900
-
-        Package: collectd-core
-        Pin: release a=maverick
-        Pin-Priority: 900
-
-        Package: collectd-utils
-        Pin: release a=maverick
-        Pin-Priority: 900
-
-        Package: collectd
-        Pin: release a=maverick
-        Pin-Priority: 900
-      EOF
-      prefs.gsub!(/^[ \t]*/, '')
-
-      rubber.sudo_script 'setup_apt_backport_of_collectd', <<-ENDSCRIPT
-        release=`lsb_release -sr`
-        needs_backport=`echo "$release <= 10.04" | bc`
-        if [[ $needs_backport == 1 && ! -f /etc/apt/preferences.d/rubber-collectd ]]; then
-          echo -e #{sources.inspect} > /etc/apt/sources.list.d/rubber-collectd.list
-          echo -e #{prefs.inspect} > /etc/apt/preferences.d/rubber-collectd
-        fi
-      ENDSCRIPT
-    end
-
     task :install_graphite_from_repo, :roles => [:graphite_server, :graphite_web] do
       rubber.sudo_script 'install_graphite_from_repo', <<-ENDSCRIPT
         if [[ ! -d "/opt/graphite" ]]; then
