@@ -30,7 +30,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'capistrano', '~> 2.12'
   # TODO: force older version of net-ssh till connectivity issues with 2.5.x get resolved
-  s.add_dependency 'net-ssh', '~> 2.4.0'
+  s.add_dependency 'net-ssh', '~> 2.6.0'
   s.add_dependency 'thor'
   s.add_dependency 'clamp'
   s.add_dependency 'open4'
