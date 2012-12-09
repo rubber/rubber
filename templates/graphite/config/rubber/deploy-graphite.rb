@@ -95,6 +95,10 @@ namespace :rubber do
             cd /tmp/#{rubber_env.graphite_carbon_package_url.gsub(/.*\//, '').gsub('.tar.gz', '')}
             python setup.py install
 
+            rm -rf /opt/graphite/storage
+            mkdir #{rubber_env.graphite_storage_dir}
+            chown www-data:www-data #{rubber_env.graphite_storage_dir}
+            ln -s #{rubber_env.graphite_storage_dir} /opt/graphite/storage
           fi
         ENDSCRIPT
       end
