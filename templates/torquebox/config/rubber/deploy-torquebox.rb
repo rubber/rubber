@@ -17,6 +17,15 @@ namespace :rubber do
           rm -f #{rubber_env.torquebox_dir}
           ln -s #{rubber_env.torquebox_prefix}/torquebox-#{rubber_env.torquebox_version} #{rubber_env.torquebox_dir}
 
+          # Create the log dir.
+          mkdir -p #{rubber_env.torquebox_log_dir}
+          chown -R #{rubber_env.app_user} #{rubber_env.torquebox_log_dir}
+
+          # Set up libraries for graylog logger.
+          mkdir -p #{rubber_env.torquebox_dir}/jboss/modules/org/graylog2/logging/main
+          wget -qNO "#{rubber_env.torquebox_dir}/jboss/modules/org/graylog2/logging/main/gelfj-1.0.1.jar" https://github.com/downloads/t0xa/gelfj/gelfj-1.0.1.jar
+          wget -qNO "#{rubber_env.torquebox_dir}/jboss/modules/org/graylog2/logging/main/json-simple-1.1.1.jar" http://json-simple.googlecode.com/files/json-simple-1.1.1.jar
+
           # Cleanup after ourselves.
           rm torquebox-dist-#{rubber_env.torquebox_version}-bin.zip
         fi
