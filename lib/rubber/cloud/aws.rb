@@ -28,19 +28,21 @@ module Rubber
       end
       
       def create_image(image_name)
-        ec2_key = env.key_file
-        ec2_pk = env.pk_file
-        ec2_cert = env.cert_file
-        ec2_key_dest = "/mnt/#{File.basename(ec2_key)}"
-        ec2_pk_dest = "/mnt/#{File.basename(ec2_pk)}"
-        ec2_cert_dest = "/mnt/#{File.basename(ec2_cert)}"
 
         # validate all needed config set
         ["key_file", "pk_file", "cert_file", "account", "secret_access_key", "image_bucket"].each do |k|
           raise "Set #{k} in rubber.yml" unless "#{env[k]}".strip.size > 0
         end
         raise "create_image can only be called from a capistrano scope" unless capistrano
-        
+ 
+        ec2_key = env.key_file
+        ec2_pk = env.pk_file
+        ec2_cert = env.cert_file
+
+        ec2_key_dest = "/mnt/#{File.basename(ec2_key)}"
+        ec2_pk_dest = "/mnt/#{File.basename(ec2_pk)}"
+        ec2_cert_dest = "/mnt/#{File.basename(ec2_cert)}"
+
         storage(env.image_bucket).ensure_bucket
         
         capistrano.put(File.read(ec2_key), ec2_key_dest)
