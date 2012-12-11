@@ -11,5 +11,3 @@ rvm:
 # script: bundle exec rspec spec
 env:
   - JAVA_OPTS="-server -Djruby.cext.enabled=false -Djruby.compile.invokedynamic=false"
-jdk:
-  - oraclejdk7
