@@ -4,4 +4,4 @@ haproxy_admin_port: 9100
 
 roles:
   haproxy:
-    packages: [haproxy]
+    packages: []
