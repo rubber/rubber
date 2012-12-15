@@ -1,4 +1,3 @@
-
 namespace :rubber do
 
   namespace :haproxy do
@@ -14,6 +13,23 @@ namespace :rubber do
       rubber.serial_task self, :serial_reload, :roles => :haproxy do
         rsudo "if ! ps ax | grep -v grep | grep -c haproxy &> /dev/null; then service haproxy start; else service haproxy reload; fi"
       end
+    end
+    
+    after "rubber:install_packages", "rubber:haproxy:custom_install"
+    
+    task :custom_install, :roles => :web do
+      rubber.sudo_script 'install_haproxy_dev', <<-ENDSCRIPT
+        
+        if [[ ! `/usr/sbin/haproxy -v 2> /dev/null` =~ "1.5-dev15" ]]; then
+          echo 'Installing HaProxy 1.5-dev15'
+          cd /usr/src
+          wget http://haproxy.1wt.eu/download/1.5/src/devel/haproxy-1.5-dev15.t$
+          tar xzf haproxy-1.5-dev15.tar.gz
+          cd haproxy-1.5-dev15/
+          make TARGET=linux2628 USE_STATIC_PCRE=1 USE_OPENSSL=1
+          sudo make PREFIX=/usr install
+        fi
+      ENDSCRIPT
     end
     
     before "deploy:stop", "rubber:haproxy:stop"
