@@ -57,7 +57,7 @@ cloud_providers:
     #
     access_key: XXX
     secret_access_key: YYY
-    account: ZZZ
+    account: 'ZZZ'
 
     # REQUIRED:  The name of the amazon keypair and location of its private key
     #
