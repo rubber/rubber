@@ -1,4 +1,3 @@
 description: The resque background queue system
 dependent_templates:
   - redis
-skip_unknown_roles: true
