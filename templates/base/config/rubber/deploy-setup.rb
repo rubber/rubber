@@ -39,7 +39,9 @@ namespace :rubber do
     after "rubber:base:install_ruby_build", "rubber:base:install_ruby"
     task :install_ruby do
       rubber.sudo_script "install_ruby", <<-ENDSCRIPT
-      if [[ ! `ruby --version 2> /dev/null` =~ "#{rubber_env.ruby_version}" ]]; then
+      installed_ruby_ver=`ruby --version | sed 's/[^0-9a-zA-Z.]//g' 2> /dev/null`
+      desired_ruby_ver="#{rubber_env.ruby_version.gsub(/[^0-9a-zA-Z.]/, '')}"
+      if [[ ! $installed_ruby_ver =~ $desired_ruby_ver ]]; then
         echo "Compiling and installing ruby $rvm_ver.  This may take a while ..."
 
         nohup ruby-build #{rubber_env.ruby_version} #{rubber_env.ruby_path} &> /tmp/install_ruby.log &
