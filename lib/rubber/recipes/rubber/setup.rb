@@ -515,11 +515,16 @@ namespace :rubber do
       if reboot
 
         logger.info "Rebooting ..."
-        run("#{sudo} reboot", :hosts => reboot_hosts)
+        begin
+          run("#{sudo} reboot", :hosts => reboot_hosts)
+          # since we rebooted, teardown the connections to force cap to reconnect
+          teardown_connections_to(sessions.keys)
+        rescue
+          # swallow exception since there is a chance
+          # net:ssh throws an Exception
+        end
+        
         sleep 30
-
-        # since we rebooted, teardown the connections to force cap to reconnect
-        teardown_connections_to(sessions.keys)
 
         reboot_hosts.each do |host|
           direct_connection(host) do
