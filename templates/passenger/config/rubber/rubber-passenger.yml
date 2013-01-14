@@ -1,5 +1,6 @@
 passenger_version: 3.0.19
 passenger_root: "#{`bash -l -c 'find #{ruby_path} -name passenger-#{passenger_version}'`.strip}"
+passenger_ruby: "#{ruby_path}/bin/ruby"
 passenger_lib: "#{passenger_root}/ext/apache2/mod_passenger.so"
 passenger_listen_port: 7000
 passenger_listen_ssl_port: 7001
