@@ -492,7 +492,6 @@ namespace :rubber do
     start_threads = []
     
     instance_items = aliases.collect{|instance_alias| rubber_instances[instance_alias]}
-    instance_items = filter_for_startable_stoppable_instances(instance_items)
     
     if instance_items.size == 0
       fatal "No instances to start!"
