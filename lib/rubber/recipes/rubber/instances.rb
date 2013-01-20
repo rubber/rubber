@@ -496,15 +496,15 @@ namespace :rubber do
     if instance_items.size == 0
       fatal "No instances to start!"
     else
-      human_instance_list = instance_items.collect{|instance_item| "#{instance_item.name} (instance_item.instance_id)"}.join(', ')
+      human_instance_list = instance_items.collect{|instance_item| "#{instance_item.name} (#{instance_item.instance_id})"}.join(', ')
       value = Capistrano::CLI.ui.ask("About to START #{human_instance_list} in mode #{Rubber.env}.  Are you SURE [yes/NO]?: ")
       fatal("Exiting", 0) if value != "yes"
     
       instance_items.each do |instance_item|
-        start_instance(instance_item.name)
-      
-        # Re-starting an instance will almost certainly give it a new set of IPs and DNS entries, so refresh the values.
         start_threads << Thread.new do
+          start_instance(instance_item.name)
+          
+          # Re-starting an instance will almost certainly give it a new set of IPs and DNS entries, so refresh the values.
           while ! refresh_instance(instance_item.name)
             sleep 1
           end
@@ -517,7 +517,7 @@ namespace :rubber do
       while true do
         print "."
         sleep 2
-        break unless start_threads.any(&:alive?)
+        break unless start_threads.any?(&:alive?)
       end
       
       post_refresh
