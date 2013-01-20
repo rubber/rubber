@@ -79,9 +79,11 @@ namespace :rubber do
     Stop the EC2 instance for the give ALIAS
   DESC
   required_task :stop do
-    instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
+    instance_aliases = get_env('ALIAS', "Instance alias (e.g. web01 or web01~web05,web09)", true)
+    
+    aliases = Rubber::Util::parse_aliases(instance_aliases)
     ENV.delete('ROLES') # so we don't get an error if people leave ROLES in env from :create CLI
-    stop_instance(instance_alias)
+    stop_instances(aliases)
   end
 
   desc <<-DESC
@@ -467,21 +469,59 @@ namespace :rubber do
 
     cloud.reboot_instance(instance_item.instance_id)
   end
+  
+  # Stops the given ec2 instances.  Note that this operation only works for instances that use an EBS volume for the root
+  # device and that are not spot instances.
+  def stop_instances(aliases)
+    stop_threads = []
+    
+    instance_items = aliases.collect{|instance_alias| rubber_instances[instance_alias]}
+    # TODO: validate instances here
+    
+    if instance_items.size == 0
+      fatal "No instances to stop!"
+    else
+      human_instance_list = instance_items.collect{|instance_item| "#{instance_item.name} (#{instance_item.instance_id})"}.join(', ')
+      value = Capistrano::CLI.ui.ask("About to STOP #{human_instance_list} in mode #{Rubber.env}.  Are you SURE [yes/NO]?: ")
+      fatal("Exiting", 0) if value != "yes"
+    
+      instance_items.each do |instance_item|
+        logger.info "Stopping instance alias=#{instance_item.name}, instance_id=#{instance_item.instance_id}"
+        
+        stop_threads << Thread.new do
+          stop_instance(instance_item.name)
+          
+          stopped = false
+          while !stopped
+            sleep 1
+            instance = cloud.describe_instances(instance_item.instance_id).first rescue {}
+            stopped = (instance[:state] == "stopped")
+          end
+        end
+      end
+      
+      print "Waiting for #{instance_items.size == 1 ? 'instance' : 'instances'} to stop"
+      while true do
+        print "."
+        sleep 2
+        break unless stop_threads.any?(&:alive?)
+      end
+      print "\n"
+      
+      stop_threads.each {|t| t.join }
+    end
+  end
 
   # Stops the given ec2 instance.  Note that this operation only works for instances that use an EBS volume for the root
   # device and that are not spot instances.
   def stop_instance(instance_alias)
     instance_item = rubber_instances[instance_alias]
+    
     fatal "Instance does not exist: #{instance_alias}" if ! instance_item
     fatal "Cannot stop spot instances!" if ! instance_item.spot_instance_request_id.nil?
     fatal "Cannot stop instances with instance-store root device!" if (instance_item.root_device_type != 'ebs')
 
     env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
-
-    value = Capistrano::CLI.ui.ask("About to STOP #{instance_alias} (#{instance_item.instance_id}) in mode #{Rubber.env}.  Are you SURE [yes/NO]?: ")
-    fatal("Exiting", 0) if value != "yes"
-
-    logger.info "Stopping instance alias=#{instance_alias}, instance_id=#{instance_item.instance_id}"
 
     cloud.stop_instance(instance_item.instance_id)
   end
