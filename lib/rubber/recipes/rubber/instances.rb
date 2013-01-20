@@ -501,7 +501,7 @@ namespace :rubber do
       value = Capistrano::CLI.ui.ask("About to START #{human_instance_list} in mode #{Rubber.env}.  Are you SURE [yes/NO]?: ")
       fatal("Exiting", 0) if value != "yes"
     
-      instance_items.each |instance_item|
+      instance_items.each do |instance_item|
         start_instance(instance_item.name)
       
         # Re-starting an instance will almost certainly give it a new set of IPs and DNS entries, so refresh the values.
