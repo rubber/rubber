@@ -88,9 +88,11 @@ namespace :rubber do
     Start the EC2 instance for the give ALIAS
   DESC
   required_task :start do
-    instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
+    instance_aliases = get_env('ALIAS', "Instance alias (e.g. web01 or web01~web05,web09)", true)
+
+    aliases = Rubber::Util::parse_aliases(instance_aliases)
     ENV.delete('ROLES') # so we don't get an error if people leave ROLES in env from :create CLI
-    start_instance(instance_alias)
+    start_instances(aliases)
   end
 
   desc <<-DESC
@@ -484,6 +486,45 @@ namespace :rubber do
     cloud.stop_instance(instance_item.instance_id)
   end
 
+  # Starts the given ec2 instances.  Note that this operation only works for instances that use an EBS volume for the root
+  # device, that are not spot instances, and that are already stopped.
+  def start_instances(aliases)
+    start_threads = []
+    
+    instance_items = aliases.collect{|instance_alias| rubber_instances[instance_alias]}
+    instance_items = filter_for_startable_stoppable_instances(instance_items)
+    
+    if instance_items.size == 0
+      fatal "No instances to start!"
+    else
+      human_instance_list = instance_items.collect{|instance_item| "#{instance_item.name} (instance_item.instance_id)"}.join(', ')
+      value = Capistrano::CLI.ui.ask("About to START #{human_instance_list} in mode #{Rubber.env}.  Are you SURE [yes/NO]?: ")
+      fatal("Exiting", 0) if value != "yes"
+    
+      instance_items.each |instance_item|
+        start_instance(instance_item.name)
+      
+        # Re-starting an instance will almost certainly give it a new set of IPs and DNS entries, so refresh the values.
+        start_threads << Thread.new do
+          while ! refresh_instance(instance_item.name)
+            sleep 1
+          end
+        end
+      end
+    
+      start_threads.each {|t| t.join }
+      
+      print "Waiting for #{instance_items.size == 1 ? 'instance' : 'instances'} to start"
+      while true do
+        print "."
+        sleep 2
+        break unless start_threads.any(&:alive?)
+      end
+      
+      post_refresh
+    end
+  end
+  
   # Starts the given ec2 instance.  Note that this operation only works for instances that use an EBS volume for the root
   # device, that are not spot instances, and that are already stopped.
   def start_instance(instance_alias)
@@ -494,21 +535,9 @@ namespace :rubber do
 
     env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
 
-    value = Capistrano::CLI.ui.ask("About to START #{instance_alias} (#{instance_item.instance_id}) in mode #{Rubber.env}.  Are you SURE [yes/NO]?: ")
-    fatal("Exiting", 0) if value != "yes"
-
     logger.info "Starting instance alias=#{instance_alias}, instance_id=#{instance_item.instance_id}"
 
     cloud.start_instance(instance_item.instance_id)
-
-    # Re-starting an instance will almost certainly give it a new set of IPs and DNS entries, so refresh the values.
-    print "Waiting for instance to start"
-    while true do
-      print "."
-      sleep 2
-
-      break if refresh_instance(instance_alias)
-    end
   end
 
   # delete from ~/.ssh/known_hosts all lines that begin with ec2- or instance_alias
