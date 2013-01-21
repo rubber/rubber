@@ -1,0 +1,12 @@
+statsd_dir: "/opt/statsd"
+statsd_pidfile: /var/run/statsd.pid
+statsd_logfile: /var/log/statsd.log
+statsd_bin: nodejs
+statsd_port: 8125
+
+statsd_repository: git://github.com/etsy/statsd.git
+statsd_branch: master
+
+roles:
+  statsd:
+    packages: [nodejs]
