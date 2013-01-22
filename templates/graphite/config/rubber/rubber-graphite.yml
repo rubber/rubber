@@ -19,6 +19,6 @@ web_tools_proxies:
 
 roles:
   graphite_web:
-    packages: [python-django, python-django-tagging, apache2, libapache2-mod-wsgi, python-cairo, python-memcache, memcached, sqlite3, bzr, zip]
+    packages: [python-django, python-django-tagging, python-cairo, python-memcache, memcached, uwsgi, uwsgi-plugin-python, sqlite3, bzr, zip]
   collectd:
     packages: [libperl-dev]

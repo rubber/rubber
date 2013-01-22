@@ -1,8 +1,8 @@
 
 namespace :rubber do
-  
+
   namespace :graphite do
-    
+
     rubber.allow_optional_tasks(self)
 
     after "rubber:install_packages", "rubber:graphite:install_collectd_graphite_plugin"
@@ -140,7 +140,7 @@ namespace :rubber do
       else
         after "rubber:graphite:server:install", "rubber:graphite:web:install"
       end
-      
+
       after "rubber:graphite:server:bootstrap", "rubber:graphite:web:bootstrap"
 
       desc <<-DESC
@@ -191,12 +191,12 @@ EOF
 
       desc "Start graphite system monitoring"
       task :start, :roles => :graphite_web do
-        rsudo "service apache2 start"
+        rsudo "service graphite-web start"
       end
 
       desc "Stop graphite system monitoring"
       task :stop, :roles => :graphite_web do
-        rsudo "service apache2 stop || true"
+        rsudo "service graphite-web stop || true"
       end
 
       desc "Restart graphite system monitoring"
