@@ -9,6 +9,9 @@ namespace :rubber do
     after "deploy:start", "rubber:post_start"
     after "deploy:restart", "rubber:post_restart"
     after "deploy:stop", "rubber:post_stop"
+
+    # Hook used for rubber:config
+    after "deploy:update_code", "rubber:post_update_code"
   end
 
   task :pre_start do
@@ -23,15 +26,14 @@ namespace :rubber do
   end
   task :post_stop do
   end
+  task :post_update_code do
+  end
 
-  # Don't want to do rubber:config for update_code as that tree isn't official
-  # until it is 'committed' by the symlink task (and doing so causes it to run
-  # for bootstrap_db which should only config the db config file).  However,
-  # deploy:migrations doesn't call update, so we need an additional trigger for
-  # it
-  after "deploy:update", "rubber:config"
+  # Whenever the code changes, we need to run the configuration task
+  # Since rubber:config needs to be run before deploy:assets:precompile, we use
+  # post_update_code to order the tasks
+  before "rubber:post_update_code", "rubber:config"
   after "deploy:rollback_code", "rubber:config"
-  before "deploy:migrate", "rubber:config"
 
   desc <<-DESC
     Configures the deployed rails application by running the rubber configuration process
@@ -42,8 +44,8 @@ namespace :rubber do
     opts[:force] = true if ENV['FORCE']
     opts[:file] = ENV['FILE'] if ENV['FILE']
 
-    # when running deploy:migrations, we need to run config against release_path
-    opts[:deploy_path] = current_release if fetch(:migrate_target, :current).to_sym == :latest
+    # The symlink task hasn't been run yet, so config must be run against release_path
+    opts[:deploy_path] = current_release
 
     run_config(opts)
   end
