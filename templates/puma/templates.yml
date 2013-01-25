@@ -1,0 +1,3 @@
+description: The concurrent web server for ruby
+dependent_templates:
+  - nginx
