@@ -7,8 +7,8 @@ torquebox_http_port: 9090
 torquebox_https_port: 9443
 torquebox_ajp_port: 8009
 
-backstage_user: nirvdrum
-backstage_password: negativetwenty
+backstage_user: admin
+backstage_password: admin123
 
 mod_cluster_version: 1.2.0
 
