@@ -79,18 +79,22 @@ namespace :rubber do
     Stop the EC2 instance for the give ALIAS
   DESC
   required_task :stop do
-    instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
+    instance_aliases = get_env('ALIAS', "Instance alias (e.g. web01 or web01~web05,web09)", true)
+    
+    aliases = Rubber::Util::parse_aliases(instance_aliases)
     ENV.delete('ROLES') # so we don't get an error if people leave ROLES in env from :create CLI
-    stop_instance(instance_alias)
+    stop_instances(aliases)
   end
 
   desc <<-DESC
     Start the EC2 instance for the give ALIAS
   DESC
   required_task :start do
-    instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
+    instance_aliases = get_env('ALIAS', "Instance alias (e.g. web01 or web01~web05,web09)", true)
+
+    aliases = Rubber::Util::parse_aliases(instance_aliases)
     ENV.delete('ROLES') # so we don't get an error if people leave ROLES in env from :create CLI
-    start_instance(instance_alias)
+    start_instances(aliases)
   end
 
   desc <<-DESC
@@ -465,50 +469,106 @@ namespace :rubber do
 
     cloud.reboot_instance(instance_item.instance_id)
   end
-
-  # Stops the given ec2 instance.  Note that this operation only works for instances that use an EBS volume for the root
+  
+  # Stops the given ec2 instances.  Note that this operation only works for instances that use an EBS volume for the root
   # device and that are not spot instances.
-  def stop_instance(instance_alias)
-    instance_item = rubber_instances[instance_alias]
-    fatal "Instance does not exist: #{instance_alias}" if ! instance_item
-    fatal "Cannot stop spot instances!" if ! instance_item.spot_instance_request_id.nil?
-    fatal "Cannot stop instances with instance-store root device!" if (instance_item.root_device_type != 'ebs')
-
-    env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
-
-    value = Capistrano::CLI.ui.ask("About to STOP #{instance_alias} (#{instance_item.instance_id}) in mode #{Rubber.env}.  Are you SURE [yes/NO]?: ")
+  def stop_instances(aliases)
+    stop_threads = []
+    
+    instance_items = aliases.collect{|instance_alias| rubber_instances[instance_alias]}
+    instance_items = aliases.collect do |instance_alias|
+      instance_item = rubber_instances[instance_alias]
+      
+      fatal "Instance does not exist: #{instance_alias}" if ! instance_item
+      fatal "Cannot stop spot instances!" if ! instance_item.spot_instance_request_id.nil?
+      fatal "Cannot stop instances with instance-store root device!" if (instance_item.root_device_type != 'ebs')
+      
+      instance_item
+    end
+    
+    # Get user confirmation
+    human_instance_list = instance_items.collect{|instance_item| "#{instance_item.name} (#{instance_item.instance_id})"}.join(', ')
+    value = Capistrano::CLI.ui.ask("About to STOP #{human_instance_list} in mode #{Rubber.env}.  Are you SURE [yes/NO]?: ")
     fatal("Exiting", 0) if value != "yes"
+    
+    instance_items.each do |instance_item|
+      logger.info "Stopping instance alias=#{instance_item.name}, instance_id=#{instance_item.instance_id}"
+      
+      stop_threads << Thread.new do
+        env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
 
-    logger.info "Stopping instance alias=#{instance_alias}, instance_id=#{instance_item.instance_id}"
-
-    cloud.stop_instance(instance_item.instance_id)
-  end
-
-  # Starts the given ec2 instance.  Note that this operation only works for instances that use an EBS volume for the root
-  # device, that are not spot instances, and that are already stopped.
-  def start_instance(instance_alias)
-    instance_item = rubber_instances[instance_alias]
-    fatal "Instance does not exist: #{instance_alias}" if ! instance_item
-    fatal "Cannot start spot instances!" if ! instance_item.spot_instance_request_id.nil?
-    fatal "Cannot start instances with instance-store root device!" if (instance_item.root_device_type != 'ebs')
-
-    env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
-
-    value = Capistrano::CLI.ui.ask("About to START #{instance_alias} (#{instance_item.instance_id}) in mode #{Rubber.env}.  Are you SURE [yes/NO]?: ")
-    fatal("Exiting", 0) if value != "yes"
-
-    logger.info "Starting instance alias=#{instance_alias}, instance_id=#{instance_item.instance_id}"
-
-    cloud.start_instance(instance_item.instance_id)
-
-    # Re-starting an instance will almost certainly give it a new set of IPs and DNS entries, so refresh the values.
-    print "Waiting for instance to start"
+        cloud.stop_instance(instance_item.instance_id)
+        
+        stopped = false
+        while !stopped
+          sleep 1
+          instance = cloud.describe_instances(instance_item.instance_id).first rescue {}
+          stopped = (instance[:state] == "stopped")
+        end
+      end
+    end
+      
+    print "Waiting for #{instance_items.size == 1 ? 'instance' : 'instances'} to stop"
     while true do
       print "."
       sleep 2
-
-      break if refresh_instance(instance_alias)
+      break unless stop_threads.any?(&:alive?)
     end
+    print "\n"
+      
+    stop_threads.each(&:join)
+  end
+
+  # Starts the given ec2 instances.  Note that this operation only works for instances that use an EBS volume for the root
+  # device, that are not spot instances, and that are already stopped.
+  def start_instances(aliases)
+    start_threads = []
+    refresh_threads = []
+    
+    instance_items = aliases.collect do |instance_alias|
+      instance_item = rubber_instances[instance_alias]
+      
+      fatal "Instance does not exist: #{instance_alias}" if ! instance_item
+      fatal "Cannot start spot instances!" if ! instance_item.spot_instance_request_id.nil?
+      fatal "Cannot start instances with instance-store root device!" if (instance_item.root_device_type != 'ebs')
+      
+      instance_item
+    end
+    
+    # Get user confirmation
+    human_instance_list = instance_items.collect{|instance_item| "#{instance_item.name} (#{instance_item.instance_id})"}.join(', ')
+    value = Capistrano::CLI.ui.ask("About to START #{human_instance_list} in mode #{Rubber.env}.  Are you SURE [yes/NO]?: ")
+    fatal("Exiting", 0) if value != "yes"
+  
+    instance_items.each do |instance_item|
+      logger.info "Starting instance alias=#{instance_item.name}, instance_id=#{instance_item.instance_id}"
+      
+      start_threads << Thread.new do
+        env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
+        
+        cloud.start_instance(instance_item.instance_id)
+        
+        # Re-starting an instance will almost certainly give it a new set of IPs and DNS entries, so refresh the values.
+        refresh_threads << Thread.new do
+          while ! refresh_instance(instance_item.name)
+            sleep 1
+          end
+        end
+      end
+    end
+    
+    print "Waiting for #{instance_items.size == 1 ? 'instance' : 'instances'} to start"
+    while true do
+      print "."
+      sleep 2
+      break unless start_threads.any?(&:alive?)
+    end
+
+    start_threads.each(&:join)
+    refresh_threads.each(&:join)
+    
+    # Static IPs, DNS, etc. need to be set up for the started instances
+    post_refresh
   end
 
   # delete from ~/.ssh/known_hosts all lines that begin with ec2- or instance_alias
