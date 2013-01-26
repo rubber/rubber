@@ -12,6 +12,9 @@ backstage_password: admin123
 
 mod_cluster_version: 1.2.0
 
+apache_listen_port: 80
+apache_listen_ssl_port: 443
+
 roles:
   torquebox:
     packages: [openjdk-7-jdk libaio1, unzip]
