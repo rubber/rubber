@@ -94,6 +94,8 @@ namespace :rubber do
   end
 
   namespace :roles do
+    rubber.allow_optional_tasks(self)
+    
     desc <<-DESC
       Adds the given ROLES to the instance named ALIAS
     DESC
