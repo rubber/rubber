@@ -99,9 +99,23 @@ namespace :rubber do
     DESC
     required_task :add do
       instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
-      r = get_env('ROLES', "Instance roles (e.g. web,app,db:primary=true)", true)
+      roles_string = get_env('ROLES', "Instance roles (e.g. web,app,db:primary=true)", true)
       
-      add_roles(instance_alias, r)
+      instance = rubber_instances[instance_alias]
+      fatal "Instance does not exist: #{instance_alias}" unless instance
+    
+      # Parse roles_string into an Array of roles
+      ir = roles_string.split(/\s*,\s*/).collect{|r| Rubber::Configuration::RoleItem.parse(r)}
+    
+      # Add in roles that the given set of roles depends on
+      ir = Rubber::Configuration::RoleItem.expand_role_dependencies(ir, get_role_dependencies)
+    
+      instance.roles = (instance.roles + ir).uniq
+      rubber_instances.save()
+      logger.info "Roles for #{instance_alias} are now:"
+      logger.info instance.role_names.sort.join("\n")
+      logger.info ''
+      logger.info "Run 'cap rubber:bootstrap' if done adding roles"
     end
 
     desc <<-DESC
@@ -109,64 +123,34 @@ namespace :rubber do
     DESC
     required_task :remove do
       instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
-      r = get_env('ROLES', "Instance roles (e.g. web,app,db:primary=true)", true)
+      roles_string = get_env('ROLES', "Instance roles (e.g. web,app,db:primary=true)", true)
       
-      remove_roles(instance_alias, r)
+      instance = rubber_instances[instance_alias]
+      fatal "Instance does not exist: #{instance_alias}" unless instance
+    
+      # Parse roles_string into an Array of roles
+      ir = roles_string.split(/\s*,\s*/).collect{|r| Rubber::Configuration::RoleItem.parse(r)}
+    
+      instance.roles = (instance.roles - ir).uniq
+      rubber_instances.save()
+      logger.info "Roles for #{instance_alias} are now:"
+      logger.info instance.role_names.sort.join("\n")
     end
   end
   
   # The :add_role and :remove_role tasks are for backwards-compatibility
   desc <<-DESC
-      Adds the given ROLES to the instance named ALIAS
+    Alias for rubber:roles:add
   DESC
   required_task :add_role do
-    instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
-    r = get_env('ROLES', "Instance roles (e.g. web,app,db:primary=true)", true)
-    
-    add_roles(instance_alias, r)
+    rubber.roles.add()
   end
 
   desc <<-DESC
-    Removes the given ROLES from the instance named ALIAS
+    Alias for rubber:roles:remove
   DESC
   required_task :remove_role do
-    instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
-    r = get_env('ROLES', "Instance roles (e.g. web,app,db:primary=true)", true)
-    
-    remove_roles(instance_alias, r)
-  end
-  
-  # Adds roles (in whitespace-separated String) to an instance
-  def add_roles(instance_alias, roles_string)
-    instance = rubber_instances[instance_alias]
-    fatal "Instance does not exist: #{instance_alias}" unless instance
-    
-    # Parse roles_string into an Array
-    ir = roles_string.split(/\s*,\s*/).collect{|r| Rubber::Configuration::RoleItem.parse(r)}
-    
-    # Add in roles that the given set of roles depends on
-    ir = Rubber::Configuration::RoleItem.expand_role_dependencies(ir, get_role_dependencies)
-    
-    instance.roles = (instance.roles + ir).uniq
-    rubber_instances.save()
-    logger.info "Roles for #{instance_alias} are now:"
-    logger.info instance.role_names.sort.join("\n")
-    logger.info ''
-    logger.info "Run 'cap rubber:bootstrap' if done adding roles"
-  end
-  
-  # Removes roles (in whitespace-separated String) from an instance
-  def remove_roles(instance_alias, roles_string)
-    instance = rubber_instances[instance_alias]
-    fatal "Instance does not exist: #{instance_alias}" unless instance
-    
-    # Parse roles_string into an Array
-    ir = roles_string.split(/\s*,\s*/).collect{|r| Rubber::Configuration::RoleItem.parse(r)}
-    
-    instance.roles = (instance.roles - ir).uniq
-    rubber_instances.save()
-    logger.info "Roles for #{instance_alias} are now:"
-    logger.info instance.role_names.sort.join("\n")
+    rubber.roles.remove()
   end
 
   desc <<-DESC
