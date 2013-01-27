@@ -18,6 +18,8 @@ class UtilTest < Test::Unit::TestCase
     end
     
     should "encrypt and decrypt rubber-secret.yml" do
+      pend('This is not yet working on JRuby.') if defined?(JRUBY_VERSION)
+
       fixture_dir = File.expand_path("#{File.dirname(__FILE__)}/../fixtures/secret")
       out = `#{@rubber} util:obfuscation -f '#{fixture_dir}/secret.yml' -k '#{@key}'`
       assert_equal 0, $?, "Process failed, output: #{out}"

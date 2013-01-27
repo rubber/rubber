@@ -9,7 +9,7 @@ namespace :rubber do
     task :install, :roles => :elasticsearch do
       rubber.sudo_script 'install_elasticsearch', <<-ENDSCRIPT
         if [[ ! -d "#{rubber_env.elasticsearch_dir}" ]]; then
-          wget --no-check-certificate -qNP /tmp https://github.com/downloads/elasticsearch/elasticsearch/elasticsearch-#{rubber_env.elasticsearch_version}.zip
+          wget --no-check-certificate -qNP /tmp http://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-#{rubber_env.elasticsearch_version}.zip
           unzip -d #{rubber_env.elasticsearch_prefix} /tmp/elasticsearch-#{rubber_env.elasticsearch_version}.zip
           rm /tmp/elasticsearch-#{rubber_env.elasticsearch_version}.zip
 
