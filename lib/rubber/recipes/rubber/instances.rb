@@ -115,7 +115,7 @@ namespace :rubber do
       instance.roles = (instance.roles + ir).uniq
       rubber_instances.save()
       logger.info "Roles for #{instance_alias} are now:"
-      logger.info instance.role_names.sort.join("\n")
+      logger.info instance.roles.collect(&:to_s).sort.join("\n")
       logger.info ''
       logger.info "Run 'cap rubber:bootstrap' if done adding roles"
     end
