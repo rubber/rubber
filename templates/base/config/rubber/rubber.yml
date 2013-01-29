@@ -229,10 +229,10 @@ stop_on_error_cmd: "function error_exit { exit 99; }; trap error_exit ERR"
 #           of zones
 # availability_zone: us-east-1a
 
-# OPTIONAL: If you want t use Elastic Block Store (EBS) persistent
+# OPTIONAL: If you want to use Elastic Block Store (EBS) persistent
 # volumes, add them to host specific overrides and they will get created
 # and assigned to the instance.  On initial creation, the volume will get
-# attached _and_ formatted, but if your host disapears and you recreate
+# attached _and_ formatted, but if your host disappears and you recreate
 # it, the volume will only get remounted thereby preserving your data
 #
 # hosts:
