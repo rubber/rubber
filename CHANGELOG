@@ -1,3 +1,101 @@
+2.2.0 (02/08/2013)
+------------------
+
+[core] Use OpenJDK so encryption tests will pass. <e36ce01>
+[core] Set up the elastic IP when it doesn't match the instance's current external IP <ea960c9>
+[core] Merge pull request #229 from peterson/master <23c0c2b>
+[core] fix reboot behavior <d77ce29>
+[core] net-ssh 2.6 supposedly fixes all the connection problems we've been seeing with 2.5.x. <9b32ecb>
+[core] Merge pull request #247 from zmillman/master <0e26bdd>
+[core] ruby 1.8.7 compatibility <09e64d4>
+[core] Allow the rubber:start task to start multiple instances <432f95e>
+[core] Fix syntax error in start_instances() <d23ad3c>
+[core] Clean up broken method call <dd90c5f>
+[core] Bugfix: net-ssh requires :keys to be an array, not string <74f10d3>
+[core] Fix threading for start_instances() <a0c3930>
+[core] Allow rubber:stop to manage multiple instances <7dd6ea2>
+[core] Let's see if JRuby 1.8 mode is stable on Travis now. <d0de63a>
+[core] Merge pull request #255 from zmillman/multiple_stop_start <42ac8e6>
+[core] fix 1.8 issue <effd41e>
+[core] Let's see if jruby-head is stable on Travis now. <4d32c6b>
+[core] Improve logging and handling of instance validation <c3e5e9b>
+[core] change license to ASLv2 <9f3915d>
+[core] Moved validation to top of method. <39c3d4e>
+[core] Marked encryption tests as pending in JRuby until we can figure out how to make that work reliably. <2134120>
+[apache] Added missing packages to make SendFile work on Apache. <6c7f84e>
+[base, collectd, mongrel, monit, munin, passenger, passenger_nginx] Replaced RVM with ruby-build. <d98c373>
+[base] Add ability to obfuscate rubber secret file <c9d8aac>
+[base] Bumped up to the latest Ruby 1.9.3 release. <140abd1>
+[base] Fixed a typo. <6c42f11>
+[base] Fixed ruby-build installation. <ddd4337>
+[base] Fixed script name. <0a35524>
+[base] I like punctuation. <c8d6c0f>
+[base] Improved ruby-build stuff based on pull request review. <a07f73a>
+[base] New ruby-build version to pull in a definition for JRuby 1.7.1. <730fc0e>
+[base] Print out ruby compilation status to let the user know what's going on. <c281cf1>
+[base] Removed old, unused RVM options. <bfaba8d>
+[base] Updated ruby-build version and use Ruby 1.9.3-p385 as the default now. <75cb6f4>
+[base] Updated ruby-build version. <00ea48c>
+[base] Updated to the latest ruby-build. <cb38e6a>
+[base] Upgraded ruby-build and use 1.9.3-p327 by default now. <d49d2d3>
+[base] Use the latest ruby-build and bump to the latest MRI release. <430b113>
+[base] bump ruby and ruby-build version <3a8176a>
+[base] fix ruby version detection <ac7ae0b>
+[base] fix ruby-build url <a4c8482>
+[base] fix ruby-build ver <c85364c>
+[base] quote account number to allow for leading 0s <b46b674>
+[base] refactoring, fix jruby tests <0bec484>
+[base] some fixes to ruby-build install <77e3e28>
+[base] update ubuntu ami to latest 12.04, make default instance size c1.medium to improve initial user experience <a270c7b>
+[complete_passenger, complete_passenger_nginx, complete_unicorn_nginx] Merge pull request #233 from messick/remove_db <c5ff221>
+[complete_passenger, complete_passenger_nginx, complete_unicorn_nginx] remove db template dependancy from complete_* templates <5be6300>
+[complete_unicorn_nginx] Merge pull request #230 from messick/unicorn_template_fix <d8144bf>
+[complete_unicorn_nginx] complete_unicorn_nginx template doesn't need haproxy <54faef3>
+[complete_unicorn_nginx] unicorn_nginx template does not exist <52953fa>
+[elasticsearch] Upgraded Elastic Search from 0.19.3 to 0.19.12. <96e5aa0>
+[elasticsearch] new es download url <ed796b7>
+[graphite] Added a monit file for graphite. <87eafab>
+[graphite] Added more control to graphite config. <8a2b84e>
+[graphite] Allow re-mounting the graphite storage directory elsewhere since it can fill the root store rather quickly. <80f5527>
+[graphite] Bugfix: Graphite depends on collectd. <5f7de4a>
+[graphite] Hook up ping data from collectd to graphite. <e8d466b>
+[graphite] Merge pull request #225 from pushcx/master <977e800>
+[graphite] Merge remote-tracking branch 'enthuseinc/feat/uwsgi_graphite' into test <6f6fa3f>
+[graphite] Migrate graphite_web to uwsgi <aaebea8>
+[graphite] Move graphite nginx config to nginx role <c92e8d3>
+[graphite] Removed some obsoleted backport code for graphite setup. <afd7444>
+[graphite] Upgraded graphite from 0.9.9 to 0.9.10. <733937f>
+[graphite] forgot http plugin for uwsgi <a67587d>
+[graphite] remove dependency on apache/nginx by using native http from uwsgi <abd0628>
+[graphite] respawn conflicts with monit <9955657>
+[passenger, torquebox] Be a bit safer about assets & CDNs by default. <197eb93>
+[passenger, torquebox] Make sure the Sidekiq Web interface can load successfully on Apache. <b669c1e>
+[passenger, torquebox] Updated the Sidekiq Web SendFile config to work with any Ruby. <86612de>
+[passenger] bump passenger version <9fde4bf>
+[passenger] passeneger needs to know where ruby is installed by ruby-build <dcb8934>
+[passenger_nginx] fix for ruby-build <9f01743>
+[postgresql] basic slave promotion for postgresql <8b96f71>
+[redis] Upgrade redis from 2.4.16 to 2.4.18. <d1a9e06>
+[resque] resque only has its own roles now, so fix to make sure resque_worker role gets vulcanized <7dbca27>
+[sidekiq] Added a sidekiq template. <bc31d00>
+[sidekiq] Cleanup Sidekiq monit configuration <deffcb7>
+[sidekiq] Merge pull request #228 from enthuseinc/sidekiq <202fa4a>
+[sidekiq] Update Sidekiq configuration <c14c4ee>
+[solr] Merge pull request #246 from klclee/master <32369b0>
+[solr] solr 4 template <8a5b041>
+[sphinx] Merge pull request #235 from JMcG/master <e0663ef>
+[sphinx] Updated sphinx custom_install task to use correct download url and changed version to latest stable release <b61df24>
+[torquebox] Added some missing rubber config values. <31eac16>
+[torquebox] Bootstrap Graylog JAR installation for TorqueBox. <a588cc0>
+[torquebox] Fixed a2ensite command. <a3547c6>
+[torquebox] Make it more evident that this is a junk username & password combo. <dc6067f>
+[torquebox] TorqueBox should not reference Passenger at all. <9db2dff>
+[torquebox] Upgraded from TorqueBox 2.2.0 to 2.3.0. <a95554c>
+[torquebox] Upgraded to TorqueBox 2.2.0 and added support for logging to Graylog2. <b2685d5>
+[torquebox] We no longer need to restart TorqueBox completely on deploy, since the memory leak & deploy race condition requiring it have been removed. <636c78f>
+[zookeeper] Merge pull request #234 from ScotterC/patch-5 <611b40b>
+[zookeeper] Update templates/zookeeper/config/rubber/rubber-zookeeper.yml <dbfd808>
+
 2.1.2 (10/05/2012)
 ------------------
 
