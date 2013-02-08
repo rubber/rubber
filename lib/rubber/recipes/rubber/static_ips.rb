@@ -19,8 +19,9 @@ namespace :rubber do
           rubber_instances.save
         end
 
-        # then, associate it if we don't have a record (on instance) of association
-        if ! ic.static_ip
+        # then, associate it if we don't have a record (on instance) of association or it
+        # doesn't match the instance's current external ip
+        if !ic.static_ip || ip != ic.external_ip
           logger.info "Associating static ip #{ip} with #{ic.full_name}"
           associate_static_ip(ip, ic.instance_id)
 

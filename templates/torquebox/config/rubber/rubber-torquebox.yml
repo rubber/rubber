@@ -1,4 +1,4 @@
-torquebox_version: 2.2.0
+torquebox_version: 2.3.0
 torquebox_prefix: /opt
 torquebox_dir: "#{torquebox_prefix}/torquebox"
 torquebox_log_dir: /var/log/torquebox
@@ -7,10 +7,13 @@ torquebox_http_port: 9090
 torquebox_https_port: 9443
 torquebox_ajp_port: 8009
 
-backstage_user: nirvdrum
-backstage_password: negativetwenty
+backstage_user: admin
+backstage_password: admin123
 
 mod_cluster_version: 1.2.0
+
+apache_listen_port: 80
+apache_listen_ssl_port: 443
 
 roles:
   torquebox:
