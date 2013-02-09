@@ -31,7 +31,6 @@ Improvements:
 [graphite] Migrate graphite_web to uwsgi <aaebea8>
 [graphite] Upgraded graphite from 0.9.9 to 0.9.10. <733937f>
 [passenger, torquebox] Be a bit safer about assets & CDNs by default. <197eb93>
-[passenger, torquebox] Make sure the Sidekiq Web interface can load successfully on Apache. <b669c1e>
 [passenger] bump passenger version <9fde4bf>
 [redis] Upgrade redis from 2.4.16 to 2.4.18. <d1a9e06>
 [sphinx] Updated sphinx custom_install task to use correct download url and changed version to latest stable release <b61df24>
