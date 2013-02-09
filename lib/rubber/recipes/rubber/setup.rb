@@ -69,36 +69,68 @@ namespace :rubber do
     Generates/etc/hosts for local machine
   DESC
   required_task :setup_local_aliases do
-    hosts_file = '/etc/hosts'
+    # hosts_file = '/etc/hosts'
+    require 'rbconfig'
+    is_local_windows = (RbConfig::CONFIG['host_os'] =~ /mswin|mingw/)
+    hosts_file = is_local_windows ? 'C:/Windows/System32/drivers/etc/hosts' :
+                              '/etc/hosts'
 
     # Generate /etc/hosts contents for the local machine from instance config
     delim = "## rubber config #{rubber_env.domain} #{Rubber.env}"
     local_hosts = delim + "\n"
+
     rubber_instances.each do |ic|
-      # don't add unqualified hostname in local hosts file since user may be
-      # managing multiple domains with same aliases
-      hosts_data = [ic.full_name, ic.external_host, ic.internal_host]
-      
-      # add the ip aliases for web tools hosts so we can map internal tools
-      # to their own vhost to make proxying easier (rewriting url paths for
-      # proxy is a real pain, e.g. '/graphite/' externally to '/' on the
-      # graphite web app)
-      if ic.role_names.include?('web_tools')
-        Array(rubber_env.web_tools_proxies).each do |name, settings|
-          hosts_data << "#{name}-#{ic.full_name}"
+
+      unless is_local_windows
+        # don't add unqualified hostname in local hosts file since user may be
+        # managing multiple domains with same aliases
+        hosts_data = [ic.full_name, ic.external_host, ic.internal_host]
+
+        # add the ip aliases for web tools hosts so we can map internal tools
+        # to their own vhost to make proxying easier (rewriting url paths for
+        # proxy is a real pain, e.g. '/graphite/' externally to '/' on the
+        # graphite web app)
+        if ic.role_names.include?('web_tools')
+          Array(rubber_env.web_tools_proxies).each do |name, settings|
+            hosts_data << "#{name}-#{ic.full_name}"
+          end
+        end
+
+        local_hosts << ic.external_ip << ' ' << hosts_data.join(' ') << "\n"
+
+      else # Windows
+        hosts_data = [ic.full_name, ic.internal_host]
+
+        if ic.role_names.include?('web_tools')
+          Array(rubber_env.web_tools_proxies).each do |name, settings|
+            hosts_data << "#{name}-#{ic.full_name}"
+          end
+        end
+
+        hosts_data.each do |host_name|
+          local_hosts << ic.external_ip << '     ' << host_name << "\n"
         end
       end
-      
-      local_hosts << ic.external_ip << ' ' << hosts_data.join(' ') << "\n"
+
     end
+
     local_hosts << delim << "\n"
 
     # Write out the hosts file for this machine, use sudo
     filtered = File.read(hosts_file).gsub(/^#{delim}.*^#{delim}\n?/m, '')
-    logger.info "Writing out aliases into local machines #{hosts_file}, sudo access needed"
-    Rubber::Util::sudo_open(hosts_file, 'w') do |f|
-      f.write(filtered)
-      f.write(local_hosts)
+
+    unless is_local_windows
+      logger.info "Writing out aliases into local machines #{hosts_file}, sudo access needed"
+      Rubber::Util::sudo_open(hosts_file, 'w') do |f|
+        f.write(filtered)
+        f.write(local_hosts)
+      end
+    else
+      logger.info "Writing out aliases into local machines #{hosts_file}, please ensure you are running cmd prompt as Adminstrator"
+      File.open(hosts_file, 'w') do |f|
+        f.write(filtered)
+        f.write(local_hosts)
+      end
     end
   end
 

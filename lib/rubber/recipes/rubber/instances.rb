@@ -574,7 +574,13 @@ namespace :rubber do
   # delete from ~/.ssh/known_hosts all lines that begin with ec2- or instance_alias
   def cleanup_known_hosts(instance_item)
     logger.info "Cleaning ~/.ssh/known_hosts"
-    File.open(File.expand_path('~/.ssh/known_hosts'), 'r+') do |f|
+
+    require 'rbconfig'
+    is_local_windows = (RbConfig::CONFIG['host_os'] =~ /mswin|mingw/)
+    filepath = is_local_windows ? 'C:/Windows/System32/drivers/etc/hosts' :
+                             File.expand_path('~/.ssh/known_hosts')
+
+    File.open(filepath, 'r+') do |f|
         out = ""
         f.each do |line|
           line = case line
@@ -590,6 +596,8 @@ namespace :rubber do
         f.print out
         f.truncate(f.pos)
     end
+
+    # TODO: also added this one: when /## rubber config #{rubber_env.domain} #{Rubber.env}/; ''
   end
 
   def get_role_dependencies
