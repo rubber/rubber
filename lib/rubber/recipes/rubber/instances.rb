@@ -527,11 +527,11 @@ namespace :rubber do
     
     instance_items = aliases.collect do |instance_alias|
       instance_item = rubber_instances[instance_alias]
-      
+
       fatal "Instance does not exist: #{instance_alias}" if ! instance_item
       fatal "Cannot start spot instances!" if ! instance_item.spot_instance_request_id.nil?
       fatal "Cannot start instances with instance-store root device!" if (instance_item.root_device_type != 'ebs')
-      
+
       instance_item
     end
     
