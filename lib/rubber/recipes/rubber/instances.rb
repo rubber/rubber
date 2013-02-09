@@ -379,6 +379,9 @@ namespace :rubber do
   def post_refresh
     env = rubber_cfg.environment.bind(nil, nil)
 
+    # update the remote name/environment tags
+    update_tags
+    
     # setup amazon elastic ips if configured to do so
     setup_static_ips
 
