@@ -8,6 +8,7 @@ web_port: 80
 web_ssl_port: 443
 web_tools_port: 8080
 web_tools_ssl_port: 8443
+web_pem_file: "/config/certificate.pem" # must be changed before deploy
 
 security_groups:
   web:

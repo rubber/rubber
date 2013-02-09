@@ -16,6 +16,30 @@ namespace :rubber do
       end
     end
     
+    after "rubber:install_packages", "rubber:haproxy:custom_install"
+    
+    task :custom_install, :roles => :web do
+      rubber.sudo_script 'install_haproxy_dev', <<-ENDSCRIPT
+        
+        function error_non_exit { echo "Error ignored"; }
+        if [[ ! `/usr/sbin/haproxy -v 2> /dev/null` =~ "1.5-dev15" ]]; then
+
+          trap error_non_exit ERR
+          apt-get -y install haproxy
+          trap error_exit ERR
+
+          echo 'Installing HaProxy 1.5-dev15'
+          cd /usr/src
+          wget http://haproxy.1wt.eu/download/1.5/src/devel/haproxy-1.5-dev15.tar.gz
+          tar xzf haproxy-1.5-dev15.tar.gz
+          cd haproxy-1.5-dev15/
+          make TARGET=linux2628 USE_STATIC_PCRE=1 USE_OPENSSL=1
+          sudo make PREFIX=/usr install
+
+        fi
+      ENDSCRIPT
+    end
+
     before "deploy:stop", "rubber:haproxy:stop"
     after "deploy:start", "rubber:haproxy:start"
     after "deploy:restart", "rubber:haproxy:reload"
