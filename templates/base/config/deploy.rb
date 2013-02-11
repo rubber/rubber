@@ -89,11 +89,17 @@ task :cleanup, :except => { :no_release => true } do
 end
 
 if Rubber::Util.has_asset_pipeline?
-  # load asset pipeline tasks, and reorder them to run after
-  # rubber:config so that database.yml/etc has been generated
+  # load asset pipeline task, disable precompile from being triggered
+  # by deploy:update_code during bootstrap_db, and reorder to run after
+  # rubber:config has generated database.yml/etc.
   load 'deploy/assets'
   callbacks[:after].delete_if {|c| c.source == "deploy:assets:precompile"}
-  callbacks[:before].delete_if {|c| c.source == "deploy:assets:symlink"}
-  before "deploy:assets:precompile", "deploy:assets:symlink"
-  after "rubber:config", "deploy:assets:precompile"
+  task :_skip_assets_precompile_if_bootstrapping_db do
+    if fetch(:rubber_updating_code_for_bootstrap_db, false)
+      logger.info "Skipping assets precompilation"
+    else
+      deploy.assets.precompile
+    end
+  end
+  after 'deploy:update_code', '_skip_assets_precompile_if_bootstrapping_db'
 end
