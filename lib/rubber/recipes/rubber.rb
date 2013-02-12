@@ -30,7 +30,7 @@ namespace :rubber do
           # define empty roles for the case when a task has a role that we don't define anywhere
           unless options[:roles].respond_to?(:call)
             [*options[:roles]].each do |r|
-              roles[r] ||= []
+              top.roles[r] ||= []
             end
           end
           
