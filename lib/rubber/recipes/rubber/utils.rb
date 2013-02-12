@@ -81,48 +81,43 @@ namespace :rubber do
   def serial_task(ns, name, options = {}, &block)
     # first figure out server names for the passed in roles - when no roles
     # are passed in, use all servers
-    serial_roles = Array(options[:roles])
+    
+    serial_roles = Array(options[:roles].respond_to?(:call) ? options[:roles].call() : options[:roles])
     servers = {}
     if serial_roles.empty?
-      all_servers = []
-      self.roles.each do |rolename, serverdefs|
-        all_servers += serverdefs.collect {|server| server.host}
+      all_servers = top.roles.collect do |rolename, serverdefs|
+        serverdefs.collect(&:host)
       end
-      servers[:_serial_all] = all_servers.uniq.sort
+      servers[:_serial_all] = all_servers.flatten.uniq.sort
     else
-      # get servers for each role
-      self.roles.each do |rolename, serverdefs|
+      # Get servers for each role
+      top.roles.each do |rolename, serverdefs|
         if serial_roles.include?(rolename)
-          servers[rolename] ||= []
-          servers[rolename] += serverdefs.collect {|server| server.host}
+          servers[rolename] = serverdefs.collect(&:host)
         end
       end
 
       # Remove duplication of servers - roles which come first in list
       # have precedence, so the servers show up in that group
-      serial_roles.each_with_index do |rolename, i|
-        servers[rolename] ||= []
-        serial_roles[i+1..-1].each do |r|
-          servers[r] -= servers[rolename]
-        end
+      added_servers = []
+      serial_roles.each do |rolename|
+        servers[rolename] -= added_servers
+        added_servers << servers[rolename]
         servers[rolename] = servers[rolename].uniq.sort
       end
     end
 
-    # group each role's servers into slices, but combine slices across roles
+    # group each role's servers into slices and combine
     slices = []
     servers.each do |rolename, svrs|
-      next if svrs.size == 0
       # figure out size of each slice by dividing server count by # of groups
-      slice_size = (Float(svrs.size) / (options.delete(:groups) || 2)).round
-      slice_size = 1 if slice_size == 0
-      slice_idx = 0
-      svrs.each_slice(slice_size) do |srv_slice|
-        slices[slice_idx] ||= []
-        slices[slice_idx] += srv_slice
-        slice_idx += 1
-      end
+      slice_size = (svrs.size.to_f / (options.delete(:groups) || 2)).round
+      slice_size = 1 if slice_size < 1
+      
+      # add servers to slices
+      slices += svrs.each_slice(slice_size).to_a
     end
+    
     # for each slice, define a new task specific to the hosts in that slice
     task_syms = []
     slices.each do |server_group|

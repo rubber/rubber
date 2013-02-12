@@ -1,3 +1,20 @@
+
+2.2.1 (02/11/2013)
+------------------
+
+Improvements:
+============
+
+[core] Push alias changes in local instance.yml files to cloud tags <1adebd0>
+[core] Namespaced capistrano role tasks <48fb78e>
+[base] Moved security group configuration to rubber.yml <ccc9f3e>
+
+Bug Fixes:
+=========
+[core] Added support for lambdas in role options for optional tasks <72ff4b9>
+[core] Added support for lambdas in role options for serial tasks <35716a6>
+
+
 2.2.0 (02/08/2013)
 ------------------
 

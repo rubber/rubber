@@ -6,6 +6,7 @@ namespace :rubber do
   DESC
   required_task :update_tags do
     rubber_instances.each do |ic|
+      logger.info "Updating instance tags for #{ic.name}"
       Rubber::Tag::update_instance_tags(ic.name)
     end
   end

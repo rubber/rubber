@@ -86,9 +86,13 @@ module Rubber
     # remove leading whitespace from "here" strings so they look good in code
     # skips empty lines
     def clean_indent(str)
-      counts = str.lines.collect {|l| l.scan(/^\s*/).first.size }
-      m = counts.reject {|x| x <= 1 }.min
-      str.lines.collect {|l| l.size < m ? l : l[m..-1] }.join("")
+      str.lines.collect do |line|
+        if line =~ /\S/ # line has at least one non-whitespace character
+          line.lstrip
+        else
+          line
+        end
+      end.join()
     end
 
     # execute the given block, retrying only when one of the given exceptions is raised
