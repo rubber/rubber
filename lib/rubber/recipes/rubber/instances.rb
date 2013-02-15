@@ -273,6 +273,7 @@ namespace :rubber do
     ami = cloud_env.image_id
     ami_type = cloud_env.image_type
     availability_zone = env.availability_zone
+    ebs_optimized = cloud_env.ebs_optimized
 
     create_spot_instance ||= cloud_env.spot_instance
 
@@ -307,7 +308,7 @@ namespace :rubber do
 
     if !create_spot_instance || (create_spot_instance && max_wait_time < 0)
       logger.info "Creating instance #{ami}/#{ami_type}/#{security_groups.join(',') rescue 'Default'}/#{availability_zone || 'Default'}"
-      instance_id = cloud.create_instance(ami, ami_type, security_groups, availability_zone)
+      instance_id = cloud.create_instance(ami, ami_type, security_groups, availability_zone, ebs_optimized)
     end
 
     logger.info "Instance #{instance_alias} created: #{instance_id}"
