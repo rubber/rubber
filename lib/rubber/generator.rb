@@ -123,7 +123,7 @@ module Rubber
             open(config_path, 'w') do |pipe|
               pipe.write(result)
             end
-            rsudo("dos2unix #{config_path}")
+            system("dos2unix #{config_path}")
 
           # Handle write_cmd by dumping the body to a file and then piping that into the command.
           else
@@ -132,7 +132,7 @@ module Rubber
             begin
               file.write(result)
               file.close
-              rsudo("dos2unix #{file.path}")
+              system("dos2unix #{file.path}")
 
               system("cat #{file.path} | #{config.write_cmd}")
             ensure
