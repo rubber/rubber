@@ -28,8 +28,10 @@ namespace :rubber do
         # Disable connecting to any Windows instance.
         required_task(name, options.merge(:except => { :platform => 'windows' })) do
           # define empty roles for the case when a task has a role that we don't define anywhere
-          [*options[:roles]].each do |r|
-            roles[r] ||= []
+          unless options[:roles].respond_to?(:call)
+            [*options[:roles]].each do |r|
+              top.roles[r] ||= []
+            end
           end
           
           if find_servers_for_task(current_task).empty?

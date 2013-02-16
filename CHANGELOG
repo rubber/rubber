@@ -1,3 +1,78 @@
+
+2.2.1 (02/11/2013)
+------------------
+
+Improvements:
+============
+
+[core] Push alias changes in local instance.yml files to cloud tags <1adebd0>
+[core] Namespaced capistrano role tasks <48fb78e>
+[base] Moved security group configuration to rubber.yml <ccc9f3e>
+
+Bug Fixes:
+=========
+[core] Added support for lambdas in role options for optional tasks <72ff4b9>
+[core] Added support for lambdas in role options for serial tasks <35716a6>
+
+
+2.2.0 (02/08/2013)
+------------------
+
+New Features:
+============
+
+[core] Switched license to Apache Software License version 2
+[base] Replaced RVM with ruby-build.
+[base] Add ability to obfuscate rubber secret file (MRI only) <c9d8aac>
+[postgresql] basic slave promotion for postgresql <8b96f71>
+[sidekiq] Added a sidekiq template. <bc31d00>
+[solr] Added a Solr 4 template <8a5b041>
+[torquebox] Added support for logging to Graylog2 from TorqueBox. <b2685d5>
+
+Improvements:
+============
+
+[core] Upgraded to net-ssh 2.6, as it supposedly fixes all the connection problems we've been seeing with 2.5.x. <9b32ecb>
+[core] Allow the rubber:start task to start multiple instances <432f95e>
+[core] Allow rubber:stop to manage multiple instances <7dd6ea2>
+[core] Improve logging and handling of instance validation <c3e5e9b>
+[base] Bumped up to the latest Ruby 1.9.3-p385 release. <140abd1>
+[base] update ubuntu ami to latest 12.04, make default instance size c1.medium to improve initial user experience <a270c7b>
+[complete_passenger, complete_passenger_nginx, complete_unicorn_nginx] remove db template dependancy from complete_* templates <5be6300>
+[complete_unicorn_nginx] complete_unicorn_nginx template doesn't need haproxy <54faef3>
+[elasticsearch] Upgraded Elastic Search from 0.19.3 to 0.19.12. <96e5aa0>
+[graphite] Added a monit file for graphite. <87eafab>
+[graphite] Added more control to graphite config. <8a2b84e>
+[graphite] Allow re-mounting the graphite storage directory elsewhere since it can fill the root store rather quickly. <80f5527>
+[graphite] Hook up ping data from collectd to graphite. <e8d466b>
+[graphite] Migrate graphite_web to uwsgi <aaebea8>
+[graphite] Upgraded graphite from 0.9.9 to 0.9.10. <733937f>
+[passenger, torquebox] Be a bit safer about assets & CDNs by default. <197eb93>
+[passenger] bump passenger version <9fde4bf>
+[redis] Upgrade redis from 2.4.16 to 2.4.18. <d1a9e06>
+[sphinx] Updated sphinx custom_install task to use correct download url and changed version to latest stable release <b61df24>
+[torquebox] We no longer need to restart TorqueBox completely on deploy, since the memory leak & deploy race condition requiring it have been removed. <636c78f>
+[torquebox] Upgraded from TorqueBox 2.2.0 to 2.3.0. <a95554c>
+
+Bug Fixes:
+=========
+
+[core] Set up the elastic IP when it doesn't match the instance's current external IP <ea960c9>
+[core] Fix reboot behavior so SSH connections are re-established upon reboot. <d77ce29>
+[core] Fixed some Ruby 1.8.7 compatibility issues.
+[core] Fix syntax error in start_instances() <d23ad3c>
+[core] Clean up broken method call in stopping instances <dd90c5f>
+[core] Bugfix: net-ssh requires :keys to be an array, not string <74f10d3>
+[core] Fix threading for start_instances() <a0c3930>
+[apache] Added missing packages to make SendFile work on Apache. <6c7f84e>
+[base] quote account number to allow for leading 0s in rubber.yml<b46b674>
+[complete_unicorn_nginx] unicorn_nginx template does not exist <52953fa>
+[graphite] Bugfix: Graphite depends on collectd. <5f7de4a>
+[graphite] Move graphite nginx config to nginx role <c92e8d3>
+[resque] resque only has its own roles now, so fix to make sure resque_worker role gets vulcanized <7dbca27>
+[torquebox] TorqueBox should not reference Passenger at all. <9db2dff>
+
+
 2.1.2 (10/05/2012)
 ------------------
 
@@ -7,16 +82,19 @@ New Features:
 [core] Allowing marking of a config variable as overriding the ones that come before it, so that non-scalar values (lists/maps) get overridden instead of combined <3d66fc8>
 [core] Allow erb in rubber*.yml <60e6394>
 
+
 2.1.1 (10/02/2012)
 ------------------
 
 New Features:
 ============
+
 [base] add ability to override by environment in rubber*.yml <f4c4af3>
 [couchbase, monit] add couchbase template <550dff4>
 
 Improvements:
 ============
+
 [core] Updated sudo_script to sudo to any user. <288ef5d>
 [apache, jenkins] create an apache bootstrap so jenkins template doesn't have to duplicate logic <5862791>
 [complete_passenger, passenger] do a rolling passenger restart by tieing into apache rolling restart <065d757>
@@ -32,12 +110,14 @@ Improvements:
 
 Bug Fixes:
 =========
+
 [core] fix merging of alias records <d314857>
 [core] Refactor to avoid fog deprecation, fixes #222 <43ea42f>
 [core] assign defaults for partial records in rubber-dns.yml when running setup_dns_records <a72a701>
 [monit] monit check for resque scheduler - fixes #221 <34a4fde>
 [mysql] Delete anonymous MySQL user when bootstrapping the db. Fixes #185 (pull request #212) <ce84ff2>
 [torquebox] Always use the rubber system JRuby with Torquebox. <9c03a02>
+
 
 2.1.0 (08/20/2012)
 ------------------
@@ -124,6 +204,7 @@ Bug Fixes:
 
 New Features:
 ============
+
 [torquebox] Initial work on a TorqueBox template. <160557b>
 [torquebox] Merge pull request #154 from wr0ngway/add_torquebox <d750ecb>
 [torquebox] [torquebox] Bumped to TorqueBox 2.0.3 from 2.0.2. <2851768>

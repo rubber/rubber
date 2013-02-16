@@ -7,17 +7,18 @@ namespace :rubber do
     task :install_ruby_build do
       rubber.sudo_script "install_ruby_build", <<-ENDSCRIPT
       if [[ ! `ruby-build --version 2> /dev/null` =~ "#{rubber_env.ruby_build_version}" ]]; then
-        wget -q https://github.com/sstephenson/ruby-build/tarball/v#{rubber_env.ruby_build_version} -O /tmp/ruby-build.tar.gz
+        echo "Installing ruby-build v#{rubber_env.ruby_build_version}"
+        wget -q https://github.com/sstephenson/ruby-build/archive/v#{rubber_env.ruby_build_version}.tar.gz -O /tmp/ruby-build.tar.gz
 
         # Install ruby-build.
         tar -C /tmp -zxf /tmp/ruby-build.tar.gz
-        cd /tmp/sstephenson-ruby-build-*
+        cd /tmp/ruby-build-*
         ./install.sh
 
         # Clean up after ourselves.
         cd /root
-        rm -rf /tmp/sstephenson-ruby-build-*
-        rm /tmp/ruby-build.tar.gz
+        rm -rf /tmp/ruby-build-*
+        rm -f /tmp/ruby-build.tar.gz
 
         # Get rid of RVM if this is an older rubber installation.
         if type rvm &> /dev/null; then

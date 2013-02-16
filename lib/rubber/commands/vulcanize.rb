@@ -17,17 +17,19 @@ module Rubber
       end
       
       def self.description
-        lines = []
-        line = ""
-        VulcanizeThor.valid_templates.each do |t|
-          line << ", " if line.size > 0
-          line << t
-          if line.size > 55
-            lines << line + ","
-            line = ""
+        # Format templates into comma-separated paragraph with limt of 70 characters per line
+        lines = ['']
+        VulcanizeThor.valid_templates.each do |template_name|
+          line = lines.last
+          if line.size == 0
+            line << template_name
+          elsif line.size + template_name.size > 68
+            line << ','
+            lines << template_name # new line
+          else
+            line << ", " + template_name
           end
         end
-        lines << line if line.size >0
         
         Rubber::Util.clean_indent(<<-EOS
           Prepares the rails application for deploying with rubber by installing a
