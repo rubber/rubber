@@ -94,7 +94,7 @@ module Rubber
       end
       
       def bind(roles = nil, host = nil)
-        BoundEnv.new(@items, roles, host, config_env)
+        BoundEnv.new(@items, roles, host, config_env, local_platform)
       end
 
       # combine old and new into a single value:
@@ -124,8 +124,18 @@ module Rubber
         return value
       end
 
+      # Note: we could expand this to more platforms as per this link:
+      # http://rbjl.net/35-how-to-properly-check-for-your-ruby-interpreter-version-and-os
+      def local_platform
+        RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ? 'windows' : 'posix'
+      end
+
       def local_windows?
-        RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
+        local_platform == 'windows'
+      end
+
+      def local_posix?
+        local_platform == 'posix'
       end
 
       class HashValueProxy < Hash
@@ -193,11 +203,13 @@ module Rubber
         attr_reader :roles
         attr_reader :host
         attr_reader :env
+        attr_reader :local_platform
 
-        def initialize(global, roles, host, env)
+        def initialize(global, roles, host, env, local_platform)
           @roles = roles
           @host = host
           @env = env
+          @local_platform = local_platform
           bound_global = bind_config(global)
           super(nil, bound_global)
         end
@@ -225,7 +237,15 @@ module Rubber
           end
           return global
         end
-        
+
+        def local_windows?
+          local_platform == 'windows'
+        end
+
+        def local_posix?
+          local_platform == 'posix'
+        end
+
         def method_missing(method_id)
           key = method_id.id2name
           return self[key]
