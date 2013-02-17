@@ -3,18 +3,14 @@ on :load do
 
   if rubber_env.local_windows? && rubber_instances.reject{|i| i.windows?}.any?
 
-    # Bundler has a known feature limitation that the Bundler 'platforms'
-    # Gemfile block does not work across platforms, as a Gemfile.lock
-    # generated on Windows is enforced strictly on Linux.
-    # See: https://github.com/carlhuda/bundler/issues/646
-
+    # The Bundler 'platforms' block in your Gemfile currently causes cross-platform
+    # deploys to fail. See: https://github.com/carlhuda/bundler/issues/646
+    # As a workaround we deploy to remote Linux without the Gemfile.lock from Windows.
     # If you are not using 'platforms' in your Gemfile, you do not need this hack.
-    # Otherwise, you have two options:
-
-    # Option 1) exclude Gemfile.lock from the Bundle transfer (Heroku does this)
     set :copy_exclude, strategy.copy_exclude + ['Gemfile.lock']
+    set :bundle_flags, "--quiet"
 
-    # Option 2) tell Bunder to disregard Gemfile.lock on the remote server
+    # An alternative option for the above limitation:
     # set :bundle_flags, "--no_deployment --quiet"
 
   end
