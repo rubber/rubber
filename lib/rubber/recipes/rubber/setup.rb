@@ -128,11 +128,7 @@ namespace :rubber do
           f.write(local_hosts)
         end
       rescue
-        logger.error <<-ERROR
-          Could not modify #{hosts_file} on local machine.
-          Please ensure you are running cmd prompt as Adminstrator,
-          and run 'cap rubber:setup_local_aliases'
-        ERROR
+        abort "Could not modify #{hosts_file} on local machine. Please ensure you are running command as Adminstrator."
       end
 
     else # non-Windows OS

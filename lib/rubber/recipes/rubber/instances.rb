@@ -591,7 +591,8 @@ namespace :rubber do
         'C:/Windows/System32/drivers/etc/hosts' :
         File.expand_path('~/.ssh/known_hosts')
 
-    File.open(filepath, 'r+') do |f|
+    begin
+      File.open(filepath, 'r+') do |f|
         out = ""
         f.each do |line|
           line = case line
@@ -606,9 +607,12 @@ namespace :rubber do
         f.pos = 0
         f.print out
         f.truncate(f.pos)
+      end
+    rescue
+      error_msg = "Failed to modify #{filepath} on local machine."
+      error_msg += " Please ensure you are running command as Adminstrator." if rubber_env.local_windows?
+      abort error_msg
     end
-
-    # TODO: also added this one: when /## rubber config #{rubber_env.domain} #{Rubber.env}/; ''
   end
 
   def get_role_dependencies
