@@ -2,6 +2,7 @@ require 'yaml'
 require 'socket'
 require 'delegate'
 require 'rubber/encryption'
+require 'rbconfig'
 
 
 module Rubber
@@ -121,6 +122,10 @@ module Rubber
           value = new
         end
         return value
+      end
+
+      def local_windows?
+        RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
       end
 
       class HashValueProxy < Hash

@@ -587,10 +587,9 @@ namespace :rubber do
   def cleanup_known_hosts(instance_item)
     logger.info "Cleaning ~/.ssh/known_hosts"
 
-    require 'rbconfig'
-    is_local_windows = (RbConfig::CONFIG['host_os'] =~ /mswin|mingw/)
-    filepath = is_local_windows ? 'C:/Windows/System32/drivers/etc/hosts' :
-                             File.expand_path('~/.ssh/known_hosts')
+    filepath = rubber_env.local_windows? ?
+        'C:/Windows/System32/drivers/etc/hosts' :
+        File.expand_path('~/.ssh/known_hosts')
 
     File.open(filepath, 'r+') do |f|
         out = ""

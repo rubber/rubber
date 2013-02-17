@@ -69,11 +69,9 @@ namespace :rubber do
     Generates/etc/hosts for local machine
   DESC
   required_task :setup_local_aliases do
-    # hosts_file = '/etc/hosts'
-    require 'rbconfig'
-    is_local_windows = (RbConfig::CONFIG['host_os'] =~ /mswin|mingw/)
-    hosts_file = is_local_windows ? 'C:/Windows/System32/drivers/etc/hosts' :
-                              '/etc/hosts'
+    hosts_file = rubber_env.local_windows? ?
+        'C:/Windows/System32/drivers/etc/hosts' :
+        '/etc/hosts'
 
     # Generate /etc/hosts contents for the local machine from instance config
     delim = "## rubber config #{rubber_env.domain} #{Rubber.env}"
@@ -81,7 +79,22 @@ namespace :rubber do
 
     rubber_instances.each do |ic|
 
-      unless is_local_windows
+      if rubber_env.local_windows?
+
+        hosts_data = [ic.full_name, ic.internal_host]
+
+        if ic.role_names.include?('web_tools')
+          Array(rubber_env.web_tools_proxies).each do |name, settings|
+            hosts_data << "#{name}-#{ic.full_name}"
+          end
+        end
+
+        hosts_data.each do |host_name|
+          local_hosts << ic.external_ip << '     ' << host_name << "\n"
+        end
+
+      else # non-Windows OS
+
         # don't add unqualified hostname in local hosts file since user may be
         # managing multiple domains with same aliases
         hosts_data = [ic.full_name, ic.external_host, ic.internal_host]
@@ -98,18 +111,6 @@ namespace :rubber do
 
         local_hosts << ic.external_ip << ' ' << hosts_data.join(' ') << "\n"
 
-      else # Windows
-        hosts_data = [ic.full_name, ic.internal_host]
-
-        if ic.role_names.include?('web_tools')
-          Array(rubber_env.web_tools_proxies).each do |name, settings|
-            hosts_data << "#{name}-#{ic.full_name}"
-          end
-        end
-
-        hosts_data.each do |host_name|
-          local_hosts << ic.external_ip << '     ' << host_name << "\n"
-        end
       end
 
     end
@@ -119,19 +120,29 @@ namespace :rubber do
     # Write out the hosts file for this machine, use sudo
     filtered = File.read(hosts_file).gsub(/^#{delim}.*^#{delim}\n?/m, '')
 
-    unless is_local_windows
+    if rubber_env.local_windows?
+      logger.info "Writing out aliases into local machines #{hosts_file}"
+      begin
+        File.open(hosts_file, 'w') do |f|
+          f.write(filtered)
+          f.write(local_hosts)
+        end
+      rescue
+        logger.error <<-ERROR
+          Could not modify #{hosts_file} on local machine.
+          Please ensure you are running cmd prompt as Adminstrator,
+          and run 'cap rubber:setup_local_aliases'
+        ERROR
+      end
+
+    else # non-Windows OS
       logger.info "Writing out aliases into local machines #{hosts_file}, sudo access needed"
       Rubber::Util::sudo_open(hosts_file, 'w') do |f|
         f.write(filtered)
         f.write(local_hosts)
       end
-    else
-      logger.info "Writing out aliases into local machines #{hosts_file}, please ensure you are running cmd prompt as Adminstrator"
-      File.open(hosts_file, 'w') do |f|
-        f.write(filtered)
-        f.write(local_hosts)
-      end
     end
+
   end
 
 
