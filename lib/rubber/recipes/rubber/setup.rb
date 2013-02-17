@@ -120,23 +120,24 @@ namespace :rubber do
     # Write out the hosts file for this machine, use sudo
     filtered = File.read(hosts_file).gsub(/^#{delim}.*^#{delim}\n?/m, '')
 
-    if rubber_env.local_windows?
-      logger.info "Writing out aliases into local machines #{hosts_file}"
-      begin
+    begin
+      if rubber_env.local_windows?
+        logger.info "Writing out aliases into local machines #{hosts_file}"
         File.open(hosts_file, 'w') do |f|
           f.write(filtered)
           f.write(local_hosts)
         end
-      rescue
-        abort "Could not modify #{hosts_file} on local machine. Please ensure you are running command as Adminstrator."
+      else # non-Windows OS
+        logger.info "Writing out aliases into local machines #{hosts_file}, sudo access needed"
+        Rubber::Util::sudo_open(hosts_file, 'w') do |f|
+          f.write(filtered)
+          f.write(local_hosts)
+        end
       end
-
-    else # non-Windows OS
-      logger.info "Writing out aliases into local machines #{hosts_file}, sudo access needed"
-      Rubber::Util::sudo_open(hosts_file, 'w') do |f|
-        f.write(filtered)
-        f.write(local_hosts)
-      end
+    rescue
+      error_msg = "Could not modify #{hosts_file} on local machine."
+      error_msg += " Please ensure you are running command as Adminstrator." if rubber_env.local_windows?
+      abort error_msg
     end
 
   end
