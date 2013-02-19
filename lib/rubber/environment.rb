@@ -2,6 +2,7 @@ require 'yaml'
 require 'socket'
 require 'delegate'
 require 'rubber/encryption'
+require 'rbconfig'
 
 
 module Rubber
@@ -220,7 +221,21 @@ module Rubber
           end
           return global
         end
-        
+
+        # Note: we could expand this to more platforms as per this link:
+        # http://rbjl.net/35-how-to-properly-check-for-your-ruby-interpreter-version-and-os
+        def local_platform
+          RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ? 'windows' : 'posix'
+        end
+
+        def local_windows?
+          local_platform == 'windows'
+        end
+
+        def local_posix?
+          local_platform == 'posix'
+        end
+
         def method_missing(method_id)
           key = method_id.id2name
           return self[key]

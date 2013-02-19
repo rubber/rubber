@@ -123,6 +123,7 @@ module Rubber
             open(config_path, 'w') do |pipe|
               pipe.write(result)
             end
+            system("dos2unix #{config_path}") # TODO: run dos2unix only if running Windows locally (how?)
 
           # Handle write_cmd by dumping the body to a file and then piping that into the command.
           else
@@ -131,6 +132,7 @@ module Rubber
             begin
               file.write(result)
               file.close
+              system("dos2unix #{file.path}") # TODO: run dos2unix only if running Windows locally (how?)
 
               system("cat #{file.path} | #{config.write_cmd}")
             ensure
