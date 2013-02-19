@@ -16,3 +16,22 @@ on :load do
   end
 
 end
+
+after "deploy:update_code", "deploy:local_windows:dos2unix_code"
+
+namespace :deploy do
+
+  namespace :local_windows do
+
+    desc <<-DESC
+Converts Windows-style line endings (CR+LF) to Unix-style (LF)
+after code has been copied to remote server.
+DESC
+
+    task :dos2unix_code, :except => { :no_release => true, :platform => 'windows' } do
+      rsudo "find #{release_path} -type f -exec dos2unix -q {} \\;"
+    end
+
+  end
+
+end
