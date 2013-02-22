@@ -1,3 +1,17 @@
+2.2.2 (02/22/2013)
+------------------
+
+Improvements:
+============
+[base] Updated to ruby-build 20130222 to get the latest MRI and JRuby security releases <401da62>
+[memcached] Switched from memcache-client to dalli for the client gem, as dalli is actually maintained and overall better <2cfc235>
+
+Bug Fixes:
+=========
+[base]  Fixed #287: Failure converting from RVM to ruby-build <c787fdf>
+[sidekiq] Fixed #281: sidekiq refuses to run with stdin: is not a tty error <45697bf>
+[sidekiq] Fixed monit config for Sidekiq, which shouldn't be using binstubs <3f28b6d>
+
 
 2.2.1 (02/11/2013)
 ------------------
