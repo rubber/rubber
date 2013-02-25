@@ -224,7 +224,7 @@ prompt_for_security_group_sync: true
 packages: [postfix, build-essential, git-core, ec2-ami-tools, libxslt-dev, ntp]
 
 # OPTIONAL: gem sources to setup for rubygems
-# gemsources: ["http://rubygems.org", "http://gems.github.com"]
+# gemsources: ["https://rubygems.org"]
 
 # OPTIONAL: The gems to install on all instances
 # You can install a specific version of a gem by using a sub-array of gem, version
