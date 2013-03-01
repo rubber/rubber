@@ -486,6 +486,7 @@ namespace :rubber do
   # device and that are not spot instances.
   def stop_instances(aliases)
     stop_threads = []
+    refresh_threads = []
     
     instance_items = aliases.collect{|instance_alias| rubber_instances[instance_alias]}
     instance_items = aliases.collect do |instance_alias|
@@ -512,10 +513,12 @@ namespace :rubber do
         cloud.stop_instance(instance_item.instance_id)
         
         stopped = false
-        while !stopped
-          sleep 1
-          instance = cloud.describe_instances(instance_item.instance_id).first rescue {}
-          stopped = (instance[:state] == "stopped")
+        
+        # Re-starting an instance will almost certainly give it a new set of IPs and DNS entries, so refresh the values.
+        refresh_threads << Thread.new do
+          while ! (refresh_instance(instance_item.name) && instance_item.state == 'stopped')
+            sleep 1
+          end
         end
       end
     end
@@ -529,6 +532,7 @@ namespace :rubber do
     print "\n"
       
     stop_threads.each(&:join)
+    refresh_threads.each(&:join)
   end
 
   # Starts the given ec2 instances.  Note that this operation only works for instances that use an EBS volume for the root
