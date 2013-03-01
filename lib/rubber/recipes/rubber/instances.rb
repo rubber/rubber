@@ -351,9 +351,8 @@ namespace :rubber do
 
     instance = cloud.describe_instances(instance_item.instance_id).first rescue {}
 
-    if instance[:state] == "running"
-      print "\n"
-      logger.info "Instance running, fetching hostname/ip data"
+    if instance[:state] == "running" || instance[:state] == 'stopped'
+      logger.info "Instance #{instance[:state]}, fetching hostname/ip data for #{instance_item.name}"
       instance_item.external_host = instance[:external_host]
       instance_item.external_ip = instance[:external_ip]
       instance_item.internal_host = instance[:internal_host]
