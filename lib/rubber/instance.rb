@@ -202,6 +202,7 @@ module Rubber
       attr_accessor :static_ip, :volumes, :partitions, :root_device_type
       attr_accessor :spot_instance_request_id
       attr_accessor :platform
+      attr_accessor :state
 
       def initialize(name, domain, roles, instance_id, image_type, image_id, security_group_list=[])
         @name = name
@@ -253,6 +254,15 @@ module Rubber
 
       def windows?
         platform == 'windows'
+      end
+      
+      def state
+        # Deal with old instance configurations that don't have a state value persisted.
+        @state || 'running'
+      end
+      
+      def running?
+        state == 'running'
       end
     end
 

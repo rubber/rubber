@@ -74,7 +74,7 @@ namespace :rubber do
     # Generate /etc/hosts contents for the local machine from instance config
     delim = "## rubber config #{rubber_env.domain} #{Rubber.env}"
     local_hosts = delim + "\n"
-    rubber_instances.each do |ic|
+    rubber_instances.select(&:running?).each do |ic|
       # don't add unqualified hostname in local hosts file since user may be
       # managing multiple domains with same aliases
       hosts_data = [ic.full_name, ic.external_host, ic.internal_host]
@@ -156,7 +156,7 @@ namespace :rubber do
     Sets up aliases in dynamic dns provider for instance hostnames based on contents of instance.yml.
   DESC
   required_task :setup_dns_aliases do
-    rubber_instances.each do |ic|
+    rubber_instances.select(&:running?).each do |ic|
       update_dyndns(ic)
     end
   end

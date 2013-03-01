@@ -80,15 +80,21 @@ namespace :rubber do
     all_roles += rubber_cfg.environment.known_roles
     all_roles.uniq!
     all_roles.each {|name| top.roles[name.to_sym] = []}
+    
 
     # define capistrano host => role mapping for all instances
     rubber_instances.filtered.each do |ic|
-      ic.roles.each do |role|
-        opts = Rubber::Util::symbolize_keys(role.options).merge(:platform => ic.platform)
-        msg = "Auto role: #{role.name.to_sym} => #{ic.full_name}"
-        msg << ", #{opts.inspect}" if opts.inspect.size > 0
-        logger.info msg
-        top.role role.name.to_sym, ic.full_name, opts
+      
+      if ic.running?
+        ic.roles.each do |role|
+          opts = Rubber::Util::symbolize_keys(role.options).merge(:platform => ic.platform)
+          msg = "Auto role: #{role.name.to_sym} => #{ic.full_name}"
+          msg << ", #{opts.inspect}" if opts.inspect.size > 0
+          logger.info msg
+          top.role role.name.to_sym, ic.full_name, opts
+        end
+      else
+        logger.info "#{ic.full_name} is not running! Won't be included in auto-roles"
       end
     end
   end

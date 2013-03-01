@@ -360,9 +360,10 @@ namespace :rubber do
       instance_item.zone = instance[:zone]
       instance_item.platform = instance[:platform]
       instance_item.root_device_type = instance[:root_device_type]
+      instance_item.state = instance[:state]
       rubber_instances.save()
 
-      unless instance_item.windows?
+      unless !instance_item.running? || instance_item.windows?
         # weird cap/netssh bug, sometimes just hangs forever on initial connect, so force a timeout
         begin
           Timeout::timeout(30) do
