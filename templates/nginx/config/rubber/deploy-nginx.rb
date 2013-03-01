@@ -40,7 +40,7 @@ namespace :rubber do
     
     desc "Starts the nginx web server"
     task :start, :roles => :nginx do
-      rsudo "service nginx start"
+      rsudo "service nginx start || service nginx restart"
     end
     
     desc "Restarts the nginx web server"
