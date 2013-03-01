@@ -230,7 +230,7 @@ namespace :rubber do
         create_instance(instance_alias, ir, create_spot_instance)
 
         refresh_threads << Thread.new do
-          while ! refresh_instance(instance_alias)
+          while ! (refresh_instance(instance_alias) && rubber_instances[instance_alias].running?)
             sleep 1
           end
         end
@@ -352,6 +352,7 @@ namespace :rubber do
     instance = cloud.describe_instances(instance_item.instance_id).first rescue {}
 
     if instance[:state] == "running" || instance[:state] == 'stopped'
+      print "\n"
       logger.info "Instance #{instance[:state]}, fetching hostname/ip data for #{instance_item.name}"
       instance_item.external_host = instance[:external_host]
       instance_item.external_ip = instance[:external_ip]
@@ -566,7 +567,7 @@ namespace :rubber do
         
         # Re-starting an instance will almost certainly give it a new set of IPs and DNS entries, so refresh the values.
         refresh_threads << Thread.new do
-          while ! refresh_instance(instance_item.name)
+          while ! (refresh_instance(instance_item.name) && instance_item.state == 'running')
             sleep 1
           end
         end
