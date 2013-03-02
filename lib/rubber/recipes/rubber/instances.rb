@@ -230,7 +230,7 @@ namespace :rubber do
         create_instance(instance_alias, ir, create_spot_instance)
 
         refresh_threads << Thread.new do
-          while ! (refresh_instance(instance_alias) && rubber_instances[instance_alias].running?)
+          while ! (refresh_instance(instance_alias, :wait_for_state => 'running'))
             sleep 1
           end
         end
@@ -342,7 +342,9 @@ namespace :rubber do
 
   # Refreshes a ec2 instance with the given alias
   # Configures aliases (/etc/hosts) on local and remote machines
-  def refresh_instance(instance_alias)
+  def refresh_instance(instance_alias, options = {})
+    target_states = [options[:wait_for_state]] || ['running', 'stopped']
+    
     instance_item = rubber_instances[instance_alias]
 
     fatal "Instance does not exist: #{instance_alias}" if ! instance_item
@@ -351,7 +353,7 @@ namespace :rubber do
 
     instance = cloud.describe_instances(instance_item.instance_id).first rescue {}
 
-    if instance[:state] == "running" || instance[:state] == 'stopped'
+    if target_states.include?(instance[:state])
       print "\n"
       logger.info "Instance #{instance[:state]}, fetching hostname/ip data for #{instance_item.name}"
       instance_item.external_host = instance[:external_host]
@@ -517,7 +519,7 @@ namespace :rubber do
         
         # Re-starting an instance will almost certainly give it a new set of IPs and DNS entries, so refresh the values.
         refresh_threads << Thread.new do
-          while ! (refresh_instance(instance_item.name) && instance_item.state == 'stopped')
+          while !refresh_instance(instance_item.name, :wait_for_state => 'stopped')
             sleep 1
           end
         end
@@ -528,7 +530,7 @@ namespace :rubber do
     while true do
       print "."
       sleep 2
-      break unless stop_threads.any?(&:alive?)
+      break unless refresh_threads.any?(&:alive?)
     end
     print "\n"
       
@@ -567,7 +569,7 @@ namespace :rubber do
         
         # Re-starting an instance will almost certainly give it a new set of IPs and DNS entries, so refresh the values.
         refresh_threads << Thread.new do
-          while ! (refresh_instance(instance_item.name) && instance_item.state == 'running')
+          while ! refresh_instance(instance_item.name, :wait_for_state => 'running')
             sleep 1
           end
         end
@@ -578,7 +580,7 @@ namespace :rubber do
     while true do
       print "."
       sleep 2
-      break unless start_threads.any?(&:alive?)
+      break unless refresh_threads.any?(&:alive?)
     end
 
     start_threads.each(&:join)
