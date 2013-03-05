@@ -14,7 +14,7 @@ namespace :rubber do
 
     desc "Start monit daemon monitoring"
     task :start, :roles => :monit do
-      rsudo "service monit start"
+      rsudo "service monit status || service monit start"
     end
     
     desc "Stop monit daemon monitoring"

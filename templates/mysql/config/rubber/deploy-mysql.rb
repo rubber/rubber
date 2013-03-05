@@ -134,7 +134,7 @@ namespace :rubber do
       Starts the mysql daemons
     DESC
     task :start, :roles => [:mysql_master, :mysql_slave] do
-      rsudo "service mysql start"
+      rsudo "service mysql status || service mysql start"
     end
     
     desc <<-DESC
