@@ -122,7 +122,7 @@ namespace :rubber do
       Starts the mysql cluster sql daemon on the sql nodes
     DESC
     task :start_sql, :roles => :mysql_sql do
-      rsudo "service mysql status || service mysql start"
+      rsudo "service mysql start"
     end
     
     desc <<-DESC
