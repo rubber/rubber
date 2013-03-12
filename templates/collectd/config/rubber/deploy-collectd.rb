@@ -22,7 +22,7 @@ namespace :rubber do
 
     desc "Start collectd system monitoring"
     task :start, :roles => :collectd do
-      rsudo "service collectd start"
+      rsudo "service collectd status || service collectd start"
     end
     
     desc "Stop collectd system monitoring"

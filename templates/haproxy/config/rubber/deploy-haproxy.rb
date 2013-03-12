@@ -27,7 +27,7 @@ namespace :rubber do
     
     desc "Starts the haproxy server"
     task :start, :roles => :haproxy do
-      rsudo "service haproxy start"
+      rsudo "service haproxy status || service haproxy start"
     end
     
     desc "Restarts the haproxy server"

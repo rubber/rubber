@@ -35,7 +35,7 @@ namespace :rubber do
       Starts the zookeeper daemon
     DESC
     task :start, :roles => :zookeeper do
-      rsudo "service zookeeper start"
+      rsudo "service zookeeper status || service zookeeper start"
     end
     
     desc <<-DESC

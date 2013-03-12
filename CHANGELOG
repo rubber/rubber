@@ -1,3 +1,24 @@
+2.2.4 (03/05/2013)
+------------------
+
+Bug Fixes:
+=========
+[mysql] Reverted the service status check since it returns a success status code even if MySQL isn't running.
+
+
+2.2.3 (03/04/2013)
+------------------
+
+Improvements:
+============
+[base] Updated the default set of gemsources
+[base] Updated to the latest Ubuntu 12.0.4 LTS AMI
+
+Bug Fixes:
+=========
+[all] Don't fail starting a service if it's already running.
+
+
 2.2.2 (02/22/2013)
 ------------------
 

@@ -76,7 +76,7 @@ namespace :rubber do
       Starts the jenkins daemon
     DESC
     task :start, :roles => :jenkins do
-      rsudo "service jenkins start"
+      rsudo "service jenkins status || service jenkins start"
     end
 
     desc <<-DESC
