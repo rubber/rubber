@@ -343,7 +343,11 @@ namespace :rubber do
   # Refreshes a ec2 instance with the given alias
   # Configures aliases (/etc/hosts) on local and remote machines
   def refresh_instance(instance_alias, options = {})
-    target_states = [options[:wait_for_state]] || ['running', 'stopped']
+    if options[:wait_for_state]
+      target_states = [options[:wait_for_state]]
+    else
+      target_states = ['running', 'stopped']
+    end
     
     instance_item = rubber_instances[instance_alias]
 
