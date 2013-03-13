@@ -118,7 +118,7 @@ cloud_provider: aws
 # 
 # Allowed forms are:
 # filesystem: "file:#{Rubber.root}/config/rubber/instance-#{Rubber.env}.yml"
-# cloud storage (s3): "storage:#{cloud_provider.aws.backup_bucket}/RubberInstances_#{app_name}/instance-#{Rubber.env}.yml"
+# cloud storage (s3): "storage:#{cloud_providers.aws.backup_bucket}/RubberInstances_#{app_name}/instance-#{Rubber.env}.yml"
 # cloud table (simpledb): "table:RubberInstances_#{app_name}_#{Rubber.env}"
 #
 # If you need to port between forms, load the rails console then:
