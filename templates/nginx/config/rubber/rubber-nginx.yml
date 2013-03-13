@@ -5,6 +5,8 @@
 # Uses from rubber-complete.yml
 # web_tools_port: 8080
 
+nginx_log_dir: /mnt/nginx/logs
+
 roles:
   nginx:
     packages: [nginx]
