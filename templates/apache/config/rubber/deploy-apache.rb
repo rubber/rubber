@@ -52,7 +52,7 @@ namespace :rubber do
     
     desc "Starts the apache web server"
     task :start, :roles => :apache do
-      rsudo "service apache2 start"
+      rsudo "service apache2 status || service apache2 start"
     end
     
     desc "Restarts the apache web server"

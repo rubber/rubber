@@ -21,7 +21,7 @@ namespace :rubber do
 
     desc "Start sidekiq"
     task :start, :roles => :sidekiq do
-      rsudo "cd #{current_path} ; nohup bundle exec sidekiq -e #{Rubber.env} -C #{current_path}/config/sidekiq.yml -P #{current_path}/tmp/pids/sidekiq.pid >> #{current_path}/log/sidekiq.log 2>&1 &", :pty => false, :as => rubber_env.app_user
+      rsudo "cd #{current_path} ; nohup bundle exec sidekiq -e #{Rubber.env} -C #{current_path}/config/sidekiq.yml -P #{current_path}/tmp/pids/sidekiq.pid >> #{current_path}/log/sidekiq.log 2>&1 &", :as => rubber_env.app_user
       sleep 45 # Give the workers some time to start up before moving on so monit doesn't try to start as well.
     end
 
