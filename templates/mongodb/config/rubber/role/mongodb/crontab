@@ -1,0 +1,8 @@
+<%
+  @read_cmd = 'crontab -l'
+  @write_cmd = 'crontab -'
+  @additive = ["# rubber-mongodb-start", "# rubber-mongodb-end"]
+%>
+
+# Roll the mongodb logs at midnight
+0 0 * * * <%= Rubber.root %>/script/rubber cron --task util:rotate_logs --directory=<%= rubber_env.mongodb_log_dir %>
