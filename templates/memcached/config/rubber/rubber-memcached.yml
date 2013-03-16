@@ -1,5 +1,7 @@
 # Sets up memcached server and client as dalli
 
+memcached_log_dir: /var/log/memcached
+
 gems: [dalli]
 
 roles:
