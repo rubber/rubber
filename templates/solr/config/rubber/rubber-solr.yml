@@ -4,7 +4,10 @@ solr_xml: SOLR_XML_FILE_NAME
 solr_xml_path: SOLR_XML_FILE_PATH_AND_NAME
 core_name: SOLR_CORE_NAME
 tarz_config_files: PATH_TO_SOLR_CIONFIG_TAR_GZ_FILE
+tomcat_download_url: http://ftp.heanet.ie/mirrors/www.apache.org/dist/tomcat/tomcat-7/v7.0.37/bin/apache-tomcat-7.0.37.tar.gz
+tomcat_untar_folder_name: apache-tomcat-7.0.37
+solr_download_url: http://ftp.heanet.ie/mirrors/www.apache.org/dist/lucene/solr/4.1.0/solr-4.1.0.tgz
+solr_untar_folder_name: solr-4.1.0
 tomcat_dest_folder: TOMCAT7_DEST_FOLER
 solr_home_dest_foler: SOLR_BASE_FOLDER
 Xmx: HEAP_SPACE_FOR_JVM (e.g. 1024m or 2gb etc)
-
