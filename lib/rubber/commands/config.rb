@@ -50,7 +50,7 @@ module Rubber
           instance.internal_ip = "127.0.0.1"
           cfg.instance.add(instance)
           gen = Rubber::Configuration::Generator.new("#{Rubber.root}/config/rubber", role_names, instance_alias)
-          gen.fake_root = fake_root || "#{Rubber.root}/tmp/rubber"
+          gen.fake_root = fakeroot || "#{Rubber.root}/tmp/rubber"
         else
           puts "Instance not found for host: #{instance_alias}"
           exit 1
