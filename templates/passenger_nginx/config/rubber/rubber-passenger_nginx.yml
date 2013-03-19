@@ -1,5 +1,5 @@
-passenger_version: 3.0.11
-nginx_version: 1.0.11
+passenger_version: 3.0.19
+nginx_version: 1.2.7
 passenger_root: "#{`bash -l -c 'find #{ruby_path} -name passenger-#{passenger_version}'`.strip}"
 passenger_ruby: "#{ruby_path}/bin/ruby"
 passenger_lib: "#{passenger_root}/ext/nginx"
@@ -11,7 +11,7 @@ use_ssl_key: false
 #if you use an ssl key, put your cert and key
 # in
 # #{Rubber.root}/config/#{rubber_env.domain} .crt and .key
-#otherwise defaults to key included with linux 
+#otherwise defaults to key included with linux
 
 
 roles:
