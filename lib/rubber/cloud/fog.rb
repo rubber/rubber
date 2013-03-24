@@ -13,8 +13,8 @@ module Rubber
         credentials = Rubber::Util.symbolize_keys(env.credentials)
         @compute_provider = ::Fog::Compute.new(credentials)
 
-        # TODO (KJM: 03/23/13) Not all providers have a storage provider.  We need to support mixing and matching.
-        #@storage_provider = ::Fog::Storage.new(credentials)
+        # TODO (nirvdrum: 03/23/13) Not all providers have a storage provider.  We need to support mixing and matching.
+        @storage_provider = ::Fog::Storage.new(credentials) rescue nil
       end
       
       def storage(bucket)
