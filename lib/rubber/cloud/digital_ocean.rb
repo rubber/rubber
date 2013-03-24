@@ -40,7 +40,7 @@ module Rubber
           if env.key_file
             ssh_key = compute_provider.create_ssh_key(env.key_name, File.read("#{env.key_file}.pub"))
           else
-            raise "Missing key_file for DigitalOcean"
+            raise 'Missing key_file for DigitalOcean'
           end
         end
 
