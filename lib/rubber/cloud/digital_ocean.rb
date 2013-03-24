@@ -18,8 +18,6 @@ module Rubber
       end
 
       def create_instance(instance_alias, image_name, image_type, security_groups, availability_zone)
-        puts "KEVIN> #{image_name} - #{image_type} - #{security_groups} - #{availability_zone}"
-
         region = compute_provider.regions.find { |r| r.name == availability_zone }
         if region.nil?
           raise "Invalid region for DigitalOcean: #{availability_zone}"
