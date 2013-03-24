@@ -43,6 +43,7 @@ module Rubber
           instance[:internal_ip] = item.private_ip_address
           instance[:state] = item.state
           instance[:zone] = item.availability_zone
+          instance[:provider] = 'aws'
           instance[:platform] = item.platform || 'linux'
           instance[:root_device_type] = item.root_device_type
           instances << instance

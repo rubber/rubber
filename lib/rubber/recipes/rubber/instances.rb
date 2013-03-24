@@ -366,6 +366,7 @@ namespace :rubber do
       instance_item.internal_host = instance[:internal_host]
       instance_item.internal_ip = instance[:internal_ip]
       instance_item.zone = instance[:zone]
+      instance_item.provider = instance[:provider]
       instance_item.platform = instance[:platform]
       instance_item.root_device_type = instance[:root_device_type]
       rubber_instances.save()
