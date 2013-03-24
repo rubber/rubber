@@ -263,16 +263,21 @@ namespace :rubber do
     role_names = instance_roles.collect{|x| x.name}
     env = rubber_cfg.environment.bind(role_names, instance_alias)
 
-    # We need to use security_groups during create, so create them up front
-    mutex.synchronize do
-      setup_security_groups(instance_alias, role_names)
+    if cloud.respond_to?(:describe_security_groups)
+      # We need to use security_groups during create, so create them up front
+      mutex.synchronize do
+        setup_security_groups(instance_alias, role_names)
+      end
+      security_groups = get_assigned_security_groups(instance_alias, role_names)
+    else
+      security_groups = []
     end
-    security_groups = get_assigned_security_groups(instance_alias, role_names)
 
     cloud_env = env.cloud_providers[env.cloud_provider]
     ami = cloud_env.image_id
     ami_type = cloud_env.image_type
-    availability_zone = env.availability_zone
+    availability_zone = cloud_env.availability_zone
+    region = cloud_env.region
 
     create_spot_instance ||= cloud_env.spot_instance
 
@@ -306,8 +311,8 @@ namespace :rubber do
     end
 
     if !create_spot_instance || (create_spot_instance && max_wait_time < 0)
-      logger.info "Creating instance #{ami}/#{ami_type}/#{security_groups.join(',') rescue 'Default'}/#{availability_zone || 'Default'}"
-      instance_id = cloud.create_instance(ami, ami_type, security_groups, availability_zone)
+      logger.info "Creating instance #{ami}/#{ami_type}/#{security_groups.join(',') rescue 'Default'}/#{availability_zone || region || 'Default'}"
+      instance_id = cloud.create_instance(instance_alias, ami, ami_type, security_groups, availability_zone || region)
     end
 
     logger.info "Instance #{instance_alias} created: #{instance_id}"
@@ -319,8 +324,10 @@ namespace :rubber do
 
     # Sometimes tag creation will fail, indicating that the instance doesn't exist yet even though it does.  It seems to
     # be a propagation delay on Amazon's end, so the best we can do is wait and try again.
-    Rubber::Util.retry_on_failure(Exception, :retry_sleep => 0.5, :retry_count => 100) do
-      Rubber::Tag::update_instance_tags(instance_alias)
+    if cloud.respond_to?(:create_tags)
+      Rubber::Util.retry_on_failure(Exception, :retry_sleep => 0.5, :retry_count => 100) do
+        Rubber::Tag::update_instance_tags(instance_alias)
+      end
     end
   end
 
@@ -349,9 +356,9 @@ namespace :rubber do
 
     env = rubber_cfg.environment.bind(instance_item.role_names, instance_alias)
 
-    instance = cloud.describe_instances(instance_item.instance_id).first rescue {}
+    instance = cloud.describe_instances(instance_item.instance_id).first
 
-    if instance[:state] == "running"
+    if instance[:state] == cloud.active_state
       print "\n"
       logger.info "Instance running, fetching hostname/ip data"
       instance_item.external_host = instance[:external_host]
@@ -367,6 +374,8 @@ namespace :rubber do
         # weird cap/netssh bug, sometimes just hangs forever on initial connect, so force a timeout
         begin
           Timeout::timeout(30) do
+            puts 'Trying to enable root login'
+
             # turn back on root ssh access if we are using root as the capistrano user for connecting
             enable_root_ssh(instance_item.external_ip, fetch(:initial_ssh_user, 'ubuntu')) if user == 'root'
             # force a connection so if above isn't enabled we still timeout if initial connection hangs
@@ -389,7 +398,7 @@ namespace :rubber do
     env = rubber_cfg.environment.bind(nil, nil)
 
     # update the remote name/environment tags
-    update_tags
+    update_tags if cloud.respond_to?(:create_tags)
     
     # setup amazon elastic ips if configured to do so
     setup_static_ips
