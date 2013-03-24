@@ -75,5 +75,13 @@ class UtilTest < Test::Unit::TestCase
   
   end
   
+  context 'camelcase' do
+    should 'handle single words' do
+      assert_equal 'Aws', camelcase('aws')
+    end
 
+    should 'handle multiple words' do
+      assert_equal 'DigitalOcean', camelcase('digital_ocean')
+    end
+  end
 end

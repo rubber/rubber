@@ -115,6 +115,10 @@ module Rubber
       end
     end
 
+    def camelcase(str)
+      str.split('_').map{ |part| part.capitalize }.join
+    end
+
     extend self
   end
 end
