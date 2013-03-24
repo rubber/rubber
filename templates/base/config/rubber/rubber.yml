@@ -221,7 +221,7 @@ prompt_for_security_group_sync: true
 # OPTIONAL: The packages to install on all instances
 # You can install a specific version of a package by using a sub-array of pkg, version
 # For example, packages: [[rake, 0.7.1], irb]
-packages: [postfix, build-essential, git-core, ec2-ami-tools, libxslt-dev, ntp]
+packages: [postfix, build-essential, git-core, libxslt-dev, ntp]
 
 # OPTIONAL: gem sources to setup for rubygems
 # gemsources: ["https://rubygems.org"]

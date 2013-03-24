@@ -463,6 +463,7 @@ namespace :rubber do
           expanded_pkg_list << pkg_spec
         end
       end
+      expanded_pkg_list << 'ec2-ami-tools' if rubber_env.cloud_provider == 'aws'
       expanded_pkg_list.join(' ')
     end
 
