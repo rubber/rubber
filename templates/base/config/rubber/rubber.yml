@@ -98,7 +98,20 @@ cloud_providers:
     # If a spot instance request can't be fulfilled in 3 minutes, fallback to on-demand instance creation.  If not set,
     # the default is infinite.
     # spot_instance_request_timeout: 180
-    
+
+  digital_ocean:
+    # REQUIRED: The Digital Ocean region that you want to use.
+    #
+    # Options include
+    # New York 1
+    # Amsterdam 1
+    #
+    region: New York 1
+
+    # REQUIRED: The image name and type for creating instances.
+    image_id: Ubuntu 12.04 x64 Server
+    image_type: 512MB
+
   # Use an alternate cloud provider supported by fog.  This doesn't fully work
   # yet due to differences in providers within fog, but gives you a starting
   # point for contributing a new provider to rubber.  See rubber/lib/rubber/cloud(.rb)
