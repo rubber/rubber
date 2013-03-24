@@ -69,6 +69,7 @@ module Rubber
           instance[:state] = item.status
           instance[:type] = item.flavor_id
           instance[:external_ip] = item.ip_address
+          instance[:internal_ip] = item.ip_address
           instance[:region_id] = item.region_id
           instance[:provider] = 'digital_ocean'
           instance[:platform] = 'linux'
