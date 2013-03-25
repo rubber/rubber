@@ -44,14 +44,19 @@ namespace :rubber do
   def setup_security_groups(host=nil, roles=[])
     env = rubber_cfg.environment.bind(roles, host)
     security_group_defns = Hash[env.security_groups.to_a]
+
+    cloud.start_adding_security_group_rules(host)
+
     if env.auto_security_groups
       sghosts = (rubber_instances.collect{|ic| ic.name } + [host]).uniq.compact
       sgroles = (rubber_instances.all_roles + roles).uniq.compact
       security_group_defns = inject_auto_security_groups(security_group_defns, sghosts, sgroles)
-      sync_security_groups(security_group_defns)
+      sync_security_groups(host, security_group_defns)
     else
-      sync_security_groups(security_group_defns)
+      sync_security_groups(host, security_group_defns)
     end
+
+    cloud.done_adding_security_group_rules(host)
   end
 
   def inject_auto_security_groups(groups, hosts, roles)
@@ -99,7 +104,7 @@ namespace :rubber do
     return renamed
   end
 
-  def sync_security_groups(groups)
+  def sync_security_groups(host, groups)
     return unless groups
 
     groups = Rubber::Util::stringify(groups)
@@ -184,10 +189,10 @@ namespace :rubber do
           logger.debug "Missing rule, creating: #{rule_map.inspect}"
           rule_map = Rubber::Util::symbolize_keys(rule_map)
           if rule_map[:source_group_name]
-            cloud.add_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], {:name => rule_map[:source_group_name], :account => rule_map[:source_group_account]})
+            cloud.add_security_group_rule(host, group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], {:name => rule_map[:source_group_name], :account => rule_map[:source_group_account]})
           else
             rule_map[:source_ips].each do |source_ip|
-              cloud.add_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], source_ip)
+              cloud.add_security_group_rule(host, group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], source_ip)
             end if rule_map[:source_ips]
           end
         end
@@ -209,16 +214,16 @@ namespace :rubber do
       group = groups[group_name]
       logger.debug "Creating new security group: #{group_name}"
       # create each group
-      cloud.create_security_group(group_name, group['description'])
+      cloud.create_security_group(host, group_name, group['description'])
       # create rules for group
       group['rules'].each do |rule_map|
         logger.debug "Creating new rule: #{rule_map.inspect}"
         rule_map = Rubber::Util::symbolize_keys(rule_map)
         if rule_map[:source_group_name]
-          cloud.add_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], {:name => rule_map[:source_group_name], :account => rule_map[:source_group_account]})
+          cloud.add_security_group_rule(host, group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], {:name => rule_map[:source_group_name], :account => rule_map[:source_group_account]})
         else
           rule_map[:source_ips].each do |source_ip|
-            cloud.add_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], source_ip)
+            cloud.add_security_group_rule(host, group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], source_ip)
           end if rule_map[:source_ips]
         end
       end

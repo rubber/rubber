@@ -263,15 +263,14 @@ namespace :rubber do
     role_names = instance_roles.collect{|x| x.name}
     env = rubber_cfg.environment.bind(role_names, instance_alias)
 
-    if cloud.respond_to?(:describe_security_groups)
+    if cloud.create_security_group_phase == :before_instance_create
       # We need to use security_groups during create, so create them up front
       mutex.synchronize do
         setup_security_groups(instance_alias, role_names)
       end
-      security_groups = get_assigned_security_groups(instance_alias, role_names)
-    else
-      security_groups = []
     end
+
+    security_groups = get_assigned_security_groups(instance_alias, role_names)
 
     cloud_env = env.cloud_providers[env.cloud_provider]
     ami = cloud_env.image_id
@@ -387,6 +386,13 @@ namespace :rubber do
         rescue Timeout::Error
           logger.info "timeout in initial connect, retrying"
           retry
+        end
+      end
+
+      # Set up any necessary security groups.
+      if cloud.create_security_group_phase == :after_instance_create
+        mutex.synchronize do
+          setup_security_groups(instance_item.external_ip, instance_item.roles.collect{ |r| r.name })
         end
       end
 

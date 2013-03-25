@@ -55,6 +55,10 @@ module Rubber
       def active_state
         'running'
       end
+
+      def create_security_group_phase
+        :before_instance_create
+      end
       
       def create_image(image_name)
 
@@ -190,7 +194,7 @@ module Rubber
         return requests
       end
 
-      def create_security_group(group_name, group_description)
+      def create_security_group(host, group_name, group_description)
         @compute_provider.security_groups.create(:name => group_name, :description => group_description)
       end
 
@@ -237,7 +241,7 @@ module Rubber
         return groups
       end
 
-      def add_security_group_rule(group_name, protocol, from_port, to_port, source)
+      def add_security_group_rule(host, group_name, protocol, from_port, to_port, source)
         group = @compute_provider.security_groups.get(group_name)
         opts = {:ip_protocol => protocol || 'tcp'}
 

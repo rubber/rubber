@@ -83,6 +83,44 @@ module Rubber
         'active'
       end
 
+      def create_security_group_phase
+        :after_instance_create
+      end
+
+      def create_security_group(host, group_name, group_description)
+      end
+
+      def describe_security_groups(group_name=nil)
+        []
+      end
+
+      def start_adding_security_group_rules(host)
+        script = <<-ENDSCRIPT
+          # Clear out all firewall rules to start.
+          iptables -F
+
+          # Always enable connections on loopback devices.
+          iptables -I INPUT 1 -i lo -j ACCEPT
+
+          # Always allow established connections to remain connected.
+          iptables -I INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+        ENDSCRIPT
+
+        capistrano.run_script 'start_adding_firewall_rules', script, :hosts => host
+      end
+
+      def add_security_group_rule(host, group_name, protocol, from_port, to_port, source)
+        if protocol && from_port && to_port && source
+          (from_port..to_port).each do |port|
+            capistrano.sudo "iptables -A INPUT -p #{protocol} --dport #{port} --source #{source} -j ACCEPT", :hosts => host
+          end
+        end
+      end
+
+      def done_adding_security_group_rules(host)
+        # Add the REJECT rule last.
+        capistrano.sudo "iptables -A INPUT -j DROP", :hosts => [host]
+      end
     end
   end
 end

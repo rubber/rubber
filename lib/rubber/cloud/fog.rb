@@ -124,6 +124,12 @@ module Rubber
         raise NotImplementedError, "active_state not implemented in generic fog adapter"
       end
 
+      def start_adding_security_group_rules(host)
+      end
+
+      def done_adding_security_group_rules(host)
+      end
+
     end
 
   end
