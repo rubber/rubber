@@ -6,14 +6,18 @@ namespace :rubber do
     Likewise, rules within a group will get created, and those not will be removed
   DESC
   required_task :setup_security_groups do
-    setup_security_groups()
+    servers = find_servers_for_task(current_task)
+
+    setup_security_groups(servers.collect(&:host))
   end
 
   desc <<-DESC
     Describes the network security groups
   DESC
   required_task :describe_security_groups do
-    groups = cloud.describe_security_groups()
+    servers = find_servers_for_task(current_task)
+
+    groups = cloud.describe_security_groups(servers.collect(&:host))
     groups.each do |group|
       puts "#{group[:name]}, #{group[:description]}"
       group[:permissions].each do |perm|
@@ -41,22 +45,22 @@ namespace :rubber do
     return security_groups
   end
 
-  def setup_security_groups(host=nil, roles=[])
-    env = rubber_cfg.environment.bind(roles, host)
+  def setup_security_groups(hosts=nil, roles=[])
+    env = rubber_cfg.environment.bind(roles, hosts)
     security_group_defns = Hash[env.security_groups.to_a]
 
-    cloud.start_adding_security_group_rules(host)
+    cloud.start_adding_security_group_rules(hosts)
 
     if env.auto_security_groups
-      sghosts = (rubber_instances.collect{|ic| ic.name } + [host]).uniq.compact
+      sghosts = (rubber_instances.collect{|ic| ic.name } + [hosts]).uniq.compact
       sgroles = (rubber_instances.all_roles + roles).uniq.compact
       security_group_defns = inject_auto_security_groups(security_group_defns, sghosts, sgroles)
-      sync_security_groups(host, security_group_defns)
+      sync_security_groups(hosts, security_group_defns)
     else
-      sync_security_groups(host, security_group_defns)
+      sync_security_groups(hosts, security_group_defns)
     end
 
-    cloud.done_adding_security_group_rules(host)
+    cloud.done_adding_security_group_rules(hosts)
   end
 
   def inject_auto_security_groups(groups, hosts, roles)
@@ -112,7 +116,7 @@ namespace :rubber do
     group_keys = groups.keys.clone()
     
     # For each group that does already exist in cloud
-    cloud_groups = cloud.describe_security_groups()
+    cloud_groups = cloud.describe_security_groups(host)
     cloud_groups.each do |cloud_group|
       group_name = cloud_group[:name]
 

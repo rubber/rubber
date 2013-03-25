@@ -90,36 +90,61 @@ module Rubber
       def create_security_group(host, group_name, group_description)
       end
 
-      def describe_security_groups(group_name=nil)
-        []
+      def describe_security_groups(hosts=nil, group_name=nil)
+        rules = capistrano.capture("iptables -S INPUT", :hosts => hosts).strip.split("\r\n")
+        scoped_rules = rules.select { |r| r =~ /dport/ }
+
+        groups = []
+
+        scoped_rules.each do |rule|
+          group = {}
+          discovered_rule = {}
+
+          parts = rule.split(' ').each_slice(2).to_a
+          parts.each do |arg, value|
+            case arg
+              when '-p' then discovered_rule[:protocol] = value
+              when '--dport' then discovered_rule[:from_port] = value; discovered_rule[:to_port] = value
+              when '--comment' then group[:name] = value
+            end
+          end
+
+          # Consolidate rules for groups with the same name.
+          existing_group = groups.find { |g| g[:name] == group[:name]}
+          if existing_group
+            existing_group[:permissions] << discovered_rule
+          else
+            group[:permissions] = [discovered_rule]
+            groups << group
+          end
+        end
+
+        groups
       end
 
-      def start_adding_security_group_rules(host)
+      def start_adding_security_group_rules(hosts)
         script = <<-ENDSCRIPT
           # Clear out all firewall rules to start.
           iptables -F
 
-          # Always enable connections on loopback devices.
-          iptables -I INPUT 1 -i lo -j ACCEPT
-
-          # Always allow established connections to remain connected.
-          iptables -I INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+          iptables -I INPUT 1 -i lo -j ACCEPT -m comment --comment 'Enable connections on loopback devices.'
+          iptables -I INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT -m comment --comment 'Always allow established connections to remain connected.'
         ENDSCRIPT
 
-        capistrano.run_script 'start_adding_firewall_rules', script, :hosts => host
+        capistrano.run_script 'start_adding_firewall_rules', script, :hosts => hosts
       end
 
-      def add_security_group_rule(host, group_name, protocol, from_port, to_port, source)
+      def add_security_group_rule(hosts, group_name, protocol, from_port, to_port, source)
         if protocol && from_port && to_port && source
           (from_port..to_port).each do |port|
-            capistrano.sudo "iptables -A INPUT -p #{protocol} --dport #{port} --source #{source} -j ACCEPT", :hosts => host
+            capistrano.sudo "iptables -A INPUT -p #{protocol} --dport #{port} --source #{source} -j ACCEPT -m comment --comment '#{group_name}'", :hosts => hosts
           end
         end
       end
 
-      def done_adding_security_group_rules(host)
+      def done_adding_security_group_rules(hosts)
         # Add the REJECT rule last.
-        capistrano.sudo "iptables -A INPUT -j DROP", :hosts => [host]
+        capistrano.sudo "iptables -A INPUT -j DROP -m comment --comment 'Disable all other connections.'", :hosts => hosts
       end
     end
   end
