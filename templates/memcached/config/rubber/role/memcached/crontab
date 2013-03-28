@@ -1,0 +1,8 @@
+<%
+  @read_cmd = 'crontab -l'
+  @write_cmd = 'crontab -'
+  @additive = ["# rubber-memcached-start", "# rubber-memcached-end"]
+%>
+
+# Roll the memcached logs at midnight
+0 0 * * * <%= Rubber.root %>/script/rubber cron --task util:rotate_logs --directory=<%= rubber_env.memcached_log_dir %>
