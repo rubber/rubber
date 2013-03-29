@@ -1,7 +1,7 @@
 # Sets up memcached server and client as dalli
 
 memcached_log_dir: /var/log/memcached
-memcached_max_mem:  64
+memcached_pid_file: /var/run/memcached.pid
 
 gems: [dalli]
 
