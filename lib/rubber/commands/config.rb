@@ -23,7 +23,7 @@ module Rubber
       option ["--file", "-p"], "FILE", "Only generate files matching the given pattern"
       option ["--no_post", "-n"], :flag, "Skip running post commands"
       option ["--force", "-f"], :flag, "Overwrite files that already exist"
-      option ["--fakeroot", "-k"], "FAKEROOT", "Prefix generated files with fakeroot.  Useful for debugging with an environment and host"
+      option ["--fakeroot", "-k"], "FAKEROOT", "Prefix generated files with fakeroot. Useful\nfor debugging with an environment and host"
       
       def execute
         cfg = Rubber::Configuration.get_configuration(Rubber.env)
