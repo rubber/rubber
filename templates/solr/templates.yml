@@ -1,3 +1,1 @@
 description: The apache solr module
-dependent_templates:
-  - base
