@@ -131,6 +131,12 @@ namespace :rubber do
           end
         end
         
+        # Standardize the rules' format to reflect the format that the EC2 query returns
+        rules.collect! do |rule|
+          rule['source_group_account'].gsub!('-', '') if rule['source_group_account']
+          rule
+        end
+
         rule_maps = []
 
         # first collect the rule maps from the request (group/user pairs are duplicated for tcp/udp/icmp,
