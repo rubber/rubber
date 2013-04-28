@@ -22,7 +22,7 @@ namespace :rubber do
 
         # Get rid of RVM if this is an older rubber installation.
         if type rvm &> /dev/null; then
-          rvm implode
+          echo -en "yes\n" | rvm implode
 
           rm -rf /usr/local/rvm
           rm -f /usr/bin/rvm*

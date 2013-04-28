@@ -86,7 +86,7 @@ namespace :rubber do
 
     desc "Starts the couchbase server"
     task :start, :roles => :couchbase do
-      rsudo "service couchbase-server start"
+      rsudo "service couchbase-server status || service couchbase-server start"
     end
 
     desc "Restarts the couchbase server"

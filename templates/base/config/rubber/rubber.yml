@@ -84,7 +84,7 @@ cloud_providers:
     #
     # m1.small or m1.large or m1.xlarge
     image_type: c1.medium
-    image_id: ami-d726abbe
+    image_id: ami-b6089bdf
 
     # OPTIONAL: EC2 spot instance request support.
     #
@@ -118,7 +118,7 @@ cloud_provider: aws
 # 
 # Allowed forms are:
 # filesystem: "file:#{Rubber.root}/config/rubber/instance-#{Rubber.env}.yml"
-# cloud storage (s3): "storage:#{cloud_provider.aws.backup_bucket}/RubberInstances_#{app_name}/instance-#{Rubber.env}.yml"
+# cloud storage (s3): "storage:#{cloud_providers.aws.backup_bucket}/RubberInstances_#{app_name}/instance-#{Rubber.env}.yml"
 # cloud table (simpledb): "table:RubberInstances_#{app_name}_#{Rubber.env}"
 #
 # If you need to port between forms, load the rails console then:
@@ -224,7 +224,7 @@ prompt_for_security_group_sync: true
 packages: [postfix, build-essential, git-core, ec2-ami-tools, libxslt-dev, ntp]
 
 # OPTIONAL: gem sources to setup for rubygems
-# gemsources: ["http://rubygems.org", "http://gems.github.com"]
+# gemsources: ["https://rubygems.org"]
 
 # OPTIONAL: The gems to install on all instances
 # You can install a specific version of a gem by using a sub-array of gem, version

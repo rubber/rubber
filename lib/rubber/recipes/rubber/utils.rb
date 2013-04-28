@@ -59,13 +59,17 @@ namespace :rubber do
   desc <<-DESC
     Live tail of rails log files for all machines
     By default tails the rails logs for the current RUBBER_ENV, but one can
-    set FILE=/path/file.*.glob to tails a different set
+    set FILE=/path/file.*.glob to tail a different set
   DESC
   task :tail_logs, :roles => :app do
+    last_host = ""
     log_file_glob = rubber.get_env("FILE", "Log files to tail", true, "#{current_path}/log/#{Rubber.env}*.log")
+    trap("INT") { puts 'Exiting...'; exit 0; }                    # handle ctrl-c gracefully
     run "tail -qf #{log_file_glob}" do |channel, stream, data|
-      puts  # for an extra line break before the host name
-      puts data
+      puts if channel[:host] != last_host                         # blank line between different hosts
+      host = "[#{channel.properties[:host].gsub(/\..*/, '')}]"    # get left-most subdomain
+      data.lines { |line| puts "%-15s %s" % [host, line] }        # add host name to the start of each line
+      last_host = channel[:host]
       break if stream == :err
     end
   end

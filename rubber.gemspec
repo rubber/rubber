@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.authors = ["Matt Conway", "Kevin Menard"]
   s.email       = ["matt@conwaysplace.com", "nirvdrum@gmail.com"]
-  s.homepage = "http://github.com/wr0ngway/rubber"
+  s.homepage = "https://github.com/rubber/rubber"
   s.summary = "A capistrano plugin for managing multi-instance deployments to the cloud (ec2)"
   s.description = <<-DESC
     The rubber plugin enables relatively complex multi-instance deployments of RubyOnRails applications to

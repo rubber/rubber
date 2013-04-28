@@ -116,7 +116,7 @@ namespace :rubber do
 
       desc "Start graphite system monitoring"
       task :start, :roles => :graphite_server do
-        rsudo "service graphite-server start"
+        rsudo "service graphite-server status || service graphite-server start"
       end
 
       desc "Stop graphite system monitoring"
@@ -191,7 +191,7 @@ EOF
 
       desc "Start graphite system monitoring"
       task :start, :roles => :graphite_web do
-        rsudo "service graphite-web start"
+        rsudo "service graphite-web status || service graphite-web start"
       end
 
       desc "Stop graphite system monitoring"

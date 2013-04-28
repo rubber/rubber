@@ -55,7 +55,7 @@ namespace :rubber do
     
     desc "Starts the nginx web server"
     task :start, :roles => :passenger_nginx do
-      rsudo "service nginx start"
+      rsudo "service nginx status || service nginx start"
     end
     
     desc "Restarts the nginx web server"

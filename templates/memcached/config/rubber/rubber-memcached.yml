@@ -1,4 +1,6 @@
-# Sets up memcached server and client as cache_fu rails plugin (needs manual install into rails app)
+# Sets up memcached server and client as dalli
+
+memcached_log_dir: /var/log/memcached
 
 gems: [dalli]
 
