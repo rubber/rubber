@@ -22,3 +22,13 @@ roles:
     packages: [python-django, python-django-tagging, python-cairo, python-memcache, memcached, uwsgi, uwsgi-plugin-python, uwsgi-plugin-http, sqlite3, bzr, zip]
   collectd:
     packages: [libperl-dev]
+
+security_groups:
+  graphite_server:
+    description: "To open up port #{graphite_server_port} for graphite_server role"
+    rules:
+      - protocol: tcp
+        from_port: "#{graphite_server_port}"
+        to_port: "#{graphite_server_port}"
+        source_group_name: collectd
+        source_group_account: "#{cloud_providers.aws.account}"
