@@ -30,9 +30,9 @@ namespace :rubber do
 
     desc "Display status of monit daemon monitoring"
     task :status, :roles => :monit do
-      rsudo "service monit status"
-      rsudo "ps -eopid,user,fname | grep [m]onit"
-      rsudo "netstat -tulpn | grep monit"
+      rsudo "service monit status || true"
+      rsudo "ps -eopid,user,fname | grep [m]onit || true"
+      rsudo "netstat -tulpn | grep monit || true"
     end
 
   end

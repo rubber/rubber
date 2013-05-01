@@ -55,9 +55,9 @@ namespace :rubber do
 
     desc "Display status of the nginx web server"
     task :status, :roles => :nginx do
-      rsudo "service nginx status"
-      rsudo "ps -eopid,user,fname | grep [n]ginx"
-      rsudo "netstat -tulpn | grep nginx"
+      rsudo "service nginx status || true"
+      rsudo "ps -eopid,user,fname | grep [n]ginx || true"
+      rsudo "netstat -tulpn | grep nginx || true"
     end
 
   end

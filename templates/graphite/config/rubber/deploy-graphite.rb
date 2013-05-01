@@ -132,9 +132,9 @@ namespace :rubber do
 
       desc "Display status of graphite system monitoring"
       task :status, :roles => :graphite_server do
-        rsudo "service graphite-server status"
-        rsudo "ps -eopid,user,cmd | grep [c]arbon"
-        rsudo "sudo netstat -tupln | grep [p]ython"
+        rsudo "service graphite-server status || true"
+        rsudo "ps -eopid,user,cmd | grep [c]arbon || true"
+        rsudo "sudo netstat -tupln | grep [p]ython || true"
       end
 
     end
@@ -215,9 +215,9 @@ EOF
 
       desc "Display status of graphite web server"
       task :status, :roles => :graphite_web do
-        rsudo "service graphite-web status"
-        rsudo "ps -eopid,user,cmd | grep '[g]raphite/conf/uwsgi.ini'"
-        rsudo "netstat -tupln | grep uwsgi"
+        rsudo "service graphite-web status || true"
+        rsudo "ps -eopid,user,cmd | grep '[g]raphite/conf/uwsgi.ini' || true"
+        rsudo "netstat -tupln | grep uwsgi || true"
       end
 
     end

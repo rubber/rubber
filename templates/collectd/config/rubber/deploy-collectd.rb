@@ -45,8 +45,8 @@ namespace :rubber do
 
     desc "Display status of collectd system monitoring"
     task :status, :roles => :collectd do
-      rsudo "service collectd status"
-      rsudo "ps -eopid,user,fname | grep [c]ollectd"
+      rsudo "service collectd status || true"
+      rsudo "ps -eopid,user,fname | grep [c]ollectd || true"
     end
 
   end
