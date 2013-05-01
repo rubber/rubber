@@ -30,4 +30,5 @@ security_groups:
       - protocol: tcp
         from_port: "#{graphite_server_port}"
         to_port: "#{graphite_server_port}"
-        source_ips: [10.0.0.0/8] # restricts access to your servers within the same region
+        source_group_name: collectd
+        source_group_account: "#{cloud_providers.aws.account}"
