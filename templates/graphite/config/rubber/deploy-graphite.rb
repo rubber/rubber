@@ -129,6 +129,14 @@ namespace :rubber do
         stop
         start
       end
+
+      desc "Display status of graphite system monitoring"
+      task :status, :roles => :graphite_server do
+        rsudo "service graphite-server status"
+        rsudo "ps -eopid,user,cmd | grep [c]arbon"
+        rsudo "sudo netstat -tupln | grep [p]ython"
+      end
+
     end
 
     namespace :web do
@@ -189,20 +197,27 @@ EOF
         end
       end
 
-      desc "Start graphite system monitoring"
+      desc "Start graphite web server"
       task :start, :roles => :graphite_web do
         rsudo "service graphite-web status || service graphite-web start"
       end
 
-      desc "Stop graphite system monitoring"
+      desc "Stop graphite web server"
       task :stop, :roles => :graphite_web do
         rsudo "service graphite-web stop || true"
       end
 
-      desc "Restart graphite system monitoring"
+      desc "Restart graphite web server"
       task :restart, :roles => :graphite_web do
         stop
         start
+      end
+
+      desc "Display status of graphite web server"
+      task :status, :roles => :graphite_web do
+        rsudo "service graphite-web status"
+        rsudo "ps -eopid,user,cmd | grep '[g]raphite/conf/uwsgi.ini'"
+        rsudo "netstat -tupln | grep uwsgi"
       end
 
     end

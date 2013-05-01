@@ -43,6 +43,12 @@ namespace :rubber do
       rsudo "pkill -fn #{rubber_env.rubber_collectd_runner.sub(/./, '[\0]')} ; exit 0"
     end
 
+    desc "Display status of collectd system monitoring"
+    task :status, :roles => :collectd do
+      rsudo "service collectd status"
+      rsudo "ps -eopid,user,fname | grep [c]ollectd"
+    end
+
   end
 
 end

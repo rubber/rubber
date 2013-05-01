@@ -50,7 +50,16 @@ namespace :rubber do
       stop
       start
     end
-    
+
+    desc <<-DESC
+      Display status of the mongodb daemon
+    DESC
+    task :status, :roles => :mongodb do
+      rsudo "service mongodb status"
+      rsudo "ps -eopid,user,cmd | grep [m]ongod"
+      rsudo "netstat -tupan | grep mongod"
+    end
+
   end
 
 end
