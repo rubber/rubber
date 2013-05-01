@@ -88,4 +88,45 @@ namespace :rubber do
     end    
 
   end
+
+  namespace :rake do
+
+    desc <<-DESC
+      Runs a rake command on the remote server
+      Usage: cap rubber:rake TASK=<task name>
+    DESC
+    task :default do
+      task = ENV["TASK"] || ""
+      abort "Please specify a rake task to execute on the remote servers (via the TASK environment variable)" if task.empty?
+      rsudo "cd #{current_path} && rake #{task}"
+    end
+
+    desc <<-DESC
+      Do a dry run on the remote server without executing actions
+      Usage: cap rubber:rake:dry_run TASK=<task name>
+    DESC
+    task :dry_run do
+      task = ENV["TASK"] || ""
+      abort "Please specify a rake task to dry run on the remote servers (via the TASK environment variable)" if task.empty?
+      rsudo "cd #{current_path} && rake #{task} -n"
+    end
+
+    desc <<-DESC
+      Show tasks available on the remote server
+      Usage: cap rubber:rake:show (PATTERN=<match pattern>)
+    DESC
+    task :show do
+      pattern = ENV["PATTERN"] || ""
+      rsudo "cd #{current_path} && rake -T #{pattern}"
+    end
+
+    desc <<-DESC
+      Show all tasks available on the remote server, even uncommented ones
+      Usage: cap rubber:rake:all
+    DESC
+    task :all do
+      rsudo "cd #{current_path} && rake -A"
+    end
+
+  end
 end
