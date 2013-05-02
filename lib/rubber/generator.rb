@@ -15,6 +15,7 @@ module Rubber
       attr_accessor :force
       attr_accessor :fake_root
       attr_accessor :stop_on_error_cmd
+      attr_accessor :use_dos2unix
 
       def initialize(config_dir, roles, host, options={})
         @config_dir = config_dir
@@ -123,6 +124,7 @@ module Rubber
             open(config_path, 'w') do |pipe|
               pipe.write(result)
             end
+            system("dos2unix #{config_path} || true") if use_dos2unix
 
           # Handle write_cmd by dumping the body to a file and then piping that into the command.
           else
@@ -131,6 +133,7 @@ module Rubber
             begin
               file.write(result)
               file.close
+              system("dos2unix #{file.path} || true") if use_dos2unix
 
               system("cat #{file.path} | #{config.write_cmd}")
             ensure
