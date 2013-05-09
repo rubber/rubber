@@ -50,7 +50,7 @@ module Rubber
       option ["-s", "--skip"], :flag, "Skip files that already exist"
       
       parameter "TEMPLATE ...", "rubber template(s)" do |arg|
-        invalid = arg - VulcanizeThor.valid_templates
+        invalid = [arg].flatten - VulcanizeThor.valid_templates
         if invalid.size == 0
           arg
         else
