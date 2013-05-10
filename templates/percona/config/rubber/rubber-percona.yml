@@ -39,5 +39,5 @@ roles:
   percona:
     packages: [
                 percona-server-server,
-                maatkit # useful mysql tools for replication
+                percona-tools # useful mysql tools for replication
               ]
