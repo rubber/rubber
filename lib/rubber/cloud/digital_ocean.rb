@@ -66,7 +66,7 @@ module Rubber
         response.each do |item|
           instance = {}
           instance[:id] = item.id
-          instance[:state] = item.status
+          instance[:state] = item.state
           instance[:type] = item.flavor_id
           instance[:external_ip] = item.ip_address
           instance[:internal_ip] = item.ip_address
