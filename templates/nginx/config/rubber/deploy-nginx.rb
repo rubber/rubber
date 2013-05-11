@@ -52,7 +52,14 @@ namespace :rubber do
     task :reload, :roles => :nginx do
       serial_reload
     end
-  
+
+    desc "Display status of the nginx web server"
+    task :status, :roles => :nginx do
+      rsudo "service nginx status || true"
+      rsudo "ps -eopid,user,fname | grep [n]ginx || true"
+      rsudo "netstat -tulpn | grep nginx || true"
+    end
+
   end
 
 end

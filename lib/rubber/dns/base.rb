@@ -68,6 +68,10 @@ module Rubber
           actual_opts = default_opts.merge(Rubber::Util::symbolize_keys(opts))
         end
 
+        if actual_opts.has_key?(:data) && actual_opts[:data].is_a?(Array) && actual_opts[:data].first.is_a?(Hash)
+          actual_opts[:data] = actual_opts[:data].collect { |x| Rubber::Util.symbolize_keys(x) }
+        end
+
         required.each do |r|
           raise "Missing required options: #{r}" unless actual_opts[r]
         end

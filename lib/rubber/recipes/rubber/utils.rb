@@ -191,7 +191,9 @@ namespace :rubber do
     value = Capistrano::CLI.ui.ask(msg) unless value
     value = value.size == 0 ? default : value
     fatal "#{name} is required, pass using environment or enter at prompt" if required && ! value
-    return value
+
+    # Explicitly convert to a String to avoid weird serialization issues with Psych.
+    value.to_s
   end
 
   def fatal(msg, code=1)

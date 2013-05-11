@@ -34,7 +34,7 @@ namespace :rubber do
     end
 
     task :start, :roles => :elasticsearch do
-      rsudo "service elasticsearch status || service elasticsearch start"
+      rsudo "service elasticsearch start"
     end
 
     task :stop, :roles => :elasticsearch do

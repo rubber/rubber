@@ -23,15 +23,17 @@ module Rubber
       option ["--file", "-p"], "FILE", "Only generate files matching the given pattern"
       option ["--no_post", "-n"], :flag, "Skip running post commands"
       option ["--force", "-f"], :flag, "Overwrite files that already exist"
+      option ["--fakeroot", "-k"], "FAKEROOT", "Prefix generated files with fakeroot. Useful\nfor debugging with an environment and host"
       
       def execute
         cfg = Rubber::Configuration.get_configuration(Rubber.env)
-        instance_alias = cfg.environment.current_host
+        instance_alias = host || cfg.environment.current_host 
         instance = cfg.instance[instance_alias]
         if instance
           role_names = instance.role_names
           env = cfg.environment.bind(role_names, instance_alias)
           gen = Rubber::Configuration::Generator.new("#{Rubber.root}/config/rubber", role_names, instance_alias)
+          gen.fake_root = fakeroot if fakeroot
         elsif ['development', 'test'].include?(Rubber.env)
           instance_alias = host || instance_alias
           role_names = roles || cfg.environment.known_roles
@@ -48,7 +50,7 @@ module Rubber
           instance.internal_ip = "127.0.0.1"
           cfg.instance.add(instance)
           gen = Rubber::Configuration::Generator.new("#{Rubber.root}/config/rubber", role_names, instance_alias)
-          gen.fake_root ="#{Rubber.root}/tmp/rubber"
+          gen.fake_root = fakeroot || "#{Rubber.root}/tmp/rubber"
         else
           puts "Instance not found for host: #{instance_alias}"
           exit 1

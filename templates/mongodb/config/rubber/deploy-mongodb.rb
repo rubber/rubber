@@ -33,7 +33,7 @@ namespace :rubber do
       Starts the mongodb daemon
     DESC
     task :start, :roles => :mongodb do
-      rsudo "service mongodb status || service mongodb start"
+      rsudo "service mongodb start"
     end
     
     desc <<-DESC
@@ -50,7 +50,16 @@ namespace :rubber do
       stop
       start
     end
-    
+
+    desc <<-DESC
+      Display status of the mongodb daemon
+    DESC
+    task :status, :roles => :mongodb do
+      rsudo "service mongodb status || true"
+      rsudo "ps -eopid,user,cmd | grep [m]ongod || true"
+      rsudo "netstat -tupan | grep mongod || true"
+    end
+
   end
 
 end
