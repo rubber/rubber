@@ -1,5 +1,5 @@
 passenger_version: 3.0.19
-nginx_version: 1.2.7
+nginx_version: 1.2.8
 passenger_root: "#{`bash -l -c 'find #{ruby_path} -name passenger-#{passenger_version}'`.strip}"
 passenger_ruby: "#{ruby_path}/bin/ruby"
 passenger_lib: "#{passenger_root}/ext/nginx"
