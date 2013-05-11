@@ -1,3 +1,48 @@
+2.3.0 (05/11/2013)
+------------------
+
+New Features:
+============
+
+[core] Added a --fakeroot option to rake rubber:config task to aid in debbugging rubber templates. <20e3fb0>
+[collectd] Added a :status task to check the status of a remote service. <55f593a>
+[graphite] Added a :status task to check the status of a remote service. <55f593a>
+[memcached] Added a :status task to check the status of a remote service. <55f593a>
+[mongodb] Added a :status task to check the status of a remote service. <55f593a>
+[monit] Added a :status task to check the status of a remote service. <55f593a>
+[nginx] Added a :status task to check the status of a remote service. <55f593a>
+[unicorn] Added a :status task to check the status of a remote service. <55f593a>
+
+Improvements:
+============
+
+[base] Upgraded from ruby-build 20130222 to 20130501. <4ea28f8>
+[core] Allow customizing Capistrano config that rubber has traditionally taken ownership of. <ff69b52>
+[graphite] Removed redundant ping check. <9950dc4>
+[memcached] Added a rotate_logs cron job for memached. <f4d49ac>
+[mongodb] Added a rotate_logs cron job for MongoDB. <b93665d>
+[nginx] Allow configuration of the nginx log directory. <f4ef26f>
+[nginx] Removed "text/html" from the gzip config to get rid of a warning message. <2429a7d>
+[passenger_nginx] Upgraded to Passenger 3.0.19 and nginx 1.2.8. <48fd214, 9a8d81c>
+[passenger_nginx] Added HTTP_X_QUEUE_START CGI param to work better with NewRelic. <48fd214>
+[redis] Upgrade to redis 2.6.13 <9fb33e2>
+
+Bug Fixes:
+=========
+
+[base] Fixed a typo in the cloud storage example configuration. <409137b>
+[core] Honor the `host` option in the rubber:config rake task. <9477b8b>
+[core] Fixed an issue with `symbolize_keys` and nested hashes that was resulting in broken MX record requests for Route 53. <13fdffd>
+[core] Fixed an issue with vulcanizing multiple templates at once. <abca6e3>
+[core] Fixed a problem with newer Capistrano/HighLine causing role names to be serialized incorrectly in an instance file. <9ea1fa6>
+[elasticsearch] The upstart script lies about the service status, causing us to think the service is running when it isn't and thus preventing proper start up. <81aab0e>
+[graphite] The upstart script lies about the service status, causing us to think the service is running when it isn't and thus preventing proper start up. <d92f077>
+[mongodb] The upstart script lies about the service status, causing us to think the service is running when it isn't and thus preventing proper start up. <d92f077>
+[mysql] Maatkit is now part of percona-tools, so our package name was outdated. <2e8d5f6>
+[redis] The upstart script lies about the service status, causing us to think the service is running when it isn't and thus preventing proper start up. <d92f077>
+[torquebox] The upstart script lies about the service status, causing us to think the service is running when it isn't and thus preventing proper start up. <d92f077>
+
+
 2.2.4 (03/05/2013)
 ------------------
 
