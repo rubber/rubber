@@ -17,6 +17,7 @@ Improvements:
 ============
 
 [base] Upgraded from ruby-build 20130222 to 20130501. <4ea28f8>
+[base] Configure Capistrano to compile assets on the `app` role, not the `web` one, in order to better match a typical Rubber project layout. <9c8096e>
 [core] Allow customizing Capistrano config that rubber has traditionally taken ownership of. <ff69b52>
 [graphite] Removed redundant ping check. <9950dc4>
 [memcached] Added a rotate_logs cron job for memached. <f4d49ac>
