@@ -7,6 +7,7 @@ on :load do
   set :runner,      rubber_env.app_user
   set :deploy_to,   "/mnt/#{application}-#{Rubber.env}"
   set :copy_exclude, [".git/*", ".bundle/*", "log/*", ".rvmrc", ".rbenv-version"]
+  set :assets_role, [:app]
 end
 
 # Use a simple directory tree copy here to make demo easier.
