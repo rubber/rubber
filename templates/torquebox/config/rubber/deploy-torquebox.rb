@@ -102,7 +102,7 @@ namespace :rubber do
     end
 
     task :start, :roles => :torquebox do
-      rsudo "service torquebox status || service torquebox start"
+      rsudo "service torquebox start"
     end
 
     desc "Reloads the apache web server"
