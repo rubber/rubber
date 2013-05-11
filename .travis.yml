@@ -18,3 +18,6 @@ matrix:
 # script: bundle exec rspec spec
 env:
   - JAVA_OPTS="-server -Djruby.cext.enabled=false -Djruby.compile.invokedynamic=false"
+
+notifications:
+  irc: "irc.freenode.net#rubberec2"
