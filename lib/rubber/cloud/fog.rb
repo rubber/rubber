@@ -31,8 +31,7 @@ module Rubber
                                                     :groups => security_groups,
                                                     :availability_zone => availability_zone,
                                                     :key_name => env.key_name)
-        instance_id = response.id
-        return instance_id
+        response.id
       end
 
       def destroy_instance(instance_id)
