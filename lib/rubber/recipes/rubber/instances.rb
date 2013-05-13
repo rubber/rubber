@@ -263,11 +263,8 @@ namespace :rubber do
     role_names = instance_roles.collect{|x| x.name}
     env = rubber_cfg.environment.bind(role_names, instance_alias)
 
-    if cloud.create_security_group_phase == :before_instance_create
-      # We need to use security_groups during create, so create them up front
-      mutex.synchronize do
-        setup_security_groups(instance_alias, role_names)
-      end
+    mutex.synchronize do
+      cloud.before_create_instance(instance_alias, role_names)
     end
 
     security_groups = get_assigned_security_groups(instance_alias, role_names)
@@ -321,12 +318,8 @@ namespace :rubber do
     rubber_instances.add(instance_item)
     rubber_instances.save()
 
-    # Sometimes tag creation will fail, indicating that the instance doesn't exist yet even though it does.  It seems to
-    # be a propagation delay on Amazon's end, so the best we can do is wait and try again.
-    if cloud.respond_to?(:create_tags)
-      Rubber::Util.retry_on_failure(Exception, :retry_sleep => 0.5, :retry_count => 100) do
-        Rubber::Tag::update_instance_tags(instance_alias)
-      end
+    mutex.synchronize do
+      cloud.after_create_instance(instance_item)
     end
   end
 
@@ -356,6 +349,10 @@ namespace :rubber do
     env = rubber_cfg.environment.bind(instance_item.role_names, instance_alias)
 
     instance = cloud.describe_instances(instance_item.instance_id).first
+
+    mutex.synchronize do
+      cloud.before_refresh_instance(instance_item)
+    end
 
     if instance[:state] == cloud.active_state
       print "\n"
@@ -389,11 +386,8 @@ namespace :rubber do
         end
       end
 
-      # Set up any necessary security groups.
-      if cloud.create_security_group_phase == :after_instance_create
-        mutex.synchronize do
-          setup_security_groups(instance_item.external_ip, instance_item.roles.collect{ |r| r.name })
-        end
+      mutex.synchronize do
+        cloud.after_refresh_instance(instance_item)
       end
 
       return true

@@ -124,10 +124,54 @@ module Rubber
         raise NotImplementedError, "active_state not implemented in generic fog adapter"
       end
 
-      def start_adding_security_group_rules(host)
+      def inject_auto_security_groups(groups, hosts, roles)
+        hosts.each do |name|
+          group_name = name
+          groups[group_name] ||= {'description' => "Rubber automatic security group for host: #{name}", 'rules' => []}
+        end
+        roles.each do |name|
+          group_name = name
+          groups[group_name] ||= {'description' => "Rubber automatic security group for role: #{name}", 'rules' => []}
+        end
+
+        groups
       end
 
-      def done_adding_security_group_rules(host)
+      def isolate_prefix
+        "#{env.app_name}_#{Rubber.env}_"
+      end
+
+      def isolate_group_name(group_name)
+        if env.isolate_security_groups
+          group_name =~ /^#{isolate_prefix}/ ? group_name : "#{isolate_prefix}#{group_name}"
+        else
+          group_name
+        end
+      end
+
+      def isolate_groups(groups)
+        renamed = {}
+
+        groups.each do |name, group|
+          new_name = isolate_group_name(name)
+          new_group =  Marshal.load(Marshal.dump(group))
+
+          new_group['rules'].each do |rule|
+            old_ref_name = rule['source_group_name']
+            if old_ref_name
+              # don't mangle names if the user specifies this is an external group they are giving access to.
+              # remove the external_group key to allow this to match with groups retrieved from cloud
+              is_external = rule.delete('external_group')
+              if ! is_external && old_ref_name !~ /^#{isolate_prefix}/
+                rule['source_group_name'] = isolate_group_name(old_ref_name)
+              end
+            end
+          end
+
+          renamed[new_name] = new_group
+        end
+
+        renamed
       end
 
     end
