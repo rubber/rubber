@@ -12,7 +12,7 @@ module Rubber
           :digitalocean_client_id => env.client_key
         }
 
-        if env.cloud_providers.aws
+        if env.cloud_providers && env.cloud_providers.aws
           storage_credentials = {
             :provider => 'AWS',
             :aws_access_key_id => env.cloud_providers.aws.access_key,

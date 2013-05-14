@@ -7,7 +7,9 @@ class FogTest < Test::Unit::TestCase
   context "fog" do
 
     setup do
-      env = {'credentials' =>
+      env = {'compute_credentials' =>
+                 {'rackspace_api_key' => "XXX", 'rackspace_username' => "YYY", 'provider' => "rackspace"},
+             'storage_credentials' =>
                  {'rackspace_api_key' => "XXX", 'rackspace_username' => "YYY", 'provider' => "rackspace"}}
       env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil, nil)
       @cloud = Rubber::Cloud::Fog.new(env, nil)

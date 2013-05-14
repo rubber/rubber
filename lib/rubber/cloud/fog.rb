@@ -12,10 +12,10 @@ module Rubber
         super(env, capistrano)
 
         compute_credentials = Rubber::Util.symbolize_keys(env.compute_credentials)
-        storage_credentials = Rubber::Util.symbolize_keys(env.storage_credentials)
+        storage_credentials = Rubber::Util.symbolize_keys(env.storage_credentials) if env.storage_credentials
 
         @compute_provider = ::Fog::Compute.new(compute_credentials)
-        @storage_provider = ::Fog::Storage.new(storage_credentials) rescue nil
+        @storage_provider = storage_credentials ? ::Fog::Storage.new(storage_credentials) : nil
       end
       
       def storage(bucket)
