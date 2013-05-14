@@ -6,14 +6,25 @@ module Rubber
     class DigitalOcean < Fog
 
       def initialize(env, capistrano)
+        Excon.defaults[:ssl_verify_peer] = false
 
-        credentials = {
-            :digitalocean_api_key => env.api_key,
-            :digitalocean_client_id => env.client_key
+        compute_credentials = {
+          :provider => 'DigitalOcean',
+          :digitalocean_api_key => env.api_key,
+          :digitalocean_client_id => env.client_key
         }
 
-        credentials[:provider] = 'DigitalOcean'
-        env['credentials'] = credentials
+        if env.cloud_providers.aws
+          storage_credentials = {
+            :provider => 'AWS',
+            :aws_access_key_id => env.cloud_providers.aws.access_key,
+            :aws_secret_access_key => env.cloud_providers.aws.secret_access_key
+          }
+
+          env['storage_credentials'] = storage_credentials
+        end
+
+        env['compute_credentials'] = compute_credentials
         super(env, capistrano)
       end
 

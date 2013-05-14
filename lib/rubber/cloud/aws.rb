@@ -8,18 +8,26 @@ module Rubber
       
       def initialize(env, capistrano)
         
-        credentials = {
-            :aws_access_key_id => env.access_key,
-            :aws_secret_access_key => env.secret_access_key
+        compute_credentials = {
+          :aws_access_key_id => env.access_key,
+          :aws_secret_access_key => env.secret_access_key
         }
+
+        storage_credentials = {
+          :provider => 'AWS',
+          :aws_access_key_id => env.access_key,
+          :aws_secret_access_key => env.secret_access_key
+        }
+
+        @table_store = ::Fog::AWS::SimpleDB.new(compute_credentials)
         
-        @table_store = ::Fog::AWS::SimpleDB.new(credentials)
-        
-        credentials[:region] = env.region
-        @elb = ::Fog::AWS::ELB.new(credentials)
-        
-        credentials[:provider] = 'AWS'
-        env['credentials'] = credentials
+        compute_credentials[:region] = env.region
+        @elb = ::Fog::AWS::ELB.new(compute_credentials)
+
+        compute_credentials[:provider] = 'AWS' # We need to set the provider after the SimpleDB init because it fails if the provider value is specified.
+
+        env['compute_credentials'] = compute_credentials
+        env['storage_credentials'] = storage_credentials
         super(env, capistrano)
       end
       
