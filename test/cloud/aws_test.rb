@@ -26,7 +26,7 @@ class AwsTest < Test::Unit::TestCase
     end
 
     should "create instance" do
-      assert @cloud.create_instance('', '', '', '')
+      assert @cloud.create_instance('', '', '', '', '')
     end
 
   end
