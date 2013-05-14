@@ -9,6 +9,7 @@ namespace :rubber do
     link_bash
     set_timezone
     enable_multiverse
+    install_core_packages
     upgrade_packages
     install_packages
     setup_volumes
@@ -285,8 +286,17 @@ namespace :rubber do
     Install extra packages and gems.
   DESC
   task :install do
+    install_core_packages
     install_packages
     install_gems
+  end
+
+  desc <<-DESC
+    Install core packages that are needed before the general install_packages phase.
+  DESC
+  task :install_core_packages do
+    core_packages = ['python-software-properties']
+    rsudo "export DEBIAN_FRONTEND=noninteractive; apt-get -q -o Dpkg::Options::=--force-confold -y --force-yes install #{core_packages.join(' ')}"
   end
 
   desc <<-DESC
@@ -463,6 +473,7 @@ namespace :rubber do
           expanded_pkg_list << pkg_spec
         end
       end
+      expanded_pkg_list << 'ec2-ami-tools' if rubber_env.cloud_provider == 'aws'
       expanded_pkg_list.join(' ')
     end
 

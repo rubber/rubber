@@ -201,7 +201,7 @@ module Rubber
       attr_accessor :internal_host, :internal_ip
       attr_accessor :static_ip, :volumes, :partitions, :root_device_type
       attr_accessor :spot_instance_request_id
-      attr_accessor :platform
+      attr_accessor :provider, :platform
 
       def initialize(name, domain, roles, instance_id, image_type, image_id, security_group_list=[])
         @name = name
@@ -244,6 +244,11 @@ module Rubber
 
       def role_names()
         roles.collect {|r| r.name}
+      end
+
+      def provider
+        # Deal with old instance configurations that don't have a provider value persisted.
+        @provider || 'aws'
       end
 
       def platform
