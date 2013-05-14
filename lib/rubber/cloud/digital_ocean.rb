@@ -6,8 +6,6 @@ module Rubber
     class DigitalOcean < Fog
 
       def initialize(env, capistrano)
-        Excon.defaults[:ssl_verify_peer] = false
-
         compute_credentials = {
           :provider => 'DigitalOcean',
           :digitalocean_api_key => env.api_key,
