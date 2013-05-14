@@ -75,6 +75,14 @@ module Rubber
           Rubber::Tag::update_instance_tags(instance.name)
         end
       end
+
+      def after_refresh_instance(instance)
+        # Sometimes tag creation will fail, indicating that the instance doesn't exist yet even though it does.  It seems to
+        # be a propagation delay on Amazon's end, so the best we can do is wait and try again.
+        Rubber::Util.retry_on_failure(StandardError, :retry_sleep => 0.5, :retry_count => 100) do
+          Rubber::Tag::update_instance_tags(instance.name)
+        end
+      end
       
       def create_image(image_name)
 
