@@ -8,10 +8,13 @@ namespace :rubber do
     before "rubber:install_packages", "rubber:newrelic:install_newrelic_apt"
 
     task :install_newrelic_apt, :roles => :newrelic do
-      rubber.sudo_script 'install_newrelic', <<-ENDSCRIPT
-        wget -O /etc/apt/sources.list.d/newrelic.list http://download.newrelic.com/debian/newrelic.list
-        apt-key adv --keyserver hkp://subkeys.pgp.net --recv-keys 548C16BF
-      ENDSCRIPT
+      exists = capture("echo $(ls /etc/apt/sources.list.d/newrelic.list 2> /dev/null)")
+      if exists.strip.size == 0
+        rubber.sudo_script 'install_newrelic', <<-ENDSCRIPT
+          wget -O /etc/apt/sources.list.d/newrelic.list http://download.newrelic.com/debian/newrelic.list
+          apt-key adv --keyserver hkp://subkeys.pgp.net --recv-keys 548C16BF
+        ENDSCRIPT
+      end
     end
 
     after "rubber:bootstrap", "rubber:newrelic:bootstrap"
