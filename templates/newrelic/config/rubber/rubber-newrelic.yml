@@ -1,5 +1,8 @@
 nrsysmond_license_key: 11111222223333444455555
 
+role_dependencies:
+  common: [newrelic]
+
 roles:
   newrelic:
     packages: [newrelic-sysmond]
