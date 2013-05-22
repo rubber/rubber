@@ -19,19 +19,13 @@ namespace :rubber do
     after "rubber:bootstrap", "rubber:newrelic:bootstrap"
 
     task :bootstrap, :roles => :newrelic do
-      exists = capture("echo $(cat /etc/newrelic/nrsysmond.cfg | grep #{rubber_env.nrsysmond_license_key} 2> /dev/null)")
-      if exists.strip.size == 0
-        
-        rubber.sudo_script 'bootstrap_newrelic', <<-ENDSCRIPT
+      rubber.sudo_script 'bootstrap_newrelic', <<-ENDSCRIPT
+        if [[ -z $(cat /etc/newrelic/nrsysmond.cfg | grep #{rubber_env.nrsysmond_license_key} 2> /dev/null) ]]; then
           nrsysmond-config --set license_key=#{rubber_env.nrsysmond_license_key}
-        ENDSCRIPT
-  
-        # After everything installed on machines, we need the source tree
-        # on hosts in order to run rubber:config for bootstrapping the db
-        rubber.update_code_for_bootstrap
-  
-        restart
-      end
+        fi
+      ENDSCRIPT
+
+      restart
     end
 
     desc "Start newrelic system monitoring"
