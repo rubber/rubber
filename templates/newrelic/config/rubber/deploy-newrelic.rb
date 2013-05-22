@@ -14,7 +14,7 @@ namespace :rubber do
       ENDSCRIPT
     end
 
-    after "rubber:bootstrap", "rubber:graphite:server:bootstrap"
+    after "rubber:bootstrap", "rubber:newrelic:bootstrap"
 
     task :bootstrap, :roles => :newrelic do
       exists = capture("echo $(cat /etc/newrelic/nrsysmond.cfg | grep #{rubber_env.nrsysmond_license_key} 2> /dev/null)")
@@ -32,17 +32,17 @@ namespace :rubber do
       end
     end
 
-    desc "Start graphite system monitoring"
+    desc "Start newrelic system monitoring"
     task :start, :roles => :newrelic do
       rsudo "service newrelic-sysmond start"
     end
 
-    desc "Stop graphite system monitoring"
+    desc "Stop newrelic system monitoring"
     task :stop, :roles => :newrelic do
       rsudo "service newrelic-sysmond stop || true"
     end
 
-    desc "Restart graphite system monitoring"
+    desc "Restart newrelic system monitoring"
     task :restart, :roles => :newrelic do
       stop
       start
