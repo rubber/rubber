@@ -8,7 +8,7 @@ namespace :rubber do
     before "rubber:install_packages", "rubber:newrelic:install_newrelic_apt"
 
     task :install_newrelic_apt, :roles => :newrelic do
-      exists = capture("echo $(ls /etc/apt/sources.list.d/newrelic.list 2> /dev/null)")
+      exists = capture("echo $(cat /etc/apt/sources.list.d/newrelic.list 2> /dev/null)")
       if exists.strip.size == 0
         rubber.sudo_script 'install_newrelic', <<-ENDSCRIPT
           wget -O /etc/apt/sources.list.d/newrelic.list http://download.newrelic.com/debian/newrelic.list
