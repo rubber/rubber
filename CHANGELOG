@@ -1,3 +1,18 @@
+2.4.0 (05/24/2013)
+------------------
+
+New Features:
+============
+
+[core] DigitalOcean is now supported as a cloud provider
+[core] Added a "generic" cloud provider for connecting to dedicated hardware, VMs, and otherwise unsupported cloud providers
+
+
+Bug Fixes:
+=========
+
+[core] Trigger rubber:config after deploy:update_code so machines with both a DB and the asset pipeline can bootstrap properly <dc5d0b2>
+
 2.3.1 (05/12/2013)
 ------------------
 
