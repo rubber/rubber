@@ -1,12 +1,26 @@
+require 'fog'
+
 module Rubber
   module Cloud
     class Generic < Base
       MUTEX = Mutex.new
 
-      def initialize(env, capistrano)
-        super(env, capistrano)
+      attr_reader :storage_provider
 
-        @instances = []
+      def initialize(env, capistrano)
+        # TODO (nirvdrum 05/23/13): This is here until the storage provider stuff is cleaned up.  That's why this class inherits from Base rather than Fog.
+        if env.cloud_providers && env.cloud_providers.aws
+          storage_credentials = {
+            :provider => 'AWS',
+            :aws_access_key_id => env.cloud_providers.aws.access_key,
+            :aws_secret_access_key => env.cloud_providers.aws.secret_access_key
+          }
+
+          env['storage_credentials'] = storage_credentials
+          @storage_provider = ::Fog::Storage.new(Rubber::Util.symbolize_keys(env.storage_credentials))
+        end
+
+        super(env, capistrano)
       end
 
       def active_state
