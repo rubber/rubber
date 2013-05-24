@@ -20,9 +20,16 @@ namespace :rubber do
 
   # Sets up instance to allow root access (e.g. recent canonical AMIs)
   def enable_root_ssh(ip, initial_ssh_user)
+    # Capistrano uses the :password variable for sudo commands.  Since this setting is generally used for the deploy user,
+    # but we need it this one time for the initial SSH user, we need to swap out and restore the password.
+    #
+    # We special-case the 'ubuntu' user since Amazon doesn't since the Canonical AMIs on EC2 don't set the password for
+    # this account, making any password prompt potentially confusing.
+    orig_password = fetch(:password)
+    set(:password, initial_ssh_user == 'ubuntu' ? nil : Capistrano::CLI.password_prompt("Password for #{initial_ssh_user} @ #{ip}: "))
 
     task :_allow_root_ssh, :hosts => "#{initial_ssh_user}@#{ip}" do
-      rsudo "cp /home/#{initial_ssh_user}/.ssh/authorized_keys /root/.ssh/"
+      rsudo "mkdir -p /root/.ssh && cp /home/#{initial_ssh_user}/.ssh/authorized_keys /root/.ssh/"
     end
 
     begin
@@ -36,6 +43,9 @@ namespace :rubber do
         retry
       end
     end
+
+    # Restore the original deploy password.
+    set(:password, orig_password)
   end
 
   # Forces a direct connection
