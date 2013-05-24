@@ -103,7 +103,12 @@ module Rubber
         raise "a key is required" unless key && key.size > 0
         
         if block_given?
-          @directory.files.get(key, opts, &block)
+          # TODO (nirvdrum 05/24/13) Remove when https://github.com/fog/fog/issues/1832 is fixed.
+          begin
+            @directory.files.get(key, opts, &block)
+          rescue Excon::Errors::NotFound
+            nil
+          end
         else
           Rubber::Util.retry_on_failure(*RETRYABLE_EXCEPTIONS) do
             begin
