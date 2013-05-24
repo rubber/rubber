@@ -26,10 +26,10 @@ module Rubber
         super(env, capistrano)
       end
 
-      def create_instance(instance_alias, image_name, image_type, security_groups, availability_zone)
-        region = compute_provider.regions.find { |r| r.name == availability_zone }
-        if region.nil?
-          raise "Invalid region for DigitalOcean: #{availability_zone}"
+      def create_instance(instance_alias, image_name, image_type, security_groups, availability_zone, region)
+        do_region = compute_provider.regions.find { |r| r.name == region }
+        if do_region.nil?
+          raise "Invalid region for DigitalOcean: #{region}"
         end
 
         image = compute_provider.images.find { |i| i.name == image_name }
@@ -56,7 +56,7 @@ module Rubber
         response = compute_provider.servers.create(:name => "#{Rubber.env}-#{instance_alias}",
                                                    :image_id => image.id,
                                                    :flavor_id => flavor.id,
-                                                   :region_id => region.id,
+                                                   :region_id => do_region.id,
                                                    :ssh_key_ids => [ssh_key['id']])
 
         response.id

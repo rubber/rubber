@@ -308,7 +308,7 @@ namespace :rubber do
 
     if !create_spot_instance || (create_spot_instance && max_wait_time < 0)
       logger.info "Creating instance #{ami}/#{ami_type}/#{security_groups.join(',') rescue 'Default'}/#{availability_zone || region || 'Default'}"
-      instance_id = cloud.create_instance(instance_alias, ami, ami_type, security_groups, availability_zone || region)
+      instance_id = cloud.create_instance(instance_alias, ami, ami_type, security_groups, availability_zone, region)
     end
 
     logger.info "Instance #{instance_alias} created: #{instance_id}"

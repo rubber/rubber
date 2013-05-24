@@ -27,7 +27,7 @@ module Rubber
         'active'
       end
 
-      def create_instance(instance_alias, image_name, image_type, security_groups, availability_zone)
+      def create_instance(instance_alias, image_name, image_type, security_groups, availability_zone, region)
         instance = {}
         instance[:id] = instance_alias
         instance[:state] = active_state

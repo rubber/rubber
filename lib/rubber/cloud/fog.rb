@@ -26,12 +26,13 @@ module Rubber
         raise NotImplementedError, "No table store available for generic fog adapter"
       end
 
-      def create_instance(instance_alias, ami, ami_type, security_groups, availability_zone)
+      def create_instance(instance_alias, ami, ami_type, security_groups, availability_zone, region)
         response = @compute_provider.servers.create(:image_id => ami,
                                                     :flavor_id => ami_type,
                                                     :groups => security_groups,
                                                     :availability_zone => availability_zone,
                                                     :key_name => env.key_name)
+
         response.id
       end
 
