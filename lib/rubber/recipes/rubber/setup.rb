@@ -295,7 +295,10 @@ namespace :rubber do
     Install core packages that are needed before the general install_packages phase.
   DESC
   task :install_core_packages do
-    core_packages = ['python-software-properties']
+    core_packages = [
+                      'python-software-properties', # Needed for add-apt-repository, which we use for adding PPAs.
+                       'bc'                         # Needed for comparing version numbers in bash, which we do for various setup functions.
+                    ]
     rsudo "export DEBIAN_FRONTEND=noninteractive; apt-get -q -o Dpkg::Options::=--force-confold -y --force-yes install #{core_packages.join(' ')}"
   end
 
