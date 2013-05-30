@@ -1,3 +1,13 @@
+2.4.1 (05/30/2013)
+------------------
+
+Bug Fixes:
+=========
+
+[core] Fixed a problem with transforming templates that reference the "current" directory as part of a deploy <21e3b92>
+[sidekiq] Only try to silence sidekiq if current_path actually exists <f20bd94>
+
+
 2.4.0 (05/24/2013)
 ------------------
 
