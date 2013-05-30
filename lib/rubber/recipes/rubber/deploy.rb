@@ -24,7 +24,7 @@ namespace :rubber do
   task :post_stop do
   end
 
-  after "deploy:update_code", "rubber:config"
+  after "deploy:symlink", "rubber:config"
   after "deploy:rollback_code", "rubber:config"
 
   desc <<-DESC
