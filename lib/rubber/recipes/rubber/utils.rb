@@ -229,9 +229,7 @@ namespace :rubber do
     unless (fetch(:rubber_code_was_updated, false))
       deploy.setup
       logger.info "updating code for bootstrap"
-      set :rubber_updating_code_for_bootstrap_db, true
       deploy.update_code
-      set :rubber_updating_code_for_bootstrap_db, false
     end
   end
   

@@ -89,18 +89,14 @@ task :cleanup, :except => { :no_release => true } do
   CMD
 end
 
+# We need to ensure that rubber:config runs before asset precompilation in Rails, as Rails tries to boot the environment,
+# which means needing to have DB access.  However, if rubber:config hasn't run yet, then the DB config will not have
+# been generated yet.  Rails will fail to boot, asset precompilation will fail to complete, and the deploy will abort.
 if Rubber::Util.has_asset_pipeline?
-  # load asset pipeline task, disable precompile from being triggered
-  # by deploy:update_code during bootstrap_db, and reorder to run after
-  # rubber:config has generated database.yml/etc.
   load 'deploy/assets'
+
   callbacks[:after].delete_if {|c| c.source == "deploy:assets:precompile"}
-  task :_skip_assets_precompile_if_bootstrapping_db do
-    if fetch(:rubber_updating_code_for_bootstrap_db, false)
-      logger.info "Skipping assets precompilation"
-    else
-      deploy.assets.precompile
-    end
-  end
-  after 'deploy:update_code', '_skip_assets_precompile_if_bootstrapping_db'
+  callbacks[:before].delete_if {|c| c.source == "deploy:assets:symlink"}
+  before "deploy:assets:precompile", "deploy:assets:symlink"
+  after "rubber:config", "deploy:assets:precompile"
 end

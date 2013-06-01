@@ -24,8 +24,9 @@ namespace :rubber do
   task :post_stop do
   end
 
-  after "deploy:symlink", "rubber:config"
+  after "deploy:update", "rubber:config"
   after "deploy:rollback_code", "rubber:config"
+  before "deploy:migrate", "rubber:config"
 
   desc <<-DESC
     Configures the deployed rails application by running the rubber configuration process
