@@ -12,7 +12,7 @@ module Rubber
       end
 
       def destroy_instance(instance_id)
-        system("vagrant destroy #{instance_id} -f")
+        system("vagrant destroy #{instance_id} --force")
       end
 
     end
