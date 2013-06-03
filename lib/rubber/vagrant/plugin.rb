@@ -1,5 +1,3 @@
-require "vagrant"
-
 module VagrantPlugins
   module Rubber
     class Plugin < Vagrant.plugin("2")
