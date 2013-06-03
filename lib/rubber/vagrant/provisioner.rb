@@ -29,7 +29,7 @@ module VagrantPlugins
         script = <<-ENDSCRIPT
           unset GEM_HOME;
           unset GEM_PATH;
-          PATH=#{ENV['PATH'].split(':')[1..-1].join(':')} RUN_FROM_VAGRANT=true RUBBER_ENV=vagrant ALIAS=#{machine.name} ROLES='#{config.roles}' EXTERNAL_IP=#{private_ip} INTERNAL_IP=#{private_ip} RUBBER_SSH_KEY=#{ssh_info[:private_key_path]} bash -c 'bundle exec cap rubber:create -S initial_ssh_user=#{ssh_info[:username]}'
+          PATH=#{ENV['PATH'].split(':')[1..-1].join(':')} RUN_FROM_VAGRANT=true RUBBER_ENV=#{config.rubber_env} ALIAS=#{machine.name} ROLES='#{config.roles}' EXTERNAL_IP=#{private_ip} INTERNAL_IP=#{private_ip} RUBBER_SSH_KEY=#{ssh_info[:private_key_path]} bash -c 'bundle exec cap rubber:create -S initial_ssh_user=#{ssh_info[:username]}'
         ENDSCRIPT
 
         system(script)
@@ -39,7 +39,7 @@ module VagrantPlugins
         script = <<-ENDSCRIPT
           unset GEM_HOME;
           unset GEM_PATH;
-          PATH=#{ENV['PATH'].split(':')[1..-1].join(':')} RUN_FROM_VAGRANT=true RUBBER_ENV=vagrant RUBBER_SSH_KEY=#{ssh_info[:private_key_path]} FILTER=#{machine.name} bash -c 'bundle exec cap rubber:bootstrap'
+          PATH=#{ENV['PATH'].split(':')[1..-1].join(':')} RUN_FROM_VAGRANT=true RUBBER_ENV=#{config.rubber_env} RUBBER_SSH_KEY=#{ssh_info[:private_key_path]} FILTER=#{machine.name} bash -c 'bundle exec cap rubber:bootstrap'
         ENDSCRIPT
 
         system(script)
@@ -49,7 +49,7 @@ module VagrantPlugins
         script = <<-ENDSCRIPT
           unset GEM_HOME;
           unset GEM_PATH;
-          PATH=#{ENV['PATH'].split(':')[1..-1].join(':')} RUN_FROM_VAGRANT=true RUBBER_ENV=vagrant RUBBER_SSH_KEY=#{ssh_info[:private_key_path]} FILTER=#{machine.name} bash -c 'bundle exec cap deploy:migrations'
+          PATH=#{ENV['PATH'].split(':')[1..-1].join(':')} RUN_FROM_VAGRANT=true RUBBER_ENV=#{config.rubber_env} RUBBER_SSH_KEY=#{ssh_info[:private_key_path]} FILTER=#{machine.name} bash -c 'bundle exec cap deploy:migrations'
         ENDSCRIPT
 
         system(script)
