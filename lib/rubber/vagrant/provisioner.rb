@@ -4,9 +4,6 @@ module VagrantPlugins
       attr_reader :ssh_info, :private_ip
 
       def configure(root_config)
-        require 'rubber'
-        ::Rubber::initialize(Dir.pwd, 'vagrant')
-
         root_config.vm.networks.each do |type, info|
           if type == :private_network
             @private_ip = info[:ip]
@@ -21,6 +18,7 @@ module VagrantPlugins
 
       def provision
         @ssh_info = machine.ssh_info
+
         create
         bootstrap && deploy_migrations
       end
@@ -31,7 +29,7 @@ module VagrantPlugins
         script = <<-ENDSCRIPT
           unset GEM_HOME;
           unset GEM_PATH;
-          PATH=#{ENV['PATH'].split(':')[1..-1].join(':')} RUN_FROM_VAGRANT=true RUBBER_ENV=vagrant ALIAS=#{machine.name} ROLES='*' EXTERNAL_IP=#{private_ip} INTERNAL_IP=#{private_ip} RUBBER_SSH_KEY=#{ssh_info[:private_key_path]} bash -c 'bundle exec cap rubber:create -S initial_ssh_user=#{ssh_info[:username]}'
+          PATH=#{ENV['PATH'].split(':')[1..-1].join(':')} RUN_FROM_VAGRANT=true RUBBER_ENV=vagrant ALIAS=#{machine.name} ROLES='#{config.roles}' EXTERNAL_IP=#{private_ip} INTERNAL_IP=#{private_ip} RUBBER_SSH_KEY=#{ssh_info[:private_key_path]} bash -c 'bundle exec cap rubber:create -S initial_ssh_user=#{ssh_info[:username]}'
         ENDSCRIPT
 
         $stderr.puts script
