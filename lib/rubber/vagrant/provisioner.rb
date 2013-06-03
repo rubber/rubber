@@ -32,8 +32,6 @@ module VagrantPlugins
           PATH=#{ENV['PATH'].split(':')[1..-1].join(':')} RUN_FROM_VAGRANT=true RUBBER_ENV=vagrant ALIAS=#{machine.name} ROLES='#{config.roles}' EXTERNAL_IP=#{private_ip} INTERNAL_IP=#{private_ip} RUBBER_SSH_KEY=#{ssh_info[:private_key_path]} bash -c 'bundle exec cap rubber:create -S initial_ssh_user=#{ssh_info[:username]}'
         ENDSCRIPT
 
-        $stderr.puts script
-
         system(script)
       end
 
