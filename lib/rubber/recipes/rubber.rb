@@ -65,7 +65,8 @@ namespace :rubber do
     # NOTE: for some reason Capistrano requires you to have both the public and
     # the private key in the same folder, the public key should have the
     # extension ".pub".
-    ssh_options[:keys] = [cloud.env.key_file].flatten
+
+    ssh_options[:keys] = [ENV['RUBBER_SSH_KEY'] || cloud.env.key_file].flatten
     ssh_options[:timeout] = fetch(:ssh_timeout, 5)
   end
 
