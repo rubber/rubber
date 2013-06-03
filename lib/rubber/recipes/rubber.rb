@@ -66,7 +66,7 @@ namespace :rubber do
     # the private key in the same folder, the public key should have the
     # extension ".pub".
 
-    ssh_options[:keys] = [ENV['RUBBER_SSH_KEY'] || cloud.env.key_file].flatten
+    ssh_options[:keys] = [ENV['RUBBER_SSH_KEY'] || cloud.env.key_file].flatten.compact
     ssh_options[:timeout] = fetch(:ssh_timeout, 5)
   end
 
