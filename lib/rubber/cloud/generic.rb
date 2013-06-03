@@ -45,7 +45,7 @@ module Rubber
         # Since there's no API to query for instance details, the best we can do is use what we have in memory from
         # the :create_instance operation or ask the user for the details again.
         unless Generic.instances
-          create_instance(instance_id, nil, nil, nil, nil)
+          create_instance(instance_id, nil, nil, nil, nil, nil)
         end
 
         Generic.instances
