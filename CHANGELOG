@@ -1,3 +1,12 @@
+2.5.0 (06/03/2013)
+-----------------
+
+New Features:
+============
+
+[core] Added support for using Rubber as a Vagrant provisioner.  Now you can run Rubber easily against local VMs.
+
+
 2.4.2 (06/01/2013)
 ------------------
 
