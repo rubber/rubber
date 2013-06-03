@@ -1,0 +1,7 @@
+cloud_provider: vagrant
+
+cloud_providers:
+  vagrant:
+    # Rubber assumes every cloud provider has configuration.  Vagrant really doesn't need anything, but until the core
+    # of Rubber handles that, just set a dummy value.
+    dummy: true
