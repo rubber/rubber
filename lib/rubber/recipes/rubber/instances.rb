@@ -220,7 +220,7 @@ namespace :rubber do
         value = Capistrano::CLI.ui.ask("You do not have a primary db role, should #{instance_alias} be it [y/n]?: ")
         roles << "db:primary=true" if value =~ /^y/
       end
-      
+
       ir.concat roles.collect {|r| Rubber::Configuration::RoleItem.parse(r) }
 
       # Add in roles that the given set of roles depends on
@@ -255,7 +255,7 @@ namespace :rubber do
     post_refresh
   end
 
-  set :mutex, Mutex.new
+  set :monitor, Monitor.new
 
   # Creates a new ec2 instance with the given alias and roles
   # Configures aliases (/etc/hosts) on local and remote machines
@@ -263,7 +263,7 @@ namespace :rubber do
     role_names = instance_roles.collect{|x| x.name}
     env = rubber_cfg.environment.bind(role_names, instance_alias)
 
-    mutex.synchronize do
+    monitor.synchronize do
       cloud.before_create_instance(instance_alias, role_names)
     end
 
@@ -318,7 +318,7 @@ namespace :rubber do
     rubber_instances.add(instance_item)
     rubber_instances.save()
 
-    mutex.synchronize do
+    monitor.synchronize do
       cloud.after_create_instance(instance_item)
     end
   end
@@ -350,7 +350,7 @@ namespace :rubber do
 
     instance = cloud.describe_instances(instance_item.instance_id).first
 
-    mutex.synchronize do
+    monitor.synchronize do
       cloud.before_refresh_instance(instance_item)
     end
 
@@ -386,7 +386,7 @@ namespace :rubber do
         end
       end
 
-      mutex.synchronize do
+      monitor.synchronize do
         cloud.after_refresh_instance(instance_item)
       end
 
@@ -499,10 +499,14 @@ namespace :rubber do
       instance_item = rubber_instances[instance_alias]
       
       fatal "Instance does not exist: #{instance_alias}" if ! instance_item
-      fatal "Cannot stop spot instances!" if ! instance_item.spot_instance_request_id.nil?
-      fatal "Cannot stop instances with instance-store root device!" if (instance_item.root_device_type != 'ebs')
       
       instance_item
+    end
+
+    monitor.synchronize do
+      instance_items.each do |instance_item|
+        cloud.before_stop_instance(instance_item)
+      end
     end
     
     # Get user confirmation
@@ -516,13 +520,13 @@ namespace :rubber do
       stop_threads << Thread.new do
         env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
 
-        cloud.stop_instance(instance_item.instance_id)
+        cloud.stop_instance(instance_item)
         
         stopped = false
         while !stopped
           sleep 1
           instance = cloud.describe_instances(instance_item.instance_id).first rescue {}
-          stopped = (instance[:state] == "stopped")
+          stopped = (instance[:state] == cloud.stopped_state)
         end
       end
     end
@@ -536,22 +540,32 @@ namespace :rubber do
     print "\n"
       
     stop_threads.each(&:join)
+
+    monitor.synchronize do
+      instance_items.each do |instance_item|
+        cloud.after_stop_instance(instance_item)
+      end
+    end
   end
 
   # Starts the given ec2 instances.  Note that this operation only works for instances that use an EBS volume for the root
   # device, that are not spot instances, and that are already stopped.
   def start_instances(aliases)
     start_threads = []
-    refresh_threads = []
+    describe_threads = []
     
     instance_items = aliases.collect do |instance_alias|
       instance_item = rubber_instances[instance_alias]
 
       fatal "Instance does not exist: #{instance_alias}" if ! instance_item
-      fatal "Cannot start spot instances!" if ! instance_item.spot_instance_request_id.nil?
-      fatal "Cannot start instances with instance-store root device!" if (instance_item.root_device_type != 'ebs')
 
       instance_item
+    end
+
+    monitor.synchronize do
+      instance_items.each do |instance_item|
+        cloud.before_start_instance(instance_item)
+      end
     end
     
     # Get user confirmation
@@ -565,12 +579,14 @@ namespace :rubber do
       start_threads << Thread.new do
         env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
         
-        cloud.start_instance(instance_item.instance_id)
-        
-        # Re-starting an instance will almost certainly give it a new set of IPs and DNS entries, so refresh the values.
-        refresh_threads << Thread.new do
-          while ! refresh_instance(instance_item.name)
+        cloud.start_instance(instance_item)
+
+        describe_threads << Thread.new do
+          started = false
+          while ! started
             sleep 1
+            instance = cloud.describe_instances(instance_item.instance_id).first rescue {}
+            started = (instance[:state] == cloud.active_state)
           end
         end
       end
@@ -584,10 +600,13 @@ namespace :rubber do
     end
 
     start_threads.each(&:join)
-    refresh_threads.each(&:join)
-    
-    # Static IPs, DNS, etc. need to be set up for the started instances
-    post_refresh
+    describe_threads.each(&:join)
+
+    monitor.synchronize do
+      instance_items.each do |instance_item|
+        cloud.after_start_instance(instance_item)
+      end
+    end
   end
 
   # delete from ~/.ssh/known_hosts all lines that begin with ec2- or instance_alias

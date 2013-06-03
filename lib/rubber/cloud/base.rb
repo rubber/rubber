@@ -26,6 +26,22 @@ module Rubber
         setup_security_groups(instance.name, instance.role_names)
       end
 
+      def before_stop_instance(instance)
+        # No-op by default.
+      end
+
+      def after_stop_instance(instance)
+        # No-op by default.
+      end
+
+      def before_start_instance(instance)
+        # No-op by default.
+      end
+
+      def after_start_instance(instance)
+        # No-op by default.
+      end
+
       def isolate_prefix
         "#{env.app_name}_#{Rubber.env}_"
       end

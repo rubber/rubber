@@ -64,6 +64,10 @@ module Rubber
         'running'
       end
 
+      def stopped_state
+        'stopped'
+      end
+
       def before_create_instance(instance_alias, role_names)
         setup_security_groups(instance_alias, role_names)
       end
@@ -83,7 +87,25 @@ module Rubber
           Rubber::Tag::update_instance_tags(instance.name)
         end
       end
-      
+
+      def before_stop_instance(instance)
+        capistrano.fatal "Cannot stop spot instances!" if ! instance.spot_instance_request_id.nil?
+        capistrano.fatal "Cannot stop instances with instance-store root device!" if (instance.root_device_type != 'ebs')
+      end
+
+      def before_start_instance(instance)
+        capistrano.fatal "Cannot start spot instances!" if ! instance.spot_instance_request_id.nil?
+        capistrano.fatal "Cannot start instances with instance-store root device!" if (instance.root_device_type != 'ebs')
+      end
+
+      def after_start_instance(instance)
+        # Re-starting an instance will almost certainly give it a new set of IPs and DNS entries, so refresh the values.
+        capistrano.rubber.refresh_instance(instance.name)
+
+        # Static IPs, DNS, etc. need to be set up for the started instance.
+        capistrano.rubber.post_refresh
+      end
+
       def create_image(image_name)
 
         # validate all needed config set
