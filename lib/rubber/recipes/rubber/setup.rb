@@ -9,8 +9,8 @@ namespace :rubber do
     link_bash
     set_timezone
     enable_multiverse
-    install_core_packages
     upgrade_packages
+    install_core_packages
     install_packages
     setup_volumes
     setup_gem_sources
