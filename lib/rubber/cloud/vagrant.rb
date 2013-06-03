@@ -24,14 +24,14 @@ module Rubber
         output =~ /#{instance_id}\s+(\w+)/m
         state = $1
 
-        if Vagrant.instances
-          Vagrant.instances.each do |instance|
+        if Generic.instances
+          Generic.instances.each do |instance|
             if instance[:id] == instance_id
               instance[:state] = state
             end
           end
 
-          Vagrant.instances
+          Generic.instances
         else
           instance = {}
           instance[:id] = instance_id
