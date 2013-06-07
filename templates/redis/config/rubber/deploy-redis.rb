@@ -46,7 +46,7 @@ namespace :rubber do
         # on hosts in order to run rubber:config for bootstrapping the db
         rubber.update_code_for_bootstrap
   
-        # Gen just the conf for cassandra
+        # Gen just the conf for redis.
         rubber.run_config(:file => "role/redis/", :force => true, :deploy_path => release_path)
       
         restart
