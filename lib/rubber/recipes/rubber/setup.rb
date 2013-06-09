@@ -1,4 +1,9 @@
-require "bundler/capistrano" if Rubber::Util.is_bundler?
+begin
+  require "bundler/capistrano" if Rubber::Util.is_bundler?
+rescue LoadError
+  # It's possible the project has a Gemfile but doesn't have bundler installed.  E.g., if Rubber is used with Vagrant
+  # and the Gemfile exists merely because Rubber expects it remotely for its tasks.
+end
 
 namespace :rubber do
 
