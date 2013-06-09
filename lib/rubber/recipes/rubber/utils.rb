@@ -105,6 +105,8 @@ namespace :rubber do
       # have precedence, so the servers show up in that group
       added_servers = []
       serial_roles.each do |rolename|
+        next if servers[rolename].nil?
+
         servers[rolename] -= added_servers
         added_servers << servers[rolename]
         servers[rolename] = servers[rolename].uniq.sort
