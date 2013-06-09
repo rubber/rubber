@@ -11,13 +11,13 @@ module Rubber
       def initialize(env, capistrano)
         super(env, capistrano)
 
-        compute_credentials = Rubber::Util.symbolize_keys(env.compute_credentials)
+        compute_credentials = Rubber::Util.symbolize_keys(env.compute_credentials) if env.compute_credentials
         storage_credentials = Rubber::Util.symbolize_keys(env.storage_credentials) if env.storage_credentials
 
-        @compute_provider = ::Fog::Compute.new(compute_credentials)
+        @compute_provider = compute_credentials ? ::Fog::Compute.new(compute_credentials) : nil
         @storage_provider = storage_credentials ? ::Fog::Storage.new(storage_credentials) : nil
       end
-      
+
       def storage(bucket)
         return Rubber::Cloud::FogStorage.new(@storage_provider, bucket)
       end
