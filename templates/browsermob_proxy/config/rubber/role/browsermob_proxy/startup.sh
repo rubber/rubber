@@ -6,8 +6,8 @@
 
   args = []
   args << '-Xms256m'
-  args << '-Xmx#{rubber_env.browsermob_proxy_max_heap_in_mb}m'
-  args << '-XX:MaxPermSize=#{rubber_env.browsermob_proxy_permgen_in_mb}m'
+  args << "-Xmx#{rubber_env.browsermob_proxy_max_heap_in_mb}m"
+  args << "-XX:MaxPermSize=#{rubber_env.browsermob_proxy_permgen_in_mb}m"
   args << '-Djsse.enableSNIExtension=false'
 
   if proxy_server
