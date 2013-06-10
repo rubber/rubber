@@ -1,3 +1,26 @@
+2.5.1 (06/09/2013)
+-----------------
+
+New Features:
+============
+
+[browsermob_proxy] Added a BrowserMob Proxy template.
+[selenium_grid_hub] Added a Selenium Grid hub template.
+
+Improvements:
+============
+
+[graylog] Use JDK 7 instead of JDK 6.
+[jetty] Use JDK 7 instead of JDK 6.
+
+Bug Fixes:
+=========
+
+[core] Refresh already created instances in Vagrant so firewall rules are adjusted for any modified roles.
+[core] Better handling of serial_tasks when no instances have a defined role.
+[graylog] Fixed loading graylog-web in any environment other than "production."
+
+
 2.5.0 (06/03/2013)
 -----------------
 
@@ -5,6 +28,7 @@ New Features:
 ============
 
 [core] Added support for using Rubber as a Vagrant provisioner.  Now you can run Rubber easily against local VMs.
+[core] Don't pass nil SSH key file entries to Capistrano because it hides the error message and makes things really hard to track down.
 
 
 2.4.2 (06/01/2013)
