@@ -19,7 +19,7 @@ module VagrantPlugins
       def provision
         @ssh_info = machine.ssh_info
 
-        create
+        create || refresh
         bootstrap && deploy_migrations
       end
 
@@ -37,6 +37,20 @@ module VagrantPlugins
         end
 
         puts script
+
+        system(script)
+      end
+
+      def refresh
+        if config.use_vagrant_ruby
+          script = "RUN_FROM_VAGRANT=true RUBBER_ENV=#{config.rubber_env} RUBBER_SSH_KEY=#{ssh_info[:private_key_path]} ALIAS=#{machine.name} EXTERNAL_IP=#{private_ip} INTERNAL_IP=#{private_ip} #{internal_cap_command} rubber:refresh -S initial_ssh_user=#{ssh_info[:username]}"
+        else
+          script = <<-ENDSCRIPT
+            unset GEM_HOME;
+            unset GEM_PATH;
+            PATH=#{ENV['PATH'].split(':')[1..-1].join(':')} RUN_FROM_VAGRANT=true RUBBER_ENV=#{config.rubber_env} RUBBER_SSH_KEY=#{ssh_info[:private_key_path]} ALIAS=#{machine.name} EXTERNAL_IP=#{private_ip} INTERNAL_IP=#{private_ip} bash -c 'bundle exec cap rubber:refresh -S initial_ssh_user=#{ssh_info[:username]}'
+          ENDSCRIPT
+        end
 
         system(script)
       end
