@@ -1,0 +1,8 @@
+<%
+  @read_cmd = 'crontab -l'
+  @write_cmd = 'crontab -'
+  @additive = ["# rubber-selenium-grid-hub-start", "# rubber-selenium-grid-hub-end"]
+%>
+
+# Rotate the BrowserMob Proxy logs at 2 AM.
+0 2 * * * <%= Rubber.root %>/script/rubber cron --task util:rotate_logs --directory=<%= rubber_env.browsermob_proxy_log_dir %>
