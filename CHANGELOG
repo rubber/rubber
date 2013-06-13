@@ -1,3 +1,12 @@
+2.5.2 (06/13/2013)
+
+Bug Fixes:
+=========
+
+[core] Do not use the embedded Vagrant ruby installation by default.
+
+
+
 2.5.1 (06/09/2013)
 -----------------
 
