@@ -1,0 +1,76 @@
+<div class="page-header"><h1>Operations</h1></div>
+<div class="page-header">
+  <form action="<%= url(:operations) %>" method="POST" <%= "onsubmit=\"return confirm('Are you sure?');\"" if autoscale_status > 0 %>>
+    <% if autoscale_status > 0 %>
+        <div class="control-group">
+          <div class="controls">
+            <button type="submit" name="disableAutoscale" class="btn btn-danger">Disable Autoscale</button>
+          </div>
+        </div>
+    <% else %>
+        <div class="control-group">
+          <div class="controls">
+            <button type="submit" name="enableAutoscale" class="btn btn-success">Enable Autoscale</button>
+          </div>
+        </div>
+    <% end %>
+  </form>
+</div>
+
+<div>
+  <form action="<%= url(:operations) %>" method="POST" onsubmit="return confirm('Are you sure you want to clear logs?');">
+    <div class="control-group">
+      <div class="controls">
+        <button type="submit" name="clearLogs" class="btn btn-danger">Clear Logs</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<% if @worker_hosts.present? %>
+    <div class="page-header"><h3>Worker Instances</h3></div>
+    <table class="table">
+      <thead>
+      <tr>
+        <th>Name</th>
+        <th>Number Workers</th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+      <% @worker_hosts.each do |host, workers| %>
+
+          <tr>
+            <td><%= host %></td>
+            <td><%= workers.count %></td>
+            <td>
+              <% if host =~ /#{Rubber.config.autoscale_worker_name_prefix}/ and autoscale_status == 1 %>
+              <form action="<%= url(:destroy_worker) %>" method="POST" onsubmit="return confirm('Are you sure you want to destroy instance <%= host %>?');">
+                <input type="hidden" name="instance_id" value="<%= host.gsub(Rubber.config.domain, "") %>"/>
+                <div class="control-group">
+                  <div class="controls">
+                    <button type="submit" name="destroy_worker" class="btn btn-danger">Destroy</button>
+                  </div>
+                </div>
+              </form>
+              <% end %>
+            </td>
+          </tr>
+      <% end %>
+      </tbody>
+    </table>
+<% else %>
+    <div class="page-header"><h3 class="text-warning">You don't have any active workers</h3></div>
+<% end %>
+
+<% if autoscale_status == 1 %>
+<div>
+  <form action="<%= url(:add_worker) %>" method="POST" onsubmit="return confirm('Are you sure you want to add new worker instance?');">
+    <div class="control-group">
+      <div class="controls">
+        <button type="submit" name="add_worker" class="btn btn-success">Bring Up New Worker</button>
+      </div>
+    </div>
+  </form>
+</div>
+<% end %>

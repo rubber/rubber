@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Resque Autoscale</title>
+  <script type="text/javascript" src="<%= url('/jquery-1.10.1.min.js') %>"></script>
+  <script type="text/javascript" src="<%= url('/bootstrap/js/bootstrap.min.js') %>"></script>
+  <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+  <script src='https://www.google.com/jsapi'></script>
+  <style type="text/css">
+      body {
+          padding-top: 60px;
+          padding-bottom: 40px;
+      }
+      .sidebar-nav {
+          padding: 9px 0;
+      }
+
+      @media (max-width: 980px) {
+          /* Enable use of floated navbar text */
+          .navbar-text.pull-right {
+              float: none;
+              padding-left: 5px;
+              padding-right: 5px;
+          }
+      }
+  </style>
+</head>
+<body>
+<div class="navbar navbar-inverse navbar-fixed-top">
+  <div class="navbar-inner">
+    <div class="container-fluid">
+      <a class="brand" href="#">Resque Autoscale(<%= ENV['RACK_ENV'] %>)</a>
+    </div>
+  </div>
+</div>
+
+<div class="container-fluid">
+  <div class="row-fluid">
+    <div class="span3">
+      <%= erb :nav, :locals => {:current_page => @current_page} %>
+    </div>
+    <div class="span9">
+      <% flash_types.select{ |kind| flash.has?(kind) }.each do |kind| %>
+          <div class="well text-<%= kind %>">
+            <%= flash[kind] %>
+          </div>
+      <% end %>
+      <div class="well">
+        <%= yield %>
+      </div>
+    </div>
+  </div>
+  <footer>
+    <p>© Backupify 2013</p>
+  </footer>
+</div>
+</body>
+</html>

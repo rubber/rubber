@@ -1,0 +1,14 @@
+<%
+  @read_cmd = 'crontab -l'
+  @write_cmd = 'crontab -'
+  @additive = ['# start-autoscale', '# end-autoscale']
+%>
+
+#run autoscale task every 30 minutes
+*/20 * * * *  sudo -u root bash -l -c "<%= Rubber.root %>/script/rubber cron --rake autoscale:run" &> /dev/null
+
+#save worker statistics
+*/5 * * * *  sudo -u root bash -l -c "<%= Rubber.root %>/script/rubber cron --rake autoscale:save_worker_statistics" &> /dev/null
+
+#daily report
+0 0 * * * sudo -u root bash -l -c "<%= Rubber.root %>/script/rubber cron --rake autoscale:send_daily_report"

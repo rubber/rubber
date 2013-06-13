@@ -1,0 +1,8 @@
+<div class="well sidebar-nav">
+  <ul class="nav nav-list">
+    <li class="nav-header">Dashboard</li>
+    <li <%= 'class="active"' if current_page == 'configuration' %>><a href="<%= url(:configuration) %>">Configuration</a></li>
+    <li <%= 'class="active"' if current_page == 'operations' %>><a href="<%= url(:operations) %>">Operations</a></li>
+    <li <%= 'class="active"' if current_page == 'reporting' %>><a href="<%= url(:reporting) %>">Reporting</a></li>
+  </ul>
+</div>

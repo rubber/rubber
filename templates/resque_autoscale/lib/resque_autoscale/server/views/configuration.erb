@@ -1,0 +1,38 @@
+<div class="page-header"><h1>Configuration</h1></div>
+<form class="form-horizontal" action="<%= url(:configuration) %>" method="POST">
+  <div class="control-group">
+    <label class="control-label" for="inputLowerThreshold">Lower Threshold</label>
+    <div class="controls">
+      <input type="text" id="inputLowerThreshold" name="inputLowerThreshold" value="<%= @lower_threshold %>">%
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label" for="inputHigherThreshold">Higher Threshold</label>
+    <div class="controls">
+      <input type="text" id="inputHigherThreshold" name="inputHigherThreshold" value="<%= @higher_threshold %>">%
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label" for="inputInstancesMin">Instances Min</label>
+    <div class="controls">
+      <input type="text" id="inputInstancesMin" name="inputInstancesMin" value="<%= @instances_min %>">
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label" for="inputInstancesMax">Instances Max</label>
+    <div class="controls">
+      <input type="text" id="inputInstancesMax" name="inputInstancesMax" value="<%= @instances_max %>">
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label" for="inputAdminEmail">Admin Email</label>
+    <div class="controls">
+      <input type="text" id="inputAdminEmail" name="inputAdminEmail" value="<%= @admin_email %>">
+    </div>
+  </div>
+  <div class="control-group">
+    <div class="controls">
+      <button type="submit" class="btn">Save</button>
+    </div>
+  </div>
+</form>

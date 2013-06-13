@@ -1,0 +1,41 @@
+autoscale_web_port: 5679
+autoscale_web_pid_file: /var/run/resque-autoscale-web.pid
+
+web_tools_proxies:
+  resque_autoscale:
+    role: resque_autoscale
+    port: "#{autoscale_web_port}"
+    path: /
+
+
+#autoscale loading thresholds in %
+autoscale_lower_threshold_default: 30
+autoscale_lower_threshold_key: "rubber:autoscale:threshold:lower"
+
+autoscale_higher_threshold_default: 80
+autoscale_higher_threshold_key: "rubber:autoscale:threshold:higher"
+
+
+#number of instances
+autoscale_instances_min_default: 1
+autoscale_instances_min_key: "rubber:autoscale:instances:min"
+
+autoscale_instances_max_default: 5
+autoscale_instances_max_key: "rubber:autoscale:instances:max"
+
+#redis key for storing status
+autoscale_status_key: "rubber:autoscale:status"
+
+#redis key for autoscale statistics
+autoscale_statistics_key: "rubber:autoscale:statistics"
+autoscale_log_key: "rubber:autoscale:log"
+
+#redis key for autoscale admin email
+autoscale_admin_email_key: "rubber:autoscale:admin:email"
+
+#worker name prefix
+autoscale_worker_name_prefix: "#{RUBBER_ENV == 'production' ? 'worker' : RUBBER_ENV + '-worker'}"
+
+#autorization keys
+#all these keys will be automatically added to ssh agent
+autoscale_authorization_keys: ["path_to_key_1", "path_to_key_2"]
