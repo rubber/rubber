@@ -11,7 +11,7 @@ module VagrantPlugins
 
       def finalize!
         @rubber_env = 'vagrant' if @rubber_env == UNSET_VALUE
-        @use_vagrant_ruby = true if @use_vagrant_ruby == UNSET_VALUE
+        @use_vagrant_ruby = false if @use_vagrant_ruby == UNSET_VALUE
 
         ::Rubber::initialize(Dir.pwd, @rubber_env)
 
