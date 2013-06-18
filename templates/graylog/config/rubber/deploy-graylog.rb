@@ -69,8 +69,8 @@ namespace :rubber do
             wget --no-check-certificate -O $archive #{rubber_env.graylog_web_pkg_url}
             tar -C #{rubber_env.graylog_web_prefix} -zxf $archive
 
-            mkdir #{rubber_env.graylog_web_dir}/log
-            mkdir #{rubber_env.graylog_web_dir}/tmp
+            mkdir -p #{rubber_env.graylog_web_dir}/log
+            mkdir -p #{rubber_env.graylog_web_dir}/tmp
           fi
         ENDSCRIPT
       end
