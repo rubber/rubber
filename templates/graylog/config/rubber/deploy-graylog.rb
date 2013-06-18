@@ -11,8 +11,9 @@ namespace :rubber do
       task :install, :roles => :graylog_server do
         rubber.sudo_script 'install_graylog_server', <<-ENDSCRIPT
           if [[ ! -d "#{rubber_env.graylog_server_dir}" ]]; then
-            wget --no-check-certificate -qNP /tmp #{rubber_env.graylog_server_pkg_url}
-            tar -C #{rubber_env.graylog_server_prefix} -zxf /tmp/graylog2-server-#{rubber_env.graylog_server_version}.tar.gz
+            archive=/tmp/graylog2-server-#{rubber_env.graylog_server_version}.tar.gz
+            wget --no-check-certificate -O $archive #{rubber_env.graylog_server_pkg_url}
+            tar -C #{rubber_env.graylog_server_prefix} -zxf $archive
           fi
         ENDSCRIPT
       end
@@ -64,8 +65,9 @@ namespace :rubber do
       task :install, :roles => :graylog_web do
         rubber.sudo_script 'install_graylog_web', <<-ENDSCRIPT
           if [[ ! -d "#{rubber_env.graylog_web_dir}" ]]; then
-            wget --no-check-certificate -qNP /tmp #{rubber_env.graylog_web_pkg_url}
-            tar -C #{rubber_env.graylog_web_prefix} -zxf /tmp/graylog2-web-interface-#{rubber_env.graylog_web_version}.tar.gz
+            archive=/tmp/graylog2-web-interface-#{rubber_env.graylog_web_version}.tar.gz
+            wget --no-check-certificate -O $archive #{rubber_env.graylog_web_pkg_url}
+            tar -C #{rubber_env.graylog_web_prefix} -zxf $archive
 
             mkdir #{rubber_env.graylog_web_dir}/log
             mkdir #{rubber_env.graylog_web_dir}/tmp
