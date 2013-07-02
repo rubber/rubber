@@ -32,11 +32,9 @@ module VagrantPlugins
           script = <<-ENDSCRIPT
             unset GEM_HOME;
             unset GEM_PATH;
-            PATH=#{ENV['PATH'].split(':')[1..-1].join(':')} RUN_FROM_VAGRANT=true RUBBER_ENV=#{config.rubber_env} ALIAS=#{machine.name} ROLES='#{config.roles}' EXTERNAL_IP=#{private_ip} INTERNAL_IP=#{private_ip} RUBBER_SSH_KEY=#{ssh_info[:private_key_path]} bash -c 'bundle exec cap rubber:create -S initial_ssh_user=#{ssh_info[:username]}'
+            PATH=#{ENV['PATH'].split(':')[1..-1].join(':')} RUN_FROM_VAGRANT=true RUBBER_ENV=#{config.rubber_env} ALIAS=#{machine.name} ROLES='#{config.roles}' EXTERNAL_IP=#{private_ip} INTERNAL_IP=#{private_ip} RUBBER_SSH_KEY=#{ssh_info[:private_key_path]} bash -c '#{rvm_prefix} bundle exec cap rubber:create -S initial_ssh_user=#{ssh_info[:username]}'
           ENDSCRIPT
         end
-
-        puts script
 
         system(script)
       end
@@ -48,7 +46,7 @@ module VagrantPlugins
           script = <<-ENDSCRIPT
             unset GEM_HOME;
             unset GEM_PATH;
-            PATH=#{ENV['PATH'].split(':')[1..-1].join(':')} RUN_FROM_VAGRANT=true RUBBER_ENV=#{config.rubber_env} RUBBER_SSH_KEY=#{ssh_info[:private_key_path]} ALIAS=#{machine.name} EXTERNAL_IP=#{private_ip} INTERNAL_IP=#{private_ip} bash -c 'bundle exec cap rubber:refresh -S initial_ssh_user=#{ssh_info[:username]}'
+            PATH=#{ENV['PATH'].split(':')[1..-1].join(':')} RUN_FROM_VAGRANT=true RUBBER_ENV=#{config.rubber_env} RUBBER_SSH_KEY=#{ssh_info[:private_key_path]} ALIAS=#{machine.name} EXTERNAL_IP=#{private_ip} INTERNAL_IP=#{private_ip} bash -c '#{rvm_prefix} bundle exec cap rubber:refresh -S initial_ssh_user=#{ssh_info[:username]}'
           ENDSCRIPT
         end
 
@@ -62,7 +60,7 @@ module VagrantPlugins
           script = <<-ENDSCRIPT
             unset GEM_HOME;
             unset GEM_PATH;
-            PATH=#{ENV['PATH'].split(':')[1..-1].join(':')} RUN_FROM_VAGRANT=true RUBBER_ENV=#{config.rubber_env} RUBBER_SSH_KEY=#{ssh_info[:private_key_path]} FILTER=#{machine.name} bash -c 'bundle exec cap rubber:bootstrap'
+            PATH=#{ENV['PATH'].split(':')[1..-1].join(':')} RUN_FROM_VAGRANT=true RUBBER_ENV=#{config.rubber_env} RUBBER_SSH_KEY=#{ssh_info[:private_key_path]} FILTER=#{machine.name} bash -c '#{rvm_prefix} bundle exec cap rubber:bootstrap'
           ENDSCRIPT
         end
 
@@ -76,7 +74,7 @@ module VagrantPlugins
           script = <<-ENDSCRIPT
             unset GEM_HOME;
             unset GEM_PATH;
-            PATH=#{ENV['PATH'].split(':')[1..-1].join(':')} RUN_FROM_VAGRANT=true RUBBER_ENV=#{config.rubber_env} RUBBER_SSH_KEY=#{ssh_info[:private_key_path]} FILTER=#{machine.name} bash -c 'bundle exec cap deploy:migrations'
+            PATH=#{ENV['PATH'].split(':')[1..-1].join(':')} RUN_FROM_VAGRANT=true RUBBER_ENV=#{config.rubber_env} RUBBER_SSH_KEY=#{ssh_info[:private_key_path]} FILTER=#{machine.name} bash -c '#{rvm_prefix} bundle exec cap deploy:migrations'
           ENDSCRIPT
         end
 
@@ -85,6 +83,10 @@ module VagrantPlugins
 
       def internal_cap_command
         "ruby -e \"require 'capistrano/cli'; Capistrano::CLI.execute\""
+      end
+
+      def rvm_prefix
+        config.rvm_ruby_version ? "rvm #{config.rvm_ruby_version} do" : ''
       end
     end
   end

@@ -1,17 +1,19 @@
 module VagrantPlugins
   module Rubber
     class Config < Vagrant.plugin("2", :config)
-      attr_accessor :roles, :rubber_env, :use_vagrant_ruby
+      attr_accessor :roles, :rubber_env, :use_vagrant_ruby, :rvm_ruby_version
 
       def initialize
         @roles = UNSET_VALUE
         @rubber_env = UNSET_VALUE
         @use_vagrant_ruby = UNSET_VALUE
+        @rvm_ruby_version = UNSET_VALUE
       end
 
       def finalize!
         @rubber_env = 'vagrant' if @rubber_env == UNSET_VALUE
         @use_vagrant_ruby = false if @use_vagrant_ruby == UNSET_VALUE
+        @rvm_ruby_version = nil if @rvm_ruby_version == UNSET_VALUE
 
         ::Rubber::initialize(Dir.pwd, @rubber_env)
 
