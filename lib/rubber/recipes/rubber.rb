@@ -85,7 +85,7 @@ namespace :rubber do
     # define capistrano host => role mapping for all instances
     rubber_instances.filtered.each do |ic|
       ic.roles.each do |role|
-        opts = Rubber::Util::symbolize_keys(role.options).merge(:platform => ic.platform)
+        opts = Rubber::Util::symbolize_keys(role.options).merge(:platform => ic.platform, :provider => ic.provider)
         msg = "Auto role: #{role.name.to_sym} => #{ic.full_name}"
         msg << ", #{opts.inspect}" if opts.inspect.size > 0
         logger.info msg
