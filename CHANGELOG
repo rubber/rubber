@@ -12,7 +12,7 @@ Bug Fixes:
 =========
 
 [core] Allow the Vagrant plugin to interact with the local ruby installation when RVM is used. <98a061a>
-[core] Make sure we note the vagrant provider was used in the instance file. <d1573fe>
+[core] Make sure we note the Vagrant provider was used in the instance file. <d1573fe>
 
 
 2.5.2 (06/13/2013)
