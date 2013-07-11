@@ -23,7 +23,7 @@ namespace :rubber do
     # Capistrano uses the :password variable for sudo commands.  Since this setting is generally used for the deploy user,
     # but we need it this one time for the initial SSH user, we need to swap out and restore the password.
     #
-    # We special-case the 'ubuntu' user since Amazon doesn't since the Canonical AMIs on EC2 don't set the password for
+    # We special-case the 'ubuntu' user since the Canonical AMIs on EC2 don't set the password for
     # this account, making any password prompt potentially confusing.
     orig_password = fetch(:password)
     set(:password, initial_ssh_user == 'ubuntu' || ENV.has_key?('RUN_FROM_VAGRANT') ? nil : Capistrano::CLI.password_prompt("Password for #{initial_ssh_user} @ #{ip}: "))
