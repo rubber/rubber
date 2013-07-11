@@ -135,14 +135,17 @@ module Rubber
           export RUBYLIB=/usr/lib/site_ruby/
           unset RUBYOPT
           nohup ec2-bundle-vol --batch -d /mnt -k #{ec2_pk_dest} -c #{ec2_cert_dest} -u #{env.account} -p #{image_name} -r #{arch} &> /tmp/ec2-bundle-vol.log &
+          bg_pid=$!
           sleep 1
 
           echo "Creating image from instance volume..."
-          while true; do
-            if ! ps ax | grep -q "[e]c2-bundle-vol"; then exit; fi
+          while kill -0 $bg_pid &> /dev/null; do
             echo -n .
             sleep 5
           done
+          
+          # this returns exit code even if pid has already died, and thus triggers fail fast shell error
+          wait $bg_pid
         CMD
 
         capistrano.sudo_script "register_bundle", <<-CMD
