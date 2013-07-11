@@ -215,14 +215,17 @@ namespace :rubber do
           # zero out parition for performance (see amazon DevGuide)
           echo "Zeroing out raid partitions to improve performance, this may take a while"
           #{zero_script}
+          bg_pid=$!
           sleep 1
 
           echo "Waiting for partitions to zero out"
-          while true; do
-            if ! ps ax | grep -q "[d]d.*/dev/zero"; then exit; fi
+          while kill -0 $bg_pid &> /dev/null; do
             echo -n .
             sleep 5
           done
+          
+          # this returns exit code even if pid has already died, and thus triggers fail fast shell error
+          wait $bg_pid
         ENDSCRIPT
       end
       _zero_partitions
