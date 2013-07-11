@@ -95,5 +95,9 @@ namespace :rubber do
       ENDSCRIPT
     end
 
+    after "rubber:bootstrap", "rubber:base:reinstall_virtualbox_additions"
+    task :reinstall_virtualbox_additions, :only => { :provider => 'vagrant' } do
+      rsudo "service vboxadd setup"
+    end
   end
 end
