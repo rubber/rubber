@@ -28,11 +28,30 @@ namespace :rubber do
     orig_password = fetch(:password)
     set(:password, initial_ssh_user == 'ubuntu' || ENV.has_key?('RUN_FROM_VAGRANT') ? nil : Capistrano::CLI.password_prompt("Password for #{initial_ssh_user} @ #{ip}: "))
 
+    task :_ensure_key_file_present, :hosts => "#{initial_ssh_user}@#{ip}" do
+      public_key_filename = "#{cloud.env.key_file}.pub"
+
+      if File.exists?(public_key_filename)
+        public_key = File.read(public_key_filename).chomp
+
+        rubber.sudo_script 'ensure_key_file_present', <<-ENDSCRIPT
+          mkdir -p ~/.ssh
+          touch ~/.ssh/authorized_keys
+          chmod 600 ~/.ssh/authorized_keys
+
+          if ! grep -q '#{public_key}' .ssh/authorized_keys; then
+            echo '#{public_key}' >> .ssh/authorized_keys
+          fi
+        ENDSCRIPT
+      end
+    end
+
     task :_allow_root_ssh, :hosts => "#{initial_ssh_user}@#{ip}" do
       rsudo "mkdir -p /root/.ssh && cp /home/#{initial_ssh_user}/.ssh/authorized_keys /root/.ssh/"
     end
 
     begin
+      _ensure_key_file_present
       _allow_root_ssh
     rescue ConnectionError => e
       if e.message =~ /Net::SSH::AuthenticationFailed/
