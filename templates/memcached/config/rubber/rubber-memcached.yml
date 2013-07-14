@@ -32,13 +32,3 @@ gems: [dalli]
 roles:
   memcached:
     packages: [memcached, libcache-memcached-perl]
-
-security_groups:
-  memcached:
-    description: "To open up port #{memcached_port} for memcached role"
-    rules:
-      - protocol: tcp
-        from_port: "#{memcached_port}"
-        to_port: "#{memcached_port}"
-        source_group_name: memcached
-        source_group_account: "#{cloud_providers.aws.account}"
