@@ -43,16 +43,19 @@ domain: foo.com
 cloud_providers:
   aws:
     # REQUIRED The AWS region that you want to use.
-    # 
+    #
     # Options include
-    # us-east-1
-    # eu-west-1
-    # ap-northeast-1
-    # ap-southeast-1
-    # ap-southeast-2
+    # ap-northeast-1 # Asia Pacific (Tokyo) Region
+    # ap-southeast-1 # Asia Pacific (Singapore) Region
+    # ap-southeast-2 # Asia Pacific (Sydney) Region
+    # eu-west-1      # EU (Ireland) Region
+    # sa-east-1      # South America (Sao Paulo) Region
+    # us-east-1      # US East (Northern Virginia) Region
+    # us-west-1      # US West (Northern California) Region
+    # us-west-2      # US West (Oregon) Region
     #
     region: us-east-1
-    
+
     # REQUIRED The amazon keys and account ID (digits only, no dashes) used to access the AWS API
     #
     access_key: XXX
@@ -129,7 +132,7 @@ cloud_providers:
 cloud_provider: aws
 
 # OPTIONAL: Where to store instance data.
-# 
+#
 # Allowed forms are:
 # filesystem: "file:#{Rubber.root}/config/rubber/instance-#{Rubber.env}.yml"
 # cloud storage (s3): "storage:#{cloud_providers.aws.backup_bucket}/RubberInstances_#{app_name}/instance-#{Rubber.env}.yml"
