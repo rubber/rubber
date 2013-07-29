@@ -1,3 +1,28 @@
+2.5.3 (07/11/2013)
+
+Improvements:
+============
+
+[base] Upgraded to ruby-build 20130628 and Ruby 1.9.3-p448. <caa9e06>
+[base] Updated Digitial Ocean default zone info and image_id. <11502d2>
+[base, core] Re-install the VirtualBox add-ons when upgrading the kernel in a Vagrant instance so you can package VMs properly.
+[core] Ensure the SSH public key is installed for the user account if one is set. <75e7f20>
+
+Bug Fixes:
+=========
+
+[core] Allow the Vagrant plugin to interact with the local ruby installation when RVM is used. <98a061a>
+[core] Make sure we note the Vagrant provider was used in the instance file. <d1573fe>
+
+
+2.5.2 (06/13/2013)
+
+Bug Fixes:
+=========
+
+[core] Do not use the embedded Vagrant ruby installation by default.
+
+
 2.5.1 (06/09/2013)
 -----------------
 

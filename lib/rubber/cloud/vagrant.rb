@@ -28,6 +28,7 @@ module Rubber
           Generic.instances.each do |instance|
             if instance[:id] == instance_id
               instance[:state] = state
+              instance[:provider] = 'vagrant'
             end
           end
 
@@ -38,6 +39,7 @@ module Rubber
           instance[:state] = state
           instance[:external_ip] = capistrano.rubber.get_env('EXTERNAL_IP', "External IP address for host '#{instance_id}'", true)
           instance[:internal_ip] = capistrano.rubber.get_env('INTERNAL_IP', "Internal IP address for host '#{instance_id}'", true, instance[:external_ip])
+          instance[:provider] = 'vagrant'
 
           [instance]
         end
