@@ -11,10 +11,12 @@
 packages: [build-essential, git-core, subversion, curl, autoconf, bison, ruby, zlib1g-dev, libssl-dev, libreadline6-dev, libxml2-dev, libyaml-dev]
 
 # REQUIRED: The version of ruby-build to use for building ruby.
-ruby_build_version: 20130628
+# It must be one of the versions from https://github.com/sstephenson/ruby-build/blob/master/CHANGELOG.md
+ruby_build_version: 20130901
 
 # REQUIRED: Set to the version string for the ruby version you wish to use
-# Run "ruby-build --definitions" to see the list of possible options
+# Run "ruby-build --definitions" to see the list of possible options or look through the list of
+# recipes online at https://github.com/sstephenson/ruby-build/tree/master/share/ruby-build
 ruby_version: 1.9.3-p448
 
 # REQUIRED: Installation path for ruby.
