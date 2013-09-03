@@ -13,7 +13,7 @@ namespace :rubber do
   # Disable connecting to any Windows instance.
   alias :original_task :task
   def task(name, options={}, &block)
-    original_task(name, options.merge(:except => { :platform => 'windows' }), &block)
+    original_task(name, options.merge(:only => { :platform => 'linux' }), &block)
   end
 
   # advise capistrano's task method so that tasks for non-existent roles don't
@@ -26,7 +26,7 @@ namespace :rubber do
       alias :required_task :task
       def task(name, options={}, &block)
         # Disable connecting to any Windows instance.
-        required_task(name, options.merge(:except => { :platform => 'windows' })) do
+        required_task(name, options.merge(:only => { :platform => 'linux' })) do
           # define empty roles for the case when a task has a role that we don't define anywhere
           unless options[:roles].respond_to?(:call)
             [*options[:roles]].each do |r|
@@ -57,7 +57,7 @@ namespace :rubber do
     # use a pty so we don't get "stdin: is not a tty" error output
     default_run_options[:pty] = true if default_run_options[:pty].nil?
     default_run_options[:shell] = "/bin/bash -l" if default_run_options[:shell].nil?
-    default_run_options[:except] ||= { :platform => 'windows' }
+    default_run_options[:only] ||= { :platform => 'linux' }
 
     set :cloud, Rubber.cloud(self)
 
