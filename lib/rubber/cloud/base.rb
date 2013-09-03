@@ -133,7 +133,11 @@ module Rubber
 
             if protocol && from_port && to_port && source_ips
               source_ips.each do |source|
-                script << "\niptables -A INPUT -p #{protocol} --dport #{from_port}:#{to_port} --source #{source} -j ACCEPT -m comment --comment '#{group_name}'"
+                if from_port != to_port
+                  script << "\niptables -A INPUT -p #{protocol} --dport #{from_port}:#{to_port} --source #{source} -j ACCEPT -m comment --comment '#{group_name}'"
+                else
+                  script << "\niptables -A INPUT -p #{protocol} --dport #{to_port} --source #{source} -j ACCEPT -m comment --comment '#{group_name}'"
+                end
               end
             end
           end
