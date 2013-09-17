@@ -18,8 +18,6 @@ class EncryptionTest < Test::Unit::TestCase
     end
   
     should "encrypt data" do
-      pend('This is not yet working on JRuby.') if defined?(JRUBY_VERSION)
-
       data = "hello"
       e = encrypt(data, @key)
       assert e
@@ -28,8 +26,6 @@ class EncryptionTest < Test::Unit::TestCase
     end
 
     should "decrypt data" do
-      pend('This is not yet working on JRuby.') if defined?(JRUBY_VERSION)
-
       data = "hello"
       e = encrypt(data, @key)
       d = decrypt(e, @key)
@@ -37,16 +33,12 @@ class EncryptionTest < Test::Unit::TestCase
     end
     
     should "pretty print large data" do
-      pend('This is not yet working on JRuby.') if defined?(JRUBY_VERSION)
-
       data = "foo" * 100
       e = encrypt(data, @key)
       assert e =~ /\n/
     end
     
     should "roundtrip large data" do
-      pend('This is not yet working on JRuby.') if defined?(JRUBY_VERSION)
-
       data = "foo" * 100
       e = encrypt(data, @key)
       d = decrypt(e, @key)

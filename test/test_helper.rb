@@ -11,6 +11,10 @@ require 'ap'
 require 'tempfile'
 require 'fog'
 
+if defined?(JRUBY_VERSION)
+  require 'unlimited-strength-crypto'
+end
+
 class Test::Unit::TestCase
   # ENV['NO_FOG_MOCK'] = 'true'
   
