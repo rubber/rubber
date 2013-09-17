@@ -26,6 +26,8 @@ module Rubber
 
         compute_credentials[:provider] = 'AWS' # We need to set the provider after the SimpleDB init because it fails if the provider value is specified.
 
+        storage_credentials[:region] = env.region
+
         env['compute_credentials'] = compute_credentials
         env['storage_credentials'] = storage_credentials
         super(env, capistrano)
