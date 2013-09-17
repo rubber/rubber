@@ -37,11 +37,15 @@ matrix:
     - rvm: rbx-18mode
       gemfile: Gemfile
     - rvm: rbx-19mode
-      gemfile: Gemfile
+      gemfile: Gemfile.1.8.7
+
+  allow_failures:
+    - rvm: ruby-head
 
 # script: bundle exec rspec spec
 env:
-  - JAVA_OPTS="-server -Djruby.cext.enabled=false -Djruby.compile.invokedynamic=false"
+  global:
+    - JAVA_OPTS="-server -Djruby.cext.enabled=false -Djruby.compile.invokedynamic=false"
 
 notifications:
   irc: "irc.freenode.net#rubberec2"
