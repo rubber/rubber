@@ -1,0 +1,5 @@
+
+
+roles:
+  discourse:
+    packages: [libssl-dev, libyaml-dev, libtool, libxml2-dev, libpq-dev, gawk, curl, pngcrush, imagemagick, python-software-properties, postgresql-contrib]
