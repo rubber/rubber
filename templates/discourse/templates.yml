@@ -2,4 +2,4 @@ description: A fairly complete and scalable discourse deployment setup using uni
 dependent_templates:
   - complete_unicorn_nginx
   - postgresql
-  - sideqkiq
+  - sidekiq
