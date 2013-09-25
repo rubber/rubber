@@ -1,5 +1,7 @@
-
+# app_name: discourse
+# domain: discourse.com
+# ruby_version: 2.0.0-p247
 
 roles:
   discourse:
-    packages: [libssl-dev, libyaml-dev, libtool, libxml2-dev, libpq-dev, gawk, curl, pngcrush, imagemagick, python-software-properties, postgresql-contrib]
+    packages: [libtool, libpq-dev, gawk, pngcrush, imagemagick, python-software-properties, postgresql-contrib]
