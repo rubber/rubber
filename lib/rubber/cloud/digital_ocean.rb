@@ -19,6 +19,8 @@ module Rubber
             :aws_secret_access_key => env.cloud_providers.aws.secret_access_key
           }
 
+          storage_credentials[:region] = env.cloud_providers.aws.region
+
           env['storage_credentials'] = storage_credentials
         end
 

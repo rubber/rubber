@@ -26,6 +26,8 @@ module Rubber
 
         compute_credentials[:provider] = 'AWS' # We need to set the provider after the SimpleDB init because it fails if the provider value is specified.
 
+        storage_credentials[:region] = env.region
+
         env['compute_credentials'] = compute_credentials
         env['storage_credentials'] = storage_credentials
         super(env, capistrano)
@@ -75,7 +77,7 @@ module Rubber
       def after_create_instance(instance)
         # Sometimes tag creation will fail, indicating that the instance doesn't exist yet even though it does.  It seems to
         # be a propagation delay on Amazon's end, so the best we can do is wait and try again.
-        Rubber::Util.retry_on_failure(StandardError, :retry_sleep => 0.5, :retry_count => 100) do
+        Rubber::Util.retry_on_failure(StandardError, :retry_sleep => 1, :retry_count => 120) do
           Rubber::Tag::update_instance_tags(instance.name)
         end
       end
@@ -83,7 +85,7 @@ module Rubber
       def after_refresh_instance(instance)
         # Sometimes tag creation will fail, indicating that the instance doesn't exist yet even though it does.  It seems to
         # be a propagation delay on Amazon's end, so the best we can do is wait and try again.
-        Rubber::Util.retry_on_failure(StandardError, :retry_sleep => 0.5, :retry_count => 100) do
+        Rubber::Util.retry_on_failure(StandardError, :retry_sleep => 1, :retry_count => 120) do
           Rubber::Tag::update_instance_tags(instance.name)
         end
       end

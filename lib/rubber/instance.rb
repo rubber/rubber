@@ -256,6 +256,14 @@ module Rubber
         @platform || 'linux'
       end
 
+      def linux?
+        platform == 'linux'
+      end
+
+      def mac?
+        platform == 'mac'
+      end
+
       def windows?
         platform == 'windows'
       end

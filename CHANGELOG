@@ -1,3 +1,26 @@
+2.5.4 (09/26/2013)
+
+Improvements:
+============
+
+[base] Upgdate AWS region options <9857010>
+[base] Upgrade ruby-build to 20130923 <5c053cb>
+[core] Far more efficient multi-port IPTables rules <1b13728, e15eb86>
+[core] Handle new platforms, such as Mac, more gracefully <74d5831>
+[redis] Upgraded redis from 2.6.13 to 2.6.16 <b18a89f>
+[web_tools] Handle more redirect scenarios for proxied services <c73bcce>
+
+Bug Fixes:
+=========
+
+[core] Fixed fail-fast behavior with nohup on AWS operations <cc1e299>
+[core] Wait up until 2 minutes for EC2 tag creation <3b6819a>
+[core] Set AWS region options for S3 <3bd20cd>
+[passenger_nginx] Removed conflicting passenger_min_instances configuration <cd7b006>
+[passenger_nginx] Added missing nginx_log_dir config <4684b26>
+[redis] Fixed redis download link <8a2a47d>
+
+
 2.5.3 (07/11/2013)
 
 Improvements:

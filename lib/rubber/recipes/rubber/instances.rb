@@ -367,7 +367,7 @@ namespace :rubber do
       instance_item.root_device_type = instance[:root_device_type]
       rubber_instances.save()
 
-      unless instance_item.windows?
+      if instance_item.linux?
         # weird cap/netssh bug, sometimes just hangs forever on initial connect, so force a timeout
         begin
           Timeout::timeout(30) do

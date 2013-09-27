@@ -1,4 +1,4 @@
-redis_server_version: 2.6.13
+redis_server_version: 2.6.16
 redis_server_pid_file: /var/run/redis-server.pid
 redis_server_conf_file: /etc/redis.conf
 redis_server_log_file: /var/log/redis-server.log

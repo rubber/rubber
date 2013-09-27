@@ -19,12 +19,12 @@ class DigitalOceanTest < Test::Unit::TestCase
 
     context '#create_instance' do
       should 'create instance' do
-        assert @cloud.create_instance('my-instance', 'Ubuntu 12.04 x64 Server', '512MB', [], '', 'New York 1')
+        assert @cloud.create_instance('my-instance', 'Ubuntu 12.04 x64', '512MB', [], '', 'New York 1')
       end
 
       should 'raise error if invalid region' do
         begin
-          @cloud.create_instance('my-instance', 'Ubuntu 12.04 x64 Server', '512MB', [], '', 'Mars 1')
+          @cloud.create_instance('my-instance', 'Ubuntu 12.04 x64', '512MB', [], '', 'Mars 1')
         rescue => e
           assert_equal 'Invalid region for DigitalOcean: Mars 1', e.message
         else
@@ -34,7 +34,7 @@ class DigitalOceanTest < Test::Unit::TestCase
 
       should 'raise an error if invalid image type' do
         begin
-          @cloud.create_instance('my-instance', 'Ubuntu 12.04 x64 Server', 'm1.small', [], '', 'New York 1')
+          @cloud.create_instance('my-instance', 'Ubuntu 12.04 x64', 'm1.small', [], '', 'New York 1')
         rescue => e
           assert_equal 'Invalid image type for DigitalOcean: m1.small', e.message
         else
@@ -58,13 +58,28 @@ class DigitalOceanTest < Test::Unit::TestCase
           env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil, nil)
           cloud = Rubber::Cloud::DigitalOcean.new(env, nil)
 
-          cloud.create_instance('my-instance', 'Ubuntu 12.04 x64 Server', '512MB', [], '', 'New York 1')
+          cloud.create_instance('my-instance', 'Ubuntu 12.04 x64', '512MB', [], '', 'New York 1')
         rescue => e
           assert_equal 'Missing key_file for DigitalOcean', e.message
         else
           fail 'Did not raise exception for missing key_file'
         end
       end
+    end
+  end
+
+  context 'digital ocean with aws storage' do
+
+    setup do
+      env = {'client_key' => "XXX", 'api_key' => "YYY", 'region' => 'New York 1', 'key_file' => "#{File.dirname(__FILE__)}/../fixtures/basic/test.pem"}
+      @aws_region = "ap-southeast-2"
+      env['cloud_providers'] = {'aws' => {'access_key' => "XXX", 'secret_access_key' => "YYY", 'region' => @aws_region}}
+      env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil, nil)
+      @cloud = Rubber::Cloud::DigitalOcean.new(env, nil)
+    end
+
+    should 'set the region on the aws storage provider' do
+      assert_equal @cloud.storage_provider.region, @aws_region
     end
   end
 end
