@@ -6,6 +6,7 @@ passenger_lib: "#{passenger_root}/ext/nginx"
 passenger_listen_port: 7000
 passenger_listen_ssl_port: 7001
 max_app_connections: 20
+nginx_log_dir: /mnt/nginx/logs
 
 use_ssl_key: false
 #if you use an ssl key, put your cert and key
