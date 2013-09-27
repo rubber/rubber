@@ -67,4 +67,19 @@ class DigitalOceanTest < Test::Unit::TestCase
       end
     end
   end
+
+  context 'digital ocean with aws storage' do
+
+    setup do
+      env = {'client_key' => "XXX", 'api_key' => "YYY", 'region' => 'New York 1', 'key_file' => "#{File.dirname(__FILE__)}/../fixtures/basic/test.pem"}
+      @aws_region = "ap-southeast-2"
+      env['cloud_providers'] = {'aws' => {'access_key' => "XXX", 'secret_access_key' => "YYY", 'region' => @aws_region}}
+      env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil, nil)
+      @cloud = Rubber::Cloud::DigitalOcean.new(env, nil)
+    end
+
+    should 'set the region on the aws storage provider' do
+      assert_equal @cloud.storage_provider.region, @aws_region
+    end
+  end
 end
