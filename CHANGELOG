@@ -17,6 +17,7 @@ Bug Fixes:
 [core] Wait up until 2 minutes for EC2 tag creation <3b6819a>
 [core] Set AWS region options for S3 <3bd20cd>
 [passenger_nginx] Removed conflicting passenger_min_instances configuration <cd7b006>
+[passenger_nginx] Added missing nginx_log_dir config <4684b26>
 [redis] Fixed redis download link <8a2a47d>
 
 
