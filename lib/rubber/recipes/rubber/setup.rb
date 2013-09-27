@@ -479,6 +479,7 @@ namespace :rubber do
       # graphite web app)
       if instance_item.role_names.include?('web_tools')
         Array(rubber_env.web_tools_proxies).each do |name, settings|
+          name = name.gsub('_', '-')
           provider.update("#{name}-#{instance_item.name}", instance_item.external_ip)
         end
       end

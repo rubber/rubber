@@ -30,7 +30,7 @@
         # graphite web app)
         Array(rubber_env.web_tools_proxies).each do |name, settings|
       %>
-        <li><a href="https://<%= name %>-<%= tools_host.full_name %>:<%= rubber_env.web_tools_ssl_port %><%= settings.path || '/' %>"><%= name.capitalize %></a></li>
+        <li><a href="https://<%= name.gsub('_', '-') %>-<%= tools_host.full_name %>:<%= rubber_env.web_tools_ssl_port %><%= settings.path || '/' %>"><%= name.capitalize %></a></li>
       <% end %>
 
 		</ul>
