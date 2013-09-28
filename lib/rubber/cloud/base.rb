@@ -131,12 +131,16 @@ module Rubber
             to_port = rule.has_key?('to_port') ? rule['to_port'].to_i : nil
             source_ips = rule['source_ips']
 
-            if protocol && from_port && to_port && source_ips
+            if protocol && source_ips
               source_ips.each do |source|
-                if from_port != to_port
-                  script << "\niptables -A INPUT -p #{protocol} --dport #{from_port}:#{to_port} --source #{source} -j ACCEPT -m comment --comment '#{group_name}'"
+                if from_port && to_port
+                  if from_port != to_port
+                    script << "\niptables -A INPUT -p #{protocol} --dport #{from_port}:#{to_port} --source #{source} -j ACCEPT -m comment --comment '#{group_name}'"
+                  else
+                    script << "\niptables -A INPUT -p #{protocol} --dport #{to_port} --source #{source} -j ACCEPT -m comment --comment '#{group_name}'"
+                  end
                 else
-                  script << "\niptables -A INPUT -p #{protocol} --dport #{to_port} --source #{source} -j ACCEPT -m comment --comment '#{group_name}'"
+                  script << "\niptables -A INPUT -p #{protocol} --source #{source} -j ACCEPT -m comment --comment '#{group_name}'"
                 end
               end
             end
