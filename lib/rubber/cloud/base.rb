@@ -121,6 +121,12 @@ module Rubber
           iptables -I INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT -m comment --comment 'Always allow established connections to remain connected.'
         ENDSCRIPT
 
+        (scoped_env.private_networks || []).each do |network|
+          script << "\niptables -A INPUT -p tcp --dport 1:65535 --source #{network} -j ACCEPT -m comment --comment 'private_network_#{network}'"
+          script << "\niptables -A INPUT -p udp --dport 1:65535 --source #{network} -j ACCEPT -m comment --comment 'private_network_#{network}'"
+          script << "\niptables -A INPUT -p icmp -j ACCEPT -m comment --comment 'private_network_#{network}'"
+        end
+
         instance = scoped_env.rubber_instances[host]
         instance.security_groups.each do |group_name|
           group = groups[group_name]
