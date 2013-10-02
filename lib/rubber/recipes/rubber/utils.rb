@@ -106,7 +106,7 @@ namespace :rubber do
         next if servers[rolename].nil?
 
         servers[rolename] -= added_servers
-        added_servers << servers[rolename]
+        added_servers.concat(servers[rolename])
         servers[rolename] = servers[rolename].uniq.sort
       end
     end
