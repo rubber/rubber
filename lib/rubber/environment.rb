@@ -135,6 +135,10 @@ module Rubber
         def rubber_instances
           @rubber_instances ||= Rubber::Configuration::rubber_instances
         end
+        
+        def known_roles
+          Rubber::Configuration.get_configuration(Rubber.env).environment.known_roles
+        end
 
         def [](name)
           value = super(name)

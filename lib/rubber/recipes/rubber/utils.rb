@@ -20,8 +20,6 @@ namespace :rubber do
       logger.info "Instance already exists, skipping to bootstrap"
     else
       default_roles = rubber_env.staging_roles
-      # default staging roles to all roles minus slaves (db without primary=true is a slave)
-      default_roles ||= rubber_cfg.environment.known_roles.reject {|r| r =~ /slave/ || r =~ /^db$/ }.join(",")
       roles = ENV['ROLES'] = rubber.get_env("ROLES", "Roles to use for staging instance", true, default_roles)
       
       rubber.create
