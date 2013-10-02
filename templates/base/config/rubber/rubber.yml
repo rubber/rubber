@@ -235,6 +235,11 @@ isolate_security_groups: true
 # differ from those in rubber
 prompt_for_security_group_sync: true
 
+# OPTIONAL: A list of CIDR address blocks that represent private networks for your cluster.
+# Set this to open up wide access to hosts in your network.  Consequently, setting the CIDR block
+# to anything other than a private, unroutable block would be a massive security hole.
+private_networks: [10.0.0.0/8]
+
 # OPTIONAL: The packages to install on all instances
 # You can install a specific version of a package by using a sub-array of pkg, version
 # For example, packages: [[rake, 0.7.1], irb]
