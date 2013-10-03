@@ -34,27 +34,39 @@ namespace :rubber do
 
     after "rubber:base:install_ruby_build", "rubber:base:install_ruby"
     task :install_ruby do
-      rubber.sudo_script "install_ruby", <<-ENDSCRIPT
-      installed_ruby_ver=`which ruby | cut -d / -f 5`
-      desired_ruby_ver="#{rubber_env.ruby_version}"
-      if [[ ! $installed_ruby_ver =~ $desired_ruby_ver ]]; then
-        echo "Compiling and installing ruby $desired_ruby_ver.  This may take a while ..."
+      rubber_env.ruby_versions.each do |ruby_version|
+        ruby_path = File.join(rubber_env.base_ruby_path, ruby_version)
 
-        nohup ruby-build #{rubber_env.ruby_version} #{rubber_env.ruby_path} &> /tmp/install_ruby.log &
-        bg_pid=$!
-        sleep 1
+        rubber.sudo_script "install_ruby_#{ruby_version}", <<-ENDSCRIPT
+        if [[ ! -d #{ruby_path} ]]; then
+          echo "Compiling and installing ruby #{ruby_version}.  This may take a while ..."
 
-        while kill -0 $bg_pid &> /dev/null; do
-          echo -n .
-          sleep 5
-        done
-        
-        # this returns exit code even if pid has already died, and thus triggers fail fast shell error
-        wait $bg_pid
+          nohup ruby-build #{ruby_version} #{ruby_path} &> /tmp/install_ruby_#{ruby_version}.log &
+          sleep 1
 
-        echo "export RUBYOPT=rubygems\nexport PATH=#{rubber_env.ruby_path}/bin:$PATH" > /etc/profile.d/ruby.sh
-        echo "--- \ngem: --no-ri --no-rdoc" > /etc/gemrc
-      fi
+          while true; do
+            if ! ps ax | grep -q "[r]uby-build"; then break; fi
+            echo -n .
+            sleep 5
+          done
+        fi
+
+        if [[ ! -d #{ruby_path} ]]; then
+          echo "Failed to install #{ruby_version}.  Please see /tmp/install_ruby_#{ruby_version}.log for more details."
+
+          # Return an error status for the script.
+          false
+        fi
+        ENDSCRIPT
+      end
+
+      default_ruby_path = File.join(rubber_env.base_ruby_path, rubber_env.default_ruby_version)
+      rubber.sudo_script "setup_ruby", <<-ENDSCRIPT
+      echo "export RUBYOPT=rubygems" > /etc/profile.d/ruby.sh
+      echo "export RUBY_VERSION=\\${RUBY_VERSION:=#{rubber_env.default_ruby_version}}" >> /etc/profile.d/ruby.sh
+      echo "export PATH=#{rubber_env.base_ruby_path}/\\$RUBY_VERSION/bin:\\$PATH" >> /etc/profile.d/ruby.sh
+      echo "export JRUBY_OPTS=\\"--1.9 -Xcext.enabled=true\\"" >> /etc/profile.d/ruby.sh
+      echo "--- \ngem: --no-ri --no-rdoc" > /etc/gemrc
       ENDSCRIPT
     end
     

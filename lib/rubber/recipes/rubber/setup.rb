@@ -369,6 +369,7 @@ namespace :rubber do
   required_task :install_local_gems do
     fatal("install_local_gems can only be run in development") if Rubber.env != 'development'
     env = rubber_cfg.environment.bind(rubber_cfg.environment.known_roles)
+
     gems = env['gems']
     expanded_gem_list = []
     gems.each do |gem_spec|
@@ -418,7 +419,16 @@ namespace :rubber do
   task :setup_gem_sources do
     if rubber_env.gemsources
       script = prepare_script 'gem_sources_helper', gem_sources_helper_script, nil
-      rsudo "ruby #{script} #{rubber_env.gemsources.join(' ')}"
+
+      # Multiple ruby versions support was added in Rubber 2.6.0.  On older versions of Rubber, just use whatever
+      # ruby is on the $PATH.
+      if rubber_env.ruby_versions
+        rubber_env.ruby_versions.each do |ruby_version|
+          rsudo "ruby #{script} #{rubber_env.gemsources.join(' ')}", :env => { 'RUBY_VERSION' => ruby_version }
+        end
+      else
+        rsudo "ruby #{script} #{rubber_env.gemsources.join(' ')}"
+      end
     end
   end
 
@@ -674,24 +684,50 @@ namespace :rubber do
   def gem_helper(update=false)
     cmd = update ? "update" : "install"
 
-    opts = get_host_options('gems') do |gem_list|
-      expanded_gem_list = []
-      gem_list.each do |gem_spec|
-        if gem_spec.is_a?(Array)
-          expanded_gem_list << "#{gem_spec[0]}:#{gem_spec[1]}"
-        else
-          expanded_gem_list << gem_spec
+    # Multiple ruby versions support was added in Rubber 2.6.0, at which point we added the ability to specify local
+    # gem installation by Ruby version.  On older versions of Rubber the gem list is just an array.  On newer versions,
+    # it's a hash key by version number.
+    if rubber_env.ruby_versions
+      rubber_env.ruby_versions.each do |ruby_version|
+        opts = get_host_options('gems') do |gem_list|
+          if gem_list.is_a?(Hash)
+            expand_gem_list(gem_list['default'].to_a + gem_list[ruby_version].to_a)
+          else
+            expand_gem_list(gem_list)
+          end
+        end
+
+        if opts.size > 0
+          script = prepare_script('gem_helper', gem_helper_script, nil)
+          rsudo "ruby #{script} #{cmd} $CAPISTRANO:VAR$", opts.merge(:env => { 'RUBY_VERSION' => ruby_version }) do |ch, str, data|
+            handle_gem_prompt(ch, data, str)
+          end
         end
       end
-      expanded_gem_list.join(' ')
-    end
+    else
+      opts = get_host_options('gems') do |gem_list|
+        expand_gem_list(gem_list)
+      end
 
-    if opts.size > 0
-      script = prepare_script('gem_helper', gem_helper_script, nil)
-      rsudo "ruby #{script} #{cmd} $CAPISTRANO:VAR$", opts do |ch, str, data|
-        handle_gem_prompt(ch, data, str)
+      if opts.size > 0
+        script = prepare_script('gem_helper', gem_helper_script, nil)
+        rsudo "ruby #{script} #{cmd} $CAPISTRANO:VAR$", opts do |ch, str, data|
+          handle_gem_prompt(ch, data, str)
+        end
       end
     end
+  end
+
+  def expand_gem_list(gem_list)
+    expanded_gem_list = []
+    gem_list.each do |gem_spec|
+      if gem_spec.is_a?(Array)
+        expanded_gem_list << "#{gem_spec[0]}:#{gem_spec[1]}"
+      else
+        expanded_gem_list << gem_spec
+      end
+    end
+    expanded_gem_list.join(' ')
   end
 
 end

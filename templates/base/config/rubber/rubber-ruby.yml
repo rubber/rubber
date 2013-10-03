@@ -17,7 +17,23 @@ ruby_build_version: 20130923
 # REQUIRED: Set to the version string for the ruby version you wish to use
 # Run "ruby-build --definitions" to see the list of possible options or look through the list of
 # recipes online at https://github.com/sstephenson/ruby-build/tree/master/share/ruby-build
-ruby_version: 1.9.3-p448
+ruby_versions: [1.9.3-p448]
+
+# REQUIRED: Set to the version string for the ruby version you wish to use
+# Run "ruby-build --definitions" to see the list of possible options
+default_ruby_version: "#{ruby_versions.first}"
 
 # REQUIRED: Installation path for ruby.
-ruby_path: "/usr/local/rubies/#{ruby_version}"
+base_ruby_path: "/usr/local/rubies"
+
+# OPTIONAL: gem sources to setup for rubygems
+# gemsources: ["http://rubygems.org", "http://gems.github.com"]
+
+# OPTIONAL: The gems to install on all instances
+# You can install a specific version of a gem by using a sub-array of gem, version
+# For example,
+# gem:
+#   default: [[bundler, 1.3.5], open4, aws-s3]
+
+gems:
+  default: [bundler]
