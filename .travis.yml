@@ -42,6 +42,7 @@ matrix:
   allow_failures:
     - rvm: ruby-head
     - rvm: jruby-head
+    - rvm: rbx-18mode
 
 # script: bundle exec rspec spec
 env:
