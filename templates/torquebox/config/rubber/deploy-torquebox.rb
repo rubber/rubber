@@ -9,7 +9,7 @@ namespace :rubber do
     task :custom_install, :roles => :torquebox do
       rubber.sudo_script 'install_torquebox', <<-ENDSCRIPT
         if [[ -z `ls #{rubber_env.torquebox_prefix}/torquebox-#{rubber_env.torquebox_version} 2> /dev/null` ]]; then
-          wget -q http://torquebox.org/release/org/torquebox/torquebox-dist/#{rubber_env.torquebox_version}/torquebox-dist-#{rubber_env.torquebox_version}-bin.zip
+          wget -q http://repository-projectodd.forge.cloudbees.com/release/org/torquebox/torquebox-dist/#{rubber_env.torquebox_version}/torquebox-dist-#{rubber_env.torquebox_version}-bin.zip
           unzip -d #{rubber_env.torquebox_prefix} torquebox-dist-#{rubber_env.torquebox_version}-bin.zip &> /dev/null
           chown -R #{rubber_env.app_user} #{rubber_env.torquebox_prefix}/torquebox-#{rubber_env.torquebox_version}
 
@@ -23,13 +23,22 @@ namespace :rubber do
 
           # Set up libraries for graylog logger.
           mkdir -p #{rubber_env.torquebox_dir}/jboss/modules/org/graylog2/logging/main
-          wget -qNO "#{rubber_env.torquebox_dir}/jboss/modules/org/graylog2/logging/main/gelfj-1.0.1.jar" https://github.com/downloads/t0xa/gelfj/gelfj-1.0.1.jar
-          wget -qNO "#{rubber_env.torquebox_dir}/jboss/modules/org/graylog2/logging/main/json-simple-1.1.1.jar" http://json-simple.googlecode.com/files/json-simple-1.1.1.jar
+          wget -qNO "#{rubber_env.torquebox_dir}/jboss/modules/org/graylog2/logging/main/gelfj-#{rubber_env.torquebox_gelfj_version}.jar" http://search.maven.org/remotecontent?filepath=org/graylog2/gelfj/#{rubber_env.torquebox_gelfj_version}/gelfj-#{rubber_env.torquebox_gelfj_version}.jar
+          wget -qNO "#{rubber_env.torquebox_dir}/jboss/modules/org/graylog2/logging/main/json-simple-#{rubber_env.torquebox_json_simple_version}.jar" http://json-simple.googlecode.com/files/json-simple-#{rubber_env.torquebox_json_simple_version}.jar
 
           # Cleanup after ourselves.
           rm torquebox-dist-#{rubber_env.torquebox_version}-bin.zip
         fi
       ENDSCRIPT
+    end
+
+    after "rubber:bootstrap", "rubber:torquebox:bootstrap"
+    task :bootstrap, :roles => :torquebox do
+      exists = capture("echo $(ls #{rubber_env.torquebox_dir}/jboss/modules/org/graylog2/logging/main/module.xml 2> /dev/null)")
+      if exists.strip.size == 0
+        rubber.update_code_for_bootstrap
+        rubber.run_config(:file => "role/torquebox", :force => true, :deploy_path => release_path)
+      end
     end
 
     after "rubber:install_packages", "rubber:torquebox:install_mod_cluster"

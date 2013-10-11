@@ -1,4 +1,4 @@
-torquebox_version: 2.3.0
+torquebox_version: '3.0.0'
 torquebox_prefix: /opt
 torquebox_dir: "#{torquebox_prefix}/torquebox"
 torquebox_log_dir: /var/log/torquebox
@@ -6,16 +6,19 @@ torquebox_pid_file: "#{torquebox_dir}/jboss/standalone/torquebox.pid"
 torquebox_http_port: 9090
 torquebox_https_port: 9443
 torquebox_ajp_port: 8009
+torquebox_use_mod_cluster: false
+torquebox_use_multicast: false
+torquebox_max_heap: 768m
+torquebox_min_heap: 64m
+
+torquebox_gelfj_version: 1.1.3
+torquebox_json_simple_version: 1.1.1
 
 backstage_user: admin
 backstage_password: admin123
 
 mod_cluster_version: 1.2.0
 
-apache_listen_port: 80
-apache_listen_ssl_port: 443
-
 roles:
   torquebox:
     packages: [openjdk-7-jdk libaio1, unzip]
-    gems: [[torquebox, "#{torquebox_version}"]]
