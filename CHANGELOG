@@ -4,6 +4,7 @@ New Features:
 ============
 
 [base, core, postgresql] Added a uniform way of handling private network address blocks <61c5e0c>
+[core] Added cleanup hook for 'vagrant destroy' for Vagrant version >= 1.3.0. <2a3c441>
 
 Improvements:
 ============
