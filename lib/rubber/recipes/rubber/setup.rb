@@ -566,6 +566,8 @@ namespace :rubber do
       end
 
       reboot = get_env('REBOOT', "Updates require a reboot on hosts #{reboot_hosts.inspect}, reboot [y/N]?", false)
+      ENV['REBOOT'] = reboot # `get_env` chomps the REBOOT value of the env, so reset it here so the value is retained across multiple calls.
+
       reboot = (reboot =~ /^y/)
 
       if reboot
