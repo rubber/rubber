@@ -23,6 +23,10 @@ module VagrantPlugins
         bootstrap && deploy_migrations
       end
 
+      def cleanup
+        destroy
+      end
+
       private
 
       def create
@@ -33,6 +37,20 @@ module VagrantPlugins
             unset GEM_HOME;
             unset GEM_PATH;
             PATH=#{ENV['PATH'].split(':')[1..-1].join(':')} RUN_FROM_VAGRANT=true RUBBER_ENV=#{config.rubber_env} ALIAS=#{machine.name} ROLES='#{config.roles}' EXTERNAL_IP=#{private_ip} INTERNAL_IP=#{private_ip} RUBBER_SSH_KEY=#{ssh_info[:private_key_path]} bash -c '#{rvm_prefix} bundle exec cap rubber:create -S initial_ssh_user=#{ssh_info[:username]}'
+          ENDSCRIPT
+        end
+
+        system(script)
+      end
+
+      def destroy
+        if config.use_vagrant_ruby
+          script = "RUN_FROM_VAGRANT=true FORCE=true RUBBER_ENV=#{config.rubber_env} ALIAS=#{machine.name} #{internal_cap_command} rubber:destroy"
+        else
+          script = <<-ENDSCRIPT
+            unset GEM_HOME;
+            unset GEM_PATH;
+            PATH=#{ENV['PATH'].split(':')[1..-1].join(':')} RUN_FROM_VAGRANT=true FORCE=true RUBBER_ENV=#{config.rubber_env} ALIAS=#{machine.name} bash -c '#{rvm_prefix} bundle exec cap rubber:destroy'
           ENDSCRIPT
         end
 

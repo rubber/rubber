@@ -46,7 +46,10 @@ module Rubber
       end
 
       def destroy_instance(instance_id)
-        system("vagrant destroy #{instance_id} --force")
+        # If it's being run from vagrant, then 'vagrant destroy' must have been called already, so no need for us to do it.
+        unless ENV.has_key?('RUN_FROM_VAGRANT')
+          system("vagrant destroy #{instance_id} --force")
+        end
       end
 
       def stop_instance(instance, force=false)
