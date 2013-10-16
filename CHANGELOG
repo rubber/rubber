@@ -1,3 +1,27 @@
+2.5.5 (10/16/2013)
+
+New Features:
+============
+
+[base, core, postgresql] Added a uniform way of handling private network address blocks <61c5e0c>
+
+Improvements:
+============
+
+[base] Vagrant base config now sets up key file for rubber to SSH into the machine <40c6c3c>
+[base] Default staging_roles config now reflects the cluster more accurately <255a8e9>
+[core] Only modify /etc/hosts on rubber:refresh if an IP address has actually changed <fe5e28e>
+[core] Support iptables rules without port definitions <de744c1>
+
+Bug Fixes:
+=========
+
+[core] Fixed a problem with tasks using the `:only` option being overwritten by rubber internally (#397) <d3ae2fa>
+[core] Don't install fog 1.16.0 until we're able to sort out API compatiblities with it <346c99b>
+[core] Presen the $REBOOT value across multiple calls to `maybe_reboot` <f03dc22>
+[web_tools] Proxied service hostnames should not have underscores since that would be an invalid hostname <055919f>
+
+
 2.5.4 (09/26/2013)
 
 Improvements:
