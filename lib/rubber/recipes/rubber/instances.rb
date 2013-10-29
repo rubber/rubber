@@ -440,8 +440,8 @@ namespace :rubber do
     end
 
     if instance_item.volumes
-      value = Capistrano::CLI.ui.ask("Instance has persistent volumes, do you want to destroy them? [y/N]?: ") unless force
-      if value =~ /^y/ || force
+      value = Capistrano::CLI.ui.ask("Instance has persistent volumes, do you want to destroy them? [y/N]?: ") unless force || cloud.should_destroy_volume_when_instance_destroyed?
+      if value =~ /^y/ || force || cloud.should_destroy_volume_when_instance_destroyed?
         instance_item.volumes.clone.each do |volume_id|
           destroy_volume(volume_id)
         end
