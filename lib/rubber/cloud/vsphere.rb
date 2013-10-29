@@ -68,11 +68,32 @@ module Rubber
         end
 
         response.each do |item|
+          rubber_cfg = Rubber::Configuration.get_configuration(Rubber.env)
+          host_env = rubber_cfg.environment.bind(nil, item.name)
+
           instance = {}
           instance[:id] = item.id
           instance[:state] = item.tools_state
-          instance[:external_ip] = item.public_ip_address
-          instance[:internal_ip] = item.public_ip_address
+
+          # We can't trust the describe operation when the instance is newly created because the VM customization
+          # step likely hasn't completed yet.  This means we'll get back the IP address for the VM template, rather
+          # than the one we just configured.
+          if host_env.public_nic
+            instance[:external_ip] = host_env.public_nic.ip_address
+
+            if host_env.private_nic.nil?
+              instance[:internal_ip] = host_env.public_nic.ip_address
+            end
+          end
+
+          if host_env.private_nic
+            instance[:internal_ip] = host_env.private_nic.ip_address
+
+            if host_env.public_nic.nil?
+              instance[:external_ip] = host_env.private_nic.ip_address
+            end
+          end
+
           instance[:region_id] = item.datacenter
           instance[:provider] = 'vsphere'
           instance[:platform] = 'linux'
