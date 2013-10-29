@@ -86,6 +86,66 @@ module Rubber
         'toolsOk'
       end
 
+      def create_volume(instance, volume_spec)
+        server = @compute_provider.servers.get(instance.instance_id)
+        datastore = volume_spec['datastore']
+
+        # This craziness here is so we can map the device name to an appropriate SCSI channel index, which is zero-based.
+        # E.g., /dev/sdc would correspond to a unit_number of 2.  We do this by chopping off the SCSI device letter and
+        # then doing some ASCII value math to convert to the appropriate decimal value.
+        unit_number = volume_spec['device'][-1].ord - 97
+
+        if datastore
+          volume = server.volumes.create(:size_gb => volume_spec['size'], :datastore => datastore, :unit_number => unit_number)
+        else
+          volume = server.volumes.create(:size_gb => volume_spec['size'], :unit_number => unit_number)
+        end
+
+        volume.id
+      end
+
+      def destroy_volume(volume_id)
+        # TODO (nirvdrum 10/28/13): Fog currently lacks the ability to fetch a volume by ID, so we need to fetch all volumes for all servers to find the volume we want.  This is terribly inefficient and fog should be updated.
+        volume = @compute_provider.servers.collect { |s| s.volumes.all }.flatten.find { |v| v.id == volume_id }
+
+        if volume.unit_number == 0
+          raise "Cannot destroy volume because it is the VM root device.  Destroy the VM if you really want to free this volume."
+        end
+
+        volume.destroy
+      end
+
+      def describe_volumes(volume_id=nil)
+        volumes = []
+        opts = {}
+        opts[:'volume-id'] = volume_id if volume_id
+
+        if volume_id
+          response = [@compute_provider.servers.collect { |s| s.volumes.all }.flatten.find { |v| v.id == volume_id }]
+        else
+          response = @compute_provider.servers.collect { |s| s.volumes.all }.flatten
+        end
+
+        response.each do |item|
+          volume = {}
+          volume[:id] = item.id
+          volume[:status] = item.unit_number == 0 ? 'root' : 'extra'
+
+          if item.server_id
+            volume[:attachment_instance_id] = item.server_id
+            volume[:attachment_status] = Thread.current[:detach_volume] == item.id ? 'detached' : 'attached'
+          end
+
+          volumes << volume
+        end
+
+        volumes
+      end
+
+      def should_destroy_volume_when_instance_destroyed?
+        true
+      end
+
       private
 
       def validate_nic(nic, type)

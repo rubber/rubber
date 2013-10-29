@@ -301,21 +301,27 @@ module Rubber
         groups
       end
 
-      def create_volume(size, zone)
-        volume = @compute_provider.volumes.create(:size => size.to_s, :availability_zone => zone)
-        return volume.id
+      def create_volume(instance, volume_spec)
+        volume = @compute_provider.volumes.create(:size => volume_spec['size'], :availability_zone => volume_spec['zone'])
+        volume.id
       end
 
-      def attach_volume(volume_id, instance_id, device)
+      def after_create_volume(instance, volume_id, volume_spec)
+        # After we create an EBS volume, we need to attach it to the instance.
         volume = @compute_provider.volumes.get(volume_id)
-        server = @compute_provider.servers.get(instance_id)
+        server = @compute_provider.servers.get(instance.instance_id)
         volume.device = device
         volume.server = server
       end
 
-      def detach_volume(volume_id, force=true)
+      def before_destroy_volume(volume_id)
+        # Before we can destroy an EBS volume, we must detach it from any running instances.
         volume = @compute_provider.volumes.get(volume_id)
-        force ? volume.force_detach : (volume.server = nil)
+        volume.force_detach
+      end
+
+      def destroy_volume(volume_id)
+        @compute_provider.volumes.get(volume_id).destroy
       end
 
       def describe_volumes(volume_id=nil)
@@ -323,21 +329,21 @@ module Rubber
         opts = {}
         opts[:'volume-id'] = volume_id if volume_id
         response = @compute_provider.volumes.all(opts)
+
         response.each do |item|
           volume = {}
           volume[:id] = item.id
           volume[:status] = item.state
+
           if item.server_id
             volume[:attachment_instance_id] = item.server_id
             volume[:attachment_status] = item.attached_at ? "attached" : "waiting"
           end
+
           volumes << volume
         end
-        return volumes
-      end
 
-      def destroy_volume(volume_id)
-        @compute_provider.volumes.get(volume_id).destroy
+        volumes
       end
 
       # resource_id is any Amazon resource ID (e.g., instance ID or volume ID)

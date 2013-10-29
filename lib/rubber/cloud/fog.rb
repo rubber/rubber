@@ -121,6 +121,34 @@ module Rubber
       def describe_load_balancers(name=nil)
         raise NotImplementedError, "describe_load_balancers not implemented in generic fog adapter"
       end
+
+      def before_create_volume(instance, volume_spec)
+        # No-op by default.
+      end
+
+      def create_volume(instance, volume_spec)
+        # No-op by default.
+      end
+
+      def after_create_volume(instance, volume_id, volume_spec)
+        # No-op by default.
+      end
+
+      def before_destroy_volume(volume_id)
+        # No-op by default.
+      end
+
+      def destroy_volume(volume_id)
+        # No-op by default.
+      end
+
+      def after_destroy_volume(volume_id)
+        # No-op by default.
+      end
+
+      def should_destroy_volume_when_instance_destroyed?
+        false
+      end
     end
 
   end

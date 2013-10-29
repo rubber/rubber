@@ -72,26 +72,18 @@ namespace :rubber do
     detach_volume(volume_id)
   end
 
-  def create_volume(size, zone)
-    volumeId = cloud.create_volume(size.to_s, zone)
-    fatal "Failed to create volume" if volumeId.nil?
-    return volumeId
-  end
-
-  def attach_volume(vol_id, instance_id, device)
-    cloud.attach_volume(vol_id, instance_id, device)
-  end
-
   def setup_volume(ic, vol_spec)
     created = nil
     key = "#{ic.name}_#{vol_spec['device']}"
     artifacts = rubber_instances.artifacts
     vol_id = artifacts['volumes'][key]
 
+    cloud.before_create_volume(ic, vol_spec)
+
     # first create the volume if we don't have a global record (artifacts) for it
     if ! vol_id
       logger.info "Creating volume for #{ic.full_name}:#{vol_spec['device']}"
-      vol_id = create_volume(vol_spec['size'], vol_spec['zone'])
+      vol_id = cloud.create_volume(ic, vol_spec)
       artifacts['volumes'][key] = vol_id
       rubber_instances.save
       created = vol_spec['device']
@@ -101,7 +93,7 @@ namespace :rubber do
     ic.volumes ||= []
     if ! ic.volumes.include?(vol_id)
       logger.info "Attaching volume #{vol_id} to #{ic.full_name}:#{vol_spec['device']}"
-      attach_volume(vol_id, ic.instance_id, vol_spec['device'])
+      cloud.after_create_volume(ic, vol_id, vol_spec)
       ic.volumes << vol_id
       rubber_instances.save
 
@@ -119,13 +111,16 @@ namespace :rubber do
         # then format/mount/etc if we don't have an entry in hosts file
         task :_setup_volume, :hosts => ic.external_ip do
           rubber.sudo_script 'setup_volume', <<-ENDSCRIPT
+            # Make sure the newly added volume was found.
+            rescan-scsi-bus || true
+
             if ! grep -q '#{vol_spec['mount']}' /etc/fstab; then
               if mount | grep -q '#{vol_spec['mount']}'; then
                 umount '#{vol_spec['mount']}'
               fi
               mv /etc/fstab /etc/fstab.bak
               cat /etc/fstab.bak | grep -v '#{vol_spec['mount']}' > /etc/fstab
-              if [ `lsb_release -r -s | sed 's/[.].*//'` -gt "10" ]; then
+              if [ #{rubber_env.cloud_provider == 'aws'} && `lsb_release -r -s | sed 's/[.].*//'` -gt "10" ]; then
 		            device=`echo #{vol_spec['device']} | sed 's/sd/xvd/'`
 	            else
 		            device='#{vol_spec['device']}'
@@ -416,10 +411,12 @@ namespace :rubber do
   end
   
   def destroy_volume(volume_id)
-    detach_volume(volume_id)
+    cloud.before_destroy_volume(volume_id)
 
     logger.info "Deleting volume #{volume_id}"
     cloud.destroy_volume(volume_id) rescue logger.info("Volume did not exist in cloud")
+
+    cloud.after_destroy_volume(volume_id)
 
     logger.info "Removing volume #{volume_id} from rubber instances file"
     artifacts = rubber_instances.artifacts
