@@ -38,6 +38,10 @@ namespace :rubber do
         setup_lvm_group(ic, lvm_volume_group_spec)
       end
     end
+
+    # The act of setting up volumes might blow away previously deployed code, so reset the update state so it can
+    # be deployed again if needed.
+    set :rubber_code_was_updated, false
   end
 
   desc <<-DESC
