@@ -41,18 +41,30 @@ module Rubber
         end
 
         nic = host_env.public_nic || host_env.private_nic
-        vm = compute_provider.vm_clone('datacenter' => datacenter,
-                                       'template_path' => image_name,
-                                       'name' => instance_alias,
-                                       'customization_spec' => {
-                                           'domain' => env.domain,
-                                           'ipsettings' => {
-                                               'ip' => nic.ip_address,
-                                               'subnetMask' => nic.subnet_mask,
-                                               'gateway' => [nic.gateway],
-                                               'dnsServerList' => [nic.dns_servers]
-                                           }
-                                       })
+        vm_clone_options = {
+          'datacenter' => datacenter,
+          'template_path' => image_name,
+          'name' => instance_alias,
+          'customization_spec' => {
+            'domain' => env.domain,
+            'ipsettings' => {
+              'ip' => nic.ip_address,
+              'subnetMask' => nic.subnet_mask,
+              'gateway' => [nic.gateway],
+              'dnsServerList' => [nic.dns_servers]
+            }
+          }
+        }
+
+        if host_env.memory
+          vm_clone_options['memoryMB'] = host_env.memory
+        end
+
+        if host_env.cpus
+          vm_clone_options['numCPUs'] = host_env.cpus
+        end
+
+        vm = compute_provider.vm_clone(vm_clone_options)
 
         vm['new_vm']['id']
       end
