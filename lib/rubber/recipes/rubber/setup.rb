@@ -26,7 +26,13 @@ namespace :rubber do
     # We special-case the 'ubuntu' user since the Canonical AMIs on EC2 don't set the password for
     # this account, making any password prompt potentially confusing.
     orig_password = fetch(:password)
-    set(:password, initial_ssh_user == 'ubuntu' || ENV.has_key?('RUN_FROM_VAGRANT') ? nil : Capistrano::CLI.password_prompt("Password for #{initial_ssh_user} @ #{ip}: "))
+    initial_ssh_password = fetch(:initial_ssh_password)
+
+    if initial_ssh_password
+      set(:password, initial_ssh_password)
+    else
+      set(:password, initial_ssh_user == 'ubuntu' || ENV.has_key?('RUN_FROM_VAGRANT') ? nil : Capistrano::CLI.password_prompt("Password for #{initial_ssh_user} @ #{ip}: "))
+    end
 
     task :_ensure_key_file_present, :hosts => "#{initial_ssh_user}@#{ip}" do
       public_key_filename = "#{cloud.env.key_file}.pub"
@@ -50,9 +56,19 @@ namespace :rubber do
       rsudo "mkdir -p /root/.ssh && cp /home/#{initial_ssh_user}/.ssh/authorized_keys /root/.ssh/"
     end
 
+    task :_disable_password_based_ssh_login, :hosts => "#{initial_ssh_user}@#{ip}" do
+      rubber.sudo_script 'disable_password_based_ssh_login', <<-ENDSCRIPT
+        if ! grep -q 'PasswordAuthentication no' /etc/ssh/sshd_config; then
+          echo 'PasswordAuthentication no' >> /etc/ssh/sshd_config
+          service ssh restart
+        fi
+      ENDSCRIPT
+    end
+
     begin
       _ensure_key_file_present
       _allow_root_ssh
+      _disable_password_based_ssh_login if cloud.should_disable_password_based_ssh_login?
     rescue ConnectionError => e
       if e.message =~ /Net::SSH::AuthenticationFailed/
         logger.info "Can't connect as user #{initial_ssh_user} to #{ip}, assuming root allowed"

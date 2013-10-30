@@ -190,6 +190,10 @@ module Rubber
         groups
       end
 
+      def should_disable_password_based_ssh_login?
+        false
+      end
+
     end
 
   end

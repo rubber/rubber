@@ -167,6 +167,10 @@ module Rubber
         true
       end
 
+      def should_disable_password_based_ssh_login?
+        true
+      end
+
       private
 
       def validate_nic(nic, type)
