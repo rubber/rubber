@@ -6,10 +6,10 @@ module Rubber
       def initialize(env, capistrano)
         compute_credentials = {
           :provider => 'vsphere',
-          :vsphere_username => env.vsphere.username,
-          :vsphere_password => env.vsphere.password,
-          :vsphere_server => env.vsphere.host,
-          :vsphere_expected_pubkey_hash => env.vsphere.expected_pubkey_hash
+          :vsphere_username => env.vcenter_username,
+          :vsphere_password => env.vcenter_password,
+          :vsphere_server => env.vcenter_host,
+          :vsphere_expected_pubkey_hash => env.expected_pubkey_hash
         }
 
         if env.cloud_providers && env.cloud_providers.aws
