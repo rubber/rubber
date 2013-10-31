@@ -26,7 +26,7 @@ namespace :rubber do
     # We special-case the 'ubuntu' user since the Canonical AMIs on EC2 don't set the password for
     # this account, making any password prompt potentially confusing.
     orig_password = fetch(:password)
-    initial_ssh_password = fetch(:initial_ssh_password)
+    initial_ssh_password = fetch(:initial_ssh_password, nil)
 
     if initial_ssh_password
       set(:password, initial_ssh_password)
