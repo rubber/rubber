@@ -150,17 +150,27 @@ module Rubber
       def create_volume(instance, volume_spec)
         server = @compute_provider.servers.get(instance.instance_id)
         datastore = volume_spec['datastore']
+        thin_disk = volume_spec.has_key?('thin') ? volume_spec['thin'] : true
 
         # This craziness here is so we can map the device name to an appropriate SCSI channel index, which is zero-based.
         # E.g., /dev/sdc would correspond to a unit_number of 2.  We do this by chopping off the SCSI device letter and
         # then doing some ASCII value math to convert to the appropriate decimal value.
         unit_number = volume_spec['device'][-1].ord - 97
 
+        config = { :size_gb => volume_spec['size'], :unit_number => unit_number }
+
         if datastore
-          volume = server.volumes.create(:size_gb => volume_spec['size'], :datastore => datastore, :unit_number => unit_number)
-        else
-          volume = server.volumes.create(:size_gb => volume_spec['size'], :unit_number => unit_number)
+          config[:datastore] = datastore
         end
+
+        unless thin_disk
+          eager_zero = volume_spec.has_key?('eager_zero') ? volume_spec['eager_zero'] : false
+
+          config[:thin] = false
+          config[:eager_zero] = eager_zero
+        end
+
+        volume = server.volumes.create(config)
 
         volume.id
       end
