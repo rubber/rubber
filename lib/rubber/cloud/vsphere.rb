@@ -230,8 +230,20 @@ module Rubber
           'dnsServerList' => nic['dns_servers'] || default_nic['dns_servers']
         }
 
-        if nic['gateway'] || default_nic['gateway']
-          hash['gateway'] = [nic['gateway'] || default_nic['gateway']]
+        # We want to allow overriding the gateway on a per-host basis by setting the value to nil.  As such, we
+        # can't fall back to the default config just because the value is nil.
+        if nic.has_key?('gateway')
+
+          # Null values are represented as "null" in YAML, but Rubyists tend to use "nil", which will get translated
+          # to the literal String "nil". Which guarding against this is arguably bad, letting "nil" go through as a valid
+          # gateway value is even worse.
+          puts "\n\nGateway: #{nic['gateway']}\n\n"
+          if nic['gateway'] && nic['gateway'] != 'nil'
+            hash['gateway'] = [nic['gateway']]
+          end
+
+        elsif default_nic['gateway']
+          hash['gateway'] = [default_nic['gateway']]
         end
 
         hash
