@@ -247,7 +247,6 @@ module Rubber
           # Null values are represented as "null" in YAML, but Rubyists tend to use "nil", which will get translated
           # to the literal String "nil". Which guarding against this is arguably bad, letting "nil" go through as a valid
           # gateway value is even worse.
-          puts "\n\nGateway: #{nic['gateway']}\n\n"
           if nic['gateway'] && nic['gateway'] != 'nil'
             hash['gateway'] = [nic['gateway']]
           end
