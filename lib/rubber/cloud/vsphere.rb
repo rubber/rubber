@@ -43,14 +43,17 @@ module Rubber
         nics = []
 
         if host_env.public_nic
-          nics << nic_to_vsphere_config(host_env.public_nic)
+          nic = nic_to_vsphere_config(host_env.public_nic, env.public_nic || {})
+          validate_nic_vsphere_config(nic, :public)
+          nics << nic
         end
 
         if host_env.private_nic
-          nics << nic_to_vsphere_config(host_env.private_nic)
+          nic = nic_to_vsphere_config(host_env.private_nic, env.private_nic || {})
+          validate_nic_vsphere_config(nic, :private)
+          nics << nic
         end
 
-        nic = host_env.public_nic || host_env.private_nic
         vm_clone_options = {
           'datacenter' => datacenter,
           'template_path' => image_name,
@@ -79,7 +82,7 @@ module Rubber
         server.interfaces.create(:network => env.private_network_name) if host_env.private_nic
 
         vm_ref = compute_provider.send(:get_vm_ref, server.id)
-        vm_ref.CustomizeVM_Task(:spec => customization_spec(instance_alias, host_env))
+        vm_ref.CustomizeVM_Task(:spec => customization_spec(instance_alias, nics))
 
         server.start
 
@@ -202,35 +205,36 @@ module Rubber
 
       private
 
-      def validate_nic(nic, type)
-        %w[ip_address subnet_mask gateway dns_servers].each do |attr|
-          if nic[attr].nil?
+      def validate_nic_vsphere_config(nic_config, type)
+        %w[ip subnetMask dnsServerList].each do |attr|
+          if nic_config[attr].nil?
             raise "Missing '#{attr}' for #{type} NIC configuaration"
           end
         end
+
+        nic_config
       end
 
-      def nic_to_vsphere_config(nic)
+      def nic_to_vsphere_config(nic, default_nic)
         hash = {
-          'ip' => nic.ip_address,
-          'subnetMask' => nic.subnet_mask,
-          'dnsServerList' => [nic.dns_servers]
+          'ip' => nic['ip_address'],
+          'subnetMask' => nic['subnet_mask'] || default_nic['subnet_mask'],
+          'dnsServerList' => nic['dns_servers'] || default_nic['dns_servers']
         }
 
-        if nic.gateway
-          hash['gateway'] = [nic.gateway]
+        if nic['gateway'] || default_nic['gateway']
+          hash['gateway'] = [nic['gateway'] || default_nic['gateway']]
         end
 
         hash
       end
 
-      def customization_spec(instance_alias, host_env)
+      def customization_spec(instance_alias, ip_settings)
         nics = []
-        ip_settings = [host_env.public_nic, host_env.private_nic].flatten
 
         ip_settings.each do |nic|
-          custom_ip_settings = RbVmomi::VIM::CustomizationIPSettings.new(nic_to_vsphere_config(nic))
-          custom_ip_settings.ip = RbVmomi::VIM::CustomizationFixedIp("ipAddress" => nic.ip_address)
+          custom_ip_settings = RbVmomi::VIM::CustomizationIPSettings.new(nic)
+          custom_ip_settings.ip = RbVmomi::VIM::CustomizationFixedIp("ipAddress" => nic['ip'])
           custom_ip_settings.dnsDomain = env.domain
 
           nics << custom_ip_settings
