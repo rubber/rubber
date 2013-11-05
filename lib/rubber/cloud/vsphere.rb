@@ -40,6 +40,14 @@ module Rubber
           raise "You must configure a private or a public NIC for this host in your rubber YAML"
         end
 
+        if host_env.public_nic && env.public_network_name.nil?
+          raise "You must configure the 'public_network_name' in the provider configuration"
+        end
+
+        if host_env.private_nic && env.private_network_name.nil?
+          raise "You must configure the 'private_network_name' in the provider configuration"
+        end
+
         nics = []
 
         if host_env.public_nic
