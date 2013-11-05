@@ -1,3 +1,17 @@
+2.6.0 (11/05/2013)
+
+New Features:
+============
+
+[core] Added a new provider for vSphere.  See https://github.com/rubber/rubber/wiki/Providers for configuration details.
+
+Improvements:
+============
+
+[base] Upgraded to ruby-build 20131030 <214423d>
+[base]  Enhances database.yml to respond to active environment, not just 'production' <3843caf>
+
+
 2.5.5 (10/16/2013)
 
 New Features:
