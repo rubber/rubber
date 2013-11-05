@@ -40,20 +40,22 @@ module Rubber
           raise "You must configure a private or a public NIC for this host in your rubber YAML"
         end
 
+        nics = []
+
+        if host_env.public_nic
+          nics << nic_to_vsphere_config(host_env.public_nic)
+        end
+
+        if host_env.private_nic
+          nics << nic_to_vsphere_config(host_env.private_nic)
+        end
+
         nic = host_env.public_nic || host_env.private_nic
         vm_clone_options = {
           'datacenter' => datacenter,
           'template_path' => image_name,
           'name' => instance_alias,
-          'customization_spec' => {
-            'domain' => env.domain,
-            'ipsettings' => {
-              'ip' => nic.ip_address,
-              'subnetMask' => nic.subnet_mask,
-              'gateway' => [nic.gateway],
-              'dnsServerList' => [nic.dns_servers]
-            }
-          }
+          'power_on' => false
         }
 
         if host_env.memory
@@ -65,6 +67,21 @@ module Rubber
         end
 
         vm = compute_provider.vm_clone(vm_clone_options)
+
+        server = compute_provider.servers.get(vm['new_vm']['id'])
+
+        # Destroy all existing NICs.  We need the public and private IPs to line up with the NICs attached to the
+        # correct virtual switches.  Rather than take the cross-product and try to work that out, it's easier to
+        # just start fresh and guarantee everything works as intended.
+        server.interfaces.each(&:destroy)
+
+        server.interfaces.create(:network => env.public_network_name) if host_env.public_nic
+        server.interfaces.create(:network => env.private_network_name) if host_env.private_nic
+
+        vm_ref = compute_provider.send(:get_vm_ref, server.id)
+        vm_ref.CustomizeVM_Task(:spec => customization_spec(instance_alias, host_env))
+
+        server.start
 
         vm['new_vm']['id']
       end
@@ -191,6 +208,49 @@ module Rubber
             raise "Missing '#{attr}' for #{type} NIC configuaration"
           end
         end
+      end
+
+      def nic_to_vsphere_config(nic)
+        hash = {
+          'ip' => nic.ip_address,
+          'subnetMask' => nic.subnet_mask,
+          'dnsServerList' => [nic.dns_servers]
+        }
+
+        if nic.gateway
+          hash['gateway'] = [nic.gateway]
+        end
+
+        hash
+      end
+
+      def customization_spec(instance_alias, host_env)
+        nics = []
+        ip_settings = [host_env.public_nic, host_env.private_nic].flatten
+
+        ip_settings.each do |nic|
+          custom_ip_settings = RbVmomi::VIM::CustomizationIPSettings.new(nic_to_vsphere_config(nic))
+          custom_ip_settings.ip = RbVmomi::VIM::CustomizationFixedIp("ipAddress" => nic.ip_address)
+          custom_ip_settings.dnsDomain = env.domain
+
+          nics << custom_ip_settings
+        end
+
+        custom_global_ip_settings = RbVmomi::VIM::CustomizationGlobalIPSettings.new
+        custom_global_ip_settings.dnsServerList = nics.first.dnsServerList
+        custom_global_ip_settings.dnsSuffixList = [env.domain]
+
+        custom_adapter_mapping = nics.collect { |nic| RbVmomi::VIM::CustomizationAdapterMapping.new("adapter" => nic) }
+
+        custom_prep = RbVmomi::VIM::CustomizationLinuxPrep.new(
+            :domain => env.domain,
+            :hostName => RbVmomi::VIM::CustomizationFixedName.new(:name => instance_alias))
+
+        puts "Adapters: #{custom_adapter_mapping}"
+
+        RbVmomi::VIM::CustomizationSpec.new(:identity => custom_prep,
+                                            :globalIPSettings => custom_global_ip_settings,
+                                            :nicSettingMap => custom_adapter_mapping)
       end
     end
   end
