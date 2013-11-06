@@ -1,3 +1,17 @@
+2.6.1 (11/06/2013)
+
+Improvements:
+============
+
+[core] Don't try to connect to the fog compute or storage providers until we actually need them. <5536511>
+
+Bug Fixes:
+=========
+
+[core] Fixed a bug attaching EBS volumes, introduced by a recent refactoring. <51d2619>
+[core] Fixed setup_remote_aliases to work when an SSH gateway is in place. <3a776f9>
+
+
 2.6.0 (11/05/2013)
 
 New Features:
