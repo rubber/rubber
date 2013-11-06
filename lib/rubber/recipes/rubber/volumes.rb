@@ -41,7 +41,15 @@ namespace :rubber do
 
     # The act of setting up volumes might blow away previously deployed code, so reset the update state so it can
     # be deployed again if needed.
-    set :rubber_code_was_updated, false
+    deploy_to = fetch(:deploy_to, nil)
+
+    unless deploy_to.nil?
+      deployed = capture("echo $(ls /var/run/reboot-required 2> /dev/null)")
+
+      unless deployed
+        set :rubber_code_was_updated, false
+      end
+    end
   end
 
   desc <<-DESC
