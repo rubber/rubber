@@ -148,7 +148,7 @@ module Rubber
       end
 
       def create_volume(instance, volume_spec)
-        server = @compute_provider.servers.get(instance.instance_id)
+        server = compute_provider.servers.get(instance.instance_id)
         datastore = volume_spec['datastore']
         thin_disk = volume_spec.has_key?('thin') ? volume_spec['thin'] : true
 
@@ -177,7 +177,7 @@ module Rubber
 
       def destroy_volume(volume_id)
         # TODO (nirvdrum 10/28/13): Fog currently lacks the ability to fetch a volume by ID, so we need to fetch all volumes for all servers to find the volume we want.  This is terribly inefficient and fog should be updated.
-        volume = @compute_provider.servers.collect { |s| s.volumes.all }.flatten.find { |v| v.id == volume_id }
+        volume = compute_provider.servers.collect { |s| s.volumes.all }.flatten.find { |v| v.id == volume_id }
 
         if volume.unit_number == 0
           raise "Cannot destroy volume because it is the VM root device.  Destroy the VM if you really want to free this volume."
@@ -192,9 +192,9 @@ module Rubber
         opts[:'volume-id'] = volume_id if volume_id
 
         if volume_id
-          response = [@compute_provider.servers.collect { |s| s.volumes.all }.flatten.find { |v| v.id == volume_id }]
+          response = [compute_provider.servers.collect { |s| s.volumes.all }.flatten.find { |v| v.id == volume_id }]
         else
-          response = @compute_provider.servers.collect { |s| s.volumes.all }.flatten
+          response = compute_provider.servers.collect { |s| s.volumes.all }.flatten
         end
 
         response.each do |item|
