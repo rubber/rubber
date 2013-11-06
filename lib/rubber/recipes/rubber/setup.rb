@@ -187,15 +187,25 @@ namespace :rubber do
 
       replace="#{delim}\\n#{remote_hosts.join("\\n")}\\n#{delim}"
 
-      rubber.sudo_script 'setup_remote_aliases', <<-ENDSCRIPT
+      setup_remote_aliases_script = <<-ENDSCRIPT
         sed -i.bak '/#{delim}/,/#{delim}/c #{replace}' /etc/hosts
         if ! grep -q "#{delim}" /etc/hosts; then
           echo -e "#{replace}" >> /etc/hosts
         fi
       ENDSCRIPT
 
+      # If an SSH gateway is being used to deploy to the cluster, we need to ensure that gateway has an updated /etc/hosts
+      # first, otherwise it won't be able to resolve the hostnames for the other servers we need to connect to.
+      gateway = fetch(:gateway, nil)
+      if gateway
+        rubber.sudo_script 'setup_remote_aliases', setup_remote_aliases_script, :hosts => gateway
+      end
+
+      rubber.sudo_script 'setup_remote_aliases', setup_remote_aliases_script
+
       # Setup hostname on instance so shell, etcs have nice display
       rsudo "echo $CAPISTRANO:HOST$ > /etc/hostname && hostname $CAPISTRANO:HOST$"
+
       # Newer ubuntus ec2-init script always resets hostname, so prevent it
       rsudo "mkdir -p /etc/ec2-init && echo compat=0 > /etc/ec2-init/is-compat-env"
     end
