@@ -310,7 +310,7 @@ module Rubber
         # After we create an EBS volume, we need to attach it to the instance.
         volume = @compute_provider.volumes.get(volume_id)
         server = @compute_provider.servers.get(instance.instance_id)
-        volume.device = device
+        volume.device = volume_spec['device']
         volume.server = server
       end
 
