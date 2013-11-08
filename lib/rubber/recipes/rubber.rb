@@ -5,6 +5,7 @@ require "socket"
 require 'resolv'
 require 'enumerator'
 require 'capistrano/hostcmd'
+require 'capistrano/thread_safety_fix'
 require 'pp'
 require 'rubber'
 
