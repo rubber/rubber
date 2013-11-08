@@ -19,7 +19,7 @@ Bug Fixes:
 =========
 
 [base] Fixed unknown method 'known_roles' when running create_staging. <44167c4>
-[core] Fixed ip_address deprecation for digital ocean.
+[core] Fixed ip_address deprecation for digital ocean. <62d2e90>
 [core] Fixed a thread safety issue in Capistrano via a monkey-patch. <f3f9086>
 
 
