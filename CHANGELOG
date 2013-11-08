@@ -1,3 +1,28 @@
+2.6.2 (11/07/2013)
+
+Improvements:
+============
+
+[memcached]  Added configuration of max memcached memory size through rubber var 'memcached_max_mem'. <ba28c39>
+[cassandra] Quote all `rubber_env.host` in Monit config template in case hostname conflicts with monit keyword. <61bd9b1>
+[graphite] Quote all `rubber_env.host` in Monit config template in case hostname conflicts with monit keyword. <61bd9b1>
+[elasticsearch] Quote all `rubber_env.host` in Monit config template in case hostname conflicts with monit keyword. <61bd9b1>
+[graylog] Quote all `rubber_env.host` in Monit config template in case hostname conflicts with monit keyword. <61bd9b1>
+[jetty] Quote all `rubber_env.host` in Monit config template in case hostname conflicts with monit keyword. <61bd9b1>
+[mongrel] Quote all `rubber_env.host` in Monit config template in case hostname conflicts with monit keyword. <61bd9b1>
+[redis] Quote all `rubber_env.host` in Monit config template in case hostname conflicts with monit keyword. <61bd9b1>
+[sphinx] Quote all `rubber_env.host` in Monit config template in case hostname conflicts with monit keyword. <61bd9b1>
+[torquebox] Quote all `rubber_env.host` in Monit config template in case hostname conflicts with monit keyword. <61bd9b1>
+[zookeeper] Quote all `rubber_env.host` in Monit config template in case hostname conflicts with monit keyword. <61bd9b1>
+
+Bug Fixes:
+=========
+
+[base] Fixed unknown method 'known_roles' when running create_staging. <44167c4>
+[core] Fixed ip_address deprecation for digital ocean.
+[core] Fixed a thread safety issue in Capistrano via a monkey-patch. <f3f9086>
+
+
 2.6.1 (11/06/2013)
 
 Improvements:
@@ -23,7 +48,7 @@ Improvements:
 ============
 
 [base] Upgraded to ruby-build 20131030 <214423d>
-[base]  Enhances database.yml to respond to active environment, not just 'production' <3843caf>
+[base] Enhances database.yml to respond to active environment, not just 'production' <3843caf>
 
 
 2.5.5 (10/16/2013)
