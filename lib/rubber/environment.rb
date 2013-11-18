@@ -124,10 +124,13 @@ module Rubber
       end
 
       class HashValueProxy < Hash
-        attr_reader :global
+        include MonitorMixin
+
+        attr_reader :global, :cache
 
         def initialize(global, receiver)
           @global = global
+          @cache = {}
           super()
           replace(receiver)
         end
@@ -135,15 +138,21 @@ module Rubber
         def rubber_instances
           @rubber_instances ||= Rubber::Configuration::rubber_instances
         end
-        
+
         def known_roles
           Rubber::Configuration.get_configuration(Rubber.env).environment.known_roles
         end
 
         def [](name)
-          value = super(name)
-          value = global[name] if global && !value
-          return expand(value)
+          unless cache.has_key?(name)
+            synchronize do
+              value = super(name)
+              value = global[name] if global && !value
+              cache[name] = expand(value)
+            end
+          end
+
+          cache[name]
         end
 
         def each
