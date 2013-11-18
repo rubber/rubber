@@ -21,7 +21,7 @@ module Rubber
       raise "This convenience method needs Rubber.env to be set" unless Rubber.env
       cfg = Rubber::Configuration.get_configuration(Rubber.env)
       host = cfg.environment.current_host
-      roles = cfg.instance[host].role_names rescue nil
+      roles = cfg.instance[host] ? cfg.instance[host].role_names : nil
       cfg.environment.bind(roles, host)
     end
 
