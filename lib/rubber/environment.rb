@@ -120,7 +120,8 @@ module Rubber
         else
           value = new
         end
-        return value
+
+        value
       end
 
       class HashValueProxy < Hash
@@ -168,17 +169,18 @@ module Rubber
         end
 
         def method_missing(method_id)
-          key = method_id.id2name
-          return self[key]
+          self[method_id.id2name]
         end
 
         def expand_string(val)
           while val =~ /\#\{[^\}]+\}/
             val = eval('%Q{' + val + '}', binding, __FILE__)
           end
+
           val = true if val =="true"
           val = false if val == "false"
-          return val
+
+          val
         end
 
         def expand(value)
@@ -192,7 +194,8 @@ module Rubber
             else
               value
           end
-          return val
+
+          val
         end
 
       end
@@ -220,23 +223,26 @@ module Rubber
           role_overrides = global.delete("roles") || {}
           env_overrides = global.delete("environments") || {}
           host_overrides = global.delete("hosts") || {}
+
           Array(roles).each do |role|
             Array(role_overrides[role]).each do |k, v|
               global[k] = Environment.combine(global[k], v)
             end
           end
+
           Array(env_overrides[env]).each do |k, v|
             global[k] = Environment.combine(global[k], v)
           end
+
           Array(host_overrides[host]).each do |k, v|
             global[k] = Environment.combine(global[k], v)
           end
-          return global
+
+          global
         end
         
         def method_missing(method_id)
-          key = method_id.id2name
-          return self[key]
+          self[method_id.id2name]
         end
 
       end
