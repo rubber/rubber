@@ -224,7 +224,7 @@ module Rubber
       end
 
       def rubber_instances()
-        Rubber::Configuration.rubber_instances
+        Rubber.instances
       end
 
     end

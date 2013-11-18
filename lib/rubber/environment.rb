@@ -136,7 +136,7 @@ module Rubber
         end
 
         def rubber_instances
-          @rubber_instances ||= Rubber::Configuration::rubber_instances
+          Rubber.instances
         end
 
         def known_roles
