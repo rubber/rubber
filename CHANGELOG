@@ -1,3 +1,17 @@
+2.6.3 (11/19/2013)
+
+Improvements:
+============
+
+[core] Drastically improved the speed of repeated configuration lookups.
+[core] Fixed a potential issue uploading backups to S3 if the bucket name contains the '.' character. <7ea9f39>
+
+Bug Fixes:
+=========
+
+[core] Fixed creating EBS volumes (issue #417). <a7d47c5>
+
+
 2.6.2 (11/07/2013)
 
 Improvements:
