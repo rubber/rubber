@@ -16,7 +16,8 @@ module Rubber
         storage_credentials = {
           :provider => 'AWS',
           :aws_access_key_id => env.access_key,
-          :aws_secret_access_key => env.secret_access_key
+          :aws_secret_access_key => env.secret_access_key,
+          :path_style => true
         }
 
         @table_store = ::Fog::AWS::SimpleDB.new(compute_credentials)
