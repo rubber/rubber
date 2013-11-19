@@ -1,6 +1,7 @@
 require 'yaml'
 require 'socket'
 require 'delegate'
+require 'monitor'
 require 'rubber/encryption'
 
 
