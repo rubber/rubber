@@ -20,10 +20,10 @@ namespace :rubber do
       run "cd #{current_path} && RAILS_ENV=#{rails_env} bundle exec rake sunspot:solr:reindex"
     end
     
-    task :setup_solr_data_dir do
+    task :setup_solr_data_dir, :roles => :solr_sunspot  do
       run "mkdir -p #{shared_path}/solr/data"
     end
-    
+
     after 'deploy:setup', 'rubber:solr_sunspot:setup_solr_data_dir'
   end
 end
