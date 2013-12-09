@@ -8,6 +8,9 @@ module Rubber
   def self.initialize(project_root, project_env)
     return if defined?(RUBBER_ROOT) && defined?(RUBBER_ENV)
 
+    @config = nil
+    @instances = nil
+
     @@root = project_root
     @@env = project_env
     Object.const_set('RUBBER_ENV', project_env)
