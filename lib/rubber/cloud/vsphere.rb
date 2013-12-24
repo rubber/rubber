@@ -137,7 +137,7 @@ module Rubber
 
           instance[:region_id] = item.datacenter
           instance[:provider] = 'vsphere'
-          instance[:platform] = 'linux'
+          instance[:platform] = Rubber::Platforms::LINUX
           instances << instance
         end
 

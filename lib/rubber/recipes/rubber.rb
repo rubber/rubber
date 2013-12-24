@@ -16,9 +16,9 @@ namespace :rubber do
   alias :original_task :task
   def task(name, options={}, &block)
     if options.has_key?(:only)
-      options[:only][:platform] = 'linux'
+      options[:only][:platform] = Rubber::Platforms::LINUX
     else
-      options[:only] = { :platform => 'linux' }
+      options[:only] = { :platform => Rubber::Platforms::LINUX }
     end
 
     original_task(name, options, &block)
@@ -34,9 +34,9 @@ namespace :rubber do
       alias :required_task :task
       def task(name, options={}, &block)
         if options.has_key?(:only)
-          options[:only][:platform] = 'linux'
+          options[:only][:platform] = Rubber::Platforms::LINUX
         else
-          options[:only] = { :platform => 'linux' }
+          options[:only] = { :platform => Rubber::Platforms::LINUX }
         end
 
         required_task(name, options) do
@@ -72,9 +72,9 @@ namespace :rubber do
     default_run_options[:shell] = "/bin/bash -l" if default_run_options[:shell].nil?
 
     if default_run_options.has_key?(:only)
-      default_run_options[:only][:platform] = 'linux'
+      default_run_options[:only][:platform] = Rubber::Platforms::LINUX
     else
-      default_run_options[:only] = { :platform => 'linux' }
+      default_run_options[:only] = { :platform => Rubber::Platforms::LINUX }
     end
 
     set :cloud, Rubber.cloud(self)

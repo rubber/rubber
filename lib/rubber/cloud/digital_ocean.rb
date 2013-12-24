@@ -84,7 +84,7 @@ module Rubber
           instance[:internal_ip] = item.public_ip_address
           instance[:region_id] = item.region_id
           instance[:provider] = 'digital_ocean'
-          instance[:platform] = 'linux'
+          instance[:platform] = Rubber::Platforms::LINUX
           instances << instance
         end
 

@@ -33,7 +33,7 @@ module Rubber
         instance[:external_ip] = capistrano.rubber.get_env('EXTERNAL_IP', "External IP address for host '#{instance_alias}'", true)
         instance[:internal_ip] = capistrano.rubber.get_env('INTERNAL_IP', "Internal IP address for host '#{instance_alias}'", true, instance[:external_ip])
         instance[:provider] = 'generic'
-        instance[:platform] = 'linux'
+        instance[:platform] = Rubber::Platforms::LINUX
 
         Generic.add_instance(instance)
 

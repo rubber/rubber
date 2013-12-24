@@ -253,19 +253,19 @@ module Rubber
 
       def platform
         # Deal with old instance configurations that don't have a platform value persisted.
-        @platform || 'linux'
+        @platform || Rubber::Platforms::LINUX
       end
 
       def linux?
-        platform == 'linux'
+        platform == Rubber::Platforms::LINUX
       end
 
       def mac?
-        platform == 'mac'
+        platform == Rubber::Platforms::MAC
       end
 
       def windows?
-        platform == 'windows'
+        platform == Rubber::Platforms::WINDOWS
       end
     end
 

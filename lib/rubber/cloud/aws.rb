@@ -55,7 +55,7 @@ module Rubber
           instance[:state] = item.state
           instance[:zone] = item.availability_zone
           instance[:provider] = 'aws'
-          instance[:platform] = item.platform || 'linux'
+          instance[:platform] = item.platform || Rubber::Platforms::LINUX
           instance[:root_device_type] = item.root_device_type
           instances << instance
         end

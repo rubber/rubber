@@ -83,8 +83,8 @@ module Rubber
   
 end
 
-
 require 'rubber/version'
+require 'rubber/platforms'
 require 'rubber/thread_safe_proxy'
 require 'rubber/configuration'
 require 'rubber/environment'
