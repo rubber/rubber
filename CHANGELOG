@@ -1,3 +1,18 @@
+2.6.4 (12/23/2013)
+
+Improvements:
+============
+
+[base]  	Upgraded ruby-build from 20131122.1 to 20131220.1. <c869c00>
+[base] Upgraded default ruby from 1.9.3-p448 to 1.9.3-p484. <d843c0c>
+
+Bug Fixes:
+=========
+
+[core] :only => { :primary => true } getting clobbered <a9814c9>
+[core] Clear out potentially cached state upon initialization if initializing Rubber twice in the same runtime. <1d9fe51>
+
+
 2.6.3 (11/19/2013)
 
 Improvements:
