@@ -8,13 +8,12 @@ namespace :rubber do
 
     task :install, :roles => :elasticsearch do
       rubber.sudo_script 'install_elasticsearch', <<-ENDSCRIPT
-        if [[ ! -d "#{rubber_env.elasticsearch_dir}" ]]; then
-          wget --no-check-certificate -qNP /tmp http://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-#{rubber_env.elasticsearch_version}.zip
-          unzip -d #{rubber_env.elasticsearch_prefix} /tmp/elasticsearch-#{rubber_env.elasticsearch_version}.zip
-          rm /tmp/elasticsearch-#{rubber_env.elasticsearch_version}.zip
+        if [[ ! -f /usr/share/elasticsearch/lib/elasticsearch-#{rubber_env.elasticsearch_version}.jar ]]; then
+          wget -qNP /tmp https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-#{rubber_env.elasticsearch_version}.deb
+          dpkg -i /tmp/elasticsearch-#{rubber_env.elasticsearch_version}.deb
+          rm /tmp/elasticsearch-#{rubber_env.elasticsearch_version}.deb
 
-          #{rubber_env.elasticsearch_dir}/bin/plugin -install mobz/elasticsearch-head
-          
+          /usr/share/elasticsearch/bin/plugin -install mobz/elasticsearch-head
         fi
       ENDSCRIPT
     end
