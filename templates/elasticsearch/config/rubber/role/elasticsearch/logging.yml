@@ -1,5 +1,5 @@
 <%
-  @path = "#{rubber_env.elasticsearch_dir}/config/logging.yml"
+  @path = '/etc/elasticsearch/logging.yml'
 %>
 # you can override this using by setting a system property, for example -Des.logger.level=DEBUG
 es.logger.level: INFO

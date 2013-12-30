@@ -1,10 +1,5 @@
 <%
-  @path = "#{rubber_env.elasticsearch_dir}/config/elasticsearch.yml"
-  @post = <<-POST
-    mkdir -p #{rubber_env.elasticsearch_work_dir}
-    mkdir -p #{rubber_env.elasticsearch_data_dir}
-    mkdir -p #{rubber_env.elasticsearch_log_dir}
-  POST
+  @path = '/etc/elasticsearch/elasticsearch.yml'
 -%>
 ##################### ElasticSearch Configuration Example #####################
 
@@ -37,7 +32,7 @@
 # Cluster name identifies your cluster for auto-discovery. If you're running
 # multiple clusters on the same network, make sure you're using unique names.
 #
-cluster.name: <%= rubber_env.app_name %>
+cluster.name: <%= rubber_env.graylog_elasticsearch_index %>
 
 
 #################################### Node #####################################
