@@ -3,7 +3,7 @@
 Improvements:
 ============
 
-[base]  	Upgraded ruby-build from 20131122.1 to 20131220.1. <c869c00>
+[base] Upgraded ruby-build from 20131122.1 to 20131220.1. <c869c00>
 [base] Upgraded default ruby from 1.9.3-p448 to 1.9.3-p484. <d843c0c>
 
 Bug Fixes:
