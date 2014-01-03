@@ -113,7 +113,7 @@ cloud_providers:
     region: New York 1
 
     # REQUIRED: The image name and type for creating instances.
-    image_id: Ubuntu 12.04 x64
+    image_id: Ubuntu 12.04.3 x64
     image_type: 512MB
 
   # Use an alternate cloud provider supported by fog.  This doesn't fully work
