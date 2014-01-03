@@ -46,7 +46,7 @@ namespace :rubber do
               top.roles[r] ||= []
             end
           end
-          
+
           if find_servers_for_task(current_task).empty?
             logger.info "No servers for task #{name}, skipping"
             next
@@ -59,7 +59,7 @@ namespace :rubber do
 
   allow_optional_tasks(self)
   on :load, "rubber:init"
-    
+
   required_task :init do
     set :rubber_cfg, Rubber::Configuration.get_configuration(Rubber.env)
     set :rubber_env, rubber_cfg.environment.bind()
@@ -84,7 +84,14 @@ namespace :rubber do
     # the private key in the same folder, the public key should have the
     # extension ".pub".
 
-    ssh_options[:keys] = [ENV['RUBBER_SSH_KEY'] || cloud.env.key_file].flatten.compact
+    #ssh keys could be multiple, even from ENV. This is comma separated.
+    ssh_keys = if ENV['RUBBER_SSH_KEY']
+      ENV['RUBBER_SSH_KEY'].split(',')
+    else
+      cloud.env.key_file
+    end
+
+    ssh_options[:keys] = [ssh_keys].flatten.compact
     ssh_options[:timeout] = fetch(:ssh_timeout, 5)
   end
 
