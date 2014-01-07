@@ -1,3 +1,12 @@
+2.6.5 (01/07/2014)
+
+Bug Fixes:
+=========
+
+[base] Update instance name for DigitalOcean: Ubuntu 12.04.3 x64. <0d57e12>
+[core] Fix vagrant 1.4.x sending array of ssh keys. <70fe6b6>
+
+
 2.6.4 (12/23/2013)
 
 Improvements:
