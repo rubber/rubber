@@ -10,7 +10,7 @@ namespace :rubber do
     before "rubber:install_packages", "rubber:stackdriver:setup_apt_sources"
 
     task :setup_apt_sources, :roles => :stackdriver_agent do
-      rubber.sudo_script 'configure_postgresql_repository', <<-ENDSCRIPT
+      rubber.sudo_script 'configure_stackdriver_repository', <<-ENDSCRIPT
         if [[ ! -f /etc/apt/sources.list.d/stackdriver.list ]]; then
           curl -o /etc/apt/sources.list.d/stackdriver.list http://repo.stackdriver.com/precise.list
           curl --silent https://www.stackdriver.com/RPM-GPG-KEY-stackdriver | apt-key add -
