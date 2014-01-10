@@ -21,6 +21,7 @@ module Rubber
         @roles = roles.to_a.reverse #First roles take precedence
         @host = host || 'no_host'
         @options=options
+        @delayed_post_commands = []
       end
 
       def run
@@ -45,6 +46,33 @@ module Rubber
                 exit 1
               end
             end
+          end
+        end
+
+        @delayed_post_commands = @delayed_post_commands.uniq
+        if @delayed_post_commands.size > 0
+          Rubber.logger.info("Running delayed post commands")
+
+          @delayed_post_commands.each do |delayed_post_command|
+            run_post_command(delayed_post_command)
+          end
+        end
+      end
+
+      def run_post_command(cmd)
+        if fake_root
+          Rubber.logger.info("Not running post command as a fake root was given: #{cmd}")
+        elsif no_post
+          Rubber.logger.info("Not running post command as no post specified: #{cmd}")
+        else
+          # this lets us abort a script if a command in the middle of it errors out
+          # stop_on_error_cmd = "function error_exit { exit 99; }; trap error_exit ERR"
+          cmd_with_error_handler = stop_on_error_cmd ? "#{stop_on_error_cmd}\n#{cmd}" : cmd
+
+          Rubber.logger.info{"Transformation executing post config command: #{cmd}"}
+          Rubber.logger.info `#{cmd_with_error_handler}`
+          if $?.exitstatus != 0
+            raise "Post command failed execution:  #{cmd_with_error_handler}"
           end
         end
       end
@@ -154,25 +182,13 @@ module Rubber
           
           # Run post transform command if needed
           if config.post
-            if fake_root
-              Rubber.logger.info("Not running post command as a fake root was given: #{config.post}")
-            elsif no_post
-              Rubber.logger.info("Not running post command as no post specified")
-            else
-              if orig != result || force
-                # this lets us abort a script if a command in the middle of it errors out
-                # stop_on_error_cmd = "function error_exit { exit 99; }; trap error_exit ERR"
-                config.post = "#{stop_on_error_cmd}\n#{config.post}" if stop_on_error_cmd
+            run_post_command(config.post)
+          end
 
-                Rubber.logger.info{"Transformation executing post config command: #{config.post}"}
-                Rubber.logger.info `#{config.post}`
-                if $?.exitstatus != 0
-                  raise "Post command failed execution:  #{config.post}"
-                end
-              else
-                Rubber.logger.info("Nothing to do, not running post command")
-              end
-            end
+          # Schedule delayed_post transform command if needed
+          if config.delayed_post
+            Rubber.logger.info "Scheduling delayed_post: #{config.delayed_post}"
+            @delayed_post_commands << config.delayed_post
           end
         end
       end
@@ -191,6 +207,8 @@ module Rubber
       attr_accessor :write_cmd
       # The command to run after generating the config file if it has changed
       attr_accessor :post
+      # The command to run after generating _all_ config files if this file has changed.  Commands duplicated from multiple files are only run once
+      attr_accessor :delayed_post
       # The owner the output file should have, e.g. "root"
       attr_accessor :owner
       # The group the output file should have, e.g. "system"
