@@ -11,6 +11,8 @@ require 'ap'
 require 'tempfile'
 require 'fog'
 
+module Rubber; @@logger = Logger.new("/dev/null"); end
+
 if defined?(JRUBY_VERSION)
   require 'unlimited-strength-crypto'
 end
