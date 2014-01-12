@@ -1,7 +1,31 @@
 # Sets up memcached server and client as dalli
+#
+# !!!IMPORTANT!!! add the following lines inside your application.rb class:
+#
+# dalli_config = Rails.root.join('config','dalli.rb')
+# if File.exists?(dalli_config)
+#   require dalli_config; include ::Rubber::Dalli::Config
+# end
 
+memcached_pid_file: /var/run/memcached.pid
 memcached_log_dir: /var/log/memcached
-memcached_max_mem:  64
+memcached_port: 11211
+
+# MB memory max to use for object storage in megabytes.
+# Accepts either a single value or a hash by instance size
+memcached_max_mem:
+  micro:   64    # 613MB max
+  small:   768   # 1.7GB max
+  medium:  2048  # 3.7GB max
+  large:   4096  # 7.5GB max
+  xlarge:  10240 # 15GB max
+  2xlarge: 20480 # 30GB max
+  4xlarge: 51200 # 60GB max
+
+# Set size of each slab page in bytes, i.e. maximum item size
+# that memcached will accept. Recommended not to set above 1 MB
+# for performance reasons.
+memcached_max_slab_bytes: "#{1024*1024}"
 
 gems: [dalli]
 
