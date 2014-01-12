@@ -1,0 +1,5 @@
+roles:
+  ffmpeg:
+    # NOTE: In order to get the correct ffmpeg package, we must use Jon Severinsson's FFmpeg PPA
+    # See deploy-ffmpeg.rb. libavcodec-extra-53 is needed to encode AAC audio
+    packages: [ffmpeg, libavcodec-extra-53]
