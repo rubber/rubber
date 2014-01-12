@@ -1,0 +1,10 @@
+<%
+  @path = "#{Rubber.root}/config/sunspot.yml"
+  @additive =  ["#prod_start", "#prod_end"]
+%> <% rubber_instances.for_role('solr_sunspot').each do |ic| %>
+production:
+    solr:
+      hostname: <%= ic.external_host %>
+      port: 8983
+      log_level: WARNING
+<% end %>
