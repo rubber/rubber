@@ -1,0 +1,3 @@
+roles:
+  discourse:
+    packages: [libtool, libpq-dev, gawk, pngcrush, imagemagick, python-software-properties, postgresql-contrib]

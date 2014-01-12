@@ -1,0 +1,5 @@
+description: A fairly complete and scalable discourse deployment setup using unicorn/nginx
+dependent_templates:
+  - complete_unicorn_nginx
+  - postgresql
+  - sidekiq
