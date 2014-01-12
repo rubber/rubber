@@ -1,10 +1,10 @@
-jdk: JDK_TAR_GZ_FILE_NAME
+jdk: JDK_TAR_GZ_FILE_NAME (e.g. jdk1.7.0_17)
 jdk_path: JDK_TAR_GZ_FILE_NAME_INC_FILE_NAME
-solr_xml: SOLR_XML_FILE_NAME
-solr_xml_path: SOLR_XML_FILE_PATH_AND_NAME
-core_name: SOLR_CORE_NAME
-tarz_config_files: PATH_TO_SOLR_CIONFIG_TAR_GZ_FILE
+solr_xml: SOLR_XML_FILE_NAME (e.g. solrconfig.xml)
+solr_xml_path: SOLR_XML_FILE_PATH_AND_NAME (e.g. #{Rubber.root}/solr/conf/solrconfig.xml)
+core_name: SOLR_CORE_NAME (e.g. default-solr)
+tarz_config_files: PATH_TO_SOLR_CONFIG_TAR_GZ_FILE
 tomcat_dest_folder: TOMCAT7_DEST_FOLER
-solr_home_dest_foler: SOLR_BASE_FOLDER
+solr_home_dest_folder: SOLR_BASE_FOLDER
 Xmx: HEAP_SPACE_FOR_JVM (e.g. 1024m or 2gb etc)
 
