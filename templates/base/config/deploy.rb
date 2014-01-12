@@ -7,6 +7,7 @@ on :load do
   set :runner,      rubber_env.app_user
   set :deploy_to,   "/mnt/#{application}-#{Rubber.env}"
   set :copy_exclude, [".git/*", ".bundle/*", "log/*", ".rvmrc", ".rbenv-version"]
+  set :assets_role, [:app]
 end
 
 # Use a simple directory tree copy here to make demo easier.
@@ -88,10 +89,12 @@ task :cleanup, :except => { :no_release => true } do
   CMD
 end
 
+# We need to ensure that rubber:config runs before asset precompilation in Rails, as Rails tries to boot the environment,
+# which means needing to have DB access.  However, if rubber:config hasn't run yet, then the DB config will not have
+# been generated yet.  Rails will fail to boot, asset precompilation will fail to complete, and the deploy will abort.
 if Rubber::Util.has_asset_pipeline?
-  # load asset pipeline tasks, and reorder them to run after
-  # rubber:config so that database.yml/etc has been generated
   load 'deploy/assets'
+
   callbacks[:after].delete_if {|c| c.source == "deploy:assets:precompile"}
   callbacks[:before].delete_if {|c| c.source == "deploy:assets:symlink"}
   before "deploy:assets:precompile", "deploy:assets:symlink"

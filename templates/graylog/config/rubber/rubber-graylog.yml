@@ -34,7 +34,7 @@ role_dependencies:
 
 roles:
   graylog_server:
-    packages: [openjdk-6-jdk, mongodb-10gen]
+    packages: [openjdk-7-jdk, mongodb-10gen]
   graylog_web:
     packages: [libcurl4-openssl-dev]
     gems: [puma]

@@ -53,3 +53,23 @@ run "cp -f #{secret} config/rubber/rubber-secret.yml"
 chmod 'config/rubber/rubber-secret.yml', 0644
 gsub_file 'config/rubber/rubber-secret.yml', /dns_provider: .*/, ''
 
+run "vagrant init precise32 http://files.vagrantup.com/precise32.box"
+vagrantfile = <<-EOS
+  config.vm.define :vagrant do |vagrant|
+    vagrant.vm.network :private_network, ip: "192.168.70.10"
+    
+    vagrant.vm.provider :virtualbox do |vb|
+      vb.customize ["modifyvm", :id, "--memory", "2048"]
+    end
+
+    vagrant.vm.provision :rubber do |rubber|
+      rubber.rubber_env = 'vagrant'
+
+      # Only necessary if you use RVM locally.
+      rubber.rvm_ruby_version = 'default'
+    end
+  end
+end
+EOS
+
+gsub_file 'Vagrantfile', /^end/, vagrantfile

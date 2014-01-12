@@ -1,0 +1,7 @@
+cloud_provider: vagrant
+ 
+cloud_providers:
+  vagrant:
+    # Allow rubber to connect directly to instance in addition to use through vagrant commands.
+    key_name: insecure_private_key
+    key_file: "#{File.expand_path('~/.vagrant.d/insecure_private_key')}"

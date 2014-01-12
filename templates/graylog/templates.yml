@@ -2,4 +2,3 @@ description: The graylog log aggregation and search module
 dependent_templates:
   - mongodb
   - elasticsearch
-  

@@ -20,8 +20,6 @@ namespace :rubber do
       logger.info "Instance already exists, skipping to bootstrap"
     else
       default_roles = rubber_env.staging_roles
-      # default staging roles to all roles minus slaves (db without primary=true is a slave)
-      default_roles ||= rubber_cfg.environment.known_roles.reject {|r| r =~ /slave/ || r =~ /^db$/ }.join(",")
       roles = ENV['ROLES'] = rubber.get_env("ROLES", "Roles to use for staging instance", true, default_roles)
       
       rubber.create
@@ -105,8 +103,10 @@ namespace :rubber do
       # have precedence, so the servers show up in that group
       added_servers = []
       serial_roles.each do |rolename|
+        next if servers[rolename].nil?
+
         servers[rolename] -= added_servers
-        added_servers << servers[rolename]
+        added_servers.concat(servers[rolename])
         servers[rolename] = servers[rolename].uniq.sort
       end
     end
@@ -154,24 +154,24 @@ namespace :rubber do
     return local_alias
   end
 
-  def prepare_script(name, contents, stop_on_error_cmd=rubber_env.stop_on_error_cmd)
+  def prepare_script(name, contents, stop_on_error_cmd=rubber_env.stop_on_error_cmd, opts = {})
     script = "/tmp/#{name}"
     # this lets us abort a script if a command in the middle of it errors out
     contents = "#{stop_on_error_cmd}\n#{contents}" if stop_on_error_cmd
-    put(contents, script)
+    put(contents, script, opts)
     return script
   end
 
   def run_script(name, contents, opts = {})
     args = opts.delete(:script_args)
-    script = prepare_script(name, contents)
+    script = prepare_script(name, contents, rubber_env.stop_on_error_cmd, opts)
     run "bash #{script} #{args}", opts
   end
 
   def sudo_script(name, contents, opts = {})
     user = opts.delete(:as)
     args = opts.delete(:script_args)
-    script = prepare_script(name, contents)
+    script = prepare_script(name, contents, rubber_env.stop_on_error_cmd, opts)
 
     sudo_args = user ? "-H -u #{user}" : ""
     run "#{sudo} #{sudo_args} bash -l #{script} #{args}", opts
@@ -191,7 +191,9 @@ namespace :rubber do
     value = Capistrano::CLI.ui.ask(msg) unless value
     value = value.size == 0 ? default : value
     fatal "#{name} is required, pass using environment or enter at prompt" if required && ! value
-    return value
+
+    # Explicitly convert to a String to avoid weird serialization issues with Psych.
+    value.to_s
   end
 
   def fatal(msg, code=1)
@@ -226,6 +228,7 @@ namespace :rubber do
   def update_code_for_bootstrap
     unless (fetch(:rubber_code_was_updated, false))
       deploy.setup
+      logger.info "updating code for bootstrap"
       deploy.update_code
     end
   end

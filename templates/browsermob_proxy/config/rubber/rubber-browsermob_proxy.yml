@@ -1,0 +1,10 @@
+browsermob_proxy_version: 2.0-beta-8
+browsermob_proxy_dir: /opt/browsermob_proxy
+browsermob_proxy_log_dir: /mnt/browsermob_proxy/log
+browsermob_proxy_port: 8020
+browsermob_proxy_max_heap_in_mb: 768
+browsermob_proxy_permgen_in_mb: 256
+
+roles:
+  browsermob_proxy:
+    packages: [openjdk-7-jdk]

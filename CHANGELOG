@@ -1,3 +1,289 @@
+2.6.5 (01/07/2014)
+
+Bug Fixes:
+=========
+
+[base] Update instance name for DigitalOcean: Ubuntu 12.04.3 x64. <0d57e12>
+[core] Fix vagrant 1.4.x sending array of ssh keys. <70fe6b6>
+
+
+2.6.4 (12/23/2013)
+
+Improvements:
+============
+
+[base] Upgraded ruby-build from 20131122.1 to 20131220.1. <c869c00>
+[base] Upgraded default ruby from 1.9.3-p448 to 1.9.3-p484. <d843c0c>
+
+Bug Fixes:
+=========
+
+[core] :only => { :primary => true } getting clobbered <a9814c9>
+[core] Clear out potentially cached state upon initialization if initializing Rubber twice in the same runtime. <1d9fe51>
+
+
+2.6.3 (11/19/2013)
+
+Improvements:
+============
+
+[core] Drastically improved the speed of repeated configuration lookups.
+[core] Fixed a potential issue uploading backups to S3 if the bucket name contains the '.' character. <7ea9f39>
+
+Bug Fixes:
+=========
+
+[core] Fixed creating EBS volumes (issue #417). <a7d47c5>
+
+
+2.6.2 (11/07/2013)
+
+Improvements:
+============
+
+[memcached]  Added configuration of max memcached memory size through rubber var 'memcached_max_mem'. <ba28c39>
+[cassandra] Quote all `rubber_env.host` in Monit config template in case hostname conflicts with monit keyword. <61bd9b1>
+[graphite] Quote all `rubber_env.host` in Monit config template in case hostname conflicts with monit keyword. <61bd9b1>
+[elasticsearch] Quote all `rubber_env.host` in Monit config template in case hostname conflicts with monit keyword. <61bd9b1>
+[graylog] Quote all `rubber_env.host` in Monit config template in case hostname conflicts with monit keyword. <61bd9b1>
+[jetty] Quote all `rubber_env.host` in Monit config template in case hostname conflicts with monit keyword. <61bd9b1>
+[mongrel] Quote all `rubber_env.host` in Monit config template in case hostname conflicts with monit keyword. <61bd9b1>
+[redis] Quote all `rubber_env.host` in Monit config template in case hostname conflicts with monit keyword. <61bd9b1>
+[sphinx] Quote all `rubber_env.host` in Monit config template in case hostname conflicts with monit keyword. <61bd9b1>
+[torquebox] Quote all `rubber_env.host` in Monit config template in case hostname conflicts with monit keyword. <61bd9b1>
+[zookeeper] Quote all `rubber_env.host` in Monit config template in case hostname conflicts with monit keyword. <61bd9b1>
+
+Bug Fixes:
+=========
+
+[base] Fixed unknown method 'known_roles' when running create_staging. <44167c4>
+[core] Fixed ip_address deprecation for digital ocean. <62d2e90>
+[core] Fixed a thread safety issue in Capistrano via a monkey-patch. <f3f9086>
+
+
+2.6.1 (11/06/2013)
+
+Improvements:
+============
+
+[core] Don't try to connect to the fog compute or storage providers until we actually need them. <5536511>
+
+Bug Fixes:
+=========
+
+[core] Fixed a bug attaching EBS volumes, introduced by a recent refactoring. <51d2619>
+[core] Fixed setup_remote_aliases to work when an SSH gateway is in place. <3a776f9>
+
+
+2.6.0 (11/05/2013)
+
+New Features:
+============
+
+[core] Added a new provider for vSphere.  See https://github.com/rubber/rubber/wiki/Providers for configuration details.
+
+Improvements:
+============
+
+[base] Upgraded to ruby-build 20131030 <214423d>
+[base] Enhances database.yml to respond to active environment, not just 'production' <3843caf>
+
+
+2.5.5 (10/16/2013)
+
+New Features:
+============
+
+[base, core, postgresql] Added a uniform way of handling private network address blocks <61c5e0c>
+[core] Added cleanup hook for 'vagrant destroy' for Vagrant version >= 1.3.0. <2a3c441>
+
+Improvements:
+============
+
+[base] Vagrant base config now sets up key file for rubber to SSH into the machine <40c6c3c>
+[base] Default staging_roles config now reflects the cluster more accurately <255a8e9>
+[core] Only modify /etc/hosts on rubber:refresh if an IP address has actually changed <fe5e28e>
+[core] Support iptables rules without port definitions <de744c1>
+
+Bug Fixes:
+=========
+
+[core] Fixed a problem with tasks using the `:only` option being overwritten by rubber internally (#397) <d3ae2fa>
+[core] Don't install fog 1.16.0 until we're able to sort out API compatiblities with it <346c99b>
+[core] Presen the $REBOOT value across multiple calls to `maybe_reboot` <f03dc22>
+[web_tools] Proxied service hostnames should not have underscores since that would be an invalid hostname <055919f>
+
+
+2.5.4 (09/26/2013)
+
+Improvements:
+============
+
+[base] Upgdate AWS region options <9857010>
+[base] Upgrade ruby-build to 20130923 <5c053cb>
+[core] Far more efficient multi-port IPTables rules <1b13728, e15eb86>
+[core] Handle new platforms, such as Mac, more gracefully <74d5831>
+[redis] Upgraded redis from 2.6.13 to 2.6.16 <b18a89f>
+[web_tools] Handle more redirect scenarios for proxied services <c73bcce>
+
+Bug Fixes:
+=========
+
+[core] Fixed fail-fast behavior with nohup on AWS operations <cc1e299>
+[core] Wait up until 2 minutes for EC2 tag creation <3b6819a>
+[core] Set AWS region options for S3 <3bd20cd>
+[passenger_nginx] Removed conflicting passenger_min_instances configuration <cd7b006>
+[passenger_nginx] Added missing nginx_log_dir config <4684b26>
+[redis] Fixed redis download link <8a2a47d>
+
+
+2.5.3 (07/11/2013)
+
+Improvements:
+============
+
+[base] Upgraded to ruby-build 20130628 and Ruby 1.9.3-p448. <caa9e06>
+[base] Updated Digitial Ocean default zone info and image_id. <11502d2>
+[base, core] Re-install the VirtualBox add-ons when upgrading the kernel in a Vagrant instance so you can package VMs properly.
+[core] Ensure the SSH public key is installed for the user account if one is set. <75e7f20>
+
+Bug Fixes:
+=========
+
+[core] Allow the Vagrant plugin to interact with the local ruby installation when RVM is used. <98a061a>
+[core] Make sure we note the Vagrant provider was used in the instance file. <d1573fe>
+
+
+2.5.2 (06/13/2013)
+
+Bug Fixes:
+=========
+
+[core] Do not use the embedded Vagrant ruby installation by default.
+
+
+2.5.1 (06/09/2013)
+-----------------
+
+New Features:
+============
+
+[browsermob_proxy] Added a BrowserMob Proxy template.
+[selenium_grid_hub] Added a Selenium Grid hub template.
+
+Improvements:
+============
+
+[graylog] Use JDK 7 instead of JDK 6.
+[jetty] Use JDK 7 instead of JDK 6.
+
+Bug Fixes:
+=========
+
+[core] Refresh already created instances in Vagrant so firewall rules are adjusted for any modified roles.
+[core] Better handling of serial_tasks when no instances have a defined role.
+[graylog] Fixed loading graylog-web in any environment other than "production."
+
+
+2.5.0 (06/03/2013)
+-----------------
+
+New Features:
+============
+
+[core] Added support for using Rubber as a Vagrant provisioner.  Now you can run Rubber easily against local VMs.
+[core] Don't pass nil SSH key file entries to Capistrano because it hides the error message and makes things really hard to track down.
+
+
+2.4.2 (06/01/2013)
+------------------
+
+Bug Fixes:
+=========
+
+[core, base] Tweaked the asset precompilation interop code to work in all cases now <c24b72e>
+
+
+2.4.1 (05/30/2013)
+------------------
+
+Bug Fixes:
+=========
+
+[core] Fixed a problem with transforming templates that reference the "current" directory as part of a deploy <21e3b92>
+[sidekiq] Only try to silence sidekiq if current_path actually exists <f20bd94>
+
+
+2.4.0 (05/24/2013)
+------------------
+
+New Features:
+============
+
+[core] DigitalOcean is now supported as a cloud provider
+[core] Added a "generic" cloud provider for connecting to dedicated hardware, VMs, and otherwise unsupported cloud providers
+
+Bug Fixes:
+=========
+
+[core] Trigger rubber:config after deploy:update_code so machines with both a DB and the asset pipeline can bootstrap properly <dc5d0b2>
+
+
+2.3.1 (05/12/2013)
+------------------
+
+Bug Fixes:
+=========
+
+[mysql] Use more common percona-toolkit package. <e40b323>
+
+
+2.3.0 (05/11/2013)
+------------------
+
+New Features:
+============
+
+[core] Added a --fakeroot option to rake rubber:config task to aid in debbugging rubber templates. <20e3fb0>
+[collectd] Added a :status task to check the status of a remote service. <55f593a>
+[graphite] Added a :status task to check the status of a remote service. <55f593a>
+[memcached] Added a :status task to check the status of a remote service. <55f593a>
+[mongodb] Added a :status task to check the status of a remote service. <55f593a>
+[monit] Added a :status task to check the status of a remote service. <55f593a>
+[nginx] Added a :status task to check the status of a remote service. <55f593a>
+[unicorn] Added a :status task to check the status of a remote service. <55f593a>
+
+Improvements:
+============
+
+[base] Upgraded from ruby-build 20130222 to 20130501. <4ea28f8>
+[base] Configure Capistrano to compile assets on the `app` role, not the `web` one, in order to better match a typical Rubber project layout. <9c8096e>
+[core] Allow customizing Capistrano config that rubber has traditionally taken ownership of. <ff69b52>
+[graphite] Removed redundant ping check. <9950dc4>
+[memcached] Added a rotate_logs cron job for memached. <f4d49ac>
+[mongodb] Added a rotate_logs cron job for MongoDB. <b93665d>
+[nginx] Allow configuration of the nginx log directory. <f4ef26f>
+[nginx] Removed "text/html" from the gzip config to get rid of a warning message. <2429a7d>
+[passenger_nginx] Upgraded to Passenger 3.0.19 and nginx 1.2.8. <48fd214, 9a8d81c>
+[passenger_nginx] Added HTTP_X_QUEUE_START CGI param to work better with NewRelic. <48fd214>
+[redis] Upgrade to redis 2.6.13 <9fb33e2>
+
+Bug Fixes:
+=========
+
+[base] Fixed a typo in the cloud storage example configuration. <409137b>
+[core] Honor the `host` option in the rubber:config rake task. <9477b8b>
+[core] Fixed an issue with `symbolize_keys` and nested hashes that was resulting in broken MX record requests for Route 53. <13fdffd>
+[core] Fixed an issue with vulcanizing multiple templates at once. <abca6e3>
+[core] Fixed a problem with newer Capistrano/HighLine causing role names to be serialized incorrectly in an instance file. <9ea1fa6>
+[elasticsearch] The upstart script lies about the service status, causing us to think the service is running when it isn't and thus preventing proper start up. <81aab0e>
+[graphite] The upstart script lies about the service status, causing us to think the service is running when it isn't and thus preventing proper start up. <d92f077>
+[mongodb] The upstart script lies about the service status, causing us to think the service is running when it isn't and thus preventing proper start up. <d92f077>
+[mysql] Maatkit is now part of percona-tools, so our package name was outdated. <2e8d5f6>
+[redis] The upstart script lies about the service status, causing us to think the service is running when it isn't and thus preventing proper start up. <d92f077>
+[torquebox] The upstart script lies about the service status, causing us to think the service is running when it isn't and thus preventing proper start up. <d92f077>
+
+
 2.2.4 (03/05/2013)
 ------------------
 

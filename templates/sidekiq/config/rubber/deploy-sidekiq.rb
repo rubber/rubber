@@ -10,7 +10,7 @@ namespace :rubber do
 
     desc "Quiet sidekiq (stop accepting new work)"
     task :quiet, :roles => :sidekiq do
-      rsudo "cd #{current_path} && if [ -f #{current_path}/tmp/pids/sidekiq.pid ]; then bundle exec sidekiqctl quiet #{current_path}/tmp/pids/sidekiq.pid ; fi", :as => rubber_env.app_user
+      rsudo "if [ -d #{current_path} ]; then cd #{current_path} && if [ -f #{current_path}/tmp/pids/sidekiq.pid ]; then bundle exec sidekiqctl quiet #{current_path}/tmp/pids/sidekiq.pid ; fi; fi", :as => rubber_env.app_user
     end
 
     desc "Stop sidekiq"

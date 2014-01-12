@@ -1,6 +1,7 @@
 require 'yaml'
 require 'socket'
 require 'delegate'
+require 'monitor'
 require 'rubber/encryption'
 
 
@@ -120,26 +121,40 @@ module Rubber
         else
           value = new
         end
-        return value
+
+        value
       end
 
       class HashValueProxy < Hash
-        attr_reader :global
+        include MonitorMixin
+
+        attr_reader :global, :cache
 
         def initialize(global, receiver)
           @global = global
+          @cache = {}
           super()
           replace(receiver)
         end
 
         def rubber_instances
-          @rubber_instances ||= Rubber::Configuration::rubber_instances
+          Rubber.instances
+        end
+
+        def known_roles
+          Rubber::Configuration.get_configuration(Rubber.env).environment.known_roles
         end
 
         def [](name)
-          value = super(name)
-          value = global[name] if global && !value
-          return expand(value)
+          unless cache.has_key?(name)
+            synchronize do
+              value = super(name)
+              value = global[name] if global && !value
+              cache[name] = expand(value)
+            end
+          end
+
+          cache[name]
         end
 
         def each
@@ -155,17 +170,18 @@ module Rubber
         end
 
         def method_missing(method_id)
-          key = method_id.id2name
-          return self[key]
+          self[method_id.id2name]
         end
 
         def expand_string(val)
           while val =~ /\#\{[^\}]+\}/
             val = eval('%Q{' + val + '}', binding, __FILE__)
           end
+
           val = true if val =="true"
           val = false if val == "false"
-          return val
+
+          val
         end
 
         def expand(value)
@@ -179,7 +195,8 @@ module Rubber
             else
               value
           end
-          return val
+
+          val
         end
 
       end
@@ -207,23 +224,26 @@ module Rubber
           role_overrides = global.delete("roles") || {}
           env_overrides = global.delete("environments") || {}
           host_overrides = global.delete("hosts") || {}
+
           Array(roles).each do |role|
             Array(role_overrides[role]).each do |k, v|
               global[k] = Environment.combine(global[k], v)
             end
           end
+
           Array(env_overrides[env]).each do |k, v|
             global[k] = Environment.combine(global[k], v)
           end
+
           Array(host_overrides[host]).each do |k, v|
             global[k] = Environment.combine(global[k], v)
           end
-          return global
+
+          global
         end
         
         def method_missing(method_id)
-          key = method_id.id2name
-          return self[key]
+          self[method_id.id2name]
         end
 
       end

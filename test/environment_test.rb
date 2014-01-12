@@ -140,8 +140,6 @@ class EnvironmentTest < Test::Unit::TestCase
   end
 
   def test_obfuscated_secret_env
-    pend('This is not yet working on JRuby.') if defined?(JRUBY_VERSION)
-
     env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures/basic", 'test')
     e = env.bind()
     assert_nil e['rubber_secret'], 'env should not have secret set'

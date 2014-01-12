@@ -1,0 +1,15 @@
+selenium_grid_hub_version: 2.33.0
+selenium_grid_hub_log_dir: /mnt/selenium_grid_hub/log
+selenium_grid_hub_dir: /opt/selenium_grid_hub
+selenium_grid_hub_max_heap_in_mb: 768
+selenium_grid_hub_permgen_in_mb: 256
+
+roles:
+  selenium_grid_hub:
+    packages: [openjdk-7-jdk]
+
+web_tools_proxies:
+  hub:
+    role: selenium_grid_hub
+    port: 4444
+    path: /

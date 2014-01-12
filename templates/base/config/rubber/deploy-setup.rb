@@ -41,13 +41,16 @@ namespace :rubber do
         echo "Compiling and installing ruby $desired_ruby_ver.  This may take a while ..."
 
         nohup ruby-build #{rubber_env.ruby_version} #{rubber_env.ruby_path} &> /tmp/install_ruby.log &
+        bg_pid=$!
         sleep 1
 
-        while true; do
-          if ! ps ax | grep -q "[r]uby-build"; then break; fi
+        while kill -0 $bg_pid &> /dev/null; do
           echo -n .
           sleep 5
         done
+        
+        # this returns exit code even if pid has already died, and thus triggers fail fast shell error
+        wait $bg_pid
 
         echo "export RUBYOPT=rubygems\nexport PATH=#{rubber_env.ruby_path}/bin:$PATH" > /etc/profile.d/ruby.sh
         echo "--- \ngem: --no-ri --no-rdoc" > /etc/gemrc
@@ -95,5 +98,9 @@ namespace :rubber do
       ENDSCRIPT
     end
 
+    after "rubber:bootstrap", "rubber:base:reinstall_virtualbox_additions"
+    task :reinstall_virtualbox_additions, :only => { :provider => 'vagrant' } do
+      rsudo "service vboxadd setup"
+    end
   end
 end

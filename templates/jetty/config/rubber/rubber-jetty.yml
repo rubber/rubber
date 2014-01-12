@@ -7,4 +7,4 @@ jetty_jvm_options: -XX:MaxPermSize=128m
 
 roles:
   jetty:
-    packages: [openjdk-6-jdk]
+    packages: [openjdk-7-jdk]

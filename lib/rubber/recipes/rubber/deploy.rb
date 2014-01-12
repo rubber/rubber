@@ -24,11 +24,6 @@ namespace :rubber do
   task :post_stop do
   end
 
-  # Don't want to do rubber:config for update_code as that tree isn't official
-  # until it is 'committed' by the symlink task (and doing so causes it to run
-  # for bootstrap_db which should only config the db config file).  However,
-  # deploy:migrations doesn't call update, so we need an additional trigger for
-  # it
   after "deploy:update", "rubber:config"
   after "deploy:rollback_code", "rubber:config"
   before "deploy:migrate", "rubber:config"
@@ -37,15 +32,23 @@ namespace :rubber do
     Configures the deployed rails application by running the rubber configuration process
   DESC
   task :config do
-    opts = {}
-    opts[:no_post] = true if ENV['NO_POST']
-    opts[:force] = true if ENV['FORCE']
-    opts[:file] = ENV['FILE'] if ENV['FILE']
+    # Don't want to do rubber:config during bootstrap_db where it's triggered by
+    # deploy:update_code, because the user could be requiring the rails env inside
+    # some of their config templates (which fails because rails can't connect to
+    # the db)
+    if fetch(:rubber_updating_code_for_bootstrap_db, false)
+      logger.info "Updating code for bootstrap, skipping rubber:config"
+    else
+      opts = {}
+      opts[:no_post] = true if ENV['NO_POST']
+      opts[:force] = true if ENV['FORCE']
+      opts[:file] = ENV['FILE'] if ENV['FILE']
 
-    # when running deploy:migrations, we need to run config against release_path
-    opts[:deploy_path] = current_release if fetch(:migrate_target, :current).to_sym == :latest
+      # when running deploy:migrations, we need to run config against release_path
+      opts[:deploy_path] = current_release if fetch(:migrate_target, :current).to_sym == :latest
 
-    run_config(opts)
+      run_config(opts)
+    end
   end
 
   # because we start server as appserver user, but migrate as root, server needs to be able to write logs, etc.

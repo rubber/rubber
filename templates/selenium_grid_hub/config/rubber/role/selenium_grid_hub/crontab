@@ -1,0 +1,8 @@
+<%
+  @read_cmd = 'crontab -l'
+  @write_cmd = 'crontab -'
+  @additive = ["# rubber-selenium-grid-hub-start", "# rubber-selenium-grid-hub-end"]
+%>
+
+# Rotate the Selenium Grid hub logs at 1 AM.
+0 1 * * * <%= Rubber.root %>/script/rubber cron --task util:rotate_logs --directory=<%= rubber_env.selenium_grid_hub_log_dir %>

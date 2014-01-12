@@ -43,16 +43,19 @@ domain: foo.com
 cloud_providers:
   aws:
     # REQUIRED The AWS region that you want to use.
-    # 
+    #
     # Options include
-    # us-east-1
-    # eu-west-1
-    # ap-northeast-1
-    # ap-southeast-1
-    # ap-southeast-2
+    # ap-northeast-1 # Asia Pacific (Tokyo) Region
+    # ap-southeast-1 # Asia Pacific (Singapore) Region
+    # ap-southeast-2 # Asia Pacific (Sydney) Region
+    # eu-west-1      # EU (Ireland) Region
+    # sa-east-1      # South America (Sao Paulo) Region
+    # us-east-1      # US East (Northern Virginia) Region
+    # us-west-1      # US West (Northern California) Region
+    # us-west-2      # US West (Oregon) Region
     #
     region: us-east-1
-    
+
     # REQUIRED The amazon keys and account ID (digits only, no dashes) used to access the AWS API
     #
     access_key: XXX
@@ -98,7 +101,21 @@ cloud_providers:
     # If a spot instance request can't be fulfilled in 3 minutes, fallback to on-demand instance creation.  If not set,
     # the default is infinite.
     # spot_instance_request_timeout: 180
-    
+
+  digital_ocean:
+    # REQUIRED: The Digital Ocean region that you want to use.
+    #
+    # Options include
+    # New York 1
+    # San Francisco 1
+    #
+    # These change often.  Check https://www.digitalocean.com/droplets/new for the most up to date options.
+    region: New York 1
+
+    # REQUIRED: The image name and type for creating instances.
+    image_id: Ubuntu 12.04.3 x64
+    image_type: 512MB
+
   # Use an alternate cloud provider supported by fog.  This doesn't fully work
   # yet due to differences in providers within fog, but gives you a starting
   # point for contributing a new provider to rubber.  See rubber/lib/rubber/cloud(.rb)
@@ -115,7 +132,7 @@ cloud_providers:
 cloud_provider: aws
 
 # OPTIONAL: Where to store instance data.
-# 
+#
 # Allowed forms are:
 # filesystem: "file:#{Rubber.root}/config/rubber/instance-#{Rubber.env}.yml"
 # cloud storage (s3): "storage:#{cloud_providers.aws.backup_bucket}/RubberInstances_#{app_name}/instance-#{Rubber.env}.yml"
@@ -218,10 +235,15 @@ isolate_security_groups: true
 # differ from those in rubber
 prompt_for_security_group_sync: true
 
+# OPTIONAL: A list of CIDR address blocks that represent private networks for your cluster.
+# Set this to open up wide access to hosts in your network.  Consequently, setting the CIDR block
+# to anything other than a private, unroutable block would be a massive security hole.
+private_networks: [10.0.0.0/8]
+
 # OPTIONAL: The packages to install on all instances
 # You can install a specific version of a package by using a sub-array of pkg, version
 # For example, packages: [[rake, 0.7.1], irb]
-packages: [postfix, build-essential, git-core, ec2-ami-tools, libxslt-dev, ntp]
+packages: [postfix, build-essential, git-core, libxslt-dev, ntp]
 
 # OPTIONAL: gem sources to setup for rubygems
 # gemsources: ["https://rubygems.org"]
@@ -243,7 +265,8 @@ stop_on_error_cmd: "function error_exit { exit 99; }; trap error_exit ERR"
 # specify a different set here
 #
 # staging_roles: "web,app,db:primary=true"
-
+# Auto detect staging roles
+staging_roles: "#{known_roles.reject {|r| r =~ /slave/ || r =~ /^db$/ }.join(',')}"
 
 # OPTIONAL: Lets one assign amazon elastic IPs (static IPs) to your instances
 #           You should typically set this on the role/host level rather than
