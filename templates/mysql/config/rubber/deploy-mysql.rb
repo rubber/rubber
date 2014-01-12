@@ -1,4 +1,3 @@
-
 namespace :rubber do
   
   namespace :mysql do
@@ -40,7 +39,7 @@ namespace :rubber do
             pass = "identified by '#{env.db_pass}'" if env.db_pass
             rubber.sudo_script "create_master_db", <<-ENDSCRIPT
               mysql -u root -e "create database #{env.db_name};"
-              mysql -u root -e "delete from mysql.user where user='' and host='localhost';"
+              mysql -u root -e "delete from mysql.user where user='';"
               mysql -u root -e "grant all on *.* to '#{env.db_user}'@'%' #{pass};"
               mysql -u root -e "grant select on *.* to '#{env.db_slave_user}'@'%' #{pass};"
               mysql -u root -e "grant replication slave on *.* to '#{env.db_replicator_user}'@'%' #{pass};"
