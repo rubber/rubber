@@ -35,3 +35,23 @@ namespace :deploy do
   end
 
 end
+
+namespace :rubber do
+
+  namespace :putty do
+
+    desc <<-DESC
+      Opens Putty sessions with your servers. Open multiple sessions at once
+      with FILTER variable. Requires Putty in your system path and a key
+      named *.ppk in your keys directory.
+    DESC
+    task :default do
+      rubber_env.rubber_instances.filtered.each do |inst|
+        # can use rubber_env.cloud_providers.aws.key_file as well
+        spawn("putty -ssh ubuntu@#{inst.external_host} -i #{Rubber.cloud.env.key_file}.ppk")
+      end
+    end
+
+  end
+
+end
