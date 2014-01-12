@@ -13,7 +13,7 @@ module Rubber
 <%- rubber_instances.for_role('memcached').each do |ic| %>
             '<%= ic.full_name %>:<%= rubber_env.memcached_port %>',
 <%- end %>
-            { :value_max_bytes => <%= rubber_env.memcached_slab_max_bytes %> }
+            { :value_max_bytes => <%= rubber_env.memcached_max_slab_bytes %> }
       end
     end
   end

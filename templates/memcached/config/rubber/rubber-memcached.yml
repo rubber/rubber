@@ -13,7 +13,7 @@ memcached_port: 11211
 
 # MB memory max to use for object storage in megabytes.
 # Accepts either a single value or a hash by instance size
-memcached_memory_max_mb:
+memcached_max_mem:
   micro:   64    # 613MB max
   small:   768   # 1.7GB max
   medium:  2048  # 3.7GB max
@@ -25,7 +25,7 @@ memcached_memory_max_mb:
 # Set size of each slab page in bytes, i.e. maximum item size
 # that memcached will accept. Recommended not to set above 1 MB
 # for performance reasons.
-memcached_slab_max_bytes: "#{1024*1024}"
+memcached_max_slab_bytes: "#{1024*1024}"
 
 gems: [dalli]
 
