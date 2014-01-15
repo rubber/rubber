@@ -48,7 +48,7 @@ namespace :rubber do
           echo -n .
           sleep 5
         done
-        
+
         # this returns exit code even if pid has already died, and thus triggers fail fast shell error
         wait $bg_pid
 
@@ -57,7 +57,7 @@ namespace :rubber do
       fi
       ENDSCRIPT
     end
-    
+
     # ensure that the profile script gets sourced by reconnecting
     after "rubber:base:install_ruby" do
       teardown_connections_to(sessions.keys)
@@ -74,14 +74,38 @@ namespace :rubber do
       ENDSCRIPT
     end
 
+    before "rubber:enable_multiverse", "rubber:base:add_raring_repo"
+    task :add_raring_repo do
+     # Make sure that ec2-ami-tools pinning policy exists before adding repo
+     # Pinning policy sets higher priority for raring repo only for ec2-ami-tools package
+     # Every other package should still use precise repo as primary for Ubuntu 12.04 OS
+    sudo_script 'add_raring_repo', <<-ENDSCRIPT
+cat > /etc/apt/preferences.d/ec2-api-tools-pin-50 << EOF
+
+#Set low priority to raring repo(50) against default precise repo(500)
+Package: *
+Pin: release o=Ubuntu,a=raring,n=raring
+Pin-Priority: 50
+
+#Set high priority for raring repo only for ec2-ami-tools package
+Package: ec2-ami-tools
+Pin: release o=Ubuntu,a=raring,n=raring
+Pin-Priority: 700
+
+EOF
+
+     echo "deb http://us.archive.ubuntu.com/ubuntu/ raring multiverse" > /etc/apt/sources.list.d/ubuntu-raring-source.list
+    ENDSCRIPT
+    end
+
     # We need a rails user for safer permissions used by deploy.rb
     after "rubber:install_packages", "rubber:base:custom_install"
     task :custom_install do
       rubber.sudo_script 'custom_install', <<-ENDSCRIPT
         # add the user for running app server with
         if ! id #{rubber_env.app_user} &> /dev/null; then adduser --system --group #{rubber_env.app_user}; fi
-          
-        # add ssh keys for root 
+
+        # add ssh keys for root
         if [[ ! -f /root/.ssh/id_dsa ]]; then ssh-keygen -q -t dsa -N '' -f /root/.ssh/id_dsa; fi
       ENDSCRIPT
     end
