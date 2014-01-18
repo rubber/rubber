@@ -9,7 +9,7 @@ namespace :rubber do
     after "deploy:restart", "rubber:delayed_job:restart"
     
     def args
-      fetch(:delayed_job_args, "-n #{rubber_env.num_delayed_job_workers}")
+      rubber_env.delayed_job_args || "-n #{rubber_env.num_delayed_job_workers}"
     end
  
     desc "Stop the delayed_job process"
