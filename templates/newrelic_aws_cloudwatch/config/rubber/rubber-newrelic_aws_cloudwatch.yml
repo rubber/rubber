@@ -1,0 +1,8 @@
+newrelic_aws_cloudwatch_home: '/usr/local/newrelic_aws_cloudwatch'
+newrelic_aws_cloudwatch_pid_file: '/var/run/newrelic_aws_cloudwatch.pid'
+
+newrelic_aws_cloudwatch_license_key: LICENSE_KEY
+newrelic_aws_cloudwatch_aws_key: AWS_KEY
+newrelic_aws_cloudwatch_aws_secret: AWS_SECRET
+
+

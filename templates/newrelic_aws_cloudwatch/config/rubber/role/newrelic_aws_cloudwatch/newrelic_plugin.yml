@@ -1,0 +1,50 @@
+<%
+  @path = "#{rubber_env.newrelic_aws_cloudwatch_home}/config/newrelic_plugin.yml"
+%>
+
+# Please make sure to update the license_key information with the
+# license key for your New Relic account.
+#
+newrelic:
+  #
+  # Update with your New Relic account license key:
+  #
+  license_key: '<%=rubber_env.newrelic_aws_cloudwatch_license_key %>'
+  #
+  # Set to '1' for verbose output, remove for normal output.
+  # All output goes to stdout/stderr.
+  #
+  # verbose: 1
+#
+# AWS configuration.
+#
+aws:
+  # Update with you AWS account keys:
+  access_key: '<%=rubber_env.newrelic_aws_cloudwatch_aws_key %>'
+  secret_key: '<%=rubber_env.newrelic_aws_cloudwatch_aws_secret %>'
+  # Specify AWS regions to query for metrics
+  # regions:
+  #   us-east-1
+#
+# Agent configuration.
+#
+agents:
+  #
+  # Uncomment an agent to enable it. Set 'overview' to true to
+  # enable its overview plugin (eg. EC2 Overview), displaying all
+  # metrics on a single dashboard (currently only available for EC2 & EBS).
+  #
+  ec2:
+    overview: true
+  ebs:
+    overview: true
+  # elb:
+  #   overview: false
+  # rds:
+  #   overview: false
+  # sqs:
+  #   overview: false
+  # sns:
+  #   overview: false
+  # ec:
+  #   overview: false
