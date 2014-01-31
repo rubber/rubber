@@ -299,8 +299,8 @@ http.port: <%= rubber_env.elasticsearch_http_port %>
 # and master node is elected. Multicast discovery is the default.
 
 # Set to ensure a node sees N other master eligible nodes to be considered
-# operational within the cluster. Set this option to a higher value (2-4)
-# for large clusters (>3 nodes):
+# operational within the cluster. Its recommended to set it to a higher value
+# than 1 when running more than 2 nodes in the cluster.
 #
 # discovery.zen.minimum_master_nodes: 1
 
@@ -358,10 +358,10 @@ http.port: <%= rubber_env.elasticsearch_http_port %>
 
 ################################## GC Logging ################################
 
-#monitor.jvm.gc.ParNew.warn: 1000ms
-#monitor.jvm.gc.ParNew.info: 700ms
-#monitor.jvm.gc.ParNew.debug: 400ms
+#monitor.jvm.gc.young.warn: 1000ms
+#monitor.jvm.gc.young.info: 700ms
+#monitor.jvm.gc.young.debug: 400ms
 
-#monitor.jvm.gc.ConcurrentMarkSweep.warn: 10s
-#monitor.jvm.gc.ConcurrentMarkSweep.info: 5s
-#monitor.jvm.gc.ConcurrentMarkSweep.debug: 2s
+#monitor.jvm.gc.old.warn: 10s
+#monitor.jvm.gc.old.info: 5s
+#monitor.jvm.gc.old.debug: 2s

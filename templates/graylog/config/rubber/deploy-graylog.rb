@@ -85,15 +85,15 @@ namespace :rubber do
 
           restart
         end
+      end
 
-        after "rubber:graylog:web:bootstrap", "rubber:graylog:web:create_inputs"
+      after "rubber:graylog:web:bootstrap", "rubber:graylog:web:create_inputs"
 
-        task :create_inputs, :roles => :graylog_web do
-          rubber.sudo_script 'create_inputs', <<-ENDSCRIPT
-          curl -XPOST http://localhost:12900/system/inputs -H "Content-Type: application/json" -d '{"type": "org.graylog2.inputs.gelf.udp.GELFUDPInput", "creator_user_id": "admin", "title": "gelf-udp", "configuration": { "port": #{rubber_env.graylog_server_port}, "bind_address": "0.0.0.0" } }'
-          curl -XPOST http://localhost:12900/system/inputs -H "Content-Type: application/json" -d '{"type": "org.graylog2.inputs.syslog.udp.SyslogUDPInput", "creator_user_id": "admin", "title": "syslog-udp", "configuration": { "port": #{rubber_env.graylog_server_syslog_port}, "bind_address": "0.0.0.0" } }'
-          ENDSCRIPT
-        end
+      task :create_inputs, :roles => :graylog_web do
+        rubber.sudo_script 'create_inputs', <<-ENDSCRIPT
+          curl --user #{rubber_env.graylog_web_username}:#{rubber_env.graylog_web_password} -XPOST http://localhost:12900/system/inputs -H "Content-Type: application/json" -d '{"type": "org.graylog2.inputs.gelf.udp.GELFUDPInput", "creator_user_id": "admin", "title": "gelf-udp", "global": true, "configuration": { "port": #{rubber_env.graylog_server_port}, "bind_address": "0.0.0.0" } }'
+          curl --user #{rubber_env.graylog_web_username}:#{rubber_env.graylog_web_password} -XPOST http://localhost:12900/system/inputs -H "Content-Type: application/json" -d '{"type": "org.graylog2.inputs.syslog.udp.SyslogUDPInput", "creator_user_id": "admin", "title": "syslog-udp", "global": true, "configuration": { "port": #{rubber_env.graylog_server_syslog_port}, "bind_address": "0.0.0.0" } }'
+        ENDSCRIPT
       end
 
       desc "Stops the graylog web"
