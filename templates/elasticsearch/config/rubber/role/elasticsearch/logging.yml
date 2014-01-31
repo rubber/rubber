@@ -1,8 +1,9 @@
 <%
-  @path = "#{rubber_env.elasticsearch_dir}/config/logging.yml"
+  @path = '/etc/elasticsearch/logging.yml'
 %>
-
-rootLogger: INFO, console, file
+# you can override this using by setting a system property, for example -Des.logger.level=DEBUG
+es.logger.level: INFO
+rootLogger: ${es.logger.level}, console, file
 logger:
   # log action execution errors for easier debugging
   action: DEBUG
@@ -20,9 +21,11 @@ logger:
   #discovery: TRACE
 
   index.search.slowlog: TRACE, index_search_slow_log_file
+  index.indexing.slowlog: TRACE, index_indexing_slow_log_file
 
 additivity:
   index.search.slowlog: false
+  index.indexing.slowlog: false
 
 appender:
   console:
@@ -42,6 +45,14 @@ appender:
   index_search_slow_log_file:
     type: dailyRollingFile
     file: ${path.logs}/${cluster.name}_index_search_slowlog.log
+    datePattern: "'.'yyyy-MM-dd"
+    layout:
+      type: pattern
+      conversionPattern: "[%d{ISO8601}][%-5p][%-25c] %m%n"
+
+  index_indexing_slow_log_file:
+    type: dailyRollingFile
+    file: ${path.logs}/${cluster.name}_index_indexing_slowlog.log
     datePattern: "'.'yyyy-MM-dd"
     layout:
       type: pattern

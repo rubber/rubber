@@ -11,8 +11,9 @@ namespace :rubber do
       task :install, :roles => :graylog_server do
         rubber.sudo_script 'install_graylog_server', <<-ENDSCRIPT
           if [[ ! -d "#{rubber_env.graylog_server_dir}" ]]; then
-            wget --no-check-certificate -qNP /tmp #{rubber_env.graylog_server_pkg_url}
-            tar -C #{rubber_env.graylog_server_prefix} -zxf /tmp/graylog2-server-#{rubber_env.graylog_server_version}.tar.gz
+            wget --no-check-certificate -qNP /tmp https://github.com/Graylog2/graylog2-server/releases/download/#{rubber_env.graylog_server_version}/graylog2-server-#{rubber_env.graylog_server_version}.tgz
+            tar -C #{rubber_env.graylog_server_prefix} -zxf /tmp/graylog2-server-#{rubber_env.graylog_server_version}.tgz
+            rm /tmp/graylog2-server-#{rubber_env.graylog_server_version}.tgz
           fi
         ENDSCRIPT
       end
@@ -26,6 +27,8 @@ namespace :rubber do
           bootstrap
         end
       end
+
+      before "rubber:graylog:server:bootstrap", "rubber:mongodb:restart"
 
       task :bootstrap, :roles => :graylog_server do
         exists = capture("echo $(ls /etc/graylog2.conf 2> /dev/null)")
@@ -64,11 +67,9 @@ namespace :rubber do
       task :install, :roles => :graylog_web do
         rubber.sudo_script 'install_graylog_web', <<-ENDSCRIPT
           if [[ ! -d "#{rubber_env.graylog_web_dir}" ]]; then
-            wget --no-check-certificate -qNP /tmp #{rubber_env.graylog_web_pkg_url}
-            tar -C #{rubber_env.graylog_web_prefix} -zxf /tmp/graylog2-web-interface-#{rubber_env.graylog_web_version}.tar.gz
-
-            mkdir #{rubber_env.graylog_web_dir}/log
-            mkdir #{rubber_env.graylog_web_dir}/tmp
+            wget --no-check-certificate -qNP /tmp https://github.com/Graylog2/graylog2-web-interface/releases/download/#{rubber_env.graylog_web_version}/graylog2-web-interface-#{rubber_env.graylog_web_version}.tgz
+            tar -C #{rubber_env.graylog_web_prefix} -zxf /tmp/graylog2-web-interface-#{rubber_env.graylog_web_version}.tgz
+            rm /tmp/graylog2-web-interface-#{rubber_env.graylog_web_version}.tgz
           fi
         ENDSCRIPT
       end
@@ -82,21 +83,17 @@ namespace :rubber do
 
           rubber.run_config(:file => "role/graylog_web/", :force => true, :deploy_path => release_path)
 
-          rubber.sudo_script 'bootstrap_graylog_web', <<-ENDSCRIPT
-            cd #{rubber_env.graylog_web_dir}
-
-            # Add puma to the Gemfile so we can run the server.
-            echo "gem 'puma'" >> Gemfile
-
-            export RAILS_ENV=production
-            bundle install
-
-            # Create the Graylog Web admin account.
-            ./script/rails runner "User.create(:login => '#{rubber_env.graylog_web_username}', :email => '#{rubber_env.graylog_web_email}', :password => '#{rubber_env.graylog_web_password}', :password_confirmation => '#{rubber_env.graylog_web_password}', :role => 'admin') if User.count == 0"
-          ENDSCRIPT
-
           restart
         end
+      end
+
+      after "rubber:graylog:web:bootstrap", "rubber:graylog:web:create_inputs"
+
+      task :create_inputs, :roles => :graylog_web do
+        rubber.sudo_script 'create_inputs', <<-ENDSCRIPT
+          curl --user #{rubber_env.graylog_web_username}:#{rubber_env.graylog_web_password} -XPOST http://localhost:12900/system/inputs -H "Content-Type: application/json" -d '{"type": "org.graylog2.inputs.gelf.udp.GELFUDPInput", "creator_user_id": "admin", "title": "gelf-udp", "global": true, "configuration": { "port": #{rubber_env.graylog_server_port}, "bind_address": "0.0.0.0" } }'
+          curl --user #{rubber_env.graylog_web_username}:#{rubber_env.graylog_web_password} -XPOST http://localhost:12900/system/inputs -H "Content-Type: application/json" -d '{"type": "org.graylog2.inputs.syslog.udp.SyslogUDPInput", "creator_user_id": "admin", "title": "syslog-udp", "global": true, "configuration": { "port": #{rubber_env.graylog_server_syslog_port}, "bind_address": "0.0.0.0" } }'
+        ENDSCRIPT
       end
 
       desc "Stops the graylog web"

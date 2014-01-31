@@ -1,9 +1,0 @@
-<%
-  @read_cmd = 'crontab -l'
-  @write_cmd = 'crontab -'
-  @additive = ['# start-graylog-web-crontab', '# end-graylog-web-crontab']
-%>
-
-# use sudo/bash to unset bundle env vars since we are running a different
-# rails app and redirect output to null to prevent bash-login from complaining about tty
-*/15 * * * * sudo -u root bash -l -c "<%= Rubber.root %>/script/rubber cron -r <%= rubber_env.graylog_web_dir %> bundle exec rake subscriptions:send" &> /dev/null

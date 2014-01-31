@@ -1,10 +1,7 @@
-elasticsearch_version: 0.19.12
-elasticsearch_prefix: /usr/local
-elasticsearch_dir: "#{elasticsearch_prefix}/elasticsearch-#{elasticsearch_version}"
+elasticsearch_version: 0.90.10
 elasticsearch_data_dir: "/mnt/elasticsearch/data"
 elasticsearch_work_dir: "/mnt/elasticsearch/work"
 elasticsearch_log_dir: "/mnt/elasticsearch/logs"
-elasticsearch_pid_file: "/var/run/elasticsearch.pid"
 elasticsearch_http_port: 9200
 
 roles:

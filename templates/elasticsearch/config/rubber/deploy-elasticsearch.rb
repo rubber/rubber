@@ -8,13 +8,13 @@ namespace :rubber do
 
     task :install, :roles => :elasticsearch do
       rubber.sudo_script 'install_elasticsearch', <<-ENDSCRIPT
-        if [[ ! -d "#{rubber_env.elasticsearch_dir}" ]]; then
-          wget --no-check-certificate -qNP /tmp http://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-#{rubber_env.elasticsearch_version}.zip
-          unzip -d #{rubber_env.elasticsearch_prefix} /tmp/elasticsearch-#{rubber_env.elasticsearch_version}.zip
-          rm /tmp/elasticsearch-#{rubber_env.elasticsearch_version}.zip
+        if [[ ! -f /usr/share/elasticsearch/lib/elasticsearch-#{rubber_env.elasticsearch_version}.jar ]]; then
+          wget -qNP /tmp https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-#{rubber_env.elasticsearch_version}.deb
+          dpkg -i /tmp/elasticsearch-#{rubber_env.elasticsearch_version}.deb
+          rm /tmp/elasticsearch-#{rubber_env.elasticsearch_version}.deb
 
-          #{rubber_env.elasticsearch_dir}/bin/plugin -install mobz/elasticsearch-head
-          
+          rm -rf /usr/share/elasticsearch/plugins/head
+          /usr/share/elasticsearch/bin/plugin -install mobz/elasticsearch-head
         fi
       ENDSCRIPT
     end
@@ -22,7 +22,7 @@ namespace :rubber do
     after "rubber:bootstrap", "rubber:elasticsearch:bootstrap"
 
     task :bootstrap, :roles => :elasticsearch do
-      exists = capture("echo $(ls /etc/init/elasticsearch.conf 2> /dev/null)")
+      exists = capture("echo $(ls #{rubber_env.elasticsearch_data_dir} 2> /dev/null)")
       if exists.strip.size == 0
         # After everything installed on machines, we need the source tree
         # on hosts in order to run rubber:config for bootstrapping the db
