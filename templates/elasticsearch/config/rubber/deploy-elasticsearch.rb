@@ -13,6 +13,7 @@ namespace :rubber do
           dpkg -i /tmp/elasticsearch-#{rubber_env.elasticsearch_version}.deb
           rm /tmp/elasticsearch-#{rubber_env.elasticsearch_version}.deb
 
+          rm -rf /usr/share/elasticsearch/plugins/head
           /usr/share/elasticsearch/bin/plugin -install mobz/elasticsearch-head
         fi
       ENDSCRIPT
