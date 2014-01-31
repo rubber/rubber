@@ -105,6 +105,60 @@ class GeneratorTest < Test::Unit::TestCase
     assert_equal "hello\nthere", File.read(out_file.path).strip, "transformed contents are incorrect"
   end
 
+  def test_delayed_post_command
+    out_dir = "#{Dir::tmpdir}/test_rubber_delayed_post"
+    FileUtils.rm_rf(out_dir)
+    assert ! File.exists?(out_dir)
+
+    g = Generator.new("#{File.dirname(__FILE__)}/fixtures/basic", nil, nil, :out_dir => out_dir)
+
+    post_file = "#{out_dir}/post"
+
+    src1 = <<-SRC
+      <%
+        @path = "#{out_dir}/src1"
+        @delayed_post = 'echo `date` >> #{post_file}'
+      %>
+      contents1
+    SRC
+
+    src2 = <<-SRC
+      <%
+        @path = "#{out_dir}/src2"
+        @delayed_post = 'echo `date` >> #{post_file}'
+      %>
+      contents2
+    SRC
+
+    src3 = <<-SRC
+      <%
+        @path = "#{out_dir}/src3"
+        @delayed_post = 'echo 3 `date` >> #{post_file}'
+      %>
+      contents3
+    SRC
+
+    g.transform(src1)
+    g.transform(src2)
+    g.transform(src3)
+
+    assert File.exists?("#{out_dir}/src1"), "transform did not generate an output file"
+    assert ! File.exists?(post_file), "transform executed delayed post early"
+    assert_equal "contents1", File.read("#{out_dir}/src1").strip, "transformed contents are incorrect"
+
+    assert File.exists?("#{out_dir}/src2"), "transform did not generate an output file"
+    assert ! File.exists?(post_file), "transform executed delayed post early"
+    assert_equal "contents2", File.read("#{out_dir}/src2").strip, "transformed contents are incorrect"
+
+    assert File.exists?("#{out_dir}/src3"), "transform did not generate an output file"
+    assert ! File.exists?(post_file), "transform executed delayed post early"
+    assert_equal "contents3", File.read("#{out_dir}/src3").strip, "transformed contents are incorrect"
+
+    g.run()
+    assert File.exists?(post_file), "delayed post was not executed"
+    assert_equal 2, File.read(post_file).lines.to_a.size, "delayed post was not de-duped"
+  end
+
   def test_stop_on_error
     out_file = Tempfile.new('teststoponerr')
     post_file = out_file.path + '.post'

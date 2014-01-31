@@ -8,7 +8,7 @@ namespace :rubber do
   required_task :setup_security_groups do
     servers = find_servers_for_task(current_task)
 
-    cloud.setup_security_groups(servers.collect(&:host))
+    servers.collect(&:host).each{ |host| cloud.setup_security_groups(host) }
   end
 
   desc <<-DESC

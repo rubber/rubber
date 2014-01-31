@@ -11,10 +11,13 @@ namespace :rubber do
         # Check if there is an nginx with the required version and passenger built in.
         if [ -x /usr/sbin/nginx ]
           then echo 'Found nginx on system'
-          pax=$(/usr/sbin/nginx -V 2>&1 | awk '/nginx\\/#{rubber_env.nginx_version}/{a++}/passenger-#{rubber_env.passenger_version}/{b++} END {print a&&b}')
-          if [ $pax -eq 1 ]
-            then echo 'Nginx/Passenger version matches'
-            exit 0
+          if [ $(find #{rubber_env.ruby_path} -regex .*passenger-#{rubber_env.passenger_version}.*PassengerWatchdog | wc -l) -gt 0 ]
+            then echo 'Found passenger-nginx-module on system'
+            pax=$(/usr/sbin/nginx -V 2>&1 | awk '/nginx\\/#{rubber_env.nginx_version}/{a++}/passenger-#{rubber_env.passenger_version}/{b++} END {print a&&b}')
+            if [ $pax -eq 1 ]
+              then echo 'Nginx/Passenger version matches'
+              exit 0
+            fi
           fi
         fi
         # Lets install
