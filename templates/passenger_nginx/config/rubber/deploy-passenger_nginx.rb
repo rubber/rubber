@@ -49,18 +49,5 @@ namespace :rubber do
       serial_reload
     end
     
-    
-    deploy.task :restart, :roles => :passenger_nginx do
-    end
-    
-    deploy.task :reload, :roles => :passenger_nginx do
-    end
-    
-    deploy.task :stop, :roles => :passenger_nginx do
-    end
-    
-    deploy.task :start, :roles => :passenger_nginx do
-    end
-    
   end
 end
