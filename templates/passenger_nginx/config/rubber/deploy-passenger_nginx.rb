@@ -6,8 +6,10 @@ namespace :rubber do
   
     before "rubber:install_packages", "rubber:passenger_nginx:setup_apt_sources"
     task :setup_apt_sources do
-      run "sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 561F9B9CAC40B2F7"
-      run "add-apt-repository -y https://oss-binaries.phusionpassenger.com/apt/passenger"
+      rubber.sudo_script 'configure_passenger_nginx_repository', <<-ENDSCRIPT
+        apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 561F9B9CAC40B2F7
+        add-apt-repository -y https://oss-binaries.phusionpassenger.com/apt/passenger
+      ENDSCRIPT
     end
   
     after "rubber:setup_app_permissions", "rubber:passenger_nginx:setup_passenger_permissions"
