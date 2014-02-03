@@ -1,3 +1,40 @@
+2.7.0 (02/03/2014)
+
+New Features:
+============
+
+[core] Added a new @delayed_post option to template preambles to defer executing a command until all templates have been processed. <41cae48>
+[delay_job] Added a new Delayed::Job role. <c7e33f5>
+[discourse] Added a new Discourse role that will take care of deploying the Discourse forum software and dependencies. <f01eeac>
+[ffmpeg] Added a new ffmpeg role. <23ba011>
+[newrelic] Added a new role for setting up the NewRelic system daemons. <7bc89ce>
+
+Improvements:
+============
+
+[core] Force shut down vSphere VMs when destroying an instance so the process isn't blocked if the machine doesn't shut down gracefully. <12bf770>
+[elasticsearch] Upgraded ElasticSearch from 0.19.12 to 0.90.10 and switched to the official deb packages. <a399316, 804bd1f, 4ca29e2>
+[graylog] Upgraded from graylog 0.9.6p1 to 0.20.0-rc1.1 <3476003, 4ca29e2>
+[memcached] Added a monit template. <87763e9>
+[memcached] Allow specifying the location of the PID file. <31bc9fb>
+[memcached] Major overhaul of the memcached template to modernize it. <8757cf8, 4307270, 8cebb56, ae8d89a>
+[mongodb] Monit will restart mongodb if the PID file doesn't exist. <7a57c3e>
+[redis] Upgraded from redis 2.6.16 to 2.8.4 <3877205, 644e6ee>
+[solr] Major overhaul of the solr template to modernize it. <a45046d, 2fc4779, 02e04b0, 676256d>
+
+Bug Fixes:
+=========
+
+[core] Fixed issue with calling cap rubber:setup_security_groups on multiple hosts. <bb17621>
+[core] Fixed volume creation on non-EC2 providers. <c49df54>
+[elasticsearch] Remove the elasticsearch-head plugin before attempting to reinstall it. <6438b68>
+[mysql] Delete all blank users initially to prevent issues with using a host value of '%'. <e75974a>
+[passenger_nginx] Added missing 'nginx_log_dir' setting to rubber-passenger_nginx.yml. <e6c3cdf>
+[passenger_nginx] Rebuild Passenger/Nginx when Ruby version changes. <fbb1e54>
+[solr] Fixed some typos in the Solr configuration. <a45046d>
+[unicorn] Fixed unicorn process management script. <c56a93c>
+
+
 2.6.5 (01/07/2014)
 
 Bug Fixes:
