@@ -132,7 +132,7 @@ namespace :rubber do
               fi
               mv /etc/fstab /etc/fstab.bak
               cat /etc/fstab.bak | grep -v '#{vol_spec['mount']}' > /etc/fstab
-              if [[ #{rubber_env.cloud_provider == 'aws'} && `lsb_release -r -s | sed 's/[.].*//'` -gt "10" ]]; then
+              if [[ #{rubber_env.cloud_provider == 'aws'} == true ]] && [[ `lsb_release -r -s | sed 's/[.].*//'` -gt "10" ]]; then
 		            device=`echo #{vol_spec['device']} | sed 's/sd/xvd/'`
 	            else
 		            device='#{vol_spec['device']}'
