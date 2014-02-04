@@ -1,3 +1,15 @@
+2.7.1 (02/04/2014)
+
+Improvements:
+============
+
+[redis] Upgraded from redis 2.8.4 to 2.8.5. <630c671>
+
+Bug Fixes:
+=========
+
+[core] Fixed a permissions problem with some files in the gem.
+
 2.7.0 (02/03/2014)
 
 New Features:
