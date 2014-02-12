@@ -1,3 +1,29 @@
+2.7.2 (02/12/2014)
+
+*SECURITY WARNING*: Versions of rubber prior to this release will not save your iptables rules.  Upon reboot of your
+server, it will load with a clear set of rules, effectively making every port on your server publicly accessible.
+
+Who is affected?
+
+Anyone not using EC2.  The EC2 code path uses EC2 security groups.  All other providers use iptables.
+
+How do I fix it?
+
+Upgrade to rubber 2.7.2 and run `cap rubber:setup_security_groups`, which will both refresh the iptables rules and
+set up the files needed to persist and releoad rules.
+
+
+Improvements:
+============
+
+[base] Upgraded from ruby-build 20131220.1 to 20140210. <a1288ac>
+
+Bug Fixes:
+=========
+
+[core] Save and restore iptables rules upon reboot. <72526aa>
+
+
 2.7.1 (02/04/2014)
 
 Improvements:
