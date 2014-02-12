@@ -154,6 +154,7 @@ module Rubber
         end
 
         script << "\niptables -A INPUT -j DROP -m comment --comment 'Disable all other connections.'"
+        script << "\niptables-save > /etc/iptables.rules"
 
         iptables_load = <<-FILE
 #!/bin/sh
@@ -165,7 +166,7 @@ exit 0
         iptables_save = <<-FILE
 #!/bin/sh
 
-iptables-save -c > /etc/iptables.rules
+iptables-save > /etc/iptables.rules
 if [ -f /etc/iptables.downrules ]; then
    iptables-restore < /etc/iptables.downrules
 fi
