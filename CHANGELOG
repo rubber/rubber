@@ -1,3 +1,11 @@
+2.7.3 (02/12/2014)
+
+Improvements:
+============
+
+[core] Be more aggressive about saving iptables rules to guard against unexpected shutdowns. <9c62aa1#
+
+
 2.7.2 (02/12/2014)
 
 *SECURITY WARNING*: Versions of rubber prior to this release will not save your iptables rules.  Upon reboot of your
