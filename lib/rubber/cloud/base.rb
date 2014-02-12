@@ -155,6 +155,26 @@ module Rubber
 
         script << "\niptables -A INPUT -j DROP -m comment --comment 'Disable all other connections.'"
 
+        iptables_load = <<-FILE
+#!/bin/sh
+
+iptables-restore < /etc/iptables.rules
+exit 0
+        FILE
+
+        iptables_save = <<-FILE
+#!/bin/sh
+
+iptables-save -c > /etc/iptables.rules
+if [ -f /etc/iptables.downrules ]; then
+   iptables-restore < /etc/iptables.downrules
+fi
+exit 0
+        FILE
+
+        capistrano.put(iptables_load, '/etc/network/if-pre-up.d/iptablesload', :mode => "+x")
+        capistrano.put(iptables_save, '/etc/network/if-post-down.d/iptablessave', :mode => "+x")
+
         capistrano.run_script 'setup_firewall_rules', script, :hosts => instance.external_ip
       end
 
