@@ -3,7 +3,7 @@
 Improvements:
 ============
 
-[core] Be more aggressive about saving iptables rules to guard against unexpected shutdowns. <9c62aa1#
+[core] Be more aggressive about saving iptables rules to guard against unexpected shutdowns. <9c62aa1>
 
 
 2.7.2 (02/12/2014)
