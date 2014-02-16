@@ -4,9 +4,23 @@ selenium_grid_hub_dir: /opt/selenium_grid_hub
 selenium_grid_hub_max_heap_in_mb: 768
 selenium_grid_hub_permgen_in_mb: 256
 
+
+
+# OPTIONAL Open up to remote Selenium Grid nodes - update source_ips as necessary
+# security_groups:
+#   selenium_grid_hub:
+#     description: "To open up port 4444 for Selenium Grid Hub"
+#     rules:
+#       - protocol: tcp
+#         from_port: "4444"
+#         to_port: "4444"
+#         source_ips: [0.0.0.0/0]
+
 roles:
   selenium_grid_hub:
     packages: [openjdk-7-jdk]
+    # assigned_security_groups: [selenium_grid_hub]
+
 
 web_tools_proxies:
   hub:
