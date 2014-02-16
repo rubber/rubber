@@ -14,12 +14,12 @@ namespace :rubber do
         # Create the log directory if necessary.
         if [[ ! -d #{rubber_env.selenium_grid_hub_log_dir} ]]; then
           mkdir -p #{rubber_env.selenium_grid_hub_log_dir}
-          chown app:app #{rubber_env.selenium_grid_hub_log_dir}
+          chown #{rubber_env.app_user}:#{rubber_env.app_user} #{rubber_env.selenium_grid_hub_log_dir}
         fi
 
         if [[ ! -d #{rubber_env.selenium_grid_hub_dir} ]]; then
           mkdir -p #{rubber_env.selenium_grid_hub_dir}
-          chown app:app #{rubber_env.selenium_grid_hub_dir}
+          chown #{rubber_env.app_user}:#{rubber_env.app_user} #{rubber_env.selenium_grid_hub_dir}
         fi
 
         # Fetch the Selenium Grid 2 JARs.
