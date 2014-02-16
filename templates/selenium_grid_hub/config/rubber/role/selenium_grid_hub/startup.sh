@@ -5,7 +5,7 @@
   args = []
   args << '-Xms256m'
   args << "-Xmx#{rubber_env.selenium_grid_hub_max_heap_in_mb}m"
-  args << '-XX:MaxPermSize=#{rubber_env.selenium_grid_hub_permgen_in_mb}m'
+  args << "-XX:MaxPermSize=#{rubber_env.selenium_grid_hub_permgen_in_mb}m"
   args << '-server'
   args << '-Xdebug'
   args << '-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005'
