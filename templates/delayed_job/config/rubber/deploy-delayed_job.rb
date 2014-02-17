@@ -14,17 +14,17 @@ namespace :rubber do
  
     desc "Stop the delayed_job process"
     task :stop, :roles => :delayed_job do
-      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} script/delayed_job stop #{self.args}", :as => rubber_env.app_user
+      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} bin/delayed_job stop #{self.args}", :as => rubber_env.app_user
     end
  
     desc "Start the delayed_job process"
     task :start, :roles => :delayed_job do
-      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} script/delayed_job start #{self.args}", :as => rubber_env.app_user
+      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} bin/delayed_job start #{self.args}", :as => rubber_env.app_user
     end
  
     desc "Restart the delayed_job process"
     task :restart, :roles => :delayed_job do
-      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} script/delayed_job restart #{self.args}", :as => rubber_env.app_user
+      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} bin/delayed_job restart #{self.args}", :as => rubber_env.app_user
     end
  
     desc "Live tail of delayed_job log files for all machines"
