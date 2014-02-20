@@ -173,10 +173,10 @@ fi
 exit 0
         FILE
 
-        capistrano.put(iptables_load, '/etc/network/if-pre-up.d/iptablesload', :mode => "+x")
-        capistrano.put(iptables_save, '/etc/network/if-post-down.d/iptablessave', :mode => "+x")
+        capistrano.put(iptables_load, '/etc/network/if-pre-up.d/iptablesload', :mode => '+x', :hosts => instance.external_ip)
+        capistrano.put(iptables_save, '/etc/network/if-post-down.d/iptablessave', :mode => '+x', :hosts => instance.external_ip)
 
-        capistrano.run_script 'setup_firewall_rules', script, :hosts => instance.external_ip
+        capistrano.run_script('setup_firewall_rules', script, :hosts => instance.external_ip)
       end
 
       def describe_security_groups(group_name=nil)
