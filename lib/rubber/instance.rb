@@ -13,12 +13,12 @@ module Rubber
 
       def initialize(instance_storage, opts={})
         super()
-        
+
         @instance_storage = instance_storage
         @opts = opts
-      
+
         @items = {}
-        @artifacts = {'volumes' => {}, 'static_ips' => {}}
+        @artifacts = {'volumes' => {}, 'static_ips' => {}, 'clusters' => {}}
 
         @filters = Rubber::Util::parse_aliases(ENV['FILTER'])
         @filters, @filters_negated = @filters.partition {|f| f !~ /^-/ }
@@ -30,7 +30,7 @@ module Rubber
 
         load()
       end
-      
+
       def load(instance_storage=@instance_storage)
         case instance_storage
           when /file:(.*)/
@@ -63,7 +63,7 @@ module Rubber
           end
         end
       end
-      
+
       def load_from_table(table_key)
         Rubber.logger.debug{"Reading rubber instances from cloud table #{table_key}"}
         store = Rubber.cloud.table_store(table_key)
@@ -74,11 +74,11 @@ module Rubber
               @artifacts = data
             else
               ic = InstanceItem.from_hash(data.merge({'name' => name}))
-              @items[ic.name] = ic 
+              @items[ic.name] = ic
           end
         end
       end
-      
+
       def save(instance_storage=@instance_storage, backup=@opts[:backup])
         synchronize do
           case instance_storage
@@ -99,7 +99,7 @@ module Rubber
                   "Must be one of file:, table:, storage:"
           end
         end
-        
+
         save(backup, false) if backup
       end
 
@@ -109,27 +109,27 @@ module Rubber
         data.push(@artifacts)
         io.write(YAML.dump(data))
       end
-      
+
       def save_to_table(table_key)
         store = Rubber.cloud.table_store(table_key)
-        
+
         # delete all before writing to handle removals
         store.find().each do |k, v|
           store.delete(k)
         end
-        
+
         # only write out non-empty artifacts
         artifacts = @artifacts.select {|k, v| v.size > 0}
         if artifacts.size > 0
           store.put('_artifacts_', artifacts)
         end
-        
+
         # write out all the instance data
         @items.values.each do |item|
           store.put(item.name, item.to_hash)
         end
       end
-      
+
       def [](name)
         @items[name] || @items[name.gsub(/\..*/, '')]
       end
@@ -187,10 +187,35 @@ module Rubber
       def each(&block)
         @items.values.each &block
       end
-      
+
       def size
         @items.size
       end
+    end
+
+    # The configuration for a single cache cluster
+    class ClusterItem
+      attr_reader :name, :node_type, :engine, :nodes
+      attr_accessor :nodes
+
+      def initialize(name, node_type, engine)
+        @name      = name
+        @node_type = node_type
+        @engine    = engine
+      end
+
+    end
+
+    # The configuration for a single cache node
+    class ClusterNodeItem
+      attr_reader :id, :address, :port
+
+      def initialize(id, address, port)
+        @id      = id
+        @address = address
+        @port    = port
+      end
+
     end
 
     # The configuration for a single instance
@@ -227,7 +252,7 @@ module Rubber
         end
         return item
       end
-      
+
       def to_hash
         hash = {}
         instance_variables.each do |iv|
@@ -240,11 +265,11 @@ module Rubber
         end
         return hash
       end
-      
+
       def <=>(rhs)
         name <=> rhs.name
       end
-      
+
       def full_name
         "#{@name}.#{@domain}"
       end
@@ -323,7 +348,7 @@ module Rubber
             expand_role_dependencies(needed, dependency_map, expanded)
           end
         end
-        
+
         return expanded
       end
 

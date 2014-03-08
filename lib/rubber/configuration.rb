@@ -55,7 +55,7 @@ module Rubber
         instance_storage ||= "file:#{@root}/instance-#{@env}.yml"
         @instance = Instance.new(instance_storage, :backup => instance_storage_backup)
       end
-      
+
       def environment
         @environment
       end
