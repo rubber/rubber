@@ -12,6 +12,12 @@ namespace :rubber do
       node_type = get_env('NODE_TYPE', "Node Type", false, "cache.m1.large")
       engine    = get_env('ENGINE', "Engine, memcached or redis", false, "memcached")
 
+      if engine == "redis"
+        dump_file_path = get_env("SNAPSHOT", "dump file location or ARN name", false)
+
+        arn = build_arn(dump_file_path) unless dump_file_path.empty?
+      end
+
       artifacts = rubber_instances.artifacts
 
       cluster_item = Rubber::Configuration::ClusterItem.new(name, node_type, engine)
@@ -20,7 +26,7 @@ namespace :rubber do
       logger.info "Allocating Cache Cluster"
 
       creation_threads << Thread.new do
-        create_cache_cluster(name, node_type, engine)
+        create_cache_cluster(name, node_type, engine, arn)
 
         refresh_threads << Thread.new do
           while ! refresh_cluster(name)
@@ -43,6 +49,26 @@ namespace :rubber do
       refresh_threads.each {|t| t.join }
 
       save_nodes(name)
+    end
+
+    def build_arn(dump_file_path)
+      if dump_file_path.match "arn:aws:s3"
+        dump_file_path
+      else
+        backup_bucket = Rubber.cloud.env.backup_bucket
+
+        if backup_bucket
+          file = File.basename(dump_file_path)
+          timestamp = DateTime.now.strftime("%Y%m%d%H%M%S")
+          dest = "tmp/#{timestamp}-#{file}"
+          puts "Saving backup to cloud: #{backup_bucket}:#{dest}"
+          Rubber.cloud.storage(backup_bucket).store(dest, open(File.join(dump_file_path)))
+
+          # TODO: Add permission by email aws-scs-s3-readonly@amazon.com
+
+          "arn:aws:s3:::#{backup_bucket}/#{dest}"
+        end
+      end
     end
 
     def refresh_cluster(name)
@@ -94,11 +120,13 @@ namespace :rubber do
       results.each {|r| logger.info(r) }
     end
 
-    def create_cache_cluster(name, type, engine)
+    def create_cache_cluster(name, type, engine, arn = nil)
       cluster = elastic.clusters.new(id: name,
                            node_type: type,
                            engine: engine,
-                           security_groups: [cache_cluster_security_group])
+                           security_groups: [cache_cluster_security_group],
+                           s3_snapshot_location: arn
+                           )
 
       cluster.save
     end
