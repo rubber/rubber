@@ -1,3 +1,17 @@
+2.7.4 (03/13/2014)
+
+Improvements:
+============
+
+[graylog] Upgraded from Graylog 0.20.0 RC1 to 0.20.1. <67c3c77, 726b00a>
+[redis] Upgraded from redis 2.8.5 to 2.8.7. <60e2e2b, 20ea7bc>
+
+Bug Fixes:
+=========
+
+[core] Only upload the iptables persistence scripts to the host that the rules are being generated for. <f6db5ed>
+
+
 2.7.3 (02/12/2014)
 
 Improvements:
