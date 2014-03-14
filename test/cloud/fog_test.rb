@@ -7,10 +7,10 @@ class FogTest < Test::Unit::TestCase
   context "fog" do
 
     setup do
-      env = {'compute_credentials' =>
-                 {'rackspace_api_key' => "XXX", 'rackspace_username' => "YYY", 'provider' => "rackspace"},
+      env = { 'compute_credentials' =>
+                 { 'rackspace_api_key' => 'XXX', 'rackspace_username' => 'YYY', 'provider' => 'rackspace'},
              'storage_credentials' =>
-                 {'rackspace_api_key' => "XXX", 'rackspace_username' => "YYY", 'provider' => "rackspace"}}
+                 { 'rackspace_api_key' => 'XXX', 'rackspace_username' => 'YYY', 'provider' => 'rackspace'}}
       env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil, nil)
       @cloud = Rubber::Cloud::Fog.new(env, nil)
     end
@@ -21,7 +21,7 @@ class FogTest < Test::Unit::TestCase
     end
 
     should "provide storage" do
-      assert_raises(Fog::Errors::MockNotImplemented) { @cloud.storage('mybucket') }
+      assert @cloud.storage('mybucket')
     end
 
     should "not provide table store" do
