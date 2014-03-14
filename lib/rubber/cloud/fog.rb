@@ -49,16 +49,16 @@ module Rubber
       end
   
       def reboot_instance(instance_id)
-        response = compute_provider.servers.get(instance_id).reboot()
+        compute_provider.servers.get(instance_id).reboot()
       end
 
       def stop_instance(instance, force=false)
         # Don't force the stop process. I.e., allow the instance to flush its file system operations.
-        response = compute_provider.servers.get(instance.instance_id).stop(force)
+        compute_provider.servers.get(instance.instance_id).stop(force)
       end
 
       def start_instance(instance)
-        response = compute_provider.servers.get(instance.instance_id).start()
+        compute_provider.servers.get(instance.instance_id).start()
       end
 
       def create_static_ip
