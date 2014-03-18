@@ -12,12 +12,12 @@ packages: [build-essential, git-core, subversion, curl, autoconf, bison, ruby, z
 
 # REQUIRED: The version of ruby-build to use for building ruby.
 # It must be one of the versions from https://github.com/sstephenson/ruby-build/blob/master/CHANGELOG.md
-ruby_build_version: 20140210
+ruby_build_version: 20140225
 
 # REQUIRED: Set to the version string for the ruby version you wish to use
 # Run "ruby-build --definitions" to see the list of possible options or look through the list of
 # recipes online at https://github.com/sstephenson/ruby-build/tree/master/share/ruby-build
-ruby_version: 1.9.3-p484
+ruby_version: 2.0.0-p451
 
 # REQUIRED: Installation path for ruby.
 ruby_path: "/usr/local/rubies/#{ruby_version}"
