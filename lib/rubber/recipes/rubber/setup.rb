@@ -6,6 +6,23 @@ namespace :rubber do
     Bootstraps instances by setting timezone, installing packages and gems
   DESC
   task :bootstrap do
+    # This special piece of Hell is designed to work around callback lifecyle issues and problems associated with
+    # remounting the :deploy_to directory.  The problem is that depending on the filesystem type and whether LLVM is
+    # used, we may need to install packages before we can setup volumes.  However, most end user custom installation
+    # tasks will be configured as "after 'rubber:install_packages'", meaning they'll trigger before the volumes are set
+    # up. While this is safe, it can be very costly.  If :deploy_to is set to '/mnt/myapp-production', for instance,
+    # and we mount a new volume to /mnt, then everything in /mnt will go away and need to be reconstituted.  Rubber
+    # ensures that the correct thing will happen, so there's no correctness issue.  But, if any of those callbacks ran
+    # something like :update_code_for_bootstrap, then several costly operations will be run twice, such as uploading
+    # the code to be deployed and bundle installing gems.  The first time will be in that callback, the second time
+    # will be as part of the normal deploy, after /mnt has been remounted and thus, cleared.
+    #
+    # In order to avoid effectively deploying the app twice in many circumstances, we rebind all
+    # "after 'rubber:install_packages'" callbacks to be "after 'rubber:setup_volumes'".  This allows end-user
+    # configuration to still hook after package installation for normal case operation, while allowing rubber to run
+    # semi-performantly when bootstrapping.
+    rebind_after_install_packages_callbacks('rubber:setup_volumes')
+
     link_bash
     set_timezone
     enable_multiverse
@@ -16,6 +33,15 @@ namespace :rubber do
     setup_gem_sources
     install_gems
     deploy.setup
+  end
+
+  def rebind_after_install_packages_callbacks(new_after_task)
+    install_package_task = find_task(:install_packages)
+
+    after_install_packages_callbacks = []
+    callbacks[:after].delete_if { |c| after_install_packages_callbacks << c if c.applies_to?(install_package_task) }
+
+    after_install_packages_callbacks.each { |c| after(new_after_task, c.source) }
   end
 
   # Sets up instance to allow root access (e.g. recent canonical AMIs)
