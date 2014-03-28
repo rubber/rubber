@@ -1,3 +1,18 @@
+2.7.5 (03/28/2014)
+
+Improvements:
+============
+
+[base] Upgraded ruby-build from 20140210 to 20140225 and bumped the default ruby version from 1.9.3-p484 to 2.0.0-p451. <396b72e>
+[core] Install iptables if it's not already installed and it's needed to set up (non-EC2) firewall rules. <581c2e0>
+[redis] Upgraded from redis 2.8.7 to 2.8.8. <8775a76>
+
+Bug Fixes:
+=========
+
+[core] Fixed a problem whereby if a part of the :deploy_to path (e.g., /mnt) is remounted with an attached volume, the code may not deploy properly. <a98edcc>
+
+
 2.7.4 (03/13/2014)
 
 Improvements:
