@@ -48,6 +48,7 @@ namespace :rubber do
 
       if deployed.strip.size == 0
         set :rubber_code_was_updated, false
+        set :rubber_config_files_pushed, false
       end
     end
   end
