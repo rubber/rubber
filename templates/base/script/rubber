@@ -8,5 +8,10 @@ if type rvm &> /dev/null; then
   # version is set during bootstrap
   rvm default do bundle exec rubber "$@"
 else
-  bundle exec rubber "$@"
+  # Use binstubs if they exist since they're faster.
+  if [[ -f bin/rubber ]]; then
+    ./bin/rubber "$@"
+  else
+    bundle exec rubber "$@"
+  fi
 fi
