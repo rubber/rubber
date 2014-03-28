@@ -35,7 +35,7 @@ module Rubber
         config_dirs.each do |dir|
           Dir[dir].sort.each do |f|
             next if f =~ /\/(CVS|\.svn)\//
-            if File.file?(f) && (! pat || pat.match(f))
+            if (! pat || pat.match(f)) && File.file?(f)
               Rubber.logger.info{"Transforming #{f}"}
               begin
                 transform(IO.read(f), @options)
