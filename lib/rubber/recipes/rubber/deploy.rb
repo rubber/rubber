@@ -73,7 +73,12 @@ namespace :rubber do
     unless fetch(:rubber_config_files_pushed, false)
       # Need to do this so we can work with staging instances without having to
       # checkin instance file between create and bootstrap, as well as during a deploy
-      if fetch(:push_instance_config, false)
+      #
+      # If we're not using an SCM to deploy, then the code must've been uploaded via
+      # some strategy that would copy all the files from the local machine, so there's
+      # no need to do a special file upload operation. That's only necessary when using an SCM
+      # and not wanting to commit files in-progress.
+      if fetch(:push_instance_config, false) && (fetch(:scm, nil) != :none)
         push_files = rubber_cfg.environment.config_files
 
         # If we're using a local instance file, push that up.  This isn't necessary when storing in S3 or SimpleDB.
