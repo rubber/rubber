@@ -21,6 +21,7 @@ namespace :rubber do
     # "after 'rubber:install_packages'" callbacks to be "after 'rubber:setup_volumes'".  This allows end-user
     # configuration to still hook after package installation for normal case operation, while allowing rubber to run
     # semi-performantly when bootstrapping.
+
     rebind_after_install_packages_callbacks('rubber:setup_volumes')
 
     link_bash
