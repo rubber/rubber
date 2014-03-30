@@ -2,7 +2,6 @@ require 'yaml'
 require 'socket'
 require 'delegate'
 require 'monitor'
-require 'rubber/encryption'
 
 
 module Rubber
@@ -55,6 +54,8 @@ module Rubber
         if @config_secret
           obfuscation_key = bound.rubber_secret_key
           if obfuscation_key
+            require 'rubber/encryption'
+
             read_config(@config_secret) do |data|
               Rubber::Encryption.decrypt(data, obfuscation_key)
             end

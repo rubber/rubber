@@ -338,6 +338,8 @@ module Rubber
              "Generate a key for rubber_secret_key"
 
       def execute
+        require 'rubber/encryption'
+
         if generate?
           puts "Obfuscation key: " + Rubber::Encryption.generate_encrypt_key.inspect
           exit
