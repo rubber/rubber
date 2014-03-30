@@ -6,25 +6,31 @@ namespace :rubber do
     Bootstraps instances by setting timezone, installing packages and gems
   DESC
   task :bootstrap do
+    # This special piece of Hell is designed to work around callback lifecyle issues and problems associated with
+    # remounting the :deploy_to directory.  The problem is that depending on the filesystem type and whether LLVM is
+    # used, we may need to install packages before we can setup volumes.  However, most end user custom installation
+    # tasks will be configured as "after 'rubber:install_packages'", meaning they'll trigger before the volumes are set
+    # up. While this is safe, it can be very costly.  If :deploy_to is set to '/mnt/myapp-production', for instance,
+    # and we mount a new volume to /mnt, then everything in /mnt will go away and need to be reconstituted.  Rubber
+    # ensures that the correct thing will happen, so there's no correctness issue.  But, if any of those callbacks ran
+    # something like :update_code_for_bootstrap, then several costly operations will be run twice, such as uploading
+    # the code to be deployed and bundle installing gems.  The first time will be in that callback, the second time
+    # will be as part of the normal deploy, after /mnt has been remounted and thus, cleared.
+    #
+    # In order to avoid effectively deploying the app twice in many circumstances, we rebind all
+    # "after 'rubber:install_packages'" callbacks to be "after 'rubber:setup_volumes'".  This allows end-user
+    # configuration to still hook after package installation for normal case operation, while allowing rubber to run
+    # semi-performantly when bootstrapping.
+
+    rebind_after_install_packages_callbacks('rubber:setup_volumes')
+
     link_bash
     set_timezone
     enable_multiverse
     install_core_packages
     upgrade_packages
-
-    # Install packages without callbacks first so anything needed for volume creation, formatting and so on is
-    # installed first. The reason we don't want any 'after :install_packages' callbacks called yet is the act of
-    # creating and mounting additional volumes may mean costly custom installation or bootstrap work is discarded and
-    # must be performed again.
-    install_packages_without_callbacks
-
-    setup_volumes
-
-    # Given that :install_packages_without_callbacks has already been called, you might be wondering why we need to
-    # call :install_packages at all.  While the task itself should no-op, since packages have already been installed,
-    # we need to call this so any 'after :install_packages' callbacks have an opportunity to run.
     install_packages
-
+    setup_volumes
     setup_gem_sources
     install_gems
     deploy.setup
@@ -394,14 +400,6 @@ namespace :rubber do
     be an array of strings.
   DESC
   task :install_packages do
-    package_helper(false)
-  end
-
-  desc <<-DESC
-    Identical to the :install_packages task, but should never have callbacks
-    attached to it.  This will break or slow down if you do add callbacks.
-  DESC
-  task :install_packages_without_callbacks do
     package_helper(false)
   end
 
