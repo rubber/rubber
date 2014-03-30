@@ -27,6 +27,7 @@ namespace :rubber do
     link_bash
     set_timezone
     enable_multiverse
+    configure_package_manager_mirror
     install_core_packages
     upgrade_packages
     install_packages
@@ -346,6 +347,16 @@ namespace :rubber do
 
       provider_records = provider.find_host_records(:host => '*', :type => '*', :domain => rubber_env.domain)
       puts({'dns_records' => provider_records.collect {|r| Rubber::Util.stringify_keys(r)}}.to_yaml)
+    end
+  end
+
+  desc <<-DESC
+    Updates the mirror used for the primary packages installed by the package manager.
+  DESC
+  task :configure_package_manager_mirror do
+    if rubber_env.package_manager_mirror
+      # This will swap out deb lines that point at a URL while skipping over sources like "deb cdrom".
+      rsudo "sed -i.bak -r \"s/(deb|deb-src) [^ :]+:\\/\\/[^ ]+ (.*)/\\1 #{rubber_env.package_manager_mirror.gsub('/', '\\/')} \\2/g\" /etc/apt/sources.list"
     end
   end
 
