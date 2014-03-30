@@ -11,11 +11,32 @@ namespace :rubber do
     enable_multiverse
     install_core_packages
     upgrade_packages
-    install_packages
+
+    # Install packages without callbacks first so anything needed for volume creation, formatting and so on is
+    # installed first. The reason we don't want any 'after :install_packages' callbacks called yet is the act of
+    # creating and mounting additional volumes may mean costly custom installation or bootstrap work is discarded and
+    # must be performed again.
+    install_packages_without_callbacks
+
     setup_volumes
+
+    # Given that :install_packages_without_callbacks has already been called, you might be wondering why we need to
+    # call :install_packages at all.  While the task itself should no-op, since packages have already been installed,
+    # we need to call this so any 'after :install_packages' callbacks have an opportunity to run.
+    install_packages
+
     setup_gem_sources
     install_gems
     deploy.setup
+  end
+
+  def rebind_after_install_packages_callbacks(new_after_task)
+    install_package_task = find_task(:install_packages)
+
+    after_install_packages_callbacks = []
+    callbacks[:after].delete_if { |c| after_install_packages_callbacks << c if c.applies_to?(install_package_task) }
+
+    after_install_packages_callbacks.each { |c| after(new_after_task, c.source) }
   end
 
   # Sets up instance to allow root access (e.g. recent canonical AMIs)
@@ -373,6 +394,14 @@ namespace :rubber do
     be an array of strings.
   DESC
   task :install_packages do
+    package_helper(false)
+  end
+
+  desc <<-DESC
+    Identical to the :install_packages task, but should never have callbacks
+    attached to it.  This will break or slow down if you do add callbacks.
+  DESC
+  task :install_packages_without_callbacks do
     package_helper(false)
   end
 
