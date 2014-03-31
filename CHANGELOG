@@ -1,3 +1,27 @@
+2.8.0 (03/30/2014)
+
+New Features:
+============
+
+[base, core] Added the ability to specify a package manager mirror for faster package installation. <a127846>
+
+Improvements:
+============
+
+[base] Use binstubs if available in the rubber script since it can be much faster, particularly on JRuby. <eefa30e>
+[core] Suppress dpkg output to cut down on noise in setting up iptables firewall rules. <59997aa>
+[core] Only upload the rubber config once, rather than everytime run_config is called. <1b14e73>
+[core] There's no need to specially upload rubber config files when using a non-SCM deploy strategy. <3227440>
+[core] Prevent tasks from running multiple times if mounting a volume to a location that would blow away the deploy directory. <c222684>
+[core] Sped up config file transformation a bit by cutting down on file system operations. <5623fac>
+[core] Defer loading of rubber encryption code until it's actually needed.
+
+Bug Fixes:
+=========
+
+[core] Fixed a bad env var reference in setting up iptables firewall rules. <1dc844a>
+
+
 2.7.5 (03/28/2014)
 
 Improvements:
