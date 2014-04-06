@@ -50,7 +50,7 @@ namespace :rubber do
     end
 
     def config_path
-      release_path + rubber_cfg.environment.config_root.sub(/^#{Rubber.root}\/?/, '')
+      File.join(release_path, rubber_cfg.environment.config_root.sub(/^#{Rubber.root}\/?/, ''))
     end
 
   end
