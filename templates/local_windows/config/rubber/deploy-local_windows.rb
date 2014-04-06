@@ -17,19 +17,40 @@ on :load do
 
 end
 
-after "deploy:update_code", "deploy:local_windows:dos2unix_code"
-
-namespace :deploy do
+namespace :rubber do
 
   namespace :local_windows do
 
-    desc <<-DESC
-      Converts Windows-style line endings (CR+LF) to Unix-style (LF)
-      after code has been copied to remote server.
-    DESC
+    # Run dos2unix on code only if it has been deployed via copy
+    if ENV.has_key?('FIX_LINE_ENDINGS') || (Rubber.config.local_windows? && (fetch(:deploy_via, nil) == :copy))
+      after "deploy:update_code", "rubber:local_windows:dos2unix_code"
+    end
 
+    # Always run dos2unix each time config is pushed, as the Rubber secret file is always pushed via copy
+    if ENV.has_key?('FIX_LINE_ENDINGS') || Rubber.config.local_windows?
+      after "rubber:config:push", "rubber:local_windows:dos2unix_config"
+    end
+
+    desc <<-DESC
+      Converts remote code files to Windows-style line endings (CR+LF) to Unix-style (LF)
+    DESC
     task :dos2unix_code, :except => { :platform => 'windows' } do
-      rsudo "find #{release_path} -type f -exec dos2unix -q {} \\;" if rubber_env.use_dos2unix
+      run_dos2unix release_path
+    end
+
+    desc <<-DESC
+      Converts remote config files to Windows-style line endings (CR+LF) to Unix-style (LF)
+    DESC
+    task :dos2unix_config, :except => { :platform => 'windows' } do
+      run_dos2unix config_path
+    end
+
+    def run_dos2unix(path)
+      rsudo "find #{path} -type f -exec dos2unix -q {} \\;"
+    end
+
+    def config_path
+      release_path + rubber_cfg.environment.config_root.sub(/^#{Rubber.root}\/?/, '')
     end
 
   end

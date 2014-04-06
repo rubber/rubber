@@ -62,7 +62,6 @@ module Rubber
         gen.no_post = no_post?
         gen.force = force?
         gen.stop_on_error_cmd = env.stop_on_error_cmd
-        gen.use_dos2unix = env.use_dos2unix
         gen.run
 
       end

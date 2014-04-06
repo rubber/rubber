@@ -1,13 +1,4 @@
 # dos2unix is a utility which converts line-endings from Windows- to Unix-style.
 # It does not change files which are already Unix format.
 #
-# Set use_dos2unix = true if you are ever copying code or config files
-# from Windows to Unix, i.e. look for either of these lines in deploy.rb:
-#
-#   set :deploy_via, :copy
-#
-#   set :push_instance_config, true
-#
-use_dos2unix: true
-
 packages: [dos2unix]
