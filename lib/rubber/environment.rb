@@ -53,7 +53,11 @@ module Rubber
         @config_secret = bound.rubber_secret
         if @config_secret
 
-          # Secret file is moved to config dir on remote servers
+          # The config_secret value should point to a file outside of the project directory. When run locally, rubber
+          # will be able to read this file directly. In order to support deploys without having to commit this file,
+          # rubber will SCP the file up as part of the deploy. In that case, the file can be found in config_root and
+          # will have the same base name. If the file doesn't exist locally, we'll assume it's a deployed location
+          # and read the file from config_root.
           @config_secret = "#{@config_root}/#{File.basename(@config_secret)}" unless File.exist?(@config_secret)
 
           obfuscation_key = bound.rubber_secret_key
