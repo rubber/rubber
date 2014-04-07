@@ -52,6 +52,10 @@ module Rubber
         bound = bind()
         @config_secret = bound.rubber_secret
         if @config_secret
+
+          # Secret file is moved to config dir on remote servers
+          @config_secret = "#{@config_root}/#{File.basename(@config_secret)}" unless File.exist?(@config_secret)
+
           obfuscation_key = bound.rubber_secret_key
           if obfuscation_key
             require 'rubber/encryption'
