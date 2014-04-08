@@ -6,6 +6,13 @@ require 'monitor'
 
 module Rubber
   module Configuration
+
+    class SecretFileNotFoundError < StandardError
+      def initialize(filename)
+        super "Rubber secret file #{File.basename(filename)} not found."
+      end
+    end
+
     # Contains the configuration defined in rubber.yml
     # Handles selecting of correct config values based on
     # the host/role passed into bind
@@ -59,6 +66,9 @@ module Rubber
           # will have the same base name. If the file doesn't exist locally, we'll assume it's a deployed location
           # and read the file from config_root.
           @config_secret = "#{@config_root}/#{File.basename(@config_secret)}" unless File.exist?(@config_secret)
+
+          # Raise error if secret file is configured but missing in both local and config dirs
+          raise SecretFileNotFoundError.new(@config_secret) unless File.exist?(@config_secret)
 
           obfuscation_key = bound.rubber_secret_key
           if obfuscation_key
