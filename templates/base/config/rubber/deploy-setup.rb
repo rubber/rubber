@@ -74,27 +74,21 @@ namespace :rubber do
       ENDSCRIPT
     end
 
-    before "rubber:enable_multiverse", "rubber:base:add_raring_repo"
-    task :add_raring_repo do
-     # Make sure that ec2-ami-tools pinning policy exists before adding repo
-     # Pinning policy sets higher priority for raring repo only for ec2-ami-tools package
-     # Every other package should still use precise repo as primary for Ubuntu 12.04 OS
-    sudo_script 'add_raring_repo', <<-ENDSCRIPT
-cat > /etc/apt/preferences.d/ec2-api-tools-pin-50 << EOF
-
-#Set low priority to raring repo(50) against default precise repo(500)
-Package: *
-Pin: release o=Ubuntu,a=raring,n=raring
-Pin-Priority: 50
-
-#Set high priority for raring repo only for ec2-ami-tools package
-Package: ec2-ami-tools
-Pin: release o=Ubuntu,a=raring,n=raring
-Pin-Priority: 700
-
-EOF
-
-     echo "deb http://us.archive.ubuntu.com/ubuntu/ raring multiverse" > /etc/apt/sources.list.d/ubuntu-raring-source.list
+    before "rubber:enable_multiverse", "rubber:base:install_ec2_ami_tools"
+    task :install_ec2_ami_tools do
+    #Install EC2 AMI tools
+    sudo_script 'install_ec2_ami_tools', <<-ENDSCRIPT
+     dpkg --list | grep ec2 | grep ec2-ami-tools > /dev/null && apt-get -y --purge remove ec2-ami-tools > /dev/null
+     if [ ! -f /usr/bin/ec2-bundle-vol ];then
+       cd /tmp
+       if ls ec2-ami-tools* &> /dev/null;then rm -rf ec2-ami-tools* ;fi
+       wget -q http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.zip
+       unzip -qq ec2-ami-tools.zip
+       cd ec2-ami-tools*
+       cp -rp bin/* /usr/bin/
+       cp -rp lib/ec2 /usr/lib/
+       cp -rp etc/ec2 /usr/
+     fi
     ENDSCRIPT
     end
 
