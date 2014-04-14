@@ -74,7 +74,7 @@ namespace :rubber do
       ENDSCRIPT
     end
 
-    before "rubber:enable_multiverse", "rubber:base:install_ec2_ami_tools"
+    after "rubber:install_packages", "rubber:base:install_ec2_ami_tools"
     task :install_ec2_ami_tools do
     #Install EC2 AMI tools
     sudo_script 'install_ec2_ami_tools', <<-ENDSCRIPT
