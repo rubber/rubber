@@ -87,7 +87,7 @@ namespace :rubber do
        cd ec2-ami-tools*
        cp -rp bin/* /usr/bin/
        cp -rp lib/ec2 /usr/lib/
-       cp -rp etc/ec2 /usr/
+       cp -rp etc /usr/
      fi
     ENDSCRIPT
     end
