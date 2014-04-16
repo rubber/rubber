@@ -396,7 +396,8 @@ namespace :rubber do
   DESC
   task :install_core_packages do
     core_packages = [
-        'python-software-properties', # Needed for add-apt-repository, which we use for adding PPAs.
+        'python-software-properties', # Needed for add-apt-repository (<= Ubuntu 12.04), which we use for adding PPAs.
+        'software-properties-common', # Needed for add-apt-repository (> Ubuntu 12.04), which we use for adding PPAs.
         'bc',                         # Needed for comparing version numbers in bash, which we do for various setup functions.
         'update-notifier-common',     # Needed for notifying us when a package upgrade requires a reboot.
         'scsitools'                   # Needed to rescan SCSI channels for any added devices.
