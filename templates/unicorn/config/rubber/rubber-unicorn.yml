@@ -1,3 +1,6 @@
+unicorn_num_workers: 2
+unicorn_pid_file: /var/run/unicorn.pid
+
 role_dependencies:
   unicorn: [nginx]
 roles:
