@@ -1,32 +1,43 @@
 namespace :rubber do
- 
+
   namespace :delayed_job do
-    
+
     rubber.allow_optional_tasks(self)
-    
+
     after "deploy:stop",    "rubber:delayed_job:stop"
     after "deploy:start",   "rubber:delayed_job:start"
     after "deploy:restart", "rubber:delayed_job:restart"
-    
+
     def args
-      rubber_env.delayed_job_args || "-n #{rubber_env.num_delayed_job_workers}"
+      rubber_env.delayed_job_args || "-n #{rubber_env.num_delayed_job_workers} --pid-dir=#{rubber_env.delayed_job_pid_dir}"
     end
- 
+
     desc "Stop the delayed_job process"
     task :stop, :roles => :delayed_job do
-      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} script/delayed_job stop #{self.args}", :as => rubber_env.app_user
+      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} bundle exec script/delayed_job stop #{self.args}"
     end
- 
+
     desc "Start the delayed_job process"
     task :start, :roles => :delayed_job do
-      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} script/delayed_job start #{self.args}", :as => rubber_env.app_user
+      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} bundle exec script/delayed_job start #{self.args}"
     end
- 
+
     desc "Restart the delayed_job process"
     task :restart, :roles => :delayed_job do
-      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} script/delayed_job restart #{self.args}", :as => rubber_env.app_user
+      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} bundle exec script/delayed_job restart #{self.args}"
     end
- 
+
+    desc "Forcefully kills the delayed_job process"
+    task :kill, :roles => :delayed_job do
+      rsudo "pkill -9 -f [d]elayed_job || true"
+      rsudo "rm -r -f #{rubber_env.delayed_job_pid_dir}/delayed_job.*"
+    end
+
+    desc "Display status of the delayed_job process"
+    task :status, :roles => :delayed_job do
+      rsudo 'ps -eopid,user,cmd | grep [d]elayed_job || true'
+    end
+
     desc "Live tail of delayed_job log files for all machines"
     task :tail_logs, :roles => :delayed_job do
       last_host = ""

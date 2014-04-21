@@ -1,1 +1,2 @@
 num_delayed_job_workers: 1
+delayed_job_pid_dir: "/var/run"
