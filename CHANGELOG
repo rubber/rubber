@@ -1,3 +1,16 @@
+2.8.1 (05/01/2014)
+
+Bug Fixes:
+=========
+
+[core] Detect alternate location of secret file when it is moved into the /config/rubber dir on remote servers. <9bd12ad>
+[core] Make sure add-apt-repository is available on Ubuntu > 12.04. <36c423d>
+[core] Fixed compatibility with Vagrant 1.5.x. <55416f8>
+[selenium_grid_hub] Replaced hard-coded app user with app_user variable. <afc7e9c>
+[selenium_grid_hub] Fixed dynamic MaxPermSize. <abd46cd>
+[web_tools] Underscores aren't valid in hostname, so convert to hyphens like we do everywhere else. <bbe0b81>
+
+
 2.8.0 (03/30/2014)
 
 New Features:
