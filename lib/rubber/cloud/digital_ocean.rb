@@ -3,7 +3,7 @@ require 'rubber/cloud/fog'
 module Rubber
   module Cloud
 
-    class DigitalOcean < Fog
+    class DigitalOcean < Fog      
 
       def initialize(env, capistrano)
         compute_credentials = {
@@ -29,10 +29,17 @@ module Rubber
         super(env, capistrano)
       end
 
+      # Currently New York 2 (id 4) supports private networking
+      REGIONS_WITH_PRIVATE_NETWORKING = [4]
+
       def create_instance(instance_alias, image_name, image_type, security_groups, availability_zone, region)
         do_region = compute_provider.regions.find { |r| r.name == region }
         if do_region.nil?
           raise "Invalid region for DigitalOcean: #{region}"
+        end
+
+        if env.private_networking && ! REGIONS_WITH_PRIVATE_NETWORKING.include?(do_region.id)
+          raise "Private networking is enabled, but region #{region} does not support it"
         end
 
         image = compute_provider.images.find { |i| i.name == image_name }
