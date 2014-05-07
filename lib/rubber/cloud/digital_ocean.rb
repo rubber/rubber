@@ -56,11 +56,14 @@ module Rubber
           end
         end
 
+        puts "#{Rubber.env}-#{instance_alias}"
+
         response = compute_provider.servers.create(:name => "#{Rubber.env}-#{instance_alias}",
                                                    :image_id => image.id,
                                                    :flavor_id => flavor.id,
                                                    :region_id => do_region.id,
-                                                   :ssh_key_ids => [ssh_key['id']])
+                                                   :ssh_key_ids => [ssh_key['id']],
+                                                   :private_networking => !!env.private_networking)
 
         response.id
       end
@@ -81,7 +84,7 @@ module Rubber
           instance[:state] = item.state
           instance[:type] = item.flavor_id
           instance[:external_ip] = item.public_ip_address
-          instance[:internal_ip] = item.public_ip_address
+          instance[:internal_ip] = item.private_ip_address || item.public_ip_address
           instance[:region_id] = item.region_id
           instance[:provider] = 'digital_ocean'
           instance[:platform] = Rubber::Platforms::LINUX
