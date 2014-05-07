@@ -56,8 +56,6 @@ module Rubber
           end
         end
 
-        puts "#{Rubber.env}-#{instance_alias}"
-
         response = compute_provider.servers.create(:name => "#{Rubber.env}-#{instance_alias}",
                                                    :image_id => image.id,
                                                    :flavor_id => flavor.id,
