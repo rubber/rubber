@@ -1,6 +1,0 @@
-<%
-  @path = "#{rubber_env.splunk_forwarder_dir}/etc/apps/<%= rubber_env.app_name %>/metadata/local.meta"
-%>
-[]
-access = read : [ * ], write : [ admin ]
-export = system
