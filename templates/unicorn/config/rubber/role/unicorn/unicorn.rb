@@ -2,7 +2,7 @@
   @path = "#{Rubber.root}/config/unicorn.rb"
   current_path = "/mnt/#{rubber_env.app_name}-#{Rubber.env}/current"
 %>
-worker_processes 2
+worker_processes <%= rubber_env.num_cores %>
 working_directory "<%= Rubber.root %>"
 
 # This loads the application in the master process before forking

@@ -29,6 +29,10 @@ module Rubber
         @config_files << env_yml if File.exist?(env_yml)
         
         @items = {}
+
+        # some information about the current host
+        @items["num_cores"] = File.read("/proc/cpuinfo").scan(/processor\s+:/).size
+
         @config_files.each { |file| read_config(file) }
 
         read_secret_config
