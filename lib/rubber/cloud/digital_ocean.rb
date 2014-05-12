@@ -3,7 +3,7 @@ require 'rubber/cloud/fog'
 module Rubber
   module Cloud
 
-    class DigitalOcean < Fog      
+    class DigitalOcean < Fog
 
       def initialize(env, capistrano)
         compute_credentials = {
