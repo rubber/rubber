@@ -31,7 +31,6 @@ class DigitalOceanTest < Test::Unit::TestCase
         env = {
           'client_key' => "XXX",
           'api_key' => "YYY",
-          'region' => 'New York 1',
           'key_file' => "#{File.dirname(__FILE__)}/../fixtures/basic/test.pem",
           'private_networking' => true
         }
@@ -45,7 +44,6 @@ class DigitalOceanTest < Test::Unit::TestCase
         env = {
           'client_key' => "XXX",
           'api_key' => "YYY",
-          'region' => 'New York 1',
           'key_file' => "#{File.dirname(__FILE__)}/../fixtures/basic/test.pem",
           'private_networking' => true
         }
