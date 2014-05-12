@@ -11,20 +11,27 @@ namespace :rubber do
     def args
       rubber_env.delayed_job_args || "-n #{rubber_env.num_delayed_job_workers}"
     end
+
+    def script_location
+      bin_location = "bin/delayed_job"
+      script_location = "script/delayed_job"
+
+      File.exists?(bin_location) ? bin_location : script_location
+    end
  
     desc "Stop the delayed_job process"
     task :stop, :roles => :delayed_job do
-      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} script/delayed_job stop #{self.args}", :as => rubber_env.app_user
+      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} #{self.script_location} stop #{self.args}", :as => rubber_env.app_user
     end
  
     desc "Start the delayed_job process"
     task :start, :roles => :delayed_job do
-      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} script/delayed_job start #{self.args}", :as => rubber_env.app_user
+      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} #{self.script_location} start #{self.args}", :as => rubber_env.app_user
     end
  
     desc "Restart the delayed_job process"
     task :restart, :roles => :delayed_job do
-      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} script/delayed_job restart #{self.args}", :as => rubber_env.app_user
+      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} #{self.script_location} restart #{self.args}", :as => rubber_env.app_user
     end
  
     desc "Live tail of delayed_job log files for all machines"
