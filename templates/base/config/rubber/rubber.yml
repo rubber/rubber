@@ -107,7 +107,11 @@ cloud_providers:
     #
     # Options include
     # New York 1
+    # Amsterdam 1
     # San Francisco 1
+    # New York 2
+    # Amsterdam 2
+    # Singapore 1
     #
     # These change often.  Check https://www.digitalocean.com/droplets/new for the most up to date options.
     region: New York 1
