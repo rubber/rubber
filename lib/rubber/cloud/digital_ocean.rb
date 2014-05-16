@@ -68,7 +68,7 @@ module Rubber
                                                    :flavor_id => flavor.id,
                                                    :region_id => do_region.id,
                                                    :ssh_key_ids => [ssh_key['id']],
-                                                   :private_networking => !!env.private_networking)
+                                                   :private_networking => (env.private_networking.to_s.downcase == 'true'))
 
         response.id
       end
