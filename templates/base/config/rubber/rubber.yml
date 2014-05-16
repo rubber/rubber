@@ -114,14 +114,16 @@ cloud_providers:
     # Singapore 1
     #
     # These change often.  Check https://www.digitalocean.com/droplets/new for the most up to date options.
-    region: New York 1
+    # Default to New York 2 since this is the only region that currently supports private networking
+    region: New York 2
 
     # REQUIRED: The image name and type for creating instances.
     image_id: Ubuntu 12.04.4 x64
     image_type: 512MB
 
-    # OPTIONAL: Whether to enable private networking for your instances.  This is currently only supported in New York 2
-    # private_networking: true
+    # Optionally enable private networking for your instances.
+    # This is currently only supported in New York 2.
+    private_networking: true
 
   # Use an alternate cloud provider supported by fog.  This doesn't fully work
   # yet due to differences in providers within fog, but gives you a starting
