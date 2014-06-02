@@ -4,7 +4,7 @@ New Features:
 ============
 
 [core] Added support for private networking in Digital Ocean. <aee6114, c2c2059, 83fa02e, dbced9d, b1c9564, 54d6405, 55f7e13, bc1a05a>
-[local_windows] Support for using rubber on Windows. <738cd3f, dd049bf, bd82f2a, 6bd51e7, f199cad, cfa3012, 329acad, 0b0afa3, 86bf2d0>
+[core, local_windows] Support for using rubber on Windows. <738cd3f, dd049bf, bd82f2a, 6bd51e7, f199cad, cfa3012, 329acad, 0b0afa3, 86bf2d0>
 
 Improvements:
 ============
