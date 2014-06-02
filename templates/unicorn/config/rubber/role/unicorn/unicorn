@@ -10,9 +10,9 @@ set -e
 # since nginx and unicorn accept the same signals
 
 # Feel free to change any of the following variables for your app:
-TIMEOUT=${TIMEOUT-60}
+TIMEOUT=${TIMEOUT-600}
 APP_ROOT=<%= current_path %>
-PID=/var/run/unicorn.pid
+PID=<%= rubber_env.unicorn_pid_file %>
 CMD="<%= "bundle exec unicorn_rails -c #{current_path}/config/unicorn.rb -E #{Rubber.env} -D" %>"
 action="$1"
 set -u
@@ -38,7 +38,7 @@ stop)
   sig QUIT && exit 0
   echo >&2 "Not running"
   ;;
-force-stop)
+kill)
   sig TERM && exit 0
   echo >&2 "Not running"
   ;;
@@ -50,42 +50,52 @@ restart|reload)
 upgrade)
   if sig USR2
   then
-    printf 'Waiting for new workers'
+    printf 'Waiting for new Unicorn workers'
     n=$TIMEOUT
     while (! (test -s $PID && ps --no-headers --ppid `cat $PID` > /dev/null)) && test $n -ge 0
     do
-      printf '.' && sleep 1 && n=$(( $n - 1 ))
+      printf '.' && sleep 10 && n=$(( $n - 10 ))
     done
-    if test ! -s $old_pid
+
+    if test $n -lt 0 && (! (test -s $PID && ps --no-headers --ppid `cat $PID` > /dev/null))
     then
+      echo >&2 "$PID process does not exist after $TIMEOUT seconds"
+      exit 1
+    fi
+    printf '\nNew Unicorn workers started'
+
+    if test -s $old_pid
+    then
+      printf '\nWaiting for old Unicorn master to stop'
+      n=$TIMEOUT
+      while test -s $old_pid && test $n -ge 0
+      do
+        printf '.' && sleep 10 && n=$(( $n - 10 ))
+      done
       echo
-      echo >&2 'New workers failed to start; see error log'
-      exit 1
-    fi
-    printf '\nStopping old master' && oldsig QUIT
 
-    n=$TIMEOUT
-    while test -s $old_pid && test $n -ge 0
-    do
-      printf '.' && sleep 1 && n=$(( $n - 1 ))
-    done
-    echo
-
-    if test $n -lt 0 && test -s $old_pid
-    then
-      echo >&2 "$old_pid still exists after $TIMEOUT seconds"
-      exit 1
+      if test $n -lt 0 && test -s $old_pid
+      then
+        echo >&2 "$old_pid still exists after $TIMEOUT seconds"
+        exit 1
+      fi
     fi
+
+    printf '\nOld Unicorn master stopped'
     exit 0
   fi
   echo >&2 "Couldn't upgrade, starting '$CMD' instead"
   $CMD
   ;;
+status)
+  sig 0 && echo >&2 "Running" && exit 1
+  echo >&2 "Stopped" && exit 0
+  ;;
 reopen-logs)
   sig USR1
   ;;
 *)
-  echo >&2 "Usage: $0 <start|stop|restart|upgrade|force-stop|reopen-logs>"
+  echo >&2 "Usage: $0 <start|stop|restart|upgrade|kill|status|reopen-logs>"
   exit 1
   ;;
 esac
