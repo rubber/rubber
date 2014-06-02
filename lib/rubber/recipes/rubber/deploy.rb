@@ -74,29 +74,37 @@ namespace :rubber do
   end
 
   def push_config
+    unless fetch(:rubber_config_files_pushed, false)
+      # Need to do this so we can work with staging instances without having to
+      # checkin instance file between create and bootstrap, as well as during a deploy
+      #
+      # If we're not using an SCM to deploy, then the code must've been uploaded via
+      # some strategy that would copy all the files from the local machine, so there's
+      # no need to do a special file upload operation. That's only necessary when using an SCM
+      # and not wanting to commit files in-progress.
+      if fetch(:push_instance_config, false) && (fetch(:scm, nil) != :none)
+        push_files = rubber_cfg.environment.config_files
 
-    # Need to do this so we can work with staging instances without having to
-    # checkin instance file between create and bootstrap, as well as during a deploy
-    if fetch(:push_instance_config, false)
-      push_files = rubber_cfg.environment.config_files
+        # If we're using a local instance file, push that up.  This isn't necessary when storing in S3 or SimpleDB.
+        if rubber_instances.instance_storage =~ /^file:(.*)/
+          location = $1
+          push_files << location
+        end
 
-      # If we're using a local instance file, push that up.  This isn't necessary when storing in S3 or SimpleDB.
-      if rubber_instances.instance_storage =~ /^file:(.*)/
-        location = $1
-        push_files << location
+        push_files.each do |file|
+          dest_file = file.sub(/^#{Rubber.root}\/?/, '')
+          put(File.read(file), File.join(config_path, dest_file), :mode => "+r")
+        end
       end
 
-      push_files.each do |file|
-        dest_file = file.sub(/^#{Rubber.root}\/?/, '')
-        put(File.read(file), File.join(config_path, dest_file), :mode => "+r")
+      # if the user has defined a secret config file, then push it into Rubber.root/config/rubber
+      secret = rubber_cfg.environment.config_secret
+      if secret && File.exist?(secret)
+        base = rubber_cfg.environment.config_root.sub(/^#{Rubber.root}\/?/, '')
+        put(File.read(secret), File.join(config_path, base, File.basename(secret)), :mode => "+r")
       end
-    end
 
-    # if the user has defined a secret config file, then push it into Rubber.root/config/rubber
-    secret = rubber_cfg.environment.config_secret
-    if secret && File.exist?(secret)
-      base = rubber_cfg.environment.config_root.sub(/^#{Rubber.root}\/?/, '')
-      put(File.read(secret), File.join(config_path, base, File.basename(secret)), :mode => "+r")
+      set :rubber_config_files_pushed, true
     end
   end
 
