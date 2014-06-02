@@ -2,6 +2,7 @@ require 'yaml'
 require 'socket'
 require 'delegate'
 require 'monitor'
+require 'rbconfig'
 
 
 module Rubber
@@ -250,7 +251,19 @@ module Rubber
 
           global
         end
-        
+
+        def local_platform
+          RbConfig::CONFIG['host_os'] =~ /mswin|mingw/ ? 'windows' : 'posix'
+        end
+
+        def local_windows?
+          local_platform == 'windows'
+        end
+
+        def local_posix?
+          local_platform == 'posix'
+        end
+
         def method_missing(method_id)
           self[method_id.id2name]
         end
