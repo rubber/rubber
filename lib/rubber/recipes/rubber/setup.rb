@@ -164,7 +164,7 @@ namespace :rubber do
           end
         end
 
-        hosts_data.each do |host_name|
+        hosts_data.compact.each do |host_name|
           local_hosts << ic.external_ip.ljust(18) << host_name << "\n"
         end
 
@@ -183,7 +183,7 @@ namespace :rubber do
           end
         end
 
-        local_hosts << ic.external_ip << ' ' << hosts_data.join(' ') << "\n"
+        local_hosts << ic.external_ip << ' ' << hosts_data.compact.join(' ') << "\n"
       end
     end
 
