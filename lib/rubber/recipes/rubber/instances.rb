@@ -633,7 +633,7 @@ namespace :rubber do
       end
     rescue
       error_msg = "Failed to modify #{filepath} on local machine."
-      error_msg += " Please ensure you are running command as Adminstrator." if rubber_env.local_windows?
+      error_msg += " Please ensure you are running command as Administrator." if rubber_env.local_windows?
       abort error_msg
     end
   end
