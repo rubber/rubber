@@ -4,34 +4,14 @@ namespace :rubber do
   
     rubber.allow_optional_tasks(self)
   
-    after "rubber:install_gems", "rubber:passenger_nginx:custom_install"
-    
-    task :custom_install, :roles => :passenger_nginx do
-      rubber.sudo_script 'install_passenger_nginx', <<-ENDSCRIPT
-        # Check if there is an nginx with the required version and passenger built in.
-        if [ -x /usr/sbin/nginx ]
-          then echo 'Found nginx on system'
-          if [ $(find #{rubber_env.ruby_path} -regex .*passenger-#{rubber_env.passenger_version}.*PassengerWatchdog | wc -l) -gt 0 ]
-            then echo 'Found passenger-nginx-module on system'
-            pax=$(/usr/sbin/nginx -V 2>&1 | awk '/nginx\\/#{rubber_env.nginx_version}/{a++}/passenger-#{rubber_env.passenger_version}/{b++} END {print a&&b}')
-            if [ $pax -eq 1 ]
-              then echo 'Nginx/Passenger version matches'
-              exit 0
-            fi
-          fi
-        fi
-        # Lets install
-        echo 'Installing / Upgrading nginx #{rubber_env.nginx_version}'
-        TMPDIR=`mktemp -d` || exit 1
-        cd $TMPDIR
-        echo 'Downloading'
-        wget -qN http://nginx.org/download/nginx-#{rubber_env.nginx_version}.tar.gz
-        echo 'Unpacking'
-        tar xf nginx-#{rubber_env.nginx_version}.tar.gz
-        passenger-install-nginx-module --auto --prefix=/opt/nginx --nginx-source-dir=$TMPDIR/nginx-#{rubber_env.nginx_version} --extra-configure-flags="--conf-path=/etc/nginx/nginx.conf --error-log-path=/var/log/nginx/error.log --http-log-path=/var/log/nginx/access.log --lock-path=/var/lock/nginx.lock --pid-path=/var/run/nginx.pid --sbin-path=/usr/sbin/nginx --with-http_gzip_static_module"
+    before "rubber:install_packages", "rubber:passenger_nginx:setup_apt_sources"
+    task :setup_apt_sources do
+      rubber.sudo_script 'configure_passenger_nginx_repository', <<-ENDSCRIPT
+        apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 561F9B9CAC40B2F7
+        add-apt-repository -y https://oss-binaries.phusionpassenger.com/apt/passenger
       ENDSCRIPT
     end
-
+  
     after "rubber:setup_app_permissions", "rubber:passenger_nginx:setup_passenger_permissions"
 
     task :setup_passenger_permissions, :roles => :passenger_nginx do
@@ -69,19 +49,6 @@ namespace :rubber do
     desc "Reloads the nginx web server"
     task :reload, :roles => :passenger_nginx do
       serial_reload
-    end
-    
-    
-    deploy.task :restart, :roles => :passenger_nginx do
-    end
-    
-    deploy.task :reload, :roles => :passenger_nginx do
-    end
-    
-    deploy.task :stop, :roles => :passenger_nginx do
-    end
-    
-    deploy.task :start, :roles => :passenger_nginx do
     end
     
   end

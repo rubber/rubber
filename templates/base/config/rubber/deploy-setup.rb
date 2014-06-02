@@ -54,6 +54,8 @@ namespace :rubber do
 
         echo "export RUBYOPT=rubygems\nexport PATH=#{rubber_env.ruby_path}/bin:$PATH" > /etc/profile.d/ruby.sh
         echo "--- \ngem: --no-ri --no-rdoc" > /etc/gemrc
+        update-alternatives --install /usr/bin/ruby ruby #{rubber_env.ruby_path}/bin/ruby 100
+        update-alternatives --set ruby #{rubber_env.ruby_path}/bin/ruby
       fi
       ENDSCRIPT
     end
