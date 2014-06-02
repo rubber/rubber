@@ -205,7 +205,7 @@ namespace :rubber do
           end
         rescue
           error_msg = "Could not modify #{hosts_file} on local machine."
-          error_msg += " Please ensure you are running command as Adminstrator." if rubber_env.local_windows?
+          error_msg += ' Please ensure you are running command as Administrator.'
           abort error_msg
         end
       else # non-Windows OS
