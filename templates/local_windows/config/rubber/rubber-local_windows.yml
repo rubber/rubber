@@ -1,0 +1,4 @@
+# dos2unix is a utility which converts line-endings from Windows- to Unix-style.
+# It does not change files which are already Unix format.
+#
+packages: [dos2unix]

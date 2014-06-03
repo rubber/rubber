@@ -2,7 +2,7 @@
   @path = "#{Rubber.root}/config/unicorn.rb"
   current_path = "/mnt/#{rubber_env.app_name}-#{Rubber.env}/current"
 %>
-worker_processes 2
+worker_processes <%= rubber_env.unicorn_num_workers %>
 working_directory "<%= Rubber.root %>"
 
 # This loads the application in the master process before forking
@@ -17,7 +17,7 @@ timeout 30
 # We will point the upstream Nginx module to this socket later on
 listen "/var/run/unicorn.sock", :backlog => 64
 
-pid "/var/run/unicorn.pid"
+pid "<%= rubber_env.unicorn_pid_file %>"
 
 # Set the path of the log files inside the log folder of the testapp
 stderr_path "<%= Rubber.root %>/log/unicorn.stderr.log"
@@ -41,12 +41,12 @@ before_fork do |server, worker|
   # we send it a QUIT.
   #
   # Using this method we get 0 downtime deploys.
-  old_pid = "/var/run/unicorn.pid.oldbin"
+  old_pid = server.config[:pid].sub('.pid', '.pid.oldbin')
   if File.exists?(old_pid) && server.pid != old_pid
     begin
       Process.kill("QUIT", File.read(old_pid).to_i)
     rescue Errno::ENOENT, Errno::ESRCH
-      # someone else did our job for us
+      STDERR.puts "WARNING: old Unicorn process was already killed before new process forked."
     end
   end
   
@@ -74,7 +74,7 @@ after_fork do |server, worker|
     end
   rescue => e
     if RAILS_ENV == 'development'
-      STDERR.puts "couldn't change user, oh well"
+      STDERR.puts "WARNING: could not set user on Unicorn workers."
     else
       raise e
     end

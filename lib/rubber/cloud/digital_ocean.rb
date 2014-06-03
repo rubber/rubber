@@ -29,10 +29,17 @@ module Rubber
         super(env, capistrano)
       end
 
+      # Currently New York 2 (id 4) supports private networking
+      REGIONS_WITH_PRIVATE_NETWORKING = [4]
+
       def create_instance(instance_alias, image_name, image_type, security_groups, availability_zone, region)
         do_region = compute_provider.regions.find { |r| r.name == region }
         if do_region.nil?
           raise "Invalid region for DigitalOcean: #{region}"
+        end
+
+        if env.private_networking && ! REGIONS_WITH_PRIVATE_NETWORKING.include?(do_region.id)
+          raise "Private networking is enabled, but region #{region} does not support it"
         end
 
         image = compute_provider.images.find { |i| i.name == image_name }
@@ -60,7 +67,8 @@ module Rubber
                                                    :image_id => image.id,
                                                    :flavor_id => flavor.id,
                                                    :region_id => do_region.id,
-                                                   :ssh_key_ids => [ssh_key['id']])
+                                                   :ssh_key_ids => [ssh_key['id']],
+                                                   :private_networking => (env.private_networking.to_s.downcase == 'true'))
 
         response.id
       end
@@ -81,7 +89,7 @@ module Rubber
           instance[:state] = item.state
           instance[:type] = item.flavor_id
           instance[:external_ip] = item.public_ip_address
-          instance[:internal_ip] = item.public_ip_address
+          instance[:internal_ip] = item.private_ip_address || item.public_ip_address
           instance[:region_id] = item.region_id
           instance[:provider] = 'digital_ocean'
           instance[:platform] = Rubber::Platforms::LINUX

@@ -7,7 +7,12 @@ class DigitalOceanTest < Test::Unit::TestCase
   context 'digital_ocean' do
 
     setup do
-      env = {'client_key' => "XXX", 'api_key' => "YYY", 'region' => 'New York 1', 'key_file' => "#{File.dirname(__FILE__)}/../fixtures/basic/test.pem"}
+      env = {
+        'client_key' => "XXX",
+        'api_key' => "YYY",
+        'region' => 'New York 1',
+        'key_file' => "#{File.dirname(__FILE__)}/../fixtures/basic/test.pem"
+      }
       env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil, nil)
       @cloud = Rubber::Cloud::DigitalOcean.new(env, nil)
     end
@@ -20,6 +25,38 @@ class DigitalOceanTest < Test::Unit::TestCase
     context '#create_instance' do
       should 'create instance' do
         assert @cloud.create_instance('my-instance', 'Ubuntu 12.04 x64', '512MB', [], '', 'New York 1')
+      end
+
+      should 'create instance with private networking enabled' do
+        env = {
+          'client_key' => "XXX",
+          'api_key' => "YYY",
+          'key_file' => "#{File.dirname(__FILE__)}/../fixtures/basic/test.pem",
+          'private_networking' => true
+        }
+
+        env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil, nil)
+
+        assert Rubber::Cloud::DigitalOcean.new(env, nil).create_instance('my-instance', 'Ubuntu 12.04 x64', '512MB', [], '', 'New York 2')
+      end
+
+      should 'raise error if region does not support private networking but private networking is enabled' do
+        env = {
+          'client_key' => "XXX",
+          'api_key' => "YYY",
+          'key_file' => "#{File.dirname(__FILE__)}/../fixtures/basic/test.pem",
+          'private_networking' => true
+        }
+
+        env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil, nil)
+
+        begin
+          Rubber::Cloud::DigitalOcean.new(env, nil).create_instance('my-instance', 'Ubuntu 12.04 x64', '512MB', [], '', 'New York 1')
+        rescue => e
+          assert_equal 'Private networking is enabled, but region New York 1 does not support it', e.message
+        else
+          fail 'Did not raise exception for region that does not support private networking'
+        end
       end
 
       should 'raise error if invalid region' do

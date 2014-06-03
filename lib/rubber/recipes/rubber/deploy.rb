@@ -28,26 +28,36 @@ namespace :rubber do
   after "deploy:rollback_code", "rubber:config"
   before "deploy:migrate", "rubber:config"
 
-  desc <<-DESC
+  namespace :config do
+
+    desc <<-DESC
+    Pushes and runs rubber configuration on the deployed rails application
+    DESC
+    task :default do
+      # Don't want to do rubber:config during bootstrap_db where it's triggered by
+      # deploy:update_code, because the user could be requiring the rails env inside
+      # some of their config templates (which fails because rails can't connect to
+      # the db)
+      if fetch(:rubber_updating_code_for_bootstrap_db, false)
+        logger.info "Updating code for bootstrap, skipping rubber:config"
+      else
+        rubber.config.push
+        rubber.config.configure
+      end
+    end
+
+    desc <<-DESC
+    Pushes instance config and rubber secret file to remote
+    DESC
+    task :push do
+      push_config
+    end
+
+    desc <<-DESC
     Configures the deployed rails application by running the rubber configuration process
-  DESC
-  task :config do
-    # Don't want to do rubber:config during bootstrap_db where it's triggered by
-    # deploy:update_code, because the user could be requiring the rails env inside
-    # some of their config templates (which fails because rails can't connect to
-    # the db)
-    if fetch(:rubber_updating_code_for_bootstrap_db, false)
-      logger.info "Updating code for bootstrap, skipping rubber:config"
-    else
-      opts = {}
-      opts[:no_post] = true if ENV['NO_POST']
-      opts[:force] = true if ENV['FORCE']
-      opts[:file] = ENV['FILE'] if ENV['FILE']
-
-      # when running deploy:migrations, we need to run config against release_path
-      opts[:deploy_path] = current_release if fetch(:migrate_target, :current).to_sym == :latest
-
-      run_config(opts)
+    DESC
+    task :configure do
+      run_config
     end
   end
 
@@ -63,13 +73,7 @@ namespace :rubber do
     rsudo "chown -R #{rubber_env.app_user}:#{rubber_env.app_user} #{current_path}/tmp"
   end
 
-  def run_config(options={})
-    path = options.delete(:deploy_path) || current_path
-    opts = ""
-    opts += " --no_post" if options[:no_post]
-    opts += " --force" if options[:force]
-    opts += " --file=\"#{options[:file]}\"" if options[:file]
-
+  def push_config
     unless fetch(:rubber_config_files_pushed, false)
       # Need to do this so we can work with staging instances without having to
       # checkin instance file between create and bootstrap, as well as during a deploy
@@ -89,7 +93,7 @@ namespace :rubber do
 
         push_files.each do |file|
           dest_file = file.sub(/^#{Rubber.root}\/?/, '')
-          put(File.read(file), File.join(path, dest_file), :mode => "+r")
+          put(File.read(file), File.join(config_path, dest_file), :mode => "+r")
         end
       end
 
@@ -97,13 +101,24 @@ namespace :rubber do
       secret = rubber_cfg.environment.config_secret
       if secret && File.exist?(secret)
         base = rubber_cfg.environment.config_root.sub(/^#{Rubber.root}\/?/, '')
-        put(File.read(secret), File.join(path, base, File.basename(secret)), :mode => "+r")
+        put(File.read(secret), File.join(config_path, base, File.basename(secret)), :mode => "+r")
       end
 
       set :rubber_config_files_pushed, true
     end
-    
-    rsudo "cd #{path} && RUBBER_ENV=#{Rubber.env} RAILS_ENV=#{Rubber.env} ./script/rubber config #{opts}"
+  end
+
+  def run_config
+    opts = ""
+    opts += " --no_post" if ENV['NO_POST']
+    opts += " --force"   if ENV['FORCE']
+    opts += " --file=\"#{ENV['FILE']}\"" if ENV['FILE']
+    rsudo "cd #{config_path} && RUBBER_ENV=#{Rubber.env} RAILS_ENV=#{Rubber.env} ./script/rubber config #{opts}"
+  end
+
+  def config_path
+    # when running deploy:migrations, we need to run config against release_path
+    fetch(:migrate_target, :current).to_sym == :latest ? current_release : current_path
   end
 
 end

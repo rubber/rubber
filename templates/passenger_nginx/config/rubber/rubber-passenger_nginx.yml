@@ -1,13 +1,9 @@
-passenger_version: 3.0.19
-nginx_version: 1.2.8
-passenger_root: "#{`bash -l -c 'find #{ruby_path} -name passenger-#{passenger_version}'`.strip}"
+passenger_root: "/usr/lib/ruby/vendor_ruby/phusion_passenger/locations.ini"
 passenger_ruby: "#{ruby_path}/bin/ruby"
-passenger_lib: "#{passenger_root}/ext/nginx"
 nginx_log_dir: /mnt/nginx/logs
 passenger_listen_port: 7000
 passenger_listen_ssl_port: 7001
 max_app_connections: 20
-nginx_log_dir: /mnt/nginx/logs
 
 use_ssl_key: false
 #if you use an ssl key, put your cert and key
@@ -18,5 +14,4 @@ use_ssl_key: false
 
 roles:
   passenger_nginx:
-    packages: [libcurl4-openssl-dev, libpcre3-dev]
-    gems: [[passenger, "#{passenger_version}"]]
+    packages: [libcurl4-openssl-dev, libpcre3-dev, nginx-extras, passenger]

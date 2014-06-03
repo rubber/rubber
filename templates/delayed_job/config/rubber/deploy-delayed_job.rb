@@ -12,19 +12,26 @@ namespace :rubber do
       rubber_env.delayed_job_args || "-n #{rubber_env.num_delayed_job_workers} --pid-dir=#{rubber_env.delayed_job_pid_dir}"
     end
 
+    def script_path
+      bin_path = "bin/delayed_job"
+      script_path = "script/delayed_job"
+
+      File.exists?(bin_path) ? bin_path : script_path
+    end
+
     desc "Stop the delayed_job process"
     task :stop, :roles => :delayed_job do
-      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} bundle exec script/delayed_job stop #{self.args}"
+      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} bundle exec #{self.script_path} stop #{self.args}"
     end
 
     desc "Start the delayed_job process"
     task :start, :roles => :delayed_job do
-      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} bundle exec script/delayed_job start #{self.args}"
+      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} bundle exec #{self.script_path} start #{self.args}"
     end
 
     desc "Restart the delayed_job process"
     task :restart, :roles => :delayed_job do
-      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} bundle exec script/delayed_job restart #{self.args}"
+      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} bundle exec #{self.script_path} restart #{self.args}"
     end
 
     desc "Forcefully kills the delayed_job process"

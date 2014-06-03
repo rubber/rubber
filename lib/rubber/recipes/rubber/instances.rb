@@ -613,7 +613,9 @@ namespace :rubber do
   # delete from ~/.ssh/known_hosts all lines that begin with ec2- or instance_alias
   def cleanup_known_hosts(instance_item)
     logger.info "Cleaning ~/.ssh/known_hosts"
-    File.open(File.expand_path('~/.ssh/known_hosts'), 'r+') do |f|
+
+    begin
+      File.open(File.expand_path('~/.ssh/known_hosts'), 'r+') do |f|
         out = ""
         f.each do |line|
           line = case line
@@ -628,6 +630,11 @@ namespace :rubber do
         f.pos = 0
         f.print out
         f.truncate(f.pos)
+      end
+    rescue
+      error_msg = "Failed to modify #{filepath} on local machine."
+      error_msg += " Please ensure you are running command as Administrator." if rubber_env.local_windows?
+      abort error_msg
     end
   end
 
