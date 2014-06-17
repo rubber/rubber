@@ -230,15 +230,18 @@ roles:
     assigned_security_groups: [web_tools]
 
 # OPTIONAL: Automatically create security groups for each host and role
-# EC2 doesn't allow one to change what groups an instance belongs to after
-# creation, so its good to have some empty ones predefined.
-auto_security_groups: true
+# EC2 Classic doesn't allow one to change what groups an instance belongs to after
+# creation, so it's good to have some empty ones predefined.  EC2 with VPC, however,
+# does allow changing security groups after instance creation and allows far fewer
+# security groups per instance, so you shouldn't enable this setting if using VPC.
+auto_security_groups: false
 
 # OPTIONAL: Automatically isolate security groups for each appname/environment
 # by mangling their names to be appname_env_groupname
 # This makes it safer to have staging and production coexist on the same EC2
-# account, or even multiple apps
-isolate_security_groups: true
+# account, or even multiple apps.  NB: due to the security group limits per instance
+# in EC2 with VPCs, this option should only be enabled if you're using EC2 Classic.
+isolate_security_groups: false
 
 # OPTIONAL: Prompts one to sync security group rules when the ones in amazon
 # differ from those in rubber
