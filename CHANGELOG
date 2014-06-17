@@ -1,3 +1,27 @@
+2.10.0 (06/17/2014)
+
+Improvements:
+============
+
+[delayed_job] Added :kill and :status tasks. <52b593e>
+[delayed_job] Run in bundle exec context. <52b593e>
+[delayed_job] Move monit-delayed_job.conf inside the monit vulcanizer, as is the standard for all other templates. <52b593e>
+[delayed_job] Added PID file control. <52b593e>
+[delayed_job] Monit now has a 10-minute timeout because the PID file being monitored is not generated until after delayed_job daemonizes. <52b593e>
+[passenger_nginx] Install Passenger/Nginx from packages instead of building by hand. <103feee, 0c6eb6a, 499c08c, 9a88ffe>
+[passenger_nginx] Remove unneeded deploy.task blocks. <1b9b252>
+[passenger_nginx] Removed munin passenger plugins. <a91f837>
+[unicorn] Standardized Rake names with init script names (use terms "upgrade" and "kill"). <4c616ba>
+[unicorn] Increased Unicorn upgrade timeout to 10 mins. <4c616ba>
+[unicorn] Clarified log messages. <4c616ba>
+[unicorn] Allow setting PID file and number of workers from Rubber config. <4c616ba>
+
+Bug Fixes:
+=========
+
+[unicorn] Fixed unicorn init script. <4c616ba>
+
+
 2.9.0 (06/02/2014)
 
 New Features:
