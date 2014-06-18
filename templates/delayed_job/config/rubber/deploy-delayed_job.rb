@@ -21,17 +21,17 @@ namespace :rubber do
 
     desc "Stop the delayed_job process"
     task :stop, :roles => :delayed_job do
-      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} bundle exec #{self.script_path} stop #{self.args}"
+      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} bundle exec #{self.script_path} stop #{self.args}", :as => rubber_env.app_user
     end
 
     desc "Start the delayed_job process"
     task :start, :roles => :delayed_job do
-      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} bundle exec #{self.script_path} start #{self.args}"
+      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} bundle exec #{self.script_path} start #{self.args}", :as => rubber_env.app_user
     end
 
     desc "Restart the delayed_job process"
     task :restart, :roles => :delayed_job do
-      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} bundle exec #{self.script_path} restart #{self.args}"
+      rsudo "cd #{current_path} && RAILS_ENV=#{Rubber.env} bundle exec #{self.script_path} restart #{self.args}", :as => rubber_env.app_user
     end
 
     desc "Forcefully kills the delayed_job process"
