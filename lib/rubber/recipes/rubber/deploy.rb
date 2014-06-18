@@ -108,12 +108,17 @@ namespace :rubber do
     end
   end
 
-  def run_config
+  def run_config(options={})
+    path = options.delete(:deploy_path) || config_path
+    no_post = options[:no_post] || ENV['NO_POST']
+    force = options[:force] || ENV['FORCE']
+    file = options[:file] || ENV['FILE']
+
     opts = ""
-    opts += " --no_post" if ENV['NO_POST']
-    opts += " --force"   if ENV['FORCE']
-    opts += " --file=\"#{ENV['FILE']}\"" if ENV['FILE']
-    rsudo "cd #{config_path} && RUBBER_ENV=#{Rubber.env} RAILS_ENV=#{Rubber.env} ./script/rubber config #{opts}"
+    opts += " --no_post" if no_post
+    opts += " --force"   if force
+    opts += " --file=\"#{file}\"" if file
+    rsudo "cd #{path} && RUBBER_ENV=#{Rubber.env} RAILS_ENV=#{Rubber.env} ./script/rubber config #{opts}"
   end
 
   def config_path
