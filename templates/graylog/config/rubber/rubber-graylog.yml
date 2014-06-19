@@ -22,6 +22,10 @@ web_tools_proxies:
     role: graylog_web
     port: "#{graylog_web_port}"
     path: /
+  graylog_server_api_browser:
+    role: graylog_server
+    port: 12900
+    path: /api-browser/
 
 role_dependencies:
   graylog_server: [graylog_mongodb, graylog_elasticsearch]
