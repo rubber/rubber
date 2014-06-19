@@ -84,6 +84,7 @@ namespace :rubber do
           rubber.run_config(:file => "role/graylog_web/", :force => true, :deploy_path => release_path)
 
           restart
+          sleep 5 # Give graylog-web a bit of time to start up.
         end
       end
 
