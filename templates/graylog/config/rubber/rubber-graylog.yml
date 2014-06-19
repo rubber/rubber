@@ -1,11 +1,11 @@
-graylog_server_version: "0.20.1"
+graylog_server_version: "0.20.2"
 graylog_server_prefix: "/usr/local"
 graylog_server_dir: "#{graylog_server_prefix}/graylog2-server-#{graylog_server_version}"
 graylog_server_pid_file: "/var/run/graylog-server.pid"
 graylog_server_port: 12201
 graylog_server_syslog_port: 12514
 
-graylog_web_version: "0.20.1"
+graylog_web_version: "0.20.2"
 graylog_web_prefix: "/usr/local"
 graylog_web_dir: "#{graylog_web_prefix}/graylog2-web-interface-#{graylog_web_version}"
 graylog_web_pid_file: "/var/run/graylog-web.pid"
