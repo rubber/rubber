@@ -8,6 +8,9 @@ Improvements:
 [delayed_job] Move monit-delayed_job.conf inside the monit vulcanizer, as is the standard for all other templates. <52b593e>
 [delayed_job] Added PID file control. <52b593e>
 [delayed_job] Monit now has a 10-minute timeout because the PID file being monitored is not generated until after delayed_job daemonizes. <52b593e>
+[graylog] Upgraded to graylog 0.2.2. <51d9b26, 30fbbbc, fb0cff8, 8a72986, 0785b66>
+[graylog] Added a tools proxy for the graylog server API browser. <899555a>
+[graylog] Configured the mail transport. <686ce6b>
 [passenger_nginx] Install Passenger/Nginx from packages instead of building by hand. <103feee, 0c6eb6a, 499c08c, 9a88ffe>
 [passenger_nginx] Remove unneeded deploy.task blocks. <1b9b252>
 [passenger_nginx] Removed munin passenger plugins. <a91f837>
@@ -20,6 +23,7 @@ Bug Fixes:
 =========
 
 [core] Fixed template calls to rubber.run_config (a regression introduced in 2.9.0). <66310a5>
+[graylog]  	Prevent creating the same graylog inputs twice. <ad8a177>
 [unicorn] Fixed unicorn init script. <4c616ba>
 
 
