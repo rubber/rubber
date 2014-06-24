@@ -23,7 +23,7 @@ Bug Fixes:
 =========
 
 [core] Fixed template calls to rubber.run_config (a regression introduced in 2.9.0). <66310a5>
-[graylog]  	Prevent creating the same graylog inputs twice. <ad8a177>
+[graylog] Prevent creating the same graylog inputs twice. <ad8a177>
 [unicorn] Fixed unicorn init script. <4c616ba>
 
 
