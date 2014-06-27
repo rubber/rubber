@@ -28,6 +28,10 @@ class AwsTest < Test::Unit::TestCase
     should "create instance" do
       assert @cloud.create_instance('', '', '', '', '', '')
     end
+
+    should "create instance with opts" do
+      assert @cloud.create_instance('', '', '', '', '', '', ebs_optimized: true)
+    end
   end
 
   context "aws with alternative region" do

@@ -32,7 +32,7 @@ module Rubber
       # Currently New York 2 (id 4) supports private networking
       REGIONS_WITH_PRIVATE_NETWORKING = [4]
 
-      def create_instance(instance_alias, image_name, image_type, security_groups, availability_zone, region)
+      def create_instance(instance_alias, image_name, image_type, security_groups, availability_zone, region, provider_opts={})
         do_region = compute_provider.regions.find { |r| r.name == region }
         if do_region.nil?
           raise "Invalid region for DigitalOcean: #{region}"
@@ -63,12 +63,14 @@ module Rubber
           end
         end
 
-        response = compute_provider.servers.create(:name => "#{Rubber.env}-#{instance_alias}",
+        response = compute_provider.servers.create({:name => "#{Rubber.env}-#{instance_alias}",
                                                    :image_id => image.id,
                                                    :flavor_id => flavor.id,
                                                    :region_id => do_region.id,
                                                    :ssh_key_ids => [ssh_key['id']],
-                                                   :private_networking => (env.private_networking.to_s.downcase == 'true'))
+                                                   :private_networking => (env.private_networking.to_s.downcase == 'true')}.
+                                                   merge(Rubber::Util.symbolize_keys(provider_opts))
+        )
 
         response.id
       end
