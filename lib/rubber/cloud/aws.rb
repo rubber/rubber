@@ -285,20 +285,6 @@ module Rubber
               source_group = {}
               source_group[:account] = rule_group["userId"]
               source_group[:name] = rule_group["groupName"]
-
-              # Amazon doesn't appear to be returning the groupName value when running in a default VPC.  It's possible
-              # it's only returned for EC2 Classic.  This is distinctly in conflict with the API documents and thus
-              # appears to be a bug on Amazon's end.  Nonetheless, we need to handle it because otherwise our security
-              # group rule matching logic will fail and it messes up our users.
-              #
-              # Since every top-level item has both an ID and a name, if we're lacking the groupName we can search
-              # through the items for the one matching the groupId we have and then use its name value.  This should
-              # represent precisely the same data.
-              if source_group[:name].nil? && rule_group["groupId"]
-                group_by_id = response.find { |item| item.group_id == rule_group["groupId"] }
-                source_group[:name] = group_by_id.name
-              end
-
               rule[:source_groups] << source_group
             end if ip_item["groups"]
 
