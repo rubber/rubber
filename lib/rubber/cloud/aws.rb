@@ -284,7 +284,14 @@ module Rubber
               rule[:source_groups] ||= []
               source_group = {}
               source_group[:account] = rule_group["userId"]
-              source_group[:name] = rule_group["groupName"]
+
+              if rule_group["groupName"]
+                source_group[:name] = rule_group["groupName"]
+              elsif rule_group["groupId"]
+                source_item = response.select{ |it| it.group_id == rule_group["groupId"] }.first
+                source_group[:name] = source_item ? source_item.name : nil
+              end
+
               rule[:source_groups] << source_group
             end if ip_item["groups"]
 
