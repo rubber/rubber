@@ -88,10 +88,29 @@ namespace :rubber do
     ssh_keys = if ENV['RUBBER_SSH_KEY']
       ENV['RUBBER_SSH_KEY'].split(',')
     else
-      cloud.env.key_file
+      if cloud.env.key_file.nil?
+        fatal "Missing required cloud provider configuration item 'key_file'."
+      else
+        cloud.env.key_file
+      end
     end
 
-    ssh_options[:keys] = [ssh_keys].flatten.compact
+    normalized_ssh_keys = [ssh_keys].flatten.compact
+
+    # Fail-safe check.  While we do some validation earlier in the cycle, on the off-chance after all
+    # that, we still have no configured keys, we need to catch it.
+    if normalized_ssh_keys.empty?
+      fatal "No configured SSH keys. Please set the 'key_file' parameter for your cloud provider."
+    end
+
+    # Check that the configuration not only exists, but is also valid.
+    normalized_ssh_keys.each do |key|
+      unless File.exists?(key)
+        fatal "Invalid SSH key path '#{key}': File does not exist.\nPlease check your cloud provider's 'key_file' setting for correctness."
+      end
+    end
+
+    ssh_options[:keys] = normalized_ssh_keys
     ssh_options[:timeout] = fetch(:ssh_timeout, 5)
   end
 
