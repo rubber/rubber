@@ -293,14 +293,14 @@ module Rubber
               # Since every top-level item has both an ID and a name, if we're lacking the groupName we can search
               # through the items for the one matching the groupId we have and then use its name value.  This should
               # represent precisely the same data.
-              if rule_group["groupName"]
-                source_group[:name] = rule_group["groupName"]
-              elsif rule_group["groupId"]
-                matching_security_group = response.find { |item| item.group_id == rule_group["groupId"] }
-                source_group[:name] = matching_security_group ? matching_security_group.name : nil
-              else
-                source_group[:name] = nil
-              end
+              source_group[:name] = if rule_group["groupName"]
+                                      rule_group["groupName"]
+                                    elsif rule_group["groupId"]
+                                      matching_security_group = response.find { |item| item.group_id == rule_group["groupId"] }
+                                      matching_security_group ? matching_security_group.name : nil
+                                    else
+                                      nil
+                                    end
 
               rule[:source_groups] << source_group
             end if ip_item["groups"]
