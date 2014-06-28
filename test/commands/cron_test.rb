@@ -19,7 +19,7 @@ class CronTest < Test::Unit::TestCase
     date = Time.now.tv_sec.to_s
     out = `#{@rubber} cron echo #{date}`
 
-    assert_equal 0, $?
+    assert_equal 0, $?.exitstatus
     assert_equal "", out
 
     logs = Dir["#{@rubber_root}/log/*.log"]
@@ -33,11 +33,11 @@ class CronTest < Test::Unit::TestCase
     date = Time.now.tv_sec.to_s
 
     out = `#{@rubber} cron echo #{date}`
-    assert_equal 0, $?
+    assert_equal 0, $?.exitstatus
     assert_equal "", out
 
     out = `#{@rubber} cron echo #{date}`
-    assert_equal 0, $?
+    assert_equal 0, $?.exitstatus
     assert_equal "", out
 
     logs = Dir["#{@rubber_root}/log/*.log"]
@@ -80,7 +80,7 @@ class CronTest < Test::Unit::TestCase
   
   def test_rubber_cron_output_on_error
     out = `#{@rubber} cron -- ls -la jkbhbj`
-    assert_not_equal 0, $?
+    assert_not_equal 0, $?.exitstatus
     assert_not_equal "", out, "Unexpected output:\n#{out}"
   end
   
