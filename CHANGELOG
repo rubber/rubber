@@ -1,3 +1,18 @@
+2 2.10.1 (07/01/2014)
+
+Improvements:
+============
+
+[core] Validate the SSH key configuration. <c6bb4af>
+
+Bug Fixes:
+=========
+
+[core] Fixed syncing security group rules with default VPC. <f4f073a, 1a527bf, 60ff192>
+[core] Fixed a compatibility problem with Ubuntu 10.04 due to an incompatible core package. <ba6e656>
+[passenger_nginx] Fixed a problem with a template due to random characters at the end of a line. <fa480ca>
+
+
 2.10.0 (06/20/2014)
 
 Improvements:
