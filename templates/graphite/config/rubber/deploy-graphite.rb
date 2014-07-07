@@ -89,11 +89,17 @@ namespace :rubber do
             tar -C /tmp -zxf /tmp/whisper-#{rubber_env.graphite_version}.tar.gz
             cd /tmp/whisper-#{rubber_env.graphite_version}
             python setup.py install
+            cd /tmp
+            rm -rf whisper-#{rubber_env.graphite_version}
+            rm whisper-#{rubber_env.graphite_version}.tar.gz
 
             wget --content-disposition -qNP /tmp #{rubber_env.graphite_carbon_package_url}
             tar -C /tmp -zxf /tmp/carbon-#{rubber_env.graphite_version}.tar.gz
             cd /tmp/carbon-#{rubber_env.graphite_version}
             python setup.py install
+            cd /tmp
+            rm -r carbon-#{rubber_env.graphite_version}
+            rm carbon-#{rubber_env.graphite_version}.tar.gz
 
             rm -rf /opt/graphite/storage
             mkdir #{rubber_env.graphite_storage_dir}
@@ -162,6 +168,9 @@ namespace :rubber do
             cd /tmp/graphite-web-#{rubber_env.graphite_version}
             # python check-dependencies.py
             python setup.py install
+            cd /tmp
+            rm -r graphite-web-#{rubber_env.graphite_version}
+            rm graphite-web-#{rubber_env.graphite_version}.tar.gz
           fi
         ENDSCRIPT
       end
