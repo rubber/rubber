@@ -6,7 +6,7 @@ require 'rubber/version'
 Gem::Specification.new do |s|
 
   s.name = "rubber"
-  s.version     = Rubber::VERSION
+  s.version = "2.10.2"
   s.platform    = Gem::Platform::RUBY
   s.authors = ["Matt Conway", "Kevin Menard"]
   s.email       = ["matt@conwaysplace.com", "nirvdrum@gmail.com"]

@@ -31,15 +31,21 @@ namespace :rubber do
   end
 
 
-  def get_assigned_security_groups(host=nil, roles=[])
+  def get_assigned_security_groups(host=nil, roles=[], vpc_id=nil)
     env = rubber_cfg.environment.bind(roles, host)
     security_groups = env.assigned_security_groups
     if env.auto_security_groups
       security_groups << host
       security_groups += roles
     end
+    
     security_groups = security_groups.uniq.compact.reject {|x| x.empty? }
-    security_groups = security_groups.collect {|x| cloud.isolate_group_name(x) }
+    security_groups = security_groups.collect {|x| vpc_id ? get_security_group_ids(cloud.isolate_group_name(x), vpc_id).join : cloud.isolate_group_name(x)}.reject {|x| x.empty? }
+    
     return security_groups
   end
 end
+
+def get_security_group_ids(group_name=nil,vpc_id=nil)
+  cloud.describe_security_groups(group_name,vpc_id).collect{|g| g[:group_id]}
+end  

@@ -137,7 +137,7 @@ module Rubber
         capistrano.sudo_script "create_bundle", <<-CMD
           export RUBYLIB=/usr/lib/site_ruby/
           unset RUBYOPT
-          nohup ec2-bundle-vol --batch -d /mnt -k #{ec2_pk_dest} -c #{ec2_cert_dest} -u #{env.account} -p #{image_name} -r #{arch} &> /tmp/ec2-bundle-vol.log &
+          nohup ec2-bundle-vol --batch --no-filter -d /mnt -k #{ec2_pk_dest} -c #{ec2_cert_dest} -u #{env.account} -p #{image_name} -r #{arch} &> /tmp/ec2-bundle-vol.log &
           bg_pid=$!
           sleep 1
 
@@ -216,13 +216,16 @@ module Rubber
         return zones
       end
 
-      def create_spot_instance_request(spot_price, ami, ami_type, security_groups, availability_zone)
-        response = compute_provider.spot_requests.create(:price => spot_price,
+      def create_spot_instance_request(spot_price, ami, ami_type, security_groups, availability_zone, vpc_id = nil, subnet_id = nil, tenancy = nil)
+        response = compute_provider.spot_requests.create( :price => spot_price,
                                                           :image_id => ami,
                                                           :flavor_id => ami_type,
                                                           :groups => security_groups,
                                                           :availability_zone => availability_zone,
-                                                          :key_name => env.key_name)
+                                                          :key_name => env.key_name,
+                                                          :vpc_id => vpc_id,
+                                                          :subnet_id => subnet_id,
+                                                          :tenancy => tenancy)
         request_id = response.id
         return request_id
       end
@@ -260,7 +263,7 @@ module Rubber
         sync_security_groups(security_group_defns)
       end
 
-      def describe_security_groups(group_name=nil)
+      def describe_security_groups(group_name=nil,vpc_id=nil)
         groups = []
 
         opts = {}
@@ -268,9 +271,12 @@ module Rubber
         response = compute_provider.security_groups.all(opts)
 
         response.each do |item|
+          next if vpc_id and item.vpc_id == nil
           group = {}
           group[:name] = item.name
           group[:description] = item.description
+          group[:group_id] = item.group_id
+          group[:vpc_id] = item.vpc_id
 
           item.ip_permissions.each do |ip_item|
             group[:permissions] ||= []

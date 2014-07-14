@@ -76,6 +76,25 @@ namespace :rubber do
       ENDSCRIPT
     end
 
+    after "rubber:install_packages", "rubber:base:install_ec2_ami_tools"
+     task :install_ec2_ami_tools do
+     #Install EC2 AMI tools
+     sudo_script 'install_ec2_ami_tools', <<-ENDSCRIPT
+      dpkg --list | grep ec2 | grep ec2-ami-tools > /dev/null && apt-get -y --purge remove ec2-ami-tools > /dev/null
+      if [ ! -f /usr/bin/ec2-bundle-vol ];then
+        cd /tmp
+        if ls ec2-ami-tools* &> /dev/null;then rm -rf ec2-ami-tools* ;fi
+        wget -q http://s3.amazonaws.com/ec2-downloads/ec2-ami-tools.zip
+        unzip -qq ec2-ami-tools.zip
+        cd ec2-ami-tools*
+        cp -rp bin/* /usr/bin/
+        cp -rp lib/ec2 /usr/lib/
+        cp -rp etc /usr/
+      fi
+     ENDSCRIPT
+     end
+
+
     # We need a rails user for safer permissions used by deploy.rb
     after "rubber:install_packages", "rubber:base:custom_install"
     task :custom_install do

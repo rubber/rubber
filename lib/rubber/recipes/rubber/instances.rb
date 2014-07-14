@@ -264,24 +264,37 @@ namespace :rubber do
     env = rubber_cfg.environment.bind(role_names, instance_alias)
 
     monitor.synchronize do
-      cloud.before_create_instance(instance_alias, role_names)
+      cloud.before_create_instance(instance_alias, role_names,)
     end
-
-    security_groups = get_assigned_security_groups(instance_alias, role_names)
 
     cloud_env = env.cloud_providers[env.cloud_provider]
     ami = cloud_env.image_id
     ami_type = cloud_env.image_type
     availability_zone = cloud_env.availability_zone
     region = cloud_env.region
+    if env.vpc
+      vpc_id = env.vpc.id if env.vpc.id 
+      tenancy = env.vpc.tenancy if env.vpc.tenancy 
+      subnet_id = env.vpc.subnet_id if env.vpc.subnet_id
+    end
 
+    vpc_enabled = true if vpc_id && tenancy && subnet_id
+    security_groups = get_assigned_security_groups(instance_alias, role_names, vpc_enabled ? vpc_id : nil)  
+    puts "#{security_groups}"
     create_spot_instance ||= cloud_env.spot_instance
 
     if create_spot_instance
       spot_price = cloud_env.spot_price.to_s
-
+      
       logger.info "Creating spot instance request for instance #{ami}/#{ami_type}/#{security_groups.join(',') rescue 'Default'}/#{availability_zone || 'Default'}"
-      request_id = cloud.create_spot_instance_request(spot_price, ami, ami_type, security_groups, availability_zone)
+
+      if vpc_enabled
+        #security_groups = ["sg-f4f98891"]
+        logger.info "VPC information: id=#{vpc_id}, subnet_id=#{subnet_id}, tenancy=#{tenancy}"
+        request_id = cloud.create_spot_instance_request(spot_price, ami, ami_type, security_groups, availability_zone, vpc_id, subnet_id, tenancy)
+      else
+        request_id = cloud.create_spot_instance_request(spot_price, ami, ami_type, security_groups, availability_zone)
+      end    
 
       print "Waiting for spot instance request to be fulfilled"
       max_wait_time = cloud_env.spot_instance_request_timeout || (1.0 / 0) # Use the specified timeout value or default to infinite.
@@ -308,7 +321,12 @@ namespace :rubber do
 
     if !create_spot_instance || (create_spot_instance && max_wait_time < 0)
       logger.info "Creating instance #{ami}/#{ami_type}/#{security_groups.join(',') rescue 'Default'}/#{availability_zone || region || 'Default'}"
-      instance_id = cloud.create_instance(instance_alias, ami, ami_type, security_groups, availability_zone, region)
+      if vpc_id && tenancy && subnet_id
+        logger.info "VPC information: id=#{vpc_id}, subnet_id=#{subnet_id}, tenancy=#{tenancy}"
+        instance_id= cloud.create_instance(instance_alias, ami, ami_type, security_groups, availability_zone, region, vpc_id, subnet_id, tenancy)
+      else
+        instance_id = cloud.create_instance(instance_alias, ami, ami_type, security_groups, availability_zone, region)
+      end  
     end
 
     logger.info "Instance #{instance_alias} created: #{instance_id}"
