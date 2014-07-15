@@ -202,6 +202,7 @@ module Rubber
       attr_accessor :static_ip, :volumes, :partitions, :root_device_type
       attr_accessor :spot_instance_request_id
       attr_accessor :provider, :platform
+      attr_accessor :vpc_id, :subnet_id, :tenancy
 
       def initialize(name, domain, roles, instance_id, image_type, image_id, security_group_list=[])
         @name = name
@@ -214,11 +215,11 @@ module Rubber
       end
 
        def connection_ip
-          # if vpc_id
-          #     self.internal_ip
-          # else
+           if vpc_id && subnet_id && tenancy 
+              self.internal_ip
+           else
               self.external_ip
-          # end
+           end
       end
 
       def self.from_hash(hash)

@@ -10,11 +10,12 @@ namespace :rubber do
       if env.use_static_ip
         artifacts = rubber_instances.artifacts
         ip = artifacts['static_ips'][ic.name] rescue nil
+        domain = env.vpc.subnet_id ? "vpc" : nil rescue nil
 
         # first allocate the static ip if we don't have a global record (artifacts) for it
         if ! ip
           logger.info "Allocating static IP for #{ic.full_name}"
-          ip = allocate_static_ip()
+          ip = allocate_static_ip(domain)
           artifacts['static_ips'][ic.name] = ip
           rubber_instances.save
         end
@@ -32,9 +33,11 @@ namespace :rubber do
           ic.static_ip = ip
           rubber_instances.save()
 
+          connect_ip = domain == "vpc" ? instance[:internal_ip] : ip
+
           logger.info "Waiting for static ip to associate"
           while true do
-            task :_wait_for_static_ip, :hosts => ip do
+            task :_wait_for_static_ip, :hosts => connect_ip do
               run "echo"
             end
             begin
@@ -166,14 +169,23 @@ namespace :rubber do
     logger.info "Run 'cap rubber:describe_static_ips' to check the allocated ones"
   end
 
-  def allocate_static_ip()
-    ip = cloud.create_static_ip()
+  def allocate_static_ip(domain = nil)
+    ip = cloud.create_static_ip(domain)
     fatal "Failed to allocate static ip" if ip.nil?
     return ip
   end
 
   def associate_static_ip(ip, instance_id)
-    success = cloud.attach_static_ip(ip, instance_id)
+    while true do
+      print '.'
+      sleep 3
+      begin
+        success = cloud.attach_static_ip(ip, instance_id)
+        break if success
+      rescue
+        # we weren't able to associate yet
+      end
+    end
     fatal "Failed to associate static ip" unless success
   end
 

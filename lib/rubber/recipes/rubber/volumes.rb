@@ -97,6 +97,8 @@ namespace :rubber do
     if ! vol_id
       logger.info "Creating volume for #{ic.full_name}:#{vol_spec['device']}"
       vol_id = cloud.create_volume(ic, vol_spec)
+      # work around for determining if the volume is all the way created yet
+      sleep 5
       artifacts['volumes'][key] = vol_id
       rubber_instances.save
       created = vol_spec['device']
@@ -122,7 +124,7 @@ namespace :rubber do
       # we don't mount/format at this time if we are doing a RAID array
       if vol_spec['mount'] && vol_spec['filesystem']
         # then format/mount/etc if we don't have an entry in hosts file
-        task :_setup_volume, :hosts => ic.external_ip do
+        task :_setup_volume, :hosts => ic.connection_ip do
           rubber.sudo_script 'setup_volume', <<-ENDSCRIPT
             # Make sure the newly added volume was found.
             rescan-scsi-bus || true
@@ -177,7 +179,7 @@ namespace :rubber do
     ic.partitions ||= []
     if ! ic.partitions.include?(part_id)
       # then format/mount/etc if we don't have an entry in hosts file
-      task :_setup_partition, :hosts => ic.external_ip do
+      task :_setup_partition, :hosts => ic.connection_ip do
         rubber.sudo_script 'setup_partition', <<-ENDSCRIPT
           if ! fdisk -l 2>&1 | grep -q '#{partition_spec['partition_device']}'; then
             if grep -q '#{partition_spec['disk_device']}\\b' /etc/fstab; then
@@ -218,7 +220,7 @@ namespace :rubber do
         zero_script << "nohup dd if=/dev/zero bs=1M of=#{partition} &> /dev/null &\n"
       end
       # then format/mount/etc if we don't have an entry in hosts file
-      task :_zero_partitions, :hosts => ic.external_ip do
+      task :_zero_partitions, :hosts => ic.connection_ip do
         rubber.sudo_script 'zero_partitions', <<-ENDSCRIPT
           # zero out parition for performance (see amazon DevGuide)
           echo "Zeroing out raid partitions to improve performance, this may take a while"
@@ -247,7 +249,7 @@ namespace :rubber do
       mdadm_init = "yes | mdadm --assemble #{raid_spec['device']} #{raid_spec['source_devices'].sort.join(' ')}"
     end
     
-    task :_setup_raid_volume, :hosts => ic.external_ip do
+    task :_setup_raid_volume, :hosts => ic.connection_ip do
       rubber.sudo_script 'setup_raid_volume', <<-ENDSCRIPT
         if ! grep -qE '#{raid_spec['device']}|#{raid_spec['mount']}' /etc/fstab; then
           if mount | grep -q '#{raid_spec['mount']}'; then
@@ -364,7 +366,7 @@ namespace :rubber do
       ENDSCRIPT
     end
 
-    task :_setup_lvm_group, :hosts => ic.external_ip do
+    task :_setup_lvm_group, :hosts => ic.connection_ip do
       rubber.sudo_script 'setup_lvm_group', <<-ENDSCRIPT
         # Check and see if the physical volume is already set up for LVM. If not, initialize it to be so.
         for device in #{physical_volumes.join(' ')}

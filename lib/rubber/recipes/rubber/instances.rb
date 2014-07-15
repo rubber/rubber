@@ -279,17 +279,15 @@ namespace :rubber do
     end
 
     vpc_enabled = true if vpc_id && tenancy && subnet_id
-    security_groups = get_assigned_security_groups(instance_alias, role_names, vpc_enabled ? vpc_id : nil)  
-    puts "#{security_groups}"
     create_spot_instance ||= cloud_env.spot_instance
-
+    security_groups = get_assigned_security_groups(instance_alias, role_names, vpc_enabled && create_spot_instance ? vpc_id : nil)  
+    
     if create_spot_instance
       spot_price = cloud_env.spot_price.to_s
       
       logger.info "Creating spot instance request for instance #{ami}/#{ami_type}/#{security_groups.join(',') rescue 'Default'}/#{availability_zone || 'Default'}"
 
       if vpc_enabled
-        #security_groups = ["sg-f4f98891"]
         logger.info "VPC information: id=#{vpc_id}, subnet_id=#{subnet_id}, tenancy=#{tenancy}"
         request_id = cloud.create_spot_instance_request(spot_price, ami, ami_type, security_groups, availability_zone, vpc_id, subnet_id, tenancy)
       else
@@ -301,8 +299,8 @@ namespace :rubber do
       instance_id = nil
       while instance_id.nil? do
         print "."
-        sleep 2
-        max_wait_time -= 2
+        sleep 6
+        max_wait_time -= 6
 
         request = cloud.describe_spot_instance_requests(request_id).first
         instance_id = request[:instance_id]
@@ -321,7 +319,7 @@ namespace :rubber do
 
     if !create_spot_instance || (create_spot_instance && max_wait_time < 0)
       logger.info "Creating instance #{ami}/#{ami_type}/#{security_groups.join(',') rescue 'Default'}/#{availability_zone || region || 'Default'}"
-      if vpc_id && tenancy && subnet_id
+      if vpc_enabled
         logger.info "VPC information: id=#{vpc_id}, subnet_id=#{subnet_id}, tenancy=#{tenancy}"
         instance_id= cloud.create_instance(instance_alias, ami, ami_type, security_groups, availability_zone, region, vpc_id, subnet_id, tenancy)
       else
@@ -333,6 +331,11 @@ namespace :rubber do
 
     instance_item = Rubber::Configuration::InstanceItem.new(instance_alias, env.domain, instance_roles, instance_id, ami_type, ami, security_groups)
     instance_item.spot_instance_request_id = request_id if create_spot_instance
+    if vpc_enabled
+      instance_item.vpc_id = vpc_id
+      instance_item.subnet_id = subnet_id
+      instance_item.tenancy = tenancy
+    end  
     rubber_instances.add(instance_item)
     rubber_instances.save()
 
@@ -385,6 +388,8 @@ namespace :rubber do
       instance_item.root_device_type = instance[:root_device_type]
       rubber_instances.save()
 
+      connection_ip = instance[:external_ip] ? instance[:external_ip] : instance[:internal_ip]
+
       if instance_item.linux?
         # weird cap/netssh bug, sometimes just hangs forever on initial connect, so force a timeout
         begin
@@ -392,10 +397,10 @@ namespace :rubber do
             puts 'Trying to enable root login'
 
             # turn back on root ssh access if we are using root as the capistrano user for connecting
-            enable_root_ssh(instance_item.external_ip, fetch(:initial_ssh_user, 'ubuntu')) if user == 'root'
+            enable_root_ssh(connection_ip, fetch(:initial_ssh_user, 'ubuntu')) if user == 'root'
 
             # force a connection so if above isn't enabled we still timeout if initial connection hangs
-            direct_connection(instance_item.external_ip) do
+            direct_connection(connection_ip) do
               run "echo"
             end
           end
@@ -515,7 +520,7 @@ namespace :rubber do
     
     instance_items = aliases.collect{|instance_alias| rubber_instances[instance_alias]}
     instance_items = aliases.collect do |instance_alias|
-      instance_item = rubber_instances[instance_alias]
+    instance_item = rubber_instances[instance_alias]
       
       fatal "Instance does not exist: #{instance_alias}" if ! instance_item
       

@@ -64,8 +64,9 @@ module Rubber
         compute_provider.servers.get(instance.instance_id).start()
       end
 
-      def create_static_ip
-        address = compute_provider.addresses.create()
+      def create_static_ip(domain = nil)
+        address = compute_provider.addresses.create(:domain => domain)
+        puts address
 
         address.public_ip
       end

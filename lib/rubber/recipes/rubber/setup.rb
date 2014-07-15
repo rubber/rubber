@@ -165,7 +165,7 @@ namespace :rubber do
         end
 
         hosts_data.compact.each do |host_name|
-          local_hosts << ic.external_ip.ljust(18) << host_name << "\n"
+          local_hosts << ic.connection_ip.ljust(18) << host_name << "\n"
         end
 
       else # non-Windows OS
@@ -183,7 +183,7 @@ namespace :rubber do
           end
         end
 
-        local_hosts << ic.external_ip << ' ' << hosts_data.compact.join(' ') << "\n"
+        local_hosts << ic.connection_ip << ' ' << hosts_data.compact.join(' ') << "\n"
       end
     end
 
@@ -583,7 +583,7 @@ namespace :rubber do
     env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
     if env.dns_provider
       provider = Rubber::Dns::get_provider(env.dns_provider, env)
-      provider.update(instance_item.name, instance_item.external_ip)
+      provider.update(instance_item.name, instance_item.connection_ip)
 
       # add the ip aliases for web tools hosts so we can map internal tools
       # to their own vhost to make proxying easier (rewriting url paths for
