@@ -224,6 +224,7 @@ namespace :rubber do
     Generates /etc/hosts for remote machines and sets hostname on remote instances
   DESC
   task :setup_remote_aliases do
+    next if ENV.has_key?('SKIP_REMOTE_ALIASES')
     hosts_file = '/etc/hosts'
 
     # Generate /etc/hosts contents for the remote instance from instance config
@@ -325,7 +326,7 @@ namespace :rubber do
       rubber_records = {}
       records.each do |record|
         record = Rubber::Util.symbolize_keys(record)
-        record = provider.setup_opts(record) # assign defaults        
+        record = provider.setup_opts(record) # assign defaults
         key = record_key(record)
         rubber_records[key] ||= []
         rubber_records[key] << record
@@ -664,7 +665,7 @@ namespace :rubber do
     reboot_hosts = reboot_needed.collect {|k, v| v.strip.size > 0 ? k : nil}.compact.sort
 
     # Figure out which hosts are bootstrapping for the first time so we can auto reboot
-    # If there is no deployed app directory, then we have never bootstrapped. 
+    # If there is no deployed app directory, then we have never bootstrapped.
     auto_reboot = multi_capture("echo $(ls #{deploy_to} 2> /dev/null)")
     auto_reboot_hosts = auto_reboot.collect {|k, v| v.strip.size == 0 ? k : nil}.compact.sort
 
