@@ -251,7 +251,7 @@ namespace :rubber do
       skip_hosts_update = "ec2metadata | grep public-ipv4 | grep unavailable > /dev/null 2>&1 && exit 0"
 
       setup_remote_aliases_script = <<-ENDSCRIPT
-        #{skip_hosts_update if rubber_env.skip_remore_aliases_vpc}
+        #{skip_hosts_update if rubber_env.skip_remote_aliases_vpc}
         sed -i.bak '/#{delim}/,/#{delim}/c #{replace}' /etc/hosts
         if ! grep -q "#{delim}" /etc/hosts; then
           echo -e "#{replace}" >> /etc/hosts
