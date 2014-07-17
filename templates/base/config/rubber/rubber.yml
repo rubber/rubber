@@ -245,7 +245,7 @@ isolate_security_groups: false
 
 # OPTIONAL: Prompts one to sync security group rules when the ones in amazon
 # differ from those in rubber
-prompt_for_security_group_sync: true
+prompt_for_security_group_sync: false
 
 # OPTIONAL: A list of CIDR address blocks that represent private networks for your cluster.
 # Set this to open up wide access to hosts in your network.  Consequently, setting the CIDR block
@@ -255,7 +255,7 @@ private_networks: [10.0.0.0/8]
 # OPTIONAL: The packages to install on all instances
 # You can install a specific version of a package by using a sub-array of pkg, version
 # For example, packages: [[rake, 0.7.1], irb]
-packages: [postfix, build-essential, git-core, libxslt-dev, ntp]
+packages: [postfix, build-essential, git-core, libxslt-dev, ntp, zip, unzip, kpartx]
 
 # OPTIONAL: The package manager mirror to use for installation of primary packages (i.e., those not explicitly
 # sourced from a different repository).  If not specified, whatever mirror configured by your server image
@@ -395,9 +395,15 @@ staging_roles: "#{known_roles.reject {|r| r =~ /slave/ || r =~ /^db$/ }.join(','
 #     myconfig: someval
 
 # OPTIONAL: Environment specific overrides
-# environments:
-#   staging:
-#     myconfig: otherval
+ environments:
+   staging:
+     vpc: 
+       id: vpc-8a61b8ef
+       subnet_id: subnet-4adf263d 
+       roles:
+         web: 
+           tenancy: default
+           subnet_id: subnet-49df263e
 #   production:
 #     myconfig: val
 

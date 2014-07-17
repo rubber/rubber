@@ -224,7 +224,6 @@ namespace :rubber do
     Generates /etc/hosts for remote machines and sets hostname on remote instances
   DESC
   task :setup_remote_aliases do
-    next if ENV.has_key?('SKIP_REMOTE_ALIASES')
     hosts_file = '/etc/hosts'
 
     # Generate /etc/hosts contents for the remote instance from instance config
@@ -248,10 +247,11 @@ namespace :rubber do
     end
 
     if rubber_instances.size > 0
-
-      replace="#{delim}\\n#{remote_hosts.join("\\n")}\\n#{delim}"
+      replace = "#{delim}\\n#{remote_hosts.join("\\n")}\\n#{delim}"
+      skip_hosts_update = "ec2metadata | grep public-ipv4 | grep unavailable > /dev/null 2>&1 && exit 0"
 
       setup_remote_aliases_script = <<-ENDSCRIPT
+        #{skip_hosts_update if rubber_env.skip_remore_aliases_vpc}
         sed -i.bak '/#{delim}/,/#{delim}/c #{replace}' /etc/hosts
         if ! grep -q "#{delim}" /etc/hosts; then
           echo -e "#{replace}" >> /etc/hosts
