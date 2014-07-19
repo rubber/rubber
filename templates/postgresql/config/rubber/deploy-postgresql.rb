@@ -46,7 +46,7 @@ namespace :rubber do
           exists = capture("echo $(ls #{env.postgresql_data_dir}/ 2> /dev/null)")
           if exists.strip.size == 0
             common_bootstrap
-            sudo "/usr/lib/postgresql/#{rubber_env.postgresql_ver}/bin/initdb -D #{rubber_env.postgresql_data_dir}", :as => 'postgres'
+            sudo "/usr/lib/postgresql/#{rubber_env.postgresql_ver}/bin/initdb --locale=#{rubber_env.postgresql_locale} -D #{rubber_env.postgresql_data_dir}", :as => 'postgres'
             sudo "#{rubber_env.postgresql_ctl} start"
             sleep 5
 
