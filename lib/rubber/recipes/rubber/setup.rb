@@ -248,7 +248,7 @@ namespace :rubber do
 
     if rubber_instances.size > 0
       replace = "#{delim}\\n#{remote_hosts.join("\\n")}\\n#{delim}"
-      skip_hosts_update = "ec2metadata | grep public-ipv4 | grep unavailable > 2>&1"
+      skip_hosts_update = "ec2metadata | grep public-ipv4 | grep unavailable > /dev/null 2>&1"
       current_host="\"`hostname -i` `hostname -f` `hostname -s`\""
 
       setup_remote_aliases_script = <<-ENDSCRIPT
