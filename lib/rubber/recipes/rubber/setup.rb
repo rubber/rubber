@@ -248,11 +248,13 @@ namespace :rubber do
 
     if rubber_instances.size > 0
       replace = "#{delim}\\n#{remote_hosts.join("\\n")}\\n#{delim}"
-      skip_hosts_update = "ec2metadata | grep public-ipv4 | grep unavailable > /dev/null 2>&1 && exit 0"
+      skip_hosts_update = "ec2metadata | grep public-ipv4 | grep unavailable > 2>&1"
+      current_host="\"`hostname -i` `hostname -f` `hostname -s`\""
 
       setup_remote_aliases_script = <<-ENDSCRIPT
-        #{skip_hosts_update if rubber_env.skip_remote_aliases_vpc}
-        sed -i.bak '/#{delim}/,/#{delim}/c #{replace}' /etc/hosts
+        current_host=#{current_host}
+        #{replace = "#{delim}\\n\$current_host\\n#{delim}" if rubber_env.skip_remote_aliases_vpc && skip_hosts_update}
+        sed -i.bak "/#{delim}/,/#{delim}/c #{replace}" /etc/hosts
         if ! grep -q "#{delim}" /etc/hosts; then
           echo -e "#{replace}" >> /etc/hosts
         fi
