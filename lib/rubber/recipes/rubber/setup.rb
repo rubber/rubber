@@ -253,7 +253,7 @@ namespace :rubber do
       setup_remote_aliases_script = <<-ENDSCRIPT
         current_host=#{current_host}
         replace="#{replace}"
-        if ec2metadata | grep -q public-ipv4 | grep -q unavailable > /dev/null ; then
+        if ec2metadata | grep public-ipv4 | grep unavailable > /dev/null ; then
           replace="#{rubber_env.skip_remote_aliases_vpc ? "#{delim}\\n\$current_host\\n#{delim}" : "#{replace}" }"
         fi
         sed -i.bak "/#{delim}/,/#{delim}/c $replace" /etc/hosts
