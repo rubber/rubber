@@ -243,6 +243,7 @@ namespace :rubber do
         end
       end
 
+      hosts_data << "## vpc subnet_id #{ic.subnet_id}" if ic.subnet_id
       remote_hosts << hosts_data.join(' ')
     end
 
@@ -253,7 +254,7 @@ namespace :rubber do
       setup_remote_aliases_script = <<-ENDSCRIPT
         current_host=#{current_host}
         replace="#{replace}"
-        if ec2metadata | grep public-ipv4 | grep unavailable > /dev/null ; then
+        if echo -e $replace | grep `hostname -f` | grep subnet_id > /dev/null ; then
           replace="#{rubber_env.skip_remote_aliases_vpc ? "#{delim}\\n\$current_host\\n#{delim}" : "#{replace}" }"
         fi
         sed -i.bak "/#{delim}/,/#{delim}/c $replace" /etc/hosts
