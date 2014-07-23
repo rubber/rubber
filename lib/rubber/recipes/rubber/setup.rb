@@ -438,8 +438,17 @@ namespace :rubber do
         'scsitools'                   # Needed to rescan SCSI channels for any added devices.
     ]
 
-    rsudo "apt-get -q update"
-    rsudo "export DEBIAN_FRONTEND=noninteractive; apt-get -q -o Dpkg::Options::=--force-confold -y --force-yes install #{core_packages.join(' ')}"
+    install_commands = core_packages.collect do |package|
+      "apt-get -q -o Dpkg::Options::=--force-confold -y --force-yes install #{package} || true"
+    end
+
+    sudo_script 'install_core_packages', <<-ENDSCRIPT
+      export DEBIAN_FRONTEND=noninteractive
+
+      apt-get -q update
+
+      #{install_commands.join("\n")}
+    ENDSCRIPT
   end
 
   desc <<-DESC

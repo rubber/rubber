@@ -13,7 +13,7 @@ class UtilTest < Test::Unit::TestCase
 
     should "generate a key" do
       out = `#{@rubber} util:obfuscation -g`
-      assert_equal 0, $?, "Process failed, output: #{out}"
+      assert_equal 0, $?.exitstatus, "Process failed, output: #{out}"
       assert_match /Obfuscation key: [^\n\s]+/, out
     end
     
@@ -22,7 +22,7 @@ class UtilTest < Test::Unit::TestCase
 
       fixture_dir = File.expand_path("#{File.dirname(__FILE__)}/../fixtures/secret")
       out = `#{@rubber} util:obfuscation -f '#{fixture_dir}/secret.yml' -k '#{@key}'`
-      assert_equal 0, $?, "Process failed, output: #{out}"
+      assert_equal 0, $?.exitstatus, "Process failed, output: #{out}"
       assert out.size > 0
       assert_no_match /secret_key: secret_val/, out
       
@@ -30,7 +30,7 @@ class UtilTest < Test::Unit::TestCase
       open(tempfile.path, "w") {|f| f.write(out) }
       
       out2 = `#{@rubber} util:obfuscation -f '#{tempfile.path}' -k '#{@key}' -d`
-      assert_equal 0, $?, "Process failed, output: #{out2}"
+      assert_equal 0, $?.exitstatus, "Process failed, output: #{out2}"
       assert out2.size > 0
       assert_match /secret_key: secret_val/, out2
     end

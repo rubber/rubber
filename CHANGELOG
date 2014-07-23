@@ -1,3 +1,34 @@
+2.10.2 (07/07/2014)
+
+Improvements:
+============
+
+[base] Upgraded from ruby-build 20140225 to 20140702 to get newer definitions. <65f6900>
+[base] Upgraded default Ruby from 2.0.0-p451 to 2.0.0-p481 to get latest security fixes. <6f268ea>
+[graphite] Clean up after the graphite installation. <46b243d>
+[graphite] Upgraded from graphite 0.9.10 to 0.9.12. <c951c4d>
+
+Bug Fixes:
+=========
+
+[graphite] Use different download URLs for graphite because GitHub has an SSL bug preventing downloads on Ubuntu 12.04. <1cf6790>
+
+
+2.10.1 (07/01/2014)
+
+Improvements:
+============
+
+[core] Validate the SSH key configuration. <c6bb4af>
+
+Bug Fixes:
+=========
+
+[core] Fixed syncing security group rules with default VPC. <f4f073a, 1a527bf, 60ff192>
+[core] Fixed a compatibility problem with Ubuntu 10.04 due to an incompatible core package. <ba6e656>
+[passenger_nginx] Fixed a problem with a template due to random characters at the end of a line. <fa480ca>
+
+
 2.10.0 (06/20/2014)
 
 Improvements:
