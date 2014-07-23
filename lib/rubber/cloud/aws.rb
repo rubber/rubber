@@ -404,6 +404,19 @@ module Rubber
         group.authorize_port_range(from_port.to_i..to_port.to_i, opts)
       end
 
+      def add_security_group_rule_by_id(group_id, protocol, from_port, to_port, source)
+        group = compute_provider.security_groups.get_by_id(group_id)
+        opts = {:ip_protocol => protocol || 'tcp'}
+
+        if source.instance_of? Hash
+          opts[:group] = {source[:account] => source[:name]}
+        else
+          opts[:cidr_ip] = source
+        end
+
+        group.authorize_port_range(from_port.to_i..to_port.to_i, opts)
+      end
+
       def remove_security_group_rule(group_name, protocol, from_port, to_port, source)
         group = compute_provider.security_groups.get(group_name)
         opts = {:ip_protocol => protocol || 'tcp'}
