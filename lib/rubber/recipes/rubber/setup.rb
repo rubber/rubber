@@ -249,12 +249,13 @@ namespace :rubber do
 
     if rubber_instances.size > 0
       replace = "#{delim}\\n#{remote_hosts.join("\\n")}\\n#{delim}"
-      current_host="\"`hostname -i` `hostname -f` `hostname -s`\""
+      #current_host="\"`hostname -i` `hostname -f` `hostname -s`\""
 
       setup_remote_aliases_script = <<-ENDSCRIPT
-        current_host=#{current_host}
         replace="#{replace}"
-        if echo -e $replace | grep `hostname -f` | grep subnet_id > /dev/null ; then
+        current_host=$(echo -e $replace | grep `hostname -f` | grep subnet_id)
+
+        if [[ ! -z $current_host ]]; then
           replace="#{rubber_env.skip_remote_aliases_vpc ? "#{delim}\\n\$current_host\\n#{delim}" : "#{replace}" }"
         fi
         sed -i.bak "/#{delim}/,/#{delim}/c $replace" /etc/hosts
