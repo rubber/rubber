@@ -271,7 +271,7 @@ namespace :rubber do
         rubber.sudo_script 'setup_remote_aliases', setup_remote_aliases_script, :hosts => gateway
       end
 
-      rubber.sudo_script 'setup_remote_aliases', setup_remote_aliases_script
+      rubber.run_script 'setup_remote_aliases', setup_remote_aliases_script
 
       # Setup hostname on instance so shell, etcs have nice display
       rsudo "echo $CAPISTRANO:HOST$ > /etc/hostname && hostname $CAPISTRANO:HOST$"
