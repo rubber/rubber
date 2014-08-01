@@ -327,7 +327,7 @@ module Rubber
       end
 
       def create_volume(instance, volume_spec)
-        volume = compute_provider.volumes.create(:size => volume_spec['size'], :availability_zone => volume_spec['zone'], :volume_type => volume_spec['type'], :iops => volume_spec['iops'])
+        volume = compute_provider.volumes.create(:size => volume_spec['size'], :availability_zone => volume_spec['zone'])
         volume.id
       end
 
