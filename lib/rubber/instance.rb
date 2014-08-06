@@ -195,6 +195,9 @@ module Rubber
 
     # The configuration for a single instance
     class InstanceItem
+      UBUNTU_OS_VERSION_CMD = 'lsb_release -sr'.freeze
+      VARIABLES_TO_OMIT_IN_SERIALIZATION = ['@capistrano', '@os_version']
+
       attr_reader :name, :domain, :instance_id, :image_type, :image_id, :security_groups
       attr_accessor :roles, :zone
       attr_accessor :external_host, :external_ip
@@ -202,6 +205,7 @@ module Rubber
       attr_accessor :static_ip, :volumes, :partitions, :root_device_type
       attr_accessor :spot_instance_request_id
       attr_accessor :provider, :platform
+      attr_accessor :capistrano
 
       def initialize(name, domain, roles, instance_id, image_type, image_id, security_group_list=[])
         @name = name
@@ -211,6 +215,7 @@ module Rubber
         @image_type = image_type
         @image_id = image_id
         @security_groups = security_group_list
+        @os_version = nil
       end
 
       def self.from_hash(hash)
@@ -266,6 +271,36 @@ module Rubber
 
       def windows?
         platform == Rubber::Platforms::WINDOWS
+      end
+
+      def os_version
+        if @os_version
+          @os_version
+        else
+          if capistrano
+            os_version_cmd = Rubber.config.os_version_cmd || UBUNTU_OS_VERSION_CMD
+            @os_version = capistrano.capture(os_version_cmd, host: self.full_name).chomp
+          else
+            nil
+          end
+        end
+      end
+
+      if RUBY_VERSION < '1.9'
+        def to_yaml_properties
+          vars = instance_variables.map { |x| x.to_s }
+          vars - VARIABLES_TO_OMIT_IN_SERIALIZATION
+        end
+
+      else
+        def encode_with(coder)
+          vars = instance_variables.map { |x| x.to_s }
+          vars = vars - VARIABLES_TO_OMIT_IN_SERIALIZATION
+
+          vars.each do |var|
+            coder[var.gsub('@', '')] = eval(var)
+          end
+        end
       end
     end
 

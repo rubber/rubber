@@ -265,6 +265,11 @@ packages: [postfix, build-essential, git-core, libxslt-dev, ntp]
 # it, specify 'mirror://mirrors.ubuntu.com/mirrors.txt' as the value.
 # package_manager_mirror: 'mirror://mirrors.ubuntu.com/mirrors.txt'
 
+# OPTIONAL: The command used to identify your particular OS version.  This will be used for configurations
+# in Rubber templates that are parameterized by OS version (e.g., package lists).  If not specified, Ubuntu
+# will be assumed.
+os_version_cmd: 'lsb_release -sr'
+
 # OPTIONAL: gem sources to setup for rubygems
 # gemsources: ["https://rubygems.org"]
 

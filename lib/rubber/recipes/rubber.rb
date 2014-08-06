@@ -65,6 +65,8 @@ namespace :rubber do
     set :rubber_env, rubber_cfg.environment.bind()
     set :rubber_instances, rubber_cfg.instance
 
+    rubber_cfg.instance.each { |instance| instance.capistrano = self }
+
     # Disable connecting to any Windows instance.
     # pass -l to bash in :shell to that run also gets full env
     # use a pty so we don't get "stdin: is not a tty" error output
