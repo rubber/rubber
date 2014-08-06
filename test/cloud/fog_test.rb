@@ -33,7 +33,7 @@ class FogTest < Test::Unit::TestCase
     end
 
     should "create instance with options" do
-      assert @cloud.create_instance('', '', '', '', '', '', foo: :bar)
+      assert @cloud.create_instance('', '', '', '', '', '', :foo => :bar)
     end
   end
 end

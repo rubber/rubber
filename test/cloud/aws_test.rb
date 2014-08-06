@@ -30,12 +30,12 @@ class AwsTest < Test::Unit::TestCase
     end
 
     should "create instance with opts" do
-      assert @cloud.create_instance('', '', '', '', '', '', ebs_optimized: true)
+      assert @cloud.create_instance('', '', '', '', '', '', :ebs_optimized => true)
     end
   end
 
   context "aws with alternative region" do
-    
+
     setup do
       @region = "ap-southeast-2"
       env = {'access_key' => "XXX", 'secret_access_key' => "YYY", 'region' => @region}
