@@ -207,13 +207,19 @@ namespace :rubber do
   # be installed.
   def get_host_options(cfg_name, &block)
     opts = {}
-    rubber_instances.each do | ic|
+    rubber_instances.each do |ic|
       env = rubber_cfg.environment.bind(ic.role_names, ic.name)
       cfg_value = env[cfg_name]
+
       if cfg_value
+        if cfg_value.is_a?(Hash)
+          cfg_value = cfg_value[ic.os_version]
+        end
+
         if block
           cfg_value = block.call(cfg_value)
         end
+
         opts["hostvar_#{ic.full_name}"] = cfg_value if cfg_value && cfg_value.strip.size > 0
       end
     end

@@ -603,8 +603,7 @@ namespace :rubber do
       end
     end
   end
-
-
+  
   def destroy_dyndns(instance_item)
     env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
     if env.dns_provider
@@ -633,8 +632,17 @@ namespace :rubber do
           expanded_pkg_list << pkg_spec
         end
       end
+
+      @os_specific_opts = get_host_options('os_packages') { |pkg_list| pkg_list.join(' ') }
+
       expanded_pkg_list << 'ec2-ami-tools' if rubber_env.cloud_provider == 'aws'
       expanded_pkg_list.join(' ')
+    end
+
+    opts.each do |host, packages|
+      if @os_specific_opts.has_key?(host)
+        opts[host] << " #{@os_specific_opts[host]}"
+      end
     end
 
     if upgrade
