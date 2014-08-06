@@ -231,6 +231,8 @@ module Rubber
       def to_hash
         hash = {}
         instance_variables.each do |iv|
+          next if VARIABLES_TO_OMIT_IN_SERIALIZATION.include?(iv.to_s)
+
           name = iv.to_s.gsub(/^@/, '')
           value = instance_variable_get(iv)
           value = value.collect {|r| r.to_s } if name == 'roles'
