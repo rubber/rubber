@@ -159,6 +159,13 @@ namespace :rubber do
               #{('yes | mkfs -t ' + vol_spec['filesystem'] + ' ' + '$device') if created}
               #{("mkdir -p '#{vol_spec['mount']}'") if vol_spec['mount']}
               #{("mount '#{vol_spec['mount']}'") if vol_spec['mount']}
+
+            elif ! grep -q '#{vol_spec['mount']}' /etc/fstab | grep -q '#{vol_spec['device']}'; then
+              echo 'You already have #{vol_spec['mount']} mounted as a different device in /etc/fstab'
+              echo 'Please choose a different mount point or manually edit /etc/fstab'
+              echo 'and re-run cap rubber:setup_volumes'
+
+              exit 1
             fi
           ENDSCRIPT
         end
