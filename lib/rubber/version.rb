@@ -1,3 +1,3 @@
 module Rubber
-  VERSION = '2.10.2'.freeze
+  VERSION = '2.11.0'.freeze
 end
