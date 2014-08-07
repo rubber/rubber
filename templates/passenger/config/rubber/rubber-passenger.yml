@@ -1,7 +1,5 @@
-passenger_version: 3.0.19
-passenger_root: "#{`bash -l -c 'find #{ruby_path} -name passenger-#{passenger_version}'`.strip}"
+passenger_version: '1:4.0.48-1~`lsb_release -sc`1'
 passenger_ruby: "#{ruby_path}/bin/ruby"
-passenger_lib: "#{passenger_root}/ext/apache2/mod_passenger.so"
 passenger_listen_port: 7000
 passenger_listen_ssl_port: 7001
 max_app_connections: 20
@@ -11,8 +9,7 @@ role_dependencies:
 
 roles:
   passenger:
-    packages: [apache2-mpm-prefork, apache2-prefork-dev, libcurl4-openssl-dev, libapache2-mod-xsendfile]
-    gems: [fastthread, rack, [passenger, "#{passenger_version}"]]
+    packages: [apache2-mpm-prefork, apache2-prefork-dev, libcurl4-openssl-dev, libapache2-mod-xsendfile, [libapache2-mod-passenger, "#{passenger_version}"]]
     rolling_restart_port: "#{passenger_listen_port}"
 
   web_tools:
