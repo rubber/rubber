@@ -71,7 +71,7 @@ namespace :deploy do
 end
 
 # load in the deploy scripts installed by vulcanize for each rubber module
-Dir["#{File.dirname(__FILE__)}/rubber/deploy-*.rb"].each do |deploy_file|
+Dir["#{File.dirname(__FILE__)}/rubber/deploy-*.rb"].sort.each do |deploy_file|
   load deploy_file
 end
 
