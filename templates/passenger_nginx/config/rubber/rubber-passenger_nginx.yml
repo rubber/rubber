@@ -1,3 +1,4 @@
+passenger_version: '1:4.0.48-1~`lsb_release -sc`1'
 passenger_root: "/usr/lib/ruby/vendor_ruby/phusion_passenger/locations.ini"
 passenger_ruby: "#{ruby_path}/bin/ruby"
 nginx_log_dir: /mnt/nginx/logs
@@ -14,4 +15,4 @@ use_ssl_key: false
 
 roles:
   passenger_nginx:
-    packages: [libcurl4-openssl-dev, libpcre3-dev, nginx-extras, passenger]
+    packages: [libcurl4-openssl-dev, libpcre3-dev, nginx-extras, [passenger, "#{passenger_version}"]
