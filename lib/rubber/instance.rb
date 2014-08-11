@@ -279,11 +279,18 @@ module Rubber
         if @os_version
           @os_version
         else
+          os_version_cmd = Rubber.config.os_version_cmd || UBUNTU_OS_VERSION_CMD
+
           if capistrano
-            os_version_cmd = Rubber.config.os_version_cmd || UBUNTU_OS_VERSION_CMD
             @os_version = capistrano.capture(os_version_cmd, host: self.full_name).chomp
           else
-            nil
+            # If we can't SSH to the machine, we may be able to execute the command locally if this
+            # instance item happens to refer to the same machine we're executing on.
+            if Socket::gethostname == self.full_name
+              @os_version = `#{os_version_cmd}`.chomp
+            else
+              raise "Unable to get os_version for #{self.full_name}"
+            end
           end
         end
       end
