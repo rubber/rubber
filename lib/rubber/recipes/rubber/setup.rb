@@ -253,7 +253,7 @@ namespace :rubber do
 
       setup_remote_aliases_script = <<-ENDSCRIPT
         replace="#{replace}"
-        current_host=$(echo -e $replace | grep `hostname` | grep subnet_id) || true
+        current_host=$(echo -e $replace | grep "`hostname`\b" | grep subnet_id) || true
 
         if [[ ! -z $current_host ]]; then
           replace="#{rubber_env.skip_remote_aliases_vpc ? "#{delim}\\n\$current_host\\n#{delim}" : "#{replace}" }"
