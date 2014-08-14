@@ -445,7 +445,7 @@ namespace :rubber do
     sudo_script 'install_core_packages', <<-ENDSCRIPT
       export DEBIAN_FRONTEND=noninteractive
 
-      apt-get -q update
+      #{apt_get_update_script}
 
       #{install_commands.join("\n")}
     ENDSCRIPT
@@ -598,6 +598,7 @@ namespace :rubber do
     end
   end
 
+
   def destroy_dyndns(instance_item)
     env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
     if env.dns_provider
@@ -630,15 +631,34 @@ namespace :rubber do
       expanded_pkg_list.join(' ')
     end
 
-    rsudo "apt-get -q update"
     if upgrade
       if ENV['NO_DIST_UPGRADE']
-        rsudo "export DEBIAN_FRONTEND=noninteractive; apt-get -q -o Dpkg::Options::=--force-confold -y --force-yes upgrade"
+        sudo_script 'upgrade_packages', <<-ENDSCRIPT
+          export DEBIAN_FRONTEND=noninteractive
+
+          #{apt_get_update_script}
+
+          apt-get -q -o Dpkg::Options::=--force-confold -y --force-yes upgrade
+        ENDSCRIPT
       else
-        rsudo "export DEBIAN_FRONTEND=noninteractive; apt-get -q -o Dpkg::Options::=--force-confold -y --force-yes dist-upgrade"
+        sudo_script 'dist_upgrade_packages', <<-ENDSCRIPT
+          export DEBIAN_FRONTEND=noninteractive
+
+          #{apt_get_update_script}
+
+          apt-get -q -o Dpkg::Options::=--force-confold -y --force-yes dist-upgrade
+        ENDSCRIPT
       end
     else
-      rsudo "export DEBIAN_FRONTEND=noninteractive; apt-get -q -o Dpkg::Options::=--force-confold -y --force-yes install $CAPISTRANO:VAR$", opts
+      install_packages_script = <<-ENDSCRIPT
+        export DEBIAN_FRONTEND=noninteractive
+
+        #{apt_get_update_script}
+
+        apt-get -q -o Dpkg::Options::=--force-confold -y --force-yes install $@
+      ENDSCRIPT
+
+      sudo_script 'install_packages', install_packages_script, opts.merge(:script_args => '$CAPISTRANO:VAR$')
     end
 
     maybe_reboot
@@ -810,6 +830,27 @@ namespace :rubber do
         handle_gem_prompt(ch, data, str)
       end
     end
+  end
+
+  # Helper script that only issues an apt-get update command if the apt sources list has changed.
+  def apt_get_update_script
+    <<-ENDSCRIPT
+      if [[ ! -f /tmp/apt_sources.md5 ]]; then
+        apt-get -q update
+
+        md5sum /etc/apt/sources.list > /tmp/apt_sources.md5
+        md5sum /etc/apt/sources.list.d/*.list >> /tmp/apt_sources.md5
+      else
+        md5sum /etc/apt/sources.list > /tmp/apt_sources_compare.md5
+        md5sum /etc/apt/sources.list.d/*.list >> /tmp/apt_sources_compare.md5
+
+        if [[ `diff /tmp/apt_sources.md5 /tmp/apt_sources_compare.md5` ]]; then
+          apt-get -q update
+        fi
+
+        mv /tmp/apt_sources_compare.md5 /tmp/apt_sources.md5
+      fi
+    ENDSCRIPT
   end
 
 end
