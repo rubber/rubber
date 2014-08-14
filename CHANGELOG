@@ -364,7 +364,7 @@ Bug Fixes:
 
 [core] Fixed a problem with tasks using the `:only` option being overwritten by rubber internally (#397) <d3ae2fa>
 [core] Don't install fog 1.16.0 until we're able to sort out API compatiblities with it <346c99b>
-[core] Presen the $REBOOT value across multiple calls to `maybe_reboot` <f03dc22>
+[core] Present the $REBOOT value across multiple calls to `maybe_reboot` <f03dc22>
 [web_tools] Proxied service hostnames should not have underscores since that would be an invalid hostname <055919f>
 
 
