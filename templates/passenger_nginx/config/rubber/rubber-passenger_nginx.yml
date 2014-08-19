@@ -14,4 +14,4 @@ use_ssl_key: false
 
 roles:
   passenger_nginx:
-    packages: [libcurl4-openssl-dev, libpcre3-dev, nginx-extras, [passenger, "#{passenger_version}"]
+    packages: [libcurl4-openssl-dev, libpcre3-dev, nginx-extras, [passenger, "#{passenger_version}"]]
