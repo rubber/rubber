@@ -65,7 +65,16 @@ TIME_ZONE = 'America/New_York'
 #DATABASE_PASSWORD = 'graphite-is-awesome'
 #DATABASE_HOST = 'mysql.mycompany.com'
 #DATABASE_PORT = '3306'
-
+DATABASES = {
+    'default': {
+        'NAME': '/opt/graphite/storage/graphite.db',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'USER': '',
+        'PASSWORD': '',
+        'HOST': '',
+        'PORT': ''
+    }
+}
 
 #########################
 # Cluster Configuration #
