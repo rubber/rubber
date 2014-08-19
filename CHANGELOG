@@ -1,3 +1,21 @@
+2.12.0 (08/19/2014)
+
+New Features:
+============
+
+[base] Added a task for cleaning up old kernels. <653bd0c>
+
+Improvements:
+============
+
+[core] Implemented a check that will only repeat 'apt-get update' calls if there's a change to the sources list. <adafdc0>
+
+Bug Fixes:
+=========
+
+[passenger_nginx] Fixed a typo in the template preventing vulcanization. <cdc3ad8>
+
+
 2.11.0 (08/07/2014)
 
 New Features:
