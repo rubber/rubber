@@ -315,6 +315,7 @@ namespace :rubber do
 
     instance_item = Rubber::Configuration::InstanceItem.new(instance_alias, env.domain, instance_roles, instance_id, ami_type, ami, security_groups)
     instance_item.spot_instance_request_id = request_id if create_spot_instance
+    instance_item.capistrano = self
     rubber_instances.add(instance_item)
     rubber_instances.save()
 
