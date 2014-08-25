@@ -102,6 +102,24 @@ module Rubber
         compute_provider.servers.get(instance_id).destroy(:force => true)
       end
 
+      def after_refresh_instance(instance)
+        rubber_cfg = Rubber::Configuration.get_configuration(Rubber.env)
+        host_env = rubber_cfg.environment.bind(nil, instance.name)
+
+        dns_servers = host_env.public_nic.dns_servers || env.public_nic.dns_servers
+
+        # VMware Tools currently (as of Aug. 25, 2014) has a bug with Ubuntu 14.04 whereby it fails to properly configure
+        # DNS when static IP configurations are used in a customization spec.  This works around the problem by setting
+        # up the resolvconf configuration directly.
+        if dns_servers && ! dns_servers.empty?
+          contents = dns_servers.map { |server| "nameserver #{server}" }.join("\n")
+          contents << "\n"
+
+          capistrano.put(contents, '/etc/resolvconf/resolv.conf.d/base', :mode => '0644', :hosts => instance.external_ip)
+          capistrano.run('resolvconf -u', :hosts => instance.external_ip)
+          end
+      end
+
       def describe_instances(instance_id=nil)
         instances = []
         opts = {}
