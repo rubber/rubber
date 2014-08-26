@@ -112,6 +112,13 @@ namespace :rubber do
 
     ssh_options[:keys] = normalized_ssh_keys
     ssh_options[:timeout] = fetch(:ssh_timeout, 5)
+
+    # If we don't explicitly set :auth_methods to nil, they'll be populated with net-ssh's defaults, which don't
+    # work terribly well with Capistrano.  If we set it to nil, Capistrano will use its own defaults.  Moreover,
+    # Capistrano seems to have a bug whereby it will not allow password-based authentication unless its default
+    # auth_methods are used, so we're best off using that unless the methods have already been set explicitly by
+    # the Rubber user elsewhere.
+    ssh_options[:auth_methods] = nil unless ssh_options.has_key?(:auth_methods)
   end
 
 
