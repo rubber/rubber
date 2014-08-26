@@ -1,3 +1,19 @@
+2.12.2 (08/26/2014)
+
+Improvements:
+============
+
+[core] Re-use established SSH connections. <f025bf7>
+[core] Terminate the initial_ssh_user connection when we're done with it. <8981cef>
+[passenger] Upgraded from Passenger 4.0.48 to 4.0.49. <053d97c>
+[passenger_nginx] Upgraded from Passenger 4.0.48 to 4.0.49. <053d97c>
+
+Bug Fixes:
+=========
+
+[core] Fixed an issue using password-based authentication with Capistrano. <c86e82d>
+
+
 2.12.1 (08/19/2014)
 
 Bug Fixes:
