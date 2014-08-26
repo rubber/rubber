@@ -1,3 +1,54 @@
+2.12.1 (08/19/2014)
+
+Bug Fixes:
+=========
+
+[base] Ubuntu 12.04.4 x64 is no longer a valid image for Digital Ocean. <3587f02>
+
+
+2.12.0 (08/19/2014)
+
+New Features:
+============
+
+[base] Added a task for cleaning up old kernels. <653bd0c>
+
+Improvements:
+============
+
+[core] Implemented a check that will only repeat 'apt-get update' calls if there's a change to the sources list. <adafdc0>
+
+Bug Fixes:
+=========
+
+[passenger_nginx] Fixed a typo in the template preventing vulcanization. <cdc3ad8>
+
+
+2.11.0 (08/07/2014)
+
+New Features:
+============
+
+[passenger] Upgraded to Passenger 4. <09c7e64>
+
+Improvements:
+============
+
+[core] Print an error if trying to mount a volume that is mounted under a different device in /etc/fstab. <855fc4c>
+[passenger_nginx] Lock the Passenger version number down for more reliable provisioning. <1ca742a>
+[passenger_nginx] Cleaned up the stock config a bit. <46b5abb, 31de467, e7bdc80>
+[postgresql] Reduced shared_buffers size in PostgreSQL so it'll work out of the box on a 512 MB Digital Ocean droplet. <e032b3a>
+
+Bug Fixes:
+=========
+
+[base] Update the regions with private networking in Digital Ocean. <0d96318>
+[base] Make sure we load deploy-* files in lexicographic order. <332b69e>
+[core] We need to expand the SSH key filename before checking if it exists. <f9db7c4>
+[core] Fixed a problem with loading Rubber via git in bundler on older releases of RubyGems (e.g., the ones that shipped with Ruby 1.9.3). <869d3d4>
+[graylog] Fixed bootstrapping graylog by removing bad config. <ea5a9b4>
+
+
 2.10.2 (07/07/2014)
 
 Improvements:
@@ -339,7 +390,7 @@ Bug Fixes:
 
 [core] Fixed a problem with tasks using the `:only` option being overwritten by rubber internally (#397) <d3ae2fa>
 [core] Don't install fog 1.16.0 until we're able to sort out API compatiblities with it <346c99b>
-[core] Presen the $REBOOT value across multiple calls to `maybe_reboot` <f03dc22>
+[core] Present the $REBOOT value across multiple calls to `maybe_reboot` <f03dc22>
 [web_tools] Proxied service hostnames should not have underscores since that would be an invalid hostname <055919f>
 
 

@@ -285,8 +285,6 @@ module Rubber
             :domain => env.domain,
             :hostName => RbVmomi::VIM::CustomizationFixedName.new(:name => instance_alias))
 
-        puts "Adapters: #{custom_adapter_mapping}"
-
         RbVmomi::VIM::CustomizationSpec.new(:identity => custom_prep,
                                             :globalIPSettings => custom_global_ip_settings,
                                             :nicSettingMap => custom_adapter_mapping)

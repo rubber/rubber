@@ -5,14 +5,11 @@ namespace :rubber do
 
     rubber.allow_optional_tasks(self)
 
-    after "rubber:install_gems", "rubber:passenger:custom_install"
-
-    task :custom_install, :roles => :passenger do
-      rubber.sudo_script 'install_passenger', <<-ENDSCRIPT
-        passenger_lib=$(find #{rubber_env.ruby_path} -path "*/passenger-#{rubber_env.passenger_version}/*/mod_passenger.so" 2> /dev/null)
-        if [[ -z $passenger_lib ]]; then
-          echo -en "\n\n\n\n" | passenger-install-apache2-module
-        fi
+    before "rubber:install_packages", "rubber:passenger:setup_apt_sources"
+    task :setup_apt_sources do
+      rubber.sudo_script 'configure_passenger_nginx_repository', <<-ENDSCRIPT
+        apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 561F9B9CAC40B2F7
+        add-apt-repository -y https://oss-binaries.phusionpassenger.com/apt/passenger
       ENDSCRIPT
     end
     

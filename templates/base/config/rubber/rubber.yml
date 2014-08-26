@@ -125,7 +125,7 @@ cloud_providers:
     region: New York 2
 
     # REQUIRED: The image name and type for creating instances.
-    image_id: Ubuntu 12.04.4 x64
+    image_id: Ubuntu 12.04.5 x64
     image_type: 512MB
 
     # Optionally enable private networking for your instances.
