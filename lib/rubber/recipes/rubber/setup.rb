@@ -99,6 +99,12 @@ namespace :rubber do
       _ensure_key_file_present
       _allow_root_ssh
       _disable_password_based_ssh_login if cloud.should_disable_password_based_ssh_login?
+
+      # If the initial_ssh_user is different than the deploy user, we can terminate the SSH connection
+      # because from here on out we'll be connecting as the deploy user.
+      if initial_ssh_user != fetch(:user, nil)
+        teardown_connections_to(sessions.keys)
+      end
     rescue ConnectionError => e
       if e.message =~ /Net::SSH::AuthenticationFailed/
         logger.info "Can't connect as user #{initial_ssh_user} to #{ip}, assuming root allowed"
