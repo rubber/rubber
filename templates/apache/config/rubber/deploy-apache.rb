@@ -9,7 +9,7 @@ namespace :rubber do
 
     task :install, :roles => :apache do
       rubber.sudo_script 'install_apache', <<-ENDSCRIPT
-        a2dissite default
+        a2dissite *default || true
 
         # TODO: remove this once 12.04 is fixed
         # https://bugs.launchpad.net/ubuntu/+source/mod-proxy-html/+bug/964397
