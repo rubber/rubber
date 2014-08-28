@@ -1,7 +1,7 @@
 <%
   is_old_ubuntu = %w[10.04 12.04].include?(rubber_instances[rubber_env.host].os_version)
 
-  @path = is_old_ubuntu ? '/opt/graphite/webapp/graphite/local_settings.py' : '/etc/graphite/local_settings.py'
+  @path = is_old_ubuntu ? "#{rubber_env.graphite_dir}/webapp/graphite/local_settings.py" : '/etc/graphite/local_settings.py'
 %>
 ## Graphite local_settings.py
 # Edit this file to customize the default Graphite webapp settings

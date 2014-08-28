@@ -1,7 +1,7 @@
 <%
   is_old_ubuntu = %w[10.04 12.04].include?(rubber_instances[rubber_env.host].os_version)
 
-  @path = '/opt/graphite/conf/graphite.wsgi'
+  @path = "#{rubber_env.graphite_dir}/conf/graphite.wsgi"
   @skip = ! is_old_ubuntu
 %>
 import os, sys
