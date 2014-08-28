@@ -74,12 +74,12 @@ namespace :rubber do
       rubber.allow_optional_tasks(self)
 
       if Rubber::Configuration.rubber_env.graphite_repo_version
-        after "rubber:install_gems", "rubber:graphite:install_graphite_from_repo"
+        after "rubber:install_packages", "rubber:graphite:install_graphite_from_repo"
       else
-        after "rubber:install_gems", "rubber:graphite:server:install"
+        after "rubber:install_packages", "rubber:graphite:server:install"
       end
 
-      after "rubber:graphite:server:install", "rubber:graphite:server:bootstrap"
+      after "rubber:bootstrap", "rubber:graphite:server:bootstrap"
 
       desc <<-DESC
         Installs graphite server components
@@ -169,7 +169,7 @@ namespace :rubber do
         after "rubber:graphite:server:install", "rubber:graphite:web:install"
       end
 
-      after "rubber:graphite:web:install", "rubber:graphite:web:bootstrap"
+      after "rubber:graphite:server:bootstrap", "rubber:graphite:web:bootstrap"
 
       desc <<-DESC
         Installs graphite web components
