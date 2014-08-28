@@ -276,9 +276,7 @@ module Rubber
       end
 
       def os_version
-        if @os_version
-          @os_version
-        else
+        @os_version ||= begin
           os_version_cmd = Rubber.config.os_version_cmd || UBUNTU_OS_VERSION_CMD
 
           if capistrano
