@@ -18,6 +18,8 @@ db_backup_cmd: "set -e -o pipefail; nice sudo -u postgres pg_dumpall -U postgres
 #           its standard input
 db_restore_cmd: "zcat - | psql -U %user% -h %host% %name%"
 
+# If you want to use more recent versions like 9.3
+# Please edit `deploy-postgresql.rb`, task :setup_apt_sources
 postgresql_ver: 9.1
 postgresql_conf_dir: "/etc/postgresql/#{postgresql_ver}/main"
 postgresql_data_dir: "/mnt/postgresql/#{postgresql_ver}/data"
@@ -34,6 +36,8 @@ role_dependencies:
   db: [postgresql, postgresql_slave]
 
 packages: [postgresql-client, libpq-dev]
+# Use the line below instead if using official PostgreSQL repo
+# packages: ["postgresql-client-#{postgresql_ver}", libpq-dev]
 gems: [pg]
 
 roles:
