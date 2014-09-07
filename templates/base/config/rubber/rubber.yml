@@ -30,14 +30,14 @@ domain: foo.com
 #
 # rubber_secret: "#{File.expand_path('~') + '/.ec2' + (Rubber.env == 'production' ? '' : '_dev') + '/rubber-secret.yml' rescue ''}"
 
-# OPTIONAL: Encryption key that was used to obfuscate the contents of rubber-secret.yml with "rubber util:obfuscation" 
+# OPTIONAL: Encryption key that was used to obfuscate the contents of rubber-secret.yml with "rubber util:obfuscation"
 # Not that much better when stored in here, but you could use a ruby snippet in here to fetch it from a key server or something
 #
 # rubber_secret_key: "XXXyyy=="
 
 # REQUIRED All known cloud providers with the settings needed to configure them
 # There's only one working cloud provider right now - Amazon Web Services
-# To implement another, clone lib/rubber/cloud/aws.rb or make the fog provider 
+# To implement another, clone lib/rubber/cloud/aws.rb or make the fog provider
 # work in a generic fashion
 #
 cloud_providers:
@@ -255,7 +255,7 @@ private_networks: [10.0.0.0/8]
 # OPTIONAL: The packages to install on all instances
 # You can install a specific version of a package by using a sub-array of pkg, version
 # For example, packages: [[rake, 0.7.1], irb]
-packages: [postfix, build-essential, git-core, libxslt-dev, ntp]
+packages: [postfix, build-essential, git-core, libxslt-dev, ntp, zip, unzip, kpartx]
 
 # OPTIONAL: The package manager mirror to use for installation of primary packages (i.e., those not explicitly
 # sourced from a different repository).  If not specified, whatever mirror configured by your server image
