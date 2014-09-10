@@ -245,7 +245,7 @@ module Rubber
         Rubber.instances
       end
 
-      def current_instance()
+      def rubber_instance()
         rubber_instances[rubber_env.host]
       end
 
