@@ -22,7 +22,7 @@ namespace :rubber do
     end
 
     task :install_graphite_from_repo, :roles => [:graphite_server, :graphite_web] do
-      if old_ubuntu?(capture('hostname').chomp)
+      if old_ubuntu?
         rubber.sudo_script 'install_graphite_from_repo', <<-ENDSCRIPT
           if [[ ! -d "/opt/graphite" ]]; then
             mkdir -p /tmp/graphite_install
@@ -85,7 +85,7 @@ namespace :rubber do
         Installs graphite server components
       DESC
       task :install, :roles => :graphite_server do
-        if old_ubuntu?(capture('hostname').chomp)
+        if old_ubuntu?
           rubber.sudo_script 'install_graphite_server', <<-ENDSCRIPT
             if [[ ! -f "/opt/graphite/bin/carbon-cache.py" ]]; then
               wget --content-disposition -qNP /tmp #{rubber_env.graphite_whisper_package_url}
@@ -128,7 +128,7 @@ namespace :rubber do
 
       desc "Start graphite system monitoring"
       task :start, :roles => :graphite_server do
-        if old_ubuntu?(capture('hostname').chomp)
+        if old_ubuntu?
           rsudo 'service graphite-server start'
         else
           rsudo 'service carbon-cache start'
@@ -137,7 +137,7 @@ namespace :rubber do
 
       desc "Stop graphite system monitoring"
       task :stop, :roles => :graphite_server do
-        if old_ubuntu?(capture('hostname').chomp)
+        if old_ubuntu?
           rsudo 'service graphite-server stop || true'
         else
           rsudo 'service carbon-cache stop || true'
@@ -175,7 +175,7 @@ namespace :rubber do
         Installs graphite web components
       DESC
       task :install, :roles => :graphite_web do
-        if old_ubuntu?(capture('hostname').chomp)
+        if old_ubuntu?
           rubber.sudo_script 'install_graphite_web', <<-ENDSCRIPT
             if [[ ! -d "/opt/graphite/webapp" ]]; then
               wget --content-disposition -qNP /tmp #{rubber_env.graphite_web_package_url}
@@ -208,7 +208,7 @@ namespace :rubber do
 
           create_storage_directory
 
-          if old_ubuntu?(capture('hostname').chomp)
+          if old_ubuntu?
             rubber.sudo_script 'bootstrap_graphite_web', <<-ENDSCRIPT
               mkdir -p #{rubber_env.graphite_storage_dir}/log/webapp/
               chown -R www-data:www-data #{rubber_env.graphite_storage_dir}/log/
@@ -273,7 +273,7 @@ EOF
     end
 
     def create_storage_directory
-      owner = old_ubuntu?(capture('hostname').chomp) ? 'www-data' : '_graphite'
+      owner = old_ubuntu? ? 'www-data' : '_graphite'
 
       rubber.sudo_script 'create_graphite_storage_directory', <<-ENDSCRIPT
         if [[ ! -e #{rubber_env.graphite_storage_dir} ]]; then
@@ -283,8 +283,8 @@ EOF
       ENDSCRIPT
     end
 
-    def old_ubuntu?(host)
-      %w[10.04 12.04].include?(rubber_instances[host].os_version)
+    def old_ubuntu?
+      %w[10.04 12.04].include?(rubber_instance.os_version)
     end
 
   end

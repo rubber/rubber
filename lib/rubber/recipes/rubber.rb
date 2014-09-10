@@ -149,6 +149,12 @@ namespace :rubber do
 
 end
 
+def top.rubber_instance
+  hostname = capture('hostname').chomp
+
+  rubber_instances[hostname]
+end
+
 Dir[File.join(File.dirname(__FILE__), 'rubber/*.rb')].each do |rubber_part|
   load(rubber_part)
 end
