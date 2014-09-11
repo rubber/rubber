@@ -29,7 +29,7 @@ namespace :rubber do
       
       master_instances = rubber_instances.for_role("mysql_master") & rubber_instances.filtered  
       master_instances.each do |ic|
-        task_name = "_bootstrap_mysql_master_#{ic.full_name}".to_sym()
+        task_name = "_bootstrap_mysql_master_#{ic.full_name}".to_sym
         task task_name, :hosts => ic.full_name do
           env = rubber_cfg.environment.bind("mysql_master", ic.name)
           exists = capture("echo $(ls #{env.db_data_dir}/ 2> /dev/null)")
@@ -52,7 +52,7 @@ namespace :rubber do
     
       slave_instances = rubber_instances.for_role("mysql_slave") & rubber_instances.filtered  
       slave_instances.each do |ic|
-        task_name = "_bootstrap_mysql_slave_#{ic.full_name}".to_sym()
+        task_name = "_bootstrap_mysql_slave_#{ic.full_name}".to_sym
         task task_name, :hosts => ic.full_name do
           env = rubber_cfg.environment.bind("mysql_slave", ic.name)
           exists = capture("echo $(ls #{env.db_data_dir}/ 2> /dev/null)")

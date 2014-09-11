@@ -13,7 +13,7 @@ namespace :rubber do
       # Select only one instance for backup.  Favor slave database.
       selected_db_instance = (slaves+master_instances).first
             
-      task_name = "_backup_db_#{selected_db_instance.full_name}".to_sym()
+      task_name = "_backup_db_#{selected_db_instance.full_name}".to_sym
       task task_name, :hosts => selected_db_instance.full_name do
         rsudo "cd #{current_path} && RUBBER_ENV=#{Rubber.env} ./script/rubber util:backup_db --directory=/mnt/db_backups --dbuser=#{rubber_env.db_user} --dbpass=#{rubber_env.db_pass} --dbname=#{rubber_env.db_name} --dbhost=#{selected_db_instance.full_name}"
       end
@@ -29,7 +29,7 @@ namespace :rubber do
       slaves = rubber_instances.for_role('db', {})
 
       for instance in master_instances+slaves
-        task_name = "_restore_db_cloud_#{instance.full_name}".to_sym()
+        task_name = "_restore_db_cloud_#{instance.full_name}".to_sym
         task task_name, :hosts => instance.full_name do
           rsudo "cd #{current_path} && RUBBER_ENV=#{Rubber.env} ./script/rubber util:restore_db --filename=#{filename} --dbuser=#{rubber_env.db_user} --dbpass=#{rubber_env.db_pass} --dbname=#{rubber_env.db_name} --dbhost=#{instance.full_name}"
         end
@@ -48,7 +48,7 @@ namespace :rubber do
       # Select only one instance for backup.  Favor slave database.
       selected_db_instance = (slaves+master_instances).first
             
-      task_name = "_load_local_to_#{selected_db_instance.full_name}".to_sym()
+      task_name = "_load_local_to_#{selected_db_instance.full_name}".to_sym
       task task_name, :hosts => selected_db_instance.full_name do
 
         # Dump Local to tmp folder

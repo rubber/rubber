@@ -50,7 +50,7 @@ namespace :rubber do
     task :bootstrap, :roles => :cassandra do
       instances = rubber_instances.for_role("cassandra") & rubber_instances.filtered
       instances.each do |ic|
-        task_name = "_bootstrap_cassandra_#{ic.full_name}".to_sym()
+        task_name = "_bootstrap_cassandra_#{ic.full_name}".to_sym
         task task_name, :hosts => ic.full_name do
           env = rubber_cfg.environment.bind("cassandra", ic.name)
           exists = capture("echo $(ls #{env.cassandra_data_dirs.first}/ 2> /dev/null)")
@@ -86,7 +86,7 @@ namespace :rubber do
     def clustertool(*args)
       instances = rubber_instances.for_role("cassandra") & rubber_instances.filtered
       ic = instances.first
-      task_name = "_clustertool_#{ic.full_name}_#{args.join('_')}".to_sym()
+      task_name = "_clustertool_#{ic.full_name}_#{args.join('_')}".to_sym
       task task_name, :hosts => ic.full_name do
         rsudo "#{rubber_env.cassandra_dir}/bin/clustertool --host $CAPISTRANO:HOST$ --port #{rubber_env.cassandra_jmx_port} #{args.join(' ')}"
       end

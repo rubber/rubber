@@ -56,7 +56,7 @@ namespace :rubber do
       # been boostrapped for that role before
       
       rubber_instances.for_role("mysql_mgm").each do |ic|
-        task_name = "_bootstrap_mysql_mgm_#{ic.full_name}".to_sym()
+        task_name = "_bootstrap_mysql_mgm_#{ic.full_name}".to_sym
         task task_name, :hosts => ic.full_name do
           exists = capture("if grep -c rubber.*mysql_mgm /etc/mysql/ndb_mgmd.cnf &> /dev/null; then echo exists; fi")
           if exists.strip.size == 0
@@ -68,7 +68,7 @@ namespace :rubber do
       end
     
       rubber_instances.for_role("mysql_data").each do |ic|
-        task_name = "_bootstrap_mysql_data_#{ic.full_name}".to_sym()
+        task_name = "_bootstrap_mysql_data_#{ic.full_name}".to_sym
         task task_name, :hosts => ic.full_name do
           exists = capture("if grep -c rubber.*mysql_data /etc/mysql/my.cnf &> /dev/null; then echo exists; fi")
           if exists.strip.size == 0
@@ -80,7 +80,7 @@ namespace :rubber do
       end
       
       rubber_instances.for_role("mysql_sql").each do |ic|
-        task_name = "_bootstrap_mysql_sql_#{ic.full_name}".to_sym()
+        task_name = "_bootstrap_mysql_sql_#{ic.full_name}".to_sym
         task task_name, :hosts => ic.full_name do
           exists = capture("if grep -c rubber.*mysql_sql /etc/mysql/my.cnf &> /dev/null; then echo exists; fi")
           if exists.strip.size == 0
