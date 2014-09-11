@@ -23,7 +23,7 @@ module Rubber
       end
   
       # create the table if needed
-      def ensure_table_key()
+      def ensure_table_key
         Rubber::Util.retry_on_failure(*RETRYABLE_EXCEPTIONS) do
           begin
             @metadata = @table_provider.domain_metadata(@table_key)
