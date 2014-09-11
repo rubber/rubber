@@ -36,7 +36,7 @@ namespace :rubber do
       # been bootstrapped for that role before
       master_instances = rubber_instances.for_role("postgresql_master") & rubber_instances.filtered  
       master_instances.each do |ic|
-        task_name = "_bootstrap_postgresql_master_#{ic.full_name}".to_sym()
+        task_name = "_bootstrap_postgresql_master_#{ic.full_name}".to_sym
         task task_name, :hosts => ic.full_name do
           env = rubber_cfg.environment.bind("postgresql_master", ic.name)
           exists = capture("echo $(ls #{env.postgresql_data_dir}/ 2> /dev/null)")
@@ -64,7 +64,7 @@ namespace :rubber do
 
       slave_instances = rubber_instances.for_role("postgresql_slave") & rubber_instances.filtered
       slave_instances.each do |ic|
-        task_name = "_bootstrap_postgresql_slave_#{ic.full_name}".to_sym()
+        task_name = "_bootstrap_postgresql_slave_#{ic.full_name}".to_sym
         task task_name, :hosts => ic.full_name do
           env = rubber_cfg.environment.bind("postgresql_slave", ic.name)
           exists = capture("echo $(ls #{env.postgresql_data_dir}/ 2> /dev/null)")
