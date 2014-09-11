@@ -142,13 +142,14 @@ module Rubber
         hosts = hosts.select {|h| h.name == host[:name] } if opts.has_key?(:host) && opts[:host] != '*'
         hosts = hosts.select {|h| h.type == host[:type] } if opts.has_key?(:type) && opts[:type] != '*'
         
-        return hosts
+        hosts
       end
 
       def find_host_records(opts = {})
         hosts = find_hosts(opts)
         result = hosts.collect {|h| host_to_opts(h).merge(:domain => opts[:domain]) }
-        return result
+
+        result
       end
 
       def create_host_record(opts = {})
