@@ -11,7 +11,6 @@ module Rubber
   class CLI < Clamp::Command
     
     # setup clamp subcommands for each rubber command
-    command_classes = []
     Rubber::Commands.constants.each do |c|
       clazz = Rubber::Commands.const_get(c)
       if clazz.class == Class && clazz.ancestors.include?(Clamp::Command) &&
