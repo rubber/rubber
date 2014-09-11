@@ -246,7 +246,7 @@ module Rubber
       end
       
       def full_name
-        "#@name.#@domain"
+        "#{@name}.#{@domain}"
       end
 
       def role_names()
