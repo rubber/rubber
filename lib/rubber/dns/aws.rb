@@ -127,7 +127,7 @@ module Rubber
       
       def find_hosts(opts = {})
         opts = setup_opts(opts, [:host, :domain])
-        result = []
+
         zone = find_or_create_zone(opts[:domain])
         host = opts_to_host(opts)
         
