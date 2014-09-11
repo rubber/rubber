@@ -30,6 +30,8 @@ namespace :rubber do
 
   namespace :config do
 
+    allow_optional_tasks(self)
+
     desc <<-DESC
     Pushes and runs rubber configuration on the deployed rails application
     DESC
