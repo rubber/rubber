@@ -140,7 +140,7 @@ module Rubber
         @items.values.find_all {|ic| ic.roles.any? {|r| r.name == role_name && (! options || r.options == options)}}
       end
 
-      def filtered()
+      def filtered
         filtered_results = []
 
         validate_filters()
@@ -160,7 +160,7 @@ module Rubber
         return filtered_results
       end
 
-      def validate_filters()
+      def validate_filters
         aliases = @items.values.collect{|ic| ic.name}
         [@filters, @filters_negated].flatten.each do |f|
           raise "Filter doesn't match any hosts: #{f}" if ! aliases.include?(f)
@@ -172,7 +172,7 @@ module Rubber
         end
       end
 
-      def all_roles()
+      def all_roles
         @items.collect {|n, i| i.role_names}.flatten.uniq
       end
 
@@ -249,7 +249,7 @@ module Rubber
         "#{@name}.#{@domain}"
       end
 
-      def role_names()
+      def role_names
         roles.collect {|r| r.name}
       end
 
@@ -370,7 +370,7 @@ module Rubber
       end
       alias == eql?
 
-      def hash()
+      def hash
         @name.hash
       end
 

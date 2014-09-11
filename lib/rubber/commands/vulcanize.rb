@@ -77,7 +77,7 @@ module Rubber
         File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'templates'))
       end
 
-      def self.valid_templates()
+      def self.valid_templates
         Dir.entries(self.source_root).delete_if {|e| e =~  /(^\.)|svn|CVS/ }.sort
       end
 

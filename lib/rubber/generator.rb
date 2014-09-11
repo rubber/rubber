@@ -237,15 +237,15 @@ module Rubber
         binding
       end
     
-      def rubber_env()
+      def rubber_env
         Rubber::Configuration.rubber_env
       end
 
-      def rubber_instances()
+      def rubber_instances
         Rubber.instances
       end
 
-      def rubber_instance()
+      def rubber_instance
         rubber_instances[rubber_env.host]
       end
 

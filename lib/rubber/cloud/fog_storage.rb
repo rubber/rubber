@@ -18,7 +18,7 @@ module Rubber
       end
   
       # create the bucket if needed
-      def ensure_bucket()
+      def ensure_bucket
         Rubber::Util.retry_on_failure(*RETRYABLE_EXCEPTIONS) do
           @directory = @storage_provider.directories.create(:key => @bucket) unless @directory
         end

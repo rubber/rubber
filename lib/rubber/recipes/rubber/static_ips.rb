@@ -166,7 +166,7 @@ namespace :rubber do
     logger.info "Run 'cap rubber:describe_static_ips' to check the allocated ones"
   end
 
-  def allocate_static_ip()
+  def allocate_static_ip
     ip = cloud.create_static_ip()
     fatal "Failed to allocate static ip" if ip.nil?
     return ip
