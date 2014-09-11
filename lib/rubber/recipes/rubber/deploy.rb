@@ -73,7 +73,9 @@ namespace :rubber do
     rsudo "chown -R #{rubber_env.app_user}:#{rubber_env.app_user} #{current_path}/tmp"
   end
 
-  def push_config
+  def push_config(options = {})
+    path = options.delete(:deploy_path) || config_path
+
     unless fetch(:rubber_config_files_pushed, false)
       # Need to do this so we can work with staging instances without having to
       # checkin instance file between create and bootstrap, as well as during a deploy
@@ -93,7 +95,7 @@ namespace :rubber do
 
         push_files.each do |file|
           dest_file = file.sub(/^#{Rubber.root}\/?/, '')
-          put(File.read(file), File.join(config_path, dest_file), :mode => "+r")
+          put(File.read(file), File.join(path, dest_file), :mode => "+r")
         end
       end
 
@@ -101,7 +103,7 @@ namespace :rubber do
       secret = rubber_cfg.environment.config_secret
       if secret && File.exist?(secret)
         base = rubber_cfg.environment.config_root.sub(/^#{Rubber.root}\/?/, '')
-        put(File.read(secret), File.join(config_path, base, File.basename(secret)), :mode => "+r")
+        put(File.read(secret), File.join(path, base, File.basename(secret)), :mode => "+r")
       end
 
       set :rubber_config_files_pushed, true
@@ -113,6 +115,8 @@ namespace :rubber do
     no_post = options[:no_post] || ENV['NO_POST']
     force = options[:force] || ENV['FORCE']
     file = options[:file] || ENV['FILE']
+
+    push_config(:deploy_path => path)
 
     opts = ""
     opts += " --no_post" if no_post
