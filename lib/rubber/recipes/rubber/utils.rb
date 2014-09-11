@@ -232,7 +232,7 @@ namespace :rubber do
   end
   
   def update_code_for_bootstrap
-    unless (fetch(:rubber_code_was_updated, false))
+    unless fetch(:rubber_code_was_updated, false)
       deploy.setup
       logger.info "updating code for bootstrap"
       deploy.update_code
