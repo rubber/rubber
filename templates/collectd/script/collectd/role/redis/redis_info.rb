@@ -10,7 +10,6 @@ items = {
   'blocked_clients' => 'gauge',
   'total_commands_processed' => 'derive',
   'total_connections_received' => 'derive',
-  'connected_clients' => 'gauge',
   'used_memory' => 'gauge',
   'changes_since_last_save' => 'gauge'
 }
