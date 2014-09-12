@@ -280,7 +280,7 @@ module Rubber
           os_version_cmd = Rubber.config.os_version_cmd || UBUNTU_OS_VERSION_CMD
 
           if capistrano
-            @os_version = capistrano.capture(os_version_cmd, host: self.full_name).chomp
+            @os_version = capistrano.capture(os_version_cmd, :host => self.full_name).chomp
           else
             # If we can't SSH to the machine, we may be able to execute the command locally if this
             # instance item happens to refer to the same machine we're executing on.
