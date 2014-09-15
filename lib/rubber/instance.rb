@@ -293,20 +293,12 @@ module Rubber
         end
       end
 
-      if RUBY_VERSION < '1.9'
-        def to_yaml_properties
-          vars = instance_variables.map { |x| x.to_s }
-          vars - VARIABLES_TO_OMIT_IN_SERIALIZATION
-        end
+      def encode_with(coder)
+        vars = instance_variables.map { |x| x.to_s }
+        vars = vars - VARIABLES_TO_OMIT_IN_SERIALIZATION
 
-      else
-        def encode_with(coder)
-          vars = instance_variables.map { |x| x.to_s }
-          vars = vars - VARIABLES_TO_OMIT_IN_SERIALIZATION
-
-          vars.each do |var|
-            coder[var.gsub('@', '')] = eval(var)
-          end
+        vars.each do |var|
+          coder[var.gsub('@', '')] = eval(var)
         end
       end
     end
