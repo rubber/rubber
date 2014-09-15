@@ -292,7 +292,7 @@ namespace :rubber do
         max_wait_time -= 2
 
         request = cloud.describe_spot_instance_requests(request_id).first
-        instance_id = request[:instance_id]
+        instance_id = request ? request[:instance_id] : nil
 
         if max_wait_time < 0 && instance_id.nil?
           cloud.destroy_spot_instance_request(request[:id])
