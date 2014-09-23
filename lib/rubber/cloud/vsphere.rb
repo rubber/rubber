@@ -106,7 +106,7 @@ module Rubber
         rubber_cfg = Rubber::Configuration.get_configuration(Rubber.env)
         host_env = rubber_cfg.environment.bind(nil, instance.name)
 
-        dns_servers = host_env.public_nic.dns_servers || env.public_nic.dns_servers
+        dns_servers = [host_env.public_nic, env.public_nic, host_env.private_nic, env.private_nic].collect { |nic| nic.dns_servers if nic }.compact.first
 
         # VMware Tools currently (as of Aug. 25, 2014) has a bug with Ubuntu 14.04 whereby it fails to properly configure
         # DNS when static IP configurations are used in a customization spec.  This works around the problem by setting
