@@ -136,7 +136,11 @@ module Rubber
 
           instance = {}
           instance[:id] = item.id
-          instance[:state] = item.tools_state
+
+          # If the VM is up, but the VMware Tools installation is out-of-date, just treat it as if the tools installation
+          # is okay.  Otherwise, the rubber:refresh process won't detect that the VM has booted properly, even though
+          # it's running just fine.  In all other cases, use the state reported by the vSphere API call.
+          instance[:state] = item.tools_state == 'toolsOld' ? active_state : item.tools_state
 
           # We can't trust the describe operation when the instance is newly created because the VM customization
           # step likely hasn't completed yet.  This means we'll get back the IP address for the VM template, rather
