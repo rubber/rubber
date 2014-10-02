@@ -103,6 +103,8 @@ module Rubber
       end
 
       def after_refresh_instance(instance)
+        super
+
         rubber_cfg = Rubber::Configuration.get_configuration(Rubber.env)
         host_env = rubber_cfg.environment.bind(nil, instance.name)
 
