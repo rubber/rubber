@@ -1,3 +1,30 @@
+2.13.0 (10/01/2014)
+
+New Features:
+============
+
+[base] Ubuntu 14.04 support.
+[core] Added a way of specifying packages to be installed by OS version. <a682955>
+[core] Added a way to retrieve the OS version for an instance. <1954d06, 59a5929, 491cd7e>
+[core] Added a 'rubber_instance' helper method for use in templates and Capistrano tasks to reference the instance being deployed to. <4281344, 52ff83d, f94db86>
+
+Improvements:
+============
+
+[apache] Updated config to work with both Apache 2.2 and 2.4. <8afa6df>
+[graphite] Updated the graphite template to work in both Ubuntu 12.04 and 14.04. <97a86ca, 7fef018, ce328d6>
+[passenger] Updated config to work with both Apache 2.2 and 2.4. <8afa6df>
+[postgresql] Always use the pgdg apt repository since it supports all Ubuntu LTS releases on all supported versions of PostgreSQL. <b1aeb00>
+
+Bug Fixes:
+=========
+
+[core] Fixed a regression whereby we might try to generate config before all the files have been pushed. <a0d6c32>
+[core] Fixed a regression whereby we would try to deploy to non-Linux servers, even though they're not supported. <513e0e1>
+[core] Worked around an issue with Ubuntu 14.04 and vSphere whereby VMware Tools won't correctly populate the DNS list. <15216b7, d1fceac>
+[core] Make sure VMs can still be refreshed in vSphere even if the VMware Tools installation is out-of-date. <546ec93>
+
+
 2.12.2 (08/26/2014)
 
 Improvements:
