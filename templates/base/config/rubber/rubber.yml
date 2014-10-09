@@ -28,7 +28,7 @@ domain: foo.com
 # OPTIONAL: Additional rubber file to pull config from if it exists.  This file will
 # also be pushed to remote host at Rubber.root/config/rubber/rubber-secret.yml
 #
-# rubber_secret: "#{File.expand_path('~') + '/.ec2' + (Rubber.env == 'production' ? '' : '_dev') + '/rubber-secret.yml' rescue ''}"
+# rubber_secret: "#{File.expand_path('~') + '/.ec2' + (Rubber.env == 'production' ? '' : '_dev') + '/rubber-secret.yml' rescue 'rubber-secret.yml'}"
 
 # OPTIONAL: Encryption key that was used to obfuscate the contents of rubber-secret.yml with "rubber util:obfuscation" 
 # Not that much better when stored in here, but you could use a ruby snippet in here to fetch it from a key server or something
