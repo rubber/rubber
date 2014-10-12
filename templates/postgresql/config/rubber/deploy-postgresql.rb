@@ -8,7 +8,7 @@ namespace :rubber do
 
     task :setup_apt_sources do
       rubber.sudo_script 'configure_postgresql_repository', <<-ENDSCRIPT
-        echo "deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+        echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -sc`-pgdg main" > /etc/apt/sources.list.d/pgdg.list
         wget --quiet -O - http://apt.postgresql.org/pub/repos/apt/ACCC4CF8.asc | sudo apt-key add -
       ENDSCRIPT
     end
