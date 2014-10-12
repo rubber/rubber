@@ -33,7 +33,7 @@ role_dependencies:
   "db:primary=true": [postgresql, postgresql_master]
   db: [postgresql, postgresql_slave]
 
-packages: [postgresql-client, libpq-dev]
+packages: ["postgresql-client-#{postgresql_ver}", libpq-dev]
 gems: [pg]
 
 roles:
