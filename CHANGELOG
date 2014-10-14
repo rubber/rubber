@@ -1,3 +1,23 @@
+2.14.0 (10/13/2014)
+
+Improvements:
+============
+
+[base] Updated the base template to play a bit nicer when reading the rubber secret file at runtime. <dc0663c>
+[collectd] Updated the collectd runner scripts to play nicer with JRuby. <283ba21>
+[graylog] Upgraded from Graylog2 0.20.2 to 0.90.0. <6b3d47e>
+[postgresql] Upgraded PostgreSQL from 9.1 to 9.3. <3b2b322>
+[redis] Upgraded Redis from 2.8.8 to 2.8.17. <15c8040>
+
+Bug Fixes:
+=========
+
+[core] Make sure we follow the full after_refresh_instance chain for vSphere (fixes a bug with not creating iptables rules introduced in 2.13.0). <46c8506>
+[core] Make sure we always normalize hostnames with underscores in them. <4b4b4c7>
+[postgresql] Make sure the PostgreSQL client version matches the server version. <f7b5223>
+[postgresql] Reference the correct Ubuntu release in the PostgreSQL apt line. <82127cd>
+
+
 2.13.1 (10/01/2014)
 
 Improvements:
