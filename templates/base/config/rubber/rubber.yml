@@ -90,7 +90,7 @@ cloud_providers:
     image_id: ami-90c574f8
 
     fog_options:
-      # EBS I/O optimized instace
+      # EBS I/O optimized instance
       # EBS-optimized instances deliver dedicated throughput between Amazon EC2 and Amazon EBS, with options
       # between 500 Mbps and 1000 Mbps depending on the instance type used.
       # Read more and make sure that your image_type supports ebs_optimized function at: http://aws.amazon.com/ec2/instance-types/
