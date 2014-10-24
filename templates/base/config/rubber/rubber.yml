@@ -353,16 +353,16 @@ staging_roles: "#{known_roles.reject {|r| r =~ /slave/ || r =~ /^db$/ }.join(','
 #         zone: us-east-1a # zone to create volume in, needs to match host's zone
 #         device: /dev/sdx # OS device to attach volume to
 #         fog_options:
-#           type: standard # type of volume, standard or io1
+#           type: gp2 # type of volume, standard (EBS magnetic), io1 (provisioned IOPS - SSD), or gp2 (general purpose - SSD).
 #           iops: 500 # The number of I/O operations per second (IOPS) that the volume supports.
-#                     # Required when the volume type is io1; not used with standard volumes.
+#                     # Required when the volume type is io1; not used with non-provisioned IOPS volumes.
 #       - size: 50 # size of vol in GBs
 #         zone: us-east-1a # zone to create volume in, needs to match host's zone
 #         device: /dev/sdy # OS device to attach volume to
 #         fog_options:
-#           type: standard # type of volume, standard or io1
+#           type: gp2 # type of volume, standard (EBS magnetic), io1 (provisioned IOPS - SSD), or gp2 (general purpose - SSD).
 #           iops: 500 # The number of I/O operations per second (IOPS) that the volume supports.
-#                     # Required when the volume type is io1; not used with standard volumes.
+#                     # Required when the volume type is io1; not used with non-provisioned IOPS volumes.
 #
 #    # Use some ephemeral volumes for raid array
 #    local_volumes:
