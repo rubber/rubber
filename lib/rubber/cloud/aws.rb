@@ -320,7 +320,11 @@ module Rubber
       end
 
       def create_volume(instance, volume_spec)
-        volume = compute_provider.volumes.create(:size => volume_spec['size'], :availability_zone => volume_spec['zone'])
+        provider_opts = Rubber::Util.symbolize_keys(volume_spec['provider_opts'] || {})
+        volume_data = {
+            :size => volume_spec['size'], :availability_zone => volume_spec['zone']
+        }.merge(provider_opts)
+        volume = compute_provider.volumes.create(volume_data)
         volume.id
       end
 
