@@ -29,9 +29,9 @@ module Rubber
         super(env, capistrano)
       end
 
-      # As of July 2014 Digital Ocean supports private networking in
-      # New York 2 (id 4), Amsterdam 2 (id 5), Singapore 1 (id 6) and London 1 (id 7)
-      REGIONS_WITH_PRIVATE_NETWORKING = [4, 5, 6, 7]
+      # As of October 2014 Digital Ocean supports private networking in
+      # New York 2 (id 4), New York 3 (id 8), Amsterdam 2 (id 5), Amsterdam 3 (id 9), Singapore 1 (id 6) and London 1 (id 7)
+      REGIONS_WITH_PRIVATE_NETWORKING = [4, 5, 6, 7, 8, 9]
 
       def create_instance(instance_alias, image_name, image_type, security_groups, availability_zone, region)
         do_region = compute_provider.regions.find { |r| r.name == region }
