@@ -15,7 +15,7 @@ Bug Fixes:
 =========
 
 [nginx] Add Nginx parameter required by DigitalOcean droplets. <24ac1aa>
-[postgresql] Surround postgresql database name with quotes to avoid syntax error when using dash. <4017979>
+[postgresql] Surround postgresql database name with quotes to avoid syntax error when using hyphens in the DB name. <4017979>
 
 
 
