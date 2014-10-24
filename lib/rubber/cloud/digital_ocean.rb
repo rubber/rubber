@@ -33,7 +33,7 @@ module Rubber
       # New York 2 (id 4), New York 3 (id 8), Amsterdam 2 (id 5), Amsterdam 3 (id 9), Singapore 1 (id 6) and London 1 (id 7)
       REGIONS_WITH_PRIVATE_NETWORKING = [4, 5, 6, 7, 8, 9]
 
-      def create_instance(instance_alias, image_name, image_type, security_groups, availability_zone, region, provider_opts={})
+      def create_instance(instance_alias, image_name, image_type, security_groups, availability_zone, region, fog_options={})
         do_region = compute_provider.regions.find { |r| r.name == region }
         if do_region.nil?
           raise "Invalid region for DigitalOcean: #{region}"
@@ -70,7 +70,7 @@ module Rubber
                                                    :region_id => do_region.id,
                                                    :ssh_key_ids => [ssh_key['id']],
                                                    :private_networking => (env.private_networking.to_s.downcase == 'true')}.
-                                                   merge(Rubber::Util.symbolize_keys(provider_opts))
+                                                   merge(Rubber::Util.symbolize_keys(fog_options))
         )
 
         response.id

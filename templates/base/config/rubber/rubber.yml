@@ -89,7 +89,7 @@ cloud_providers:
     image_type: c1.medium
     image_id: ami-90c574f8
 
-    provider_opts:
+    fog_options:
       # EBS I/O optimized instace
       # EBS-optimized instances deliver dedicated throughput between Amazon EC2 and Amazon EBS, with options
       # between 500 Mbps and 1000 Mbps depending on the instance type used.
@@ -332,7 +332,7 @@ staging_roles: "#{known_roles.reject {|r| r =~ /slave/ || r =~ /^db$/ }.join(','
 #         device: /dev/sdh # OS device to attach volume to
 #         mount: /mnt/mysql # The directory to mount this volume to
 #         filesystem: ext3 # the filesystem to create on volume
-#         provider_opts:
+#         fog_options:
 #           type: standard # type of volume, standard or io1
 #           iops: 500 # The number of I/O operations per second (IOPS) that the volume supports.
 #                     # Required when the volume type is io1; not used with standard volumes.
@@ -342,7 +342,7 @@ staging_roles: "#{known_roles.reject {|r| r =~ /slave/ || r =~ /^db$/ }.join(','
 #         device: /dev/sdi # OS device to attach volume to
 #         mount: /mnt/logs # The directory to mount this volume to
 #         filesystem: ext3 # the filesystem to create on volume
-#         provider_opts:
+#         fog_options:
 #           type: standard # type of volume, standard or io1
 #           iops: 500 # The number of I/O operations per second (IOPS) that the volume supports.
 #                     # Required when the volume type is io1; not used with standard volumes.
@@ -352,14 +352,14 @@ staging_roles: "#{known_roles.reject {|r| r =~ /slave/ || r =~ /^db$/ }.join(','
 #       - size: 50 # size of vol in GBs
 #         zone: us-east-1a # zone to create volume in, needs to match host's zone
 #         device: /dev/sdx # OS device to attach volume to
-#         provider_opts:
+#         fog_options:
 #           type: standard # type of volume, standard or io1
 #           iops: 500 # The number of I/O operations per second (IOPS) that the volume supports.
 #                     # Required when the volume type is io1; not used with standard volumes.
 #       - size: 50 # size of vol in GBs
 #         zone: us-east-1a # zone to create volume in, needs to match host's zone
 #         device: /dev/sdy # OS device to attach volume to
-#         provider_opts:
+#         fog_options:
 #           type: standard # type of volume, standard or io1
 #           iops: 500 # The number of I/O operations per second (IOPS) that the volume supports.
 #                     # Required when the volume type is io1; not used with standard volumes.

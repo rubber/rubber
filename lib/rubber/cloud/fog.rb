@@ -29,7 +29,7 @@ module Rubber
         raise NotImplementedError, "No table store available for generic fog adapter"
       end
 
-      def create_instance(instance_alias, ami, ami_type, security_groups, availability_zone, region, provider_opts={})
+      def create_instance(instance_alias, ami, ami_type, security_groups, availability_zone, region, fog_options={})
 
         response = compute_provider.servers.create({:image_id => ami,
                                                    :flavor_id => ami_type,
@@ -37,7 +37,7 @@ module Rubber
                                                    :availability_zone => availability_zone,
                                                    :key_name => env.key_name,
                                                    :name => instance_alias}.merge(
-                                                       Rubber::Util.symbolize_keys(provider_opts)))
+                                                       Rubber::Util.symbolize_keys(fog_options)))
 
         response.id
       end

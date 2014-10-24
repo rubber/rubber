@@ -29,7 +29,7 @@ module Rubber
         super(env, capistrano)
       end
 
-      def create_instance(instance_alias, image_name, image_type, security_groups, availability_zone, datacenter, provider_opts={})
+      def create_instance(instance_alias, image_name, image_type, security_groups, availability_zone, datacenter, fog_options={})
         if env.domain.nil?
           raise "'domain' value must be configured"
         end
@@ -199,8 +199,8 @@ module Rubber
           config[:eager_zero] = eager_zero
         end
 
-        provider_opts = Rubber::Util.symbolize_keys(volume_spec['provider_opts'] || {})
-        volume = server.volumes.create(config.merge(provider_opts))
+        fog_options = Rubber::Util.symbolize_keys(volume_spec['fog_options'] || {})
+        volume = server.volumes.create(config.merge(fog_options))
 
         volume.id
       end

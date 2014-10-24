@@ -274,7 +274,7 @@ namespace :rubber do
     ami_type = cloud_env.image_type
     availability_zone = cloud_env.availability_zone
     region = cloud_env.region
-    provider_opts = cloud_env.provider_opts || {}
+    fog_options = cloud_env.fog_options || {}
 
     create_spot_instance ||= cloud_env.spot_instance
 
@@ -282,7 +282,7 @@ namespace :rubber do
       spot_price = cloud_env.spot_price.to_s
 
       logger.info "Creating spot instance request for instance #{ami}/#{ami_type}/#{security_groups.join(',') rescue 'Default'}/#{availability_zone || 'Default'}"
-      request_id = cloud.create_spot_instance_request(spot_price, ami, ami_type, security_groups, availability_zone, provider_opts)
+      request_id = cloud.create_spot_instance_request(spot_price, ami, ami_type, security_groups, availability_zone, fog_options)
 
       print "Waiting for spot instance request to be fulfilled"
       max_wait_time = cloud_env.spot_instance_request_timeout || (1.0 / 0) # Use the specified timeout value or default to infinite.
@@ -309,7 +309,7 @@ namespace :rubber do
 
     if !create_spot_instance || (create_spot_instance && max_wait_time < 0)
       logger.info "Creating instance #{ami}/#{ami_type}/#{security_groups.join(',') rescue 'Default'}/#{availability_zone || region || 'Default'}"
-      instance_id = cloud.create_instance(instance_alias, ami, ami_type, security_groups, availability_zone, region, provider_opts)
+      instance_id = cloud.create_instance(instance_alias, ami, ami_type, security_groups, availability_zone, region, fog_options)
     end
 
     logger.info "Instance #{instance_alias} created: #{instance_id}"
