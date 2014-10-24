@@ -335,7 +335,7 @@ staging_roles: "#{known_roles.reject {|r| r =~ /slave/ || r =~ /^db$/ }.join(','
 #         zone: us-east-1a # zone to create volume in, needs to match host's zone
 #         device: /dev/sdh # OS device to attach volume to
 #         mount: /mnt/mysql # The directory to mount this volume to
-#         filesystem: ext3 # the filesystem to create on volume
+#         filesystem: ext4 # the filesystem to create on volume
 #
 #         # OPTIONAL: Provide fog-specific options directly.  This should only be used if you need a special setting that
 #         # Rubber does not directly expose.  Since these settings will be passed directly through to fog, we can't make any
@@ -349,7 +349,7 @@ staging_roles: "#{known_roles.reject {|r| r =~ /slave/ || r =~ /^db$/ }.join(','
 #         zone: us-east-1a
 #         device: /dev/sdi
 #         mount: /mnt/logs
-#         filesystem: ext3
+#         filesystem: ext4
 #         fog_options:
 #           type: standard
 #           iops: 500
