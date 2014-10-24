@@ -1,3 +1,24 @@
+2.15.0 (10/24/2014)
+
+New Features:
+============
+
+[core] Add the ability to pass custom fog specific options during instance and volume creation. <a2e1c67>
+
+Improvements:
+============
+
+[base] Document private networking support for new Digital Ocean regions: New York 3 and Amsterdam 3. <e85360f>
+[base] Switch from ext3 to ext4 as the example filesystem in volume creation. <a21b95d>
+
+Bug Fixes:
+=========
+
+[nginx] Add Nginx parameter required by DigitalOcean droplets. <24ac1aa>
+[postgresql] Surround postgresql database name with quotes to avoid syntax error when using dash. <4017979>
+
+
+
 2.14.0 (10/13/2014)
 
 Improvements:
