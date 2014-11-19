@@ -398,12 +398,12 @@ staging_roles: "#{known_roles.reject {|r| r =~ /slave/ || r =~ /^db$/ }.join(','
  environments:
    staging:
      vpc: 
-       id: vpc-8a61b8ef
-       subnet_id: subnet-4adf263d 
+       id: vpc-xxxx
+       subnet_id: subnet-xxxx
        roles:
          web: 
            tenancy: default
-           subnet_id: subnet-49df263e
+           subnet_id: subnet-xxxxx
 #   production:
 #     myconfig: val
 
