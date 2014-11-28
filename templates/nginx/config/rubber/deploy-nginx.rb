@@ -22,6 +22,9 @@ namespace :rubber do
     # rubber auto-roles don't get defined till after all tasks are defined
     on :load do
       rubber.serial_task self, :serial_restart, :roles => :nginx do
+        rsudo "rm /etc/nginx/sites-enabled/*"
+      end
+      rubber.serial_task self, :serial_restart, :roles => :nginx do
         rsudo "service nginx restart"
       end
       rubber.serial_task self, :serial_reload, :roles => :nginx do
