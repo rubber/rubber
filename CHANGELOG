@@ -1,3 +1,19 @@
+2.15.1 (12/22/2014)
+
+Improvements:
+============
+
+[nginx] Set UTF-8 charset and do not echo server version. <04c03ef>
+
+Bug Fixes:
+=========
+
+[base] Restored comment about EBS volume types in rubber.yml. <73283ff>
+[core] Fixed broken method interface Aws#create_spot_instance_request. <ed95bdb>
+[core] Mostly fixed cronjobs on JRuby 9.0.0.0 (jobs will run, but error cases are incorrectly reported as successful still). <cefbdec>
+[delayed_job] Fixed variable interpolation in monit-delayed_job.conf. <792ba57>
+
+
 2.15.0 (10/24/2014)
 
 New Features:
