@@ -23,6 +23,9 @@ namespace :rubber do
     # semi-performantly when bootstrapping.
 
     rebind_after_install_packages_callbacks('rubber:setup_volumes')
+    
+     # Setting local aliases as part of the bootstrap in case if we want to run bootstrap against server which is already created
+    setup_local_aliases if ENV['SERVER_CREATED']
 
     link_bash
     set_timezone
@@ -34,9 +37,6 @@ namespace :rubber do
     setup_volumes
     setup_gem_sources
     install_gems
-
-    # Setting local aliases as part of the bootstrap in case if we want to run bootstrap against server which is already created
-    setup_local_aliases if ENV['SERVER_CREATED']
 
     deploy.setup
   end
