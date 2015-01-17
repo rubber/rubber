@@ -83,11 +83,11 @@ cloud_providers:
 
     # REQUIRED: the ami and instance type for creating instances
     # The Ubuntu images at http://alestic.com/ work well
-    # Ubuntu 14.04.1 Trusty instance-store 64-bit: ami-90c574f8
+    # Ubuntu 14.04.1 Trusty instance-store 64-bit: ami-92f569fa
     #
     # m1.small or m1.large or m1.xlarge
     image_type: c1.medium
-    image_id: ami-90c574f8
+    image_id: ami-92f569fa
 
     # OPTIONAL: Provide fog-specific options directly.  This should only be used if you need a special setting that
     # Rubber does not directly expose.  Since these settings will be passed directly through to fog, we can't make any
