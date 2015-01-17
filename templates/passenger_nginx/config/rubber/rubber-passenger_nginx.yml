@@ -1,4 +1,4 @@
-passenger_version: '1:4.0.53-1~`lsb_release -sc`1'
+passenger_version: '1:4.0.57-1~`lsb_release -sc`1'
 passenger_ruby: "#{ruby_path}/bin/ruby"
 nginx_log_dir: /mnt/nginx/logs
 passenger_listen_port: 7000
