@@ -8,7 +8,7 @@
 # For IronRuby (if you wish to use it) you will need:
 #   aptitude install curl mono-2.0-devel
 
-packages: [build-essential, git-core, subversion, curl, autoconf, bison, ruby, zlib1g-dev, libssl-dev, libreadline6-dev, libxml2-dev, libyaml-dev]
+packages: [autoconf, bison, build-essential, libssl-dev, libyaml-dev, libreadline6-dev, zlib1g-dev, libncurses5-dev, libffi-dev, libgdbm3, libgdbm-dev]
 
 # REQUIRED: The version of ruby-build to use for building ruby.
 # It must be one of the versions from https://github.com/sstephenson/ruby-build/releases.
