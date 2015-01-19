@@ -95,7 +95,7 @@ module Rubber
 
         # Open4 forks, which JRuby doesn't support.  But JRuby added a popen4-compatible method on the IO class,
         # so we can use that instead.
-        status = popen4(*cmd) do |pid, stdin, stdout, stderr|
+        status = (defined?(JRUBY_VERSION) ? IO : Open4).popen4(*cmd) do |pid, stdin, stdout, stderr|
           File.open(log, "a") do | fh |
             fh.puts "\nrubber:cron running #{cmd.inspect} at #{Time.now}\n"
             threads = []
@@ -124,45 +124,6 @@ module Rubber
         end
         
         exit(result)
-      end
-
-      def popen4(*cmd, &blk)
-        if defined?(JRUBY_VERSION)
-          if defined?(IO.popen4)
-            IO.popen4(*cmd, &blk)
-          else
-            opts = {}
-            in_r, in_w = IO.pipe
-            opts[:in] = in_r
-            in_w.sync = true
-
-            out_r, out_w = IO.pipe
-            opts[:out] = out_w
-
-            err_r, err_w = IO.pipe
-            opts[:err] = err_w
-
-            child_io = [in_r, out_w, err_w]
-            parent_io = [in_w, out_r, err_r]
-
-            pid = spawn(*cmd, opts)
-            wait_thr = Process.detach(pid)
-            child_io.each { |io| io.close }
-            result = [pid, *parent_io]
-            if defined? yield
-              begin
-                return yield(*result)
-              ensure
-                parent_io.each { |io| io.close unless io.closed? }
-                wait_thr.join
-              end
-            end
-
-            result
-          end
-        else
-          Open4.popen4(*cmd, &blk)
-        end
       end
     
     end
