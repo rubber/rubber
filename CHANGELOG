@@ -1,3 +1,21 @@
+2.15.2 (01/20/2015)
+
+Improvements:
+============
+
+[base] Upgraded from ruby-build 20140702 to 20150116. <8112404>
+[base] Upgraded default Ruby from 2.0.0-p481 to 2.2.0. <8112404>
+[base] Updated ruby-build packages to match latest recommendations. <aad9928>
+[base] Use the latest Ubuntu 14.04 LTS AMI. <68411a0>
+[passenger] Upgraded from Passenger 4.0.53 to 4.0.57. <7bcf418>
+[passenger_nginx] Upgraded from Passenger 4.0.53 to 4.0.57. <7bcf418>
+
+Bug Fixes:
+=========
+
+[core] Reverted process spawning logic in JRuby 9.0.0.0 now that they've restored the method we use in JRuby 1.7.x. <62fde5b>
+
+
 2.15.1 (12/21/2014)
 
 Improvements:
