@@ -49,7 +49,6 @@ matrix:
     - rvm: 1.8.7
     - rvm: 1.9.2
     - rvm: jruby-18mode
-    - rvm: jruby-head
     - rvm: ruby-head
 
 # script: bundle exec rspec spec
