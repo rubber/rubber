@@ -2,53 +2,19 @@ language: ruby
 sudo: false
 cache: bundler
 
-gemfile:
-  - Gemfile
-  - Gemfile.1.8.7
-
 rvm:
-  - 1.8.7
-  - 1.9.2
   - 1.9.3
   - 2.0.0
   - 2.1
   - 2.2
   - ruby-head
-  - jruby-18mode
   - jruby-19mode
   - jruby-head
   - rbx-2
 
 matrix:
-  exclude:
-    - rvm: 1.8.7
-      gemfile: Gemfile
-    - rvm: 1.9.2
-      gemfile: Gemfile.1.8.7
-    - rvm: 1.9.3
-      gemfile: Gemfile.1.8.7
-    - rvm: 2.0.0
-      gemfile: Gemfile.1.8.7
-    - rvm: 2.1
-      gemfile: Gemfile.1.8.7
-    - rvm: 2.2
-      gemfile: Gemfile.1.8.7
-    - rvm: ruby-head
-      gemfile: Gemfile.1.8.7
-    - rvm: jruby-18mode
-      gemfile: Gemfile
-    - rvm: jruby-19mode
-      gemfile: Gemfile.1.8.7
-    - rvm: jruby-head
-      gemfile: Gemfile.1.8.7
-    - rvm: rbx-2
-      gemfile: Gemfile.1.8.7
-
   allow_failures:
     - rvm: rbx-2
-    - rvm: 1.8.7
-    - rvm: 1.9.2
-    - rvm: jruby-18mode
     - rvm: ruby-head
 
 # script: bundle exec rspec spec
