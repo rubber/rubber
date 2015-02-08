@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
     (belonging to all roles), and add new instances into the mix as needed to scale specific facets of your
     deployment, e.g. adding in instances that serve only as an 'app' role to handle increased app server load.
   DESC
-  
+
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
@@ -31,7 +31,6 @@ Gem::Specification.new do |s|
   s.add_dependency 'net-ssh', '~> 2.6'
   s.add_dependency 'thor'
   s.add_dependency 'clamp'
-  s.add_dependency 'open4'
   s.add_dependency 'fog', '~> 1.6'
   s.add_dependency 'json'
   
