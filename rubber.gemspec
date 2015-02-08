@@ -8,6 +8,7 @@ Gem::Specification.new do |s|
   s.name = "rubber"
   s.version     = Rubber::VERSION.dup
   s.platform    = Gem::Platform::RUBY
+  s.required_ruby_version = '>= 1.9.3'
   s.authors = ["Matt Conway", "Kevin Menard"]
   s.email       = ["matt@conwaysplace.com", "nirvdrum@gmail.com"]
   s.homepage = "https://github.com/rubber/rubber"
