@@ -1,0 +1,21 @@
+ossec_version: 2.8.1
+
+#http://ossec-docs.readthedocs.org/en/latest/manual/output/syslog-output.html#examples
+ossec_send_to_syslog: true
+ossec_syslog_server_address: 10.10.10.10
+ossec_syslog_port: 515
+ossec_syslog_format: default #default, cef, splunk, json
+
+#http://ossec-docs.readthedocs.org/en/latest/manual/output/standard-email-output.html
+ossec_send_email: true
+ossec_email: name@domain.com
+ossec_smtp: aspmx.l.google.com. #valid for gmail/google domains
+ossec_from_email: ossecm@app.domain.com
+
+
+role_dependencies:
+  common: [ossec]
+
+roles:
+  ossec:
+
