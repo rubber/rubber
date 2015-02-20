@@ -121,6 +121,12 @@ namespace :rubber do
     # auth_methods are used, so we're best off using that unless the methods have already been set explicitly by
     # the Rubber user elsewhere.
     ssh_options[:auth_methods] = nil unless ssh_options.has_key?(:auth_methods)
+
+    # Starting with net-ssh 2.9.2, net-ssh will block on a password prompt if a nil password is supplied.  This
+    # breaks our discovery and retry logic.  To return to the old behavior, we can set set the number of password
+    # prompts to 0.  We handle password prompts directly ourselves, using Capistrano's helpers, so this is a
+    # safe thing to do.
+    ssh_options[:number_of_password_prompts] = 0
   end
 
 
