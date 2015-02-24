@@ -127,6 +127,9 @@ namespace :rubber do
     # prompts to 0.  We handle password prompts directly ourselves, using Capistrano's helpers, so this is a
     # safe thing to do.
     ssh_options[:number_of_password_prompts] = 0
+
+    # Set the net-ssh log level.
+    ssh_options[:verbose] = fetch(:ssh_log_level, :warn)
   end
 
 

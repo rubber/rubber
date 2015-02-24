@@ -25,6 +25,11 @@ set :password, nil
 # This way exposed services (mongrel) aren't running as a privileged user
 set :use_sudo, true
 
+# If you're having troubles connecting to your server, uncommenting this
+# line will give you more verbose logging output from net-ssh, which will
+# make debugging the problem much easier.
+#set :ssh_log_level, :debug
+
 # How many old releases should be kept around when running "cleanup" task
 set :keep_releases, 3
 
