@@ -1,3 +1,21 @@
+2.16.0 (02/23/2015)
+
+New Features:
+============
+
+[base, core] Added an option to make debugging net-ssh issues much easier. <ae96cfa>
+
+Improvements:
+============
+
+[core] Default to VMXNET 3 Ethernet driver for vSphere. <853fba6>
+
+Bug Fixes:
+=========
+
+[core] Fixed a compatibility issue with net-ssh 2.9.2. <246dbb5>
+
+
 2.15.2 (01/20/2015)
 
 Improvements:
