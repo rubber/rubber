@@ -203,6 +203,7 @@ module Rubber
       attr_accessor :spot_instance_request_id
       attr_accessor :provider, :platform
       attr_accessor :vpc_id, :subnet_id, :tenancy
+      attr_accessor :subnet_type
 
       def initialize(name, domain, roles, instance_id, image_type, image_id, security_group_list=[])
         @name = name
