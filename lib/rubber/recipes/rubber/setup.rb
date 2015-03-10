@@ -23,11 +23,11 @@ namespace :rubber do
     # semi-performantly when bootstrapping.
 
     rebind_after_install_packages_callbacks('rubber:setup_volumes')
-    
+
     # Setting local aliases as part of the bootstrap in case if we want to run bootstrap against server which is already created
     if ENV['SERVER_CREATED']
-      setup_local_aliases 
-      setup_remote_aliases 
+      setup_local_aliases
+      setup_remote_aliases
     end
 
     link_bash
@@ -236,9 +236,11 @@ namespace :rubber do
     # Generate /etc/hosts contents for the remote instance from instance config
     delim = "## rubber config #{Rubber.env}"
     remote_hosts = []
+    remote_hosts_external = []
 
     rubber_instances.each do |ic|
       hosts_data = [ic.internal_ip, ic.full_name, ic.name, ic.external_host, ic.internal_host]
+      hosts_data_external = [ic.external_ip, ic.full_name, ic.name, ic.external_host, ic.internal_host]
 
       # add the ip aliases for web tools hosts so we can map internal tools
       # to their own vhost to make proxying easier (rewriting url paths for
@@ -247,23 +249,35 @@ namespace :rubber do
       if ic.role_names.include?('web_tools')
         Array(rubber_env.web_tools_proxies).each do |name, settings|
           hosts_data << "#{name}-#{ic.full_name}"
+          hosts_data_external << "#{name}-#{ic.full_name}"
         end
       end
 
       hosts_data << "## vpc subnet_id #{ic.subnet_id}" if ic.subnet_id
       remote_hosts << hosts_data.join(' ')
+
+      hosts_data_external << "##public_net_ip" if ic.subnet_type=='public'
+      remote_hosts_external << hosts_data_external.join(' ')
     end
 
     if rubber_instances.size > 0
       replace = "#{delim}\\n#{remote_hosts.join("\\n")}\\n#{delim}"
+      replace_external = "#{delim}\\n#{remote_hosts_external.join("\\n")}\\n#{delim}"
       #current_host="\"`hostname -i` `hostname -f` `hostname -s`\""
 
       setup_remote_aliases_script = <<-ENDSCRIPT
         replace="#{replace}"
+        replace_external="#{replace_external}"
+
         current_host=$(echo -e $replace | grep `hostname` | grep subnet_id) || true
+        current_host_external=$(echo -e $replace_external | grep `hostname` | grep public_net_ip ) || true
 
         if [[ ! -z $current_host ]]; then
           replace="#{rubber_env.skip_remote_aliases_vpc ? "#{delim}\\n\$current_host\\n#{delim}" : "#{replace}" }"
+        fi
+
+        if [[ ! -z $current_host_external ]]; then
+          replace="#{replace_external}"
         fi
 
         sed -i.bak "/#{delim}/,/#{delim}/c $replace" /etc/hosts

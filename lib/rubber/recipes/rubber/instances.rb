@@ -336,6 +336,9 @@ namespace :rubber do
       instance_item.subnet_id = subnet_id
       instance_item.tenancy = tenancy
     end  
+
+    instance_item.subnet_type = env.subnet_type if env.subnet_type
+    
     rubber_instances.add(instance_item)
     rubber_instances.save()
 
