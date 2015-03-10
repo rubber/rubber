@@ -23,11 +23,11 @@ namespace :rubber do
     # semi-performantly when bootstrapping.
 
     rebind_after_install_packages_callbacks('rubber:setup_volumes')
-    
+
     # Setting local aliases as part of the bootstrap in case if we want to run bootstrap against server which is already created
     if ENV['SERVER_CREATED']
-      setup_local_aliases 
-      setup_remote_aliases 
+      setup_local_aliases
+      setup_remote_aliases
     end
 
     link_bash
@@ -256,7 +256,7 @@ namespace :rubber do
       hosts_data << "## vpc subnet_id #{ic.subnet_id}" if ic.subnet_id
       remote_hosts << hosts_data.join(' ')
 
-      hosts_data_external << "##datto_public_net" if ic.subnet_type=='public'
+      hosts_data_external << "##public_net_ip" if ic.subnet_type=='public'
       remote_hosts_external << hosts_data_external.join(' ')
     end
 
@@ -270,7 +270,7 @@ namespace :rubber do
         replace_external="#{replace_external}"
 
         current_host=$(echo -e $replace | grep `hostname` | grep subnet_id) || true
-        current_host_external=$(echo -e $replace_external | grep `hostname` | grep datto_public_net ) || true
+        current_host_external=$(echo -e $replace_external | grep `hostname` | grep public_net_ip ) || true
 
         if [[ ! -z $current_host ]]; then
           replace="#{rubber_env.skip_remote_aliases_vpc ? "#{delim}\\n\$current_host\\n#{delim}" : "#{replace}" }"
