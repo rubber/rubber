@@ -317,7 +317,6 @@ namespace :rubber do
       print "\n"
     end
 
-    binding.pry
     if !create_spot_instance || (create_spot_instance && max_wait_time < 0)
       logger.info "Creating instance #{ami}/#{ami_type}/#{security_groups.join(',') rescue 'Default'}/#{availability_zone || region || 'Default'}"
       if vpc_enabled

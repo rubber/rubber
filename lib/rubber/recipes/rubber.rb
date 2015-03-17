@@ -9,7 +9,7 @@ require 'capistrano/thread_safety_fix'
 require 'capistrano/find_servers_for_task_fix'
 require 'pp'
 require 'rubber'
-require 'pry'
+
 namespace :rubber do
 
   # Disable connecting to any Windows instance.
@@ -88,7 +88,6 @@ namespace :rubber do
     ssh_keys = if ENV['RUBBER_SSH_KEY']
       ENV['RUBBER_SSH_KEY'].split(',')
     else
-      binding.pry
       if cloud.env.key_file.nil?
         fatal "Missing required cloud provider configuration item 'key_file'."
       else
