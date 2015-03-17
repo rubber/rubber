@@ -260,7 +260,6 @@ namespace :rubber do
   # Creates a new ec2 instance with the given alias and roles
   # Configures aliases (/etc/hosts) on local and remote machines
   def create_instance(instance_alias, instance_roles, create_spot_instance)
-    binding.pry
     role_names = instance_roles.collect{|x| x.name}
     env = rubber_cfg.environment.bind(role_names, instance_alias)
 
@@ -268,7 +267,7 @@ namespace :rubber do
       cloud.before_create_instance(instance_alias, role_names,)
     end
 
-    cloud_env = env.cloud_providers[env.cloud_provider]
+    cloud_env = env.cloud_providers[ENV['CLOUD_PROVIDER'] || env.cloud_provider]
     ami = cloud_env.image_id
     ami_type = cloud_env.image_type
     availability_zone = cloud_env.availability_zone
@@ -318,6 +317,7 @@ namespace :rubber do
       print "\n"
     end
 
+    binding.pry
     if !create_spot_instance || (create_spot_instance && max_wait_time < 0)
       logger.info "Creating instance #{ami}/#{ami_type}/#{security_groups.join(',') rescue 'Default'}/#{availability_zone || region || 'Default'}"
       if vpc_enabled
