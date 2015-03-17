@@ -5,11 +5,13 @@ require 'pry'
 module Rubber
   module Cloud
     class Datto < Base
-      delegate :endpoint, :to => :env
-
       def initialize(env, capistrano)
         super(env, capistrano)
         binding.pry
+      end
+
+      def endpoint
+        env.endpoint
       end
 
       def active_state
