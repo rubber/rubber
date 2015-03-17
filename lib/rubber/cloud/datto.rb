@@ -111,9 +111,9 @@ module Rubber
       end
 
       def describe_instances(instance_id=nil)
-        response = httpAdapter.get('http://10.30.95.138/index.php/worker')
         binding.pry
-        response["results"]
+        # response = httpAdapter.get('http://10.30.95.138/index.php/worker')
+        # response["results"]
       #   output = `vagrant status #{instance_id}`
 
       #   output =~ /#{instance_id}\s+(\w+)/m
@@ -143,7 +143,7 @@ module Rubber
       end
 
       def destroy_instance(instance_id)
-        response = httpAdapter.delete("http://10.30.95.138/index.php/worker/#{instance}")
+        # response = httpAdapter.delete("http://10.30.95.138/index.php/worker/#{instance}")
         binding.pry
       end
 
