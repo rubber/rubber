@@ -1,6 +1,7 @@
 $:.unshift(File.dirname(__FILE__))
 
 require 'monitor'
+require 'pry'
 
 module Rubber
   extend MonitorMixin
@@ -76,6 +77,7 @@ module Rubber
   end
 
   def self.cloud(capistrano = nil)
+    binding.pry
     # sharing a Net::HTTP instance across threads doesn't work, so
     # create a new instance per thread
     Rubber::ThreadSafeProxy.new { Rubber::Cloud::get_provider(ENV['CLOUD_PROVIDER'] || self.config.cloud_provider || "aws", self.config, capistrano) }

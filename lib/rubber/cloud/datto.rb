@@ -157,7 +157,7 @@ module Rubber
 
       private
 
-      class httpAdapter
+      class HttpAdapter
         include HTTParty
         format(:json)
       end
