@@ -4,32 +4,12 @@ require 'pry'
 
 module Rubber
   module Cloud
-    class Datto < Generic
+    class Datto < Base
+      delegate :endpoint, :to => :env
+
       def initialize(env, capistrano)
-        binding.pry
-        # compute_credentials = {
-        #   :provider => 'vsphere',
-        #   :vsphere_username => env.vcenter_username,
-        #   :vsphere_password => env.vcenter_password,
-        #   :vsphere_server => env.vcenter_host,
-        #   :vsphere_expected_pubkey_hash => env.expected_pubkey_hash
-        # }
-
-        # if env.cloud_providers && env.cloud_providers.aws
-        #   storage_credentials = {
-        #       :provider => 'AWS',
-        #       :aws_access_key_id => env.cloud_providers.aws.access_key,
-        #       :aws_secret_access_key => env.cloud_providers.aws.secret_access_key,
-        #       :path_style => true
-        #   }
-
-        #   storage_credentials[:region] = env.cloud_providers.aws.region
-
-        #   env['storage_credentials'] = storage_credentials
-        # end
-
-        # env['compute_credentials'] = compute_credentials
         super(env, capistrano)
+        binding.pry
       end
 
       def active_state
