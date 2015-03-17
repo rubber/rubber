@@ -74,13 +74,13 @@ module Rubber
 
     @instances
   end
-  
+
   def self.cloud(capistrano = nil)
     # sharing a Net::HTTP instance across threads doesn't work, so
     # create a new instance per thread
-    Rubber::ThreadSafeProxy.new { Rubber::Cloud::get_provider(self.config.cloud_provider || "aws", self.config, capistrano) }
+    Rubber::ThreadSafeProxy.new { Rubber::Cloud::get_provider(ENV['CLOUD_PROVIDER'] || self.config.cloud_provider || "aws", self.config, capistrano) }
   end
-  
+
 end
 
 require 'rubber/version'

@@ -77,6 +77,8 @@ namespace :rubber do
       default_run_options[:only] = { :platform => Rubber::Platforms::LINUX }
     end
 
+    require 'pry'
+    binding.pry
     set :cloud, Rubber.cloud(self)
 
     load_roles() unless rubber_env.disable_auto_roles
