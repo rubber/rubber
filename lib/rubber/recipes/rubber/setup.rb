@@ -63,13 +63,14 @@ namespace :rubber do
     orig_password = fetch(:password)
     initial_ssh_password = fetch(:initial_ssh_password, nil)
 
-    if initial_ssh_user == 'ubuntu' || ENV.has_key?('RUN_FROM_VAGRANT')
-      set(:password, nil)
-    elsif initial_ssh_password
-      set(:password, initial_ssh_password)
-    else
-      set(:password, Capistrano::CLI.password_prompt("Password for #{initial_ssh_user} @ #{ip}: "))
-    end
+    set(:password, initial_ssh_password)
+    # if initial_ssh_user == 'ubuntu' || ENV.has_key?('RUN_FROM_VAGRANT')
+    #   set(:password, nil)
+    # elsif initial_ssh_password
+    #   set(:password, initial_ssh_password)
+    # else
+    #   set(:password, Capistrano::CLI.password_prompt("Password for #{initial_ssh_user} @ #{ip}: "))
+    # end
 
     task :_ensure_key_file_present, :hosts => "#{initial_ssh_user}@#{ip}" do
       public_key_filename = "#{cloud.env.key_file}.pub"
