@@ -20,9 +20,9 @@ module Rubber
       end
 
       def create_instance(instance_alias, image_name, image_type, security_groups, availability_zone, datacenter)
-        response = HttpAdapter.post("http://#{self.endpoint}/index.php/worker")
+        response = HttpAdapter.post(uriBuilder)
         if response.code != 200
-          raise StandardError.new(response["result"] || "Unexpected Response Code #{response.code}")
+          raise errFromResponse(response)
         end
 
         response["id"]
@@ -31,9 +31,9 @@ module Rubber
       def describe_instances(instance_id=nil)
         instances = []
         if instance_id.nil?
-          response = HttpAdapter.get("http://#{self.endpoint}/index.php/worker")
+          response = HttpAdapter.get(uriBuilder)
           if response.code != 200
-            raise StandardError.new(response["result"] || "Unexpected Response Code #{response.code}")
+            raise errFromResponse(response)
           end
 
           response["results"].each do |item|
@@ -45,10 +45,11 @@ module Rubber
             instances << instance
           end
         else
-          response = HttpAdapter.get("http://#{self.endpoint}/index.php/worker/#{instance_id}")
+          response = HttpAdapter.get(uriBuilder(instance_id))
           if response.code != 200
-            raise StandardError.new(response["result"] || "Unexpected Response Code #{response.code}")
+            raise errFromResponse(response)
           end
+
           instance = {}
           instance[:id] = response["id"]
           instance[:external_ip] = response["ip"]
@@ -62,14 +63,25 @@ module Rubber
       end
 
       def destroy_instance(instance_id)
-        response = HttpAdapter.delete("http://#{self.endpoint}/index.php/worker/#{instance_id}")
+        response = HttpAdapter.delete(uriBuilder(instance_id))
         if response.code != 200
-          raise StandardError.new(response["result"] || "Unexpected Response Code #{response.code}")
+          raise errFromResponse(response)
         end
         response
       end
 
       private
+
+      # @param [HTTPartyResponse] response
+      # @return [StandardError]
+      def errFromResponse(response)
+        StandardError.new(response["result"] || "Unexpected Response Code #{response.code}")
+      end
+
+      def uriBuilder(path = nil)
+        base = "http://#{self.endpoint}/index.php/worker"
+        path.nil? ? base : File.join(base, path)
+      end
 
       class HttpAdapter
         include HTTParty
