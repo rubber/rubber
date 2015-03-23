@@ -1,5 +1,5 @@
 require "rubber/cloud/base"
-require 'pry'
+
 module Rubber
   module Cloud
 

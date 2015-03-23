@@ -1,7 +1,6 @@
 $:.unshift(File.dirname(__FILE__))
 
 require 'monitor'
-require 'pry'
 
 module Rubber
   extend MonitorMixin
