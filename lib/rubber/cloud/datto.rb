@@ -37,12 +37,7 @@ module Rubber
           end
 
           response["results"].each do |item|
-            instance = {}
-            instance[:id] = item["id"]
-            instance[:external_ip] = item["ip"]
-            instance[:internal_ip] = item["ip"]
-            instance[:provider] = 'datto'
-            instances << instance
+            instances << instance_from_response(item)
           end
         else
           response = HttpAdapter.get(uriBuilder(instance_id))
@@ -50,14 +45,7 @@ module Rubber
             raise errFromResponse(response)
           end
 
-          instance = {}
-          instance[:id] = response["id"]
-          instance[:external_ip] = response["ip"]
-          instance[:internal_ip] = response["ip"]
-          instance[:state] = response["workerRunning"] ? active_state : stopped_state
-          instance[:provider] = 'datto'
-          instance[:platform] = Rubber::Platforms::LINUX
-          instances << instance
+          instances << instance_from_response(response)
         end
         instances
       end
@@ -72,12 +60,28 @@ module Rubber
 
       private
 
+      # @param [Hash] response - response hash representing an instance
+      # @param [Hash] converted hash conforming to the instance api.
+      def instance_from_response(response)
+          instance = {}
+          instance[:id] = response["id"]
+          instance[:external_ip] = response["ip"]
+          instance[:internal_ip] = response["ip"]
+          instance[:state] = (!!response["workerRunning"]) ? active_state : stopped_state
+          instance[:provider] = 'datto'
+          instance[:platform] = Rubber::Platforms::LINUX
+          instance
+      end
+
       # @param [HTTPartyResponse] response
       # @return [StandardError]
       def errFromResponse(response)
         StandardError.new(response["result"] || "Unexpected Response Code #{response.code}")
       end
 
+      # Creates the uri from the specified path and the configured endpoint.
+      # @param [String|Nil] path
+      # @return String - uri
       def uriBuilder(path = nil)
         base = "http://#{self.endpoint}/index.php/worker"
         path.nil? ? base : File.join(base, path)
