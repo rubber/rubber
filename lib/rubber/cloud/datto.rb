@@ -61,7 +61,7 @@ module Rubber
       private
 
       # @param [Hash] response - response hash representing an instance
-      # @param [Hash] converted hash conforming to the instance api.
+      # @param [Hash] converted hash conforming to the rubber instance api.
       def instance_from_response(response)
           instance = {}
           instance[:id] = response["id"]
