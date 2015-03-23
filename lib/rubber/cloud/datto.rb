@@ -1,5 +1,6 @@
 require 'rubber/cloud/generic'
-require 'net/http'
+require 'httparty'
+
 module Rubber
   module Cloud
     class Datto < Base
@@ -88,7 +89,7 @@ module Rubber
       end
 
       class HttpAdapter
-        include HTTParty
+        include ::HTTParty
         format(:json)
       end
     end

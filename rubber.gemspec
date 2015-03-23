@@ -35,7 +35,8 @@ Gem::Specification.new do |s|
   s.add_dependency 'open4'
   s.add_dependency 'fog', '~> 1.6'
   s.add_dependency 'json'
-  
+  s.add_dependency 'httparty'
+
   s.add_development_dependency('rake')
   s.add_development_dependency('test-unit')
   s.add_development_dependency('shoulda-context')
