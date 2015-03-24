@@ -64,6 +64,9 @@ namespace :rubber do
     initial_ssh_password = fetch(:initial_ssh_password, nil)
 
     set(:password, initial_ssh_password)
+    # Changed this logic due to the fact we are not using ubuntu as the initial
+    # ssh user anymore. This code makes a few assumptions about the system
+    # it really shouldn't.
     # if initial_ssh_user == 'ubuntu' || ENV.has_key?('RUN_FROM_VAGRANT')
     #   set(:password, nil)
     # elsif initial_ssh_password
