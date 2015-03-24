@@ -26,7 +26,6 @@ module Rubber
       end
 
       def describe_instances(instance_id=nil)
-        response = HttpAdapter.get(uri)
         instances = []
         if instance_id.nil?
           response = HttpAdapter.get(uri_builder)
