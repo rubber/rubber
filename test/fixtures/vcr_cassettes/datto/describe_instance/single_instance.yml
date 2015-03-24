@@ -1,0 +1,59 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: http://10.30.95.138/index.php/worker
+    body:
+      encoding: UTF-8
+      string: ''
+    headers: {}
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Date:
+      - Mon, 23 Mar 2015 17:25:28 GMT
+      Server:
+      - Apache/2.4.7 (Ubuntu)
+      X-Powered-By:
+      - PHP/5.5.9-1ubuntu4.6
+      Vary:
+      - Accept-Encoding
+      Content-Length:
+      - '109'
+      Content-Type:
+      - text/html
+    body:
+      encoding: UTF-8
+      string: '{"result":"success","code":0,"ip":"208.53.34.211","port":4224,"domain":"bfyworker0092.datto.com","id":"0092"}'
+    http_version: 
+  recorded_at: Mon, 23 Mar 2015 17:25:55 GMT
+- request:
+    method: get
+    uri: http://10.30.95.138/index.php/worker
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers: {}
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Date:
+      - Mon, 23 Mar 2015 17:25:42 GMT
+      Server:
+      - Apache/2.4.7 (Ubuntu)
+      X-Powered-By:
+      - PHP/5.5.9-1ubuntu4.6
+      Content-Length:
+      - '66'
+      Content-Type:
+      - text/html
+    body:
+      encoding: UTF-8
+      string: '{"count":1,"results":[{"id":92,"ip":"208.53.34.211","port":4224}]}'
+    http_version: 
+  recorded_at: Mon, 23 Mar 2015 17:25:55 GMT
+recorded_with: VCR 2.9.3
