@@ -22,7 +22,7 @@ namespace :rubber do
       created_parts.compact!
       zero_partitions(ic, created_parts)
       created_vols += created_parts
-      
+
       created_vols = created_vols.compact.uniq
       raid_specs = env.raid_volumes || []
       raid_volume_list = raid_specs.collect {|vol| vol["source_devices"]}.join(" ")
@@ -140,9 +140,9 @@ namespace :rubber do
 	            else
 		            device='#{vol_spec['device']}'
 	            fi
-		 
+
 		          echo "$device #{vol_spec['mount']} #{vol_spec['filesystem']} #{vol_spec['mount_opts'] ? vol_spec['mount_opts'] : 'noatime'} 0 0 # rubber volume #{vol_id}" >> /etc/fstab
-		          
+
 		          # Ensure volume is ready before running mkfs on it.
 		          echo 'Waiting for device'
               cnt=0
@@ -233,7 +233,7 @@ namespace :rubber do
             echo -n .
             sleep 5
           done
-          
+
           # this returns exit code even if pid has already died, and thus triggers fail fast shell error
           wait $bg_pid
         ENDSCRIPT
@@ -248,14 +248,14 @@ namespace :rubber do
     else
       mdadm_init = "yes | mdadm --assemble #{raid_spec['device']} #{raid_spec['source_devices'].sort.join(' ')}"
     end
-    
+
     task :_setup_raid_volume, :hosts => ic.connection_ip do
       rubber.sudo_script 'setup_raid_volume', <<-ENDSCRIPT
         if ! grep -qE '#{raid_spec['device']}|#{raid_spec['mount']}' /etc/fstab; then
           if mount | grep -q '#{raid_spec['mount']}'; then
             umount '#{raid_spec['mount']}'
           fi
-          
+
           # wait for devices to initialize, otherwise mdadm fails because
           # device not ready even though ec2 says the volume is attached
           echo 'Waiting for devices'
@@ -281,13 +281,13 @@ namespace :rubber do
           echo 'MAILADDR #{rubber_env.admin_email}' > /etc/mdadm/mdadm.conf
           echo 'DEVICE #{raid_volume_list}' >> /etc/mdadm/mdadm.conf
           mdadm --detail --scan | sed s/name=.*\\ // >> /etc/mdadm/mdadm.conf
-          
+
           update-initramfs -u
 
           mv /etc/rc.local /etc/rc.local.bak
           echo "mdadm --assemble --scan" > /etc/rc.local
           chmod +x /etc/rc.local
-          
+
           mv /etc/fstab /etc/fstab.bak
           cat /etc/fstab.bak | grep -vE '#{raid_spec['device']}|#{raid_spec['mount']}' > /etc/fstab
           echo '#{raid_spec['device']} #{raid_spec['mount']} #{raid_spec['filesystem']} #{raid_spec['mount_opts'] ? raid_spec['mount_opts'] : 'noatime'} 0 0 # rubber raid volume' >> /etc/fstab
@@ -295,7 +295,7 @@ namespace :rubber do
           #{('yes | mkfs -t ' + raid_spec['filesystem'] + ' ' + raid_spec['filesystem_opts'] + ' ' + raid_spec['device']) if create}
           mkdir -p '#{raid_spec['mount']}'
           mount '#{raid_spec['mount']}'
-                 
+
         fi
       ENDSCRIPT
     end
@@ -366,7 +366,7 @@ namespace :rubber do
       ENDSCRIPT
     end
 
-    task :_setup_lvm_group, :hosts => ic.connection_ip do
+    task :_setup_lvm_group, :hosts => ic.full_name do
       rubber.sudo_script 'setup_lvm_group', <<-ENDSCRIPT
         # Check and see if the physical volume is already set up for LVM. If not, initialize it to be so.
         for device in #{physical_volumes.join(' ')}
@@ -424,7 +424,7 @@ namespace :rubber do
     rubber_instances.save
 
   end
-  
+
   def destroy_volume(volume_id)
     cloud.before_destroy_volume(volume_id)
 
