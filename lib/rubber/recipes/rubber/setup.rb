@@ -91,9 +91,7 @@ namespace :rubber do
     end
 
     task :_allow_root_ssh, :hosts => "#{initial_ssh_user}@#{ip}" do
-      if initial_ssh_user != 'root'
-        rsudo "mkdir -p /root/.ssh && cp ~/.ssh/authorized_keys /root/.ssh/"
-      end
+      rsudo "mkdir -p /root/.ssh && cp /home/#{initial_ssh_user}/.ssh/authorized_keys /root/.ssh/"
     end
 
     task :_disable_password_based_ssh_login, :hosts => "#{initial_ssh_user}@#{ip}" do

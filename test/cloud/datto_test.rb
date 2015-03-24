@@ -1,7 +1,6 @@
 require File.expand_path(File.join(__FILE__, '../..', 'test_helper'))
 require 'rubber/cloud/datto'
 require 'vcr'
-require 'pry'
 require 'webmock'
 
 # NOTE: Must re-record one at a time for any test that invokes create_instance.
