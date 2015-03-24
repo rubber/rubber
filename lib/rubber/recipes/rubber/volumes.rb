@@ -220,7 +220,7 @@ namespace :rubber do
         zero_script << "nohup dd if=/dev/zero bs=1M of=#{partition} &> /dev/null &\n"
       end
       # then format/mount/etc if we don't have an entry in hosts file
-      task :_zero_partitions, :hosts => ic.connection_ip do
+      task :_zero_partitions, :hosts => ic.full_name do
         rubber.sudo_script 'zero_partitions', <<-ENDSCRIPT
           # zero out parition for performance (see amazon DevGuide)
           echo "Zeroing out raid partitions to improve performance, this may take a while"
@@ -249,7 +249,7 @@ namespace :rubber do
       mdadm_init = "yes | mdadm --assemble #{raid_spec['device']} #{raid_spec['source_devices'].sort.join(' ')}"
     end
 
-    task :_setup_raid_volume, :hosts => ic.connection_ip do
+    task :_setup_raid_volume, :hosts => ic.full_name do
       rubber.sudo_script 'setup_raid_volume', <<-ENDSCRIPT
         if ! grep -qE '#{raid_spec['device']}|#{raid_spec['mount']}' /etc/fstab; then
           if mount | grep -q '#{raid_spec['mount']}'; then
