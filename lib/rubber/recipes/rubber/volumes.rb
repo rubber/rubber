@@ -179,7 +179,7 @@ namespace :rubber do
     ic.partitions ||= []
     if ! ic.partitions.include?(part_id)
       # then format/mount/etc if we don't have an entry in hosts file
-      task :_setup_partition, :hosts => ic.connection_ip do
+      task :_setup_partition, :hosts => ic.full_name do
         rubber.sudo_script 'setup_partition', <<-ENDSCRIPT
           if ! fdisk -l 2>&1 | grep -q '#{partition_spec['partition_device']}'; then
             if grep -q '#{partition_spec['disk_device']}\\b' /etc/fstab; then
