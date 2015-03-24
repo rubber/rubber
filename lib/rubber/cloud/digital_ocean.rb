@@ -58,7 +58,17 @@ module Rubber
         ssh_key = compute_provider.list_ssh_keys.body['ssh_keys'].find { |key| key['name'] == env.key_name }
         if ssh_key.nil?
           if env.key_file
-            ssh_key = compute_provider.create_ssh_key(env.key_name, File.read("#{env.key_file}.pub"))
+            compute_provider.create_ssh_key(env.key_name, File.read("#{env.key_file}.pub"))
+
+            # Although not documented, DigitalOcean is eventually consistent.  Receiving a 200 response with the key
+            # body does not mean the key has propagated through their systems yet.  Thus we need to query to see if
+            # the key is yet available.  Otherwise our request will end up creating a droplet without an attached key.
+
+            begin
+              sleep(0.5)
+              ssh_key = compute_provider.list_ssh_keys.body['ssh_keys'].find { |key| key['name'] == env.key_name }
+            end while ssh_key.nil?
+
           else
             raise 'Missing key_file for DigitalOcean'
           end
