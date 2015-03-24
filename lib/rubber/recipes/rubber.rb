@@ -92,6 +92,8 @@ namespace :rubber do
     else
       if cloud.env.key_file.nil?
         fatal "Missing required cloud provider configuration item 'key_file'."
+      elsif cloud.env.key_file.strip.empty?
+        fatal "Empty path supplied for required cloud provider configuration item 'key_file'."
       else
         cloud.env.key_file
       end
