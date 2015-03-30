@@ -21,7 +21,6 @@ web_tools_proxies:
 roles:
   graphite_web:
     os_packages:
-      '10.04': [python-django, python-django-tagging, python-cairo, python-memcache, memcached, uwsgi, uwsgi-plugin-python, uwsgi-plugin-http, sqlite3, bzr, zip]
       '12.04': [python-django, python-django-tagging, python-cairo, python-memcache, memcached, uwsgi, uwsgi-plugin-python, uwsgi-plugin-http, sqlite3, bzr, zip]
       '14.04': [uwsgi, uwsgi-plugin-python, graphite-web]
   graphite_server:

@@ -284,7 +284,7 @@ EOF
     end
 
     def old_ubuntu?
-      %w[10.04 12.04].include?(rubber_instance.os_version)
+      is_old_ubuntu = rubber_instance.os_version == '12.04'
     end
 
   end
