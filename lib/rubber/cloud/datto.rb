@@ -87,6 +87,7 @@ module Rubber
       class HttpAdapter
         include ::HTTParty
         format(:json)
+        read_timeout(240)
       end
     end
   end
