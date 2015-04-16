@@ -4,4 +4,4 @@ RubyOnRails applications to Amazon's Elastic Compute Cloud (EC2).
 See the documentation in the github wiki for more details:
 http://github.com/rubber/rubber/wiki
 
-[![Build Status](https://secure.travis-ci.org/rubber/rubber.png)](http://travis-ci.org/rubber/rubber)
+[![Build Status](https://secure.travis-ci.org/rubber/rubber.png)](http://travis-ci.org/rubber/rubber)[![Code Climate](https://codeclimate.com/github/rubber/rubber/badges/gpa.svg)](https://codeclimate.com/github/rubber/rubber)

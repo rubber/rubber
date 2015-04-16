@@ -423,111 +423,90 @@ module Rubber
 
         # For each group that does already exist in cloud
         cloud_groups = describe_security_groups()
-        cloud_groups.each do |cloud_group|
-          group_name = cloud_group[:name]
-
-          # skip those groups that don't belong to this project/env
-          next if env.isolate_security_groups && group_name !~ /^#{isolate_prefix}/
-
-          if group_keys.delete(group_name)
-            # sync rules
-            capistrano.logger.debug "Security Group already in cloud, syncing rules: #{group_name}"
-            group = groups[group_name]
-
-            # convert the special case default rule into what it actually looks like when
-            # we query ec2 so that we can match things up when syncing
-            rules = group['rules'].clone
-            group['rules'].each do |rule|
-              if [2, 3].include?(rule.size) && rule['source_group_name'] && rule['source_group_account']
-                rules << rule.merge({'protocol' => 'tcp', 'from_port' => '1', 'to_port' => '65535' })
-                rules << rule.merge({'protocol' => 'udp', 'from_port' => '1', 'to_port' => '65535' })
-                rules << rule.merge({'protocol' => 'icmp', 'from_port' => '-1', 'to_port' => '-1' })
-                rules.delete(rule)
-              end
-            end
-
-            rule_maps = []
-
-            # first collect the rule maps from the request (group/user pairs are duplicated for tcp/udp/icmp,
-            # so we need to do this up frnot and remove duplicates before checking against the local rubber rules)
-            cloud_group[:permissions].each do |rule|
-              source_groups = rule.delete(:source_groups)
-              if source_groups
-                source_groups.each do |source_group|
-                  rule_map = rule.clone
-                  rule_map.delete(:source_ips)
-                  rule_map[:source_group_name] = source_group[:name]
-                  rule_map[:source_group_account] = source_group[:account]
-                  rule_map = Rubber::Util::stringify(rule_map)
-                  rule_maps << rule_map unless rule_maps.include?(rule_map)
-                end
-              else
-                rule_map = Rubber::Util::stringify(rule)
-                rule_maps << rule_map unless rule_maps.include?(rule_map)
-              end
-            end if cloud_group[:permissions]
-            # For each rule, if it exists, do nothing, otherwise remove it as its no longer defined locally
-            rule_maps.each do |rule_map|
-              if rules.delete(rule_map)
-                # rules match, don't need to do anything
-                # logger.debug "Rule in sync: #{rule_map.inspect}"
-              else
-                # rules don't match, remove them from cloud and re-add below
-                answer = nil
-                msg = "Rule '#{rule_map.inspect}' exists in cloud, but not locally"
-                if env.prompt_for_security_group_sync
-                  answer = Capistrano::CLI.ui.ask("#{msg}, remove from cloud? [y/N]: ")
-                else
-                  capistrano.logger.info(msg)
-                end
-
-                if answer =~ /^y/
-                  rule_map = Rubber::Util::symbolize_keys(rule_map)
-                  if rule_map[:source_group_name]
-                    remove_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], {:name => rule_map[:source_group_name], :account => rule_map[:source_group_account]})
-                  else
-                    rule_map[:source_ips].each do |source_ip|
-                      remove_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], source_ip)
-                    end if rule_map[:source_ips]
-                  end
-                end
-              end
-            end
-
-            rules.each do |rule_map|
-              # create non-existing rules
-              capistrano.logger.debug "Missing rule, creating: #{rule_map.inspect}"
-              rule_map = Rubber::Util::symbolize_keys(rule_map)
-              if rule_map[:source_group_name]
-                add_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], {:name => rule_map[:source_group_name], :account => rule_map[:source_group_account]})
-              else
-                rule_map[:source_ips].each do |source_ip|
-                  add_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], source_ip)
-                end if rule_map[:source_ips]
-              end
-            end
-          else
-            # delete group
-            answer = nil
-            msg = "Security group '#{group_name}' exists in cloud but not locally"
-            if env.prompt_for_security_group_sync
-              answer = Capistrano::CLI.ui.ask("#{msg}, remove from cloud? [y/N]: ")
-            else
-              capistrano.logger.debug(msg)
-            end
-            destroy_security_group(group_name) if answer =~ /^y/
-          end
-        end
+        process_cloud_groups(cloud_groups)
 
         # For each group that didnt already exist in cloud
-        group_keys.each do |group_name|
+        processs_non_cloud_group_keys(group_keys)
+      end
+    end
+
+    private
+
+    def process_cloud_groups(cloud_groups)
+      cloud_groups.each do |cloud_group|
+        group_name = cloud_group[:name]
+
+        # skip those groups that don't belong to this project/env
+        next if env.isolate_security_groups && group_name !~ /^#{isolate_prefix}/
+
+        if group_keys.delete(group_name)
+          # sync rules
+          capistrano.logger.debug "Security Group already in cloud, syncing rules: #{group_name}"
           group = groups[group_name]
-          capistrano.logger.debug "Creating new security group: #{group_name}"
-          # create each group
-          create_security_group(group_name, group['description'])
-          # create rules for group
-          group['rules'].each do |rule_map|
-            capistrano.logger.debug "Creating new rule: #{rule_map.inspect}"
+
+          # convert the special case default rule into what it actually looks like when
+          # we query ec2 so that we can match things up when syncing
+          rules = group['rules'].clone
+          group['rules'].each do |rule|
+            if [2, 3].include?(rule.size) && rule['source_group_name'] && rule['source_group_account']
+              rules << rule.merge({'protocol' => 'tcp', 'from_port' => '1', 'to_port' => '65535' })
+              rules << rule.merge({'protocol' => 'udp', 'from_port' => '1', 'to_port' => '65535' })
+              rules << rule.merge({'protocol' => 'icmp', 'from_port' => '-1', 'to_port' => '-1' })
+              rules.delete(rule)
+            end
+          end
+
+          rule_maps = []
+
+          # first collect the rule maps from the request (group/user pairs are duplicated for tcp/udp/icmp,
+          # so we need to do this up frnot and remove duplicates before checking against the local rubber rules)
+          cloud_group[:permissions].each do |rule|
+            source_groups = rule.delete(:source_groups)
+            if source_groups
+              source_groups.each do |source_group|
+                rule_map = rule.clone
+                rule_map.delete(:source_ips)
+                rule_map[:source_group_name] = source_group[:name]
+                rule_map[:source_group_account] = source_group[:account]
+                rule_map = Rubber::Util::stringify(rule_map)
+                rule_maps << rule_map unless rule_maps.include?(rule_map)
+              end
+            else
+              rule_map = Rubber::Util::stringify(rule)
+              rule_maps << rule_map unless rule_maps.include?(rule_map)
+            end
+          end if cloud_group[:permissions]
+          # For each rule, if it exists, do nothing, otherwise remove it as its no longer defined locally
+          rule_maps.each do |rule_map|
+            if rules.delete(rule_map)
+              # rules match, don't need to do anything
+              # logger.debug "Rule in sync: #{rule_map.inspect}"
+            else
+              # rules don't match, remove them from cloud and re-add below
+              answer = nil
+              msg = "Rule '#{rule_map.inspect}' exists in cloud, but not locally"
+              if env.prompt_for_security_group_sync
+                answer = Capistrano::CLI.ui.ask("#{msg}, remove from cloud? [y/N]: ")
+              else
+                capistrano.logger.info(msg)
+              end
+
+              if answer =~ /^y/
+                rule_map = Rubber::Util::symbolize_keys(rule_map)
+                if rule_map[:source_group_name]
+                  remove_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], {:name => rule_map[:source_group_name], :account => rule_map[:source_group_account]})
+                else
+                  rule_map[:source_ips].each do |source_ip|
+                    remove_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], source_ip)
+                  end if rule_map[:source_ips]
+                end
+              end
+            end
+          end
+
+          rules.each do |rule_map|
+            # create non-existing rules
+            capistrano.logger.debug "Missing rule, creating: #{rule_map.inspect}"
             rule_map = Rubber::Util::symbolize_keys(rule_map)
             if rule_map[:source_group_name]
               add_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], {:name => rule_map[:source_group_name], :account => rule_map[:source_group_account]})
@@ -536,6 +515,37 @@ module Rubber
                 add_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], source_ip)
               end if rule_map[:source_ips]
             end
+          end
+        else
+          # delete group
+          answer = nil
+          msg = "Security group '#{group_name}' exists in cloud but not locally"
+          if env.prompt_for_security_group_sync
+            answer = Capistrano::CLI.ui.ask("#{msg}, remove from cloud? [y/N]: ")
+          else
+            capistrano.logger.debug(msg)
+          end
+          destroy_security_group(group_name) if answer =~ /^y/
+        end
+      end
+    end
+
+    def processs_non_cloud_group_keys(group_keys)
+      group_keys.each do |group_name|
+        group = groups[group_name]
+        capistrano.logger.debug "Creating new security group: #{group_name}"
+        # create each group
+        create_security_group(group_name, group['description'])
+        # create rules for group
+        group['rules'].each do |rule_map|
+          capistrano.logger.debug "Creating new rule: #{rule_map.inspect}"
+          rule_map = Rubber::Util::symbolize_keys(rule_map)
+          if rule_map[:source_group_name]
+            add_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], {:name => rule_map[:source_group_name], :account => rule_map[:source_group_account]})
+          else
+            rule_map[:source_ips].each do |source_ip|
+              add_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], source_ip)
+            end if rule_map[:source_ips]
           end
         end
       end
