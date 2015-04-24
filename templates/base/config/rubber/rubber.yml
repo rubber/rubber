@@ -286,8 +286,8 @@ os_version_cmd: 'lsb_release -sr'
 
 # OPTIONAL: The gems to install on all instances
 # You can install a specific version of a gem by using a sub-array of gem, version
-# For example, gem: [[rails, 2.2.2], open4, aws-s3]
-gems: [open4, aws-s3, bundler, [rubber, "#{Rubber.version}"]]
+# For example, gem: [[rails, 4.2.1], bundler]
+gems: [bundler, [rubber, "#{Rubber.version}"]]
 
 # OPTIONAL: A string prepended to shell command strings that cause multi
 # statement shell commands to fail fast.  You may need to comment this out
