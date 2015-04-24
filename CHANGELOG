@@ -1,3 +1,36 @@
+3.0.0 (04/24/2015)
+
+This is a major Rubber release in 3 years.  Most of the Rubber internals haven't changed from the 2.x series.  However,
+we have removed support for Ruby versions < 1.9.3 and Rails < 3.  Dropping older versions of Ruby meant we were able
+to also drop the open4 dependency -- if you relied on that, you'll need to add it to your Gemfile.  We also dropped
+support for Ubuntu 10.04.  While it's tied to this major version release, dropping Ubuntu 10.04 is a consequence of
+it no longer being supported by Canonical.
+
+Breaking Changes:
+================
+
+[core] Force Ruby 1.9.3+ for Rubber 3.0. <a5f4259>
+[core] Removed open4 dependency in favor of standard lib open3. <e7f6d8e>
+[core] Dropped support for Rails 2.3. <cf8d6c2>
+[core] Dropped support for Ubuntu 10.04. <8e0753e>
+
+Improvements:
+============
+
+[base] Bump ruby-build from 20150116 to 20150413 and default Ruby from 2.2.0 to 2.2.2. <48357a3, 2854426>
+[base] Removed obsoleted gems from default install list. <cfe3433>
+[core] Improved SSH key validation. <000c309>
+[core] Worked around DigitalOcean's eventual consistencyness with regards to creating SSH keys. <b6dc6c5>
+[core] Don't modify the Gemfile when vulcanizing 'base'. <422feda>
+[passenger] Upgraded from Passenger from 4.0.57 to 5.0.6. <ca8a7d1>
+[passenger_nginx] Upgraded from Passenger from 4.0.57 to 5.0.6. <ca8a7d1>
+
+Bug Fixes:
+=========
+
+[base] Fixed bad default DigitalOcean image. <000c309>
+
+
 2.16.0 (02/23/2015)
 
 New Features:
