@@ -1,3 +1,11 @@
+3.0.1 (04/27/2015)
+
+Improvements:
+============
+
+[core] Force reload of Rubber config between Spring sessions in Rails 4+. <ef18da4>
+
+
 3.0.0 (04/24/2015)
 
 This is a major Rubber release in 3 years.  Most of the Rubber internals haven't changed from the 2.x series.  However,
