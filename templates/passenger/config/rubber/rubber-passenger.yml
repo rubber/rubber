@@ -1,4 +1,4 @@
-passenger_version: '1:5.0.6-1~`lsb_release -sc`1'
+passenger_version: '1:5.0.7-1~`lsb_release -sc`1'
 passenger_ruby: "#{ruby_path}/bin/ruby"
 passenger_listen_port: 7000
 passenger_listen_ssl_port: 7001
