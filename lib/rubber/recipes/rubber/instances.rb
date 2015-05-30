@@ -372,7 +372,7 @@ namespace :rubber do
       if instance_item.linux?
         # weird cap/netssh bug, sometimes just hangs forever on initial connect, so force a timeout
         begin
-          Timeout::timeout(30) do
+          Timeout::timeout(env.enable_root_login_timeout || 30) do
             puts 'Trying to enable root login'
 
             # turn back on root ssh access if we are using root as the capistrano user for connecting
