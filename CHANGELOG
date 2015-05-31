@@ -1,3 +1,19 @@
+3.1.0 (05/31/2015)
+
+Improvements:
+============
+
+[core]  	Removed explicit dependency on 'json' gem. <61db9cc>
+[core] Introduced env.enable_root_login_timeout parameter to configure timeout in enabling root login. <f8d1b65>
+[passenger] Updated to Passenger 5.0.8. <c4a8261>
+[passenger_nginx] Updated to Passenger 5.0.8. <c4a8261>
+
+Bug Fixes:
+=========
+
+[passenger_nginx] Replaced defunct passenger_set_cgi_param with passenger_env_var. <ee63694>
+
+
 3.0.1 (04/27/2015)
 
 Improvements:
