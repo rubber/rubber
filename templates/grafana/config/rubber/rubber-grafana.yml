@@ -1,0 +1,20 @@
+
+grafana_package_url: https://grafanarel.s3.amazonaws.com/builds/grafana_latest_amd64.deb
+grafana_data_dir: /mnt/grafana
+grafana_pid_file: /var/run/grafana-server.pid
+grafana_port: 3000
+
+# Uncomment when updating for >= grafana 2.1, see deploy-grafana.rb as well
+#roles:
+#  grafana:
+#    packages: [grafana]
+
+# Some manual setup is required inside grafana web tool, specifically, you need
+# to add a data source using the proxy method so that the grafana backend
+# will act as a proxy to the datasource's api (e.g. influxdb) that is inside the
+# ec2 firewall
+web_tools_proxies:
+  grafana:
+    role: grafana
+    port: "#{grafana_port}"
+    path: /
