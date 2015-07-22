@@ -73,6 +73,10 @@ end
 # to run so that our master loop doesn't get compromised by
 # a bad script, segfault, etc.
 #
+# See the following links for how to output data from these scripts:
+# https://collectd.org/wiki/index.php/Plain_text_protocol#PUTVAL
+# https://collectd.org/wiki/index.php/Naming_schema
+#
 STDERR.puts "#{Time.now}: Starting rubber-collectd execution loop"
 loop do
   start_time = Time.now.to_i
