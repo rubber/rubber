@@ -1,0 +1,12 @@
+<%
+  @read_cmd = 'crontab -l'
+  @write_cmd = 'crontab -'
+  @additive = ['# start-elasticsearch-crontab', '# end-elasticsearch-crontab']
+%>
+
+<% if rubber_env.elasticsearch_index_lifetime %>
+
+# cleanout ES indices older than 30 days once a day
+0 0 * * * <%= Rubber.root %>/script/rubber cron -- curator delete --older-than <%= rubber_env.elasticsearch_index_lifetime %>
+
+<% end %>
