@@ -2,7 +2,7 @@ influxdb_version: 0.9.1
 influxdb_package_url: "http://influxdb.s3.amazonaws.com/influxdb_#{influxdb_version}_amd64.deb"
 
 influxdb_data_dir: "/mnt/influxdb"
-influxdb_pid_file: "/var/run/influxdb/influxdb.pid"
+influxdb_pid_file: "/var/run/influxdb/influxd.pid"
 
 influxdb_admin_port: 8083
 influxdb_http_port: 8086
