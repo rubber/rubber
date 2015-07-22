@@ -1,0 +1,8 @@
+<%
+  @read_cmd = 'crontab -l'
+  @write_cmd = 'crontab -'
+  @additive = ['# start-grafana-crontab', '# end-grafana-crontab']
+%>
+
+# Backup grafana data every day
+0 1 * * * <%= Rubber.root %>/script/rubber cron --task util:backup --directory /mnt/grafana_backups --name grafana --command "nice zip \%dir\%/\%name\%_<%= rubber_env.host %>_\%time_stamp\%.zip /mnt/grafana"
