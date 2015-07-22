@@ -1,0 +1,20 @@
+logstash_version: 1.1.13
+logstash_pkg_url: "https://download.elasticsearch.org/logstash/logstash/logstash-#{logstash_version}-flatjar.jar"
+logstash_prefix: /usr/local
+logstash_dir: "#{logstash_prefix}/logstash-#{logstash_version}"
+logstash_jar: "#{logstash_dir}/logstash-#{logstash_version}-flatjar.jar"
+
+logstash_server_conf: "/etc/logstash/server.conf"
+logstash_server_log: "/var/log/logstash-server.log"
+logstash_server_pidfile: "/var/run/logstash-server.pid"
+logstash_server_syslog_port: 15544
+logstash_server_web_port: 19292
+
+roles:
+  logstash_agent:
+    packages: [rsyslog]
+
+role_dependencies:
+  logstash_elasticsearch: [elasticsearch]
+  logstash_server: [java]
+  common: [logstash_agent]
