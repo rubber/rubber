@@ -109,7 +109,6 @@ if defined?(::Vagrant)
   require 'rubber/vagrant/plugin'
 end
 
-
 if defined?(Rails::Railtie)
   module Rubber
     require 'rubber/railtie'
