@@ -33,7 +33,7 @@ namespace :rubber do
 
   def get_assigned_security_groups(host=nil, roles=[])
     env = rubber_cfg.environment.bind(roles, host)
-    security_groups = env.assigned_security_groups
+    security_groups = env.assigned_security_groups || []
     if env.auto_security_groups
       security_groups << host
       security_groups += roles
