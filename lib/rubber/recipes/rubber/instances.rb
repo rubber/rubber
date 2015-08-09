@@ -290,7 +290,7 @@ namespace :rubber do
       request_id = cloud.create_spot_instance_request(spot_price, ami, ami_type, security_groups, availability_zone, fog_options)
 
       print "Waiting for spot instance request to be fulfilled"
-      max_wait_time = cloud_env.spot_instance_request_timeout || (1.0 / 0) # Use the specified timeout value or default to infinite.
+      max_wait_time = cloud_env.spot_instance_request_timeout || Float::INFINITY # Use the specified timeout value or default to infinite.
       instance_id = nil
       while instance_id.nil? do
         print "."
