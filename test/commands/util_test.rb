@@ -1,4 +1,5 @@
 require File.expand_path(File.join(__FILE__, '../..', 'test_helper'))
+require 'rubber/encryption'
 
 class UtilTest < Test::Unit::TestCase
 
