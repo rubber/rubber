@@ -1,0 +1,21 @@
+---
+driver:
+  name: rubber
+  cloud_provider: vagrant
+
+provisioner:
+  name: rubber
+
+verifier:
+  ruby_bindir: "/usr/local/rubies/2.2.2/bin/"
+
+platforms:
+  - name: ubuntu-12.04
+  - name: ubuntu-14.04
+
+suites:
+  - name: base
+    run_list:
+        - base
+        - common
+    attributes:

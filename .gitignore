@@ -12,3 +12,7 @@ pkg
 atlassian-ide-plugin.xml
 log
 .byebug_history
+.kitchen/
+.kitchen.local.yml
+bundle/
+test/integration/workdir/
