@@ -153,6 +153,8 @@ namespace :rubber do
     Generates/etc/hosts for local machine
   DESC
   required_task :setup_local_aliases do
+    next if rubber_env.use_rubber_resolver
+
     hosts_file = rubber_env.local_windows? ?
         "#{ENV['windir']}\\System32\\drivers\\etc\\hosts" :
         '/etc/hosts'

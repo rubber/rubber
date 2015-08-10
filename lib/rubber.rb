@@ -37,6 +37,9 @@ module Rubber
     Object.const_set(:RUBBER_CONFIG, self.config)
     Object.const_set(:RUBBER_INSTANCES, self.instances)
 
+    if self.config.use_rubber_resolver
+      require_relative '../lib/rubber/resolver'
+    end
   end
 
   def self.root

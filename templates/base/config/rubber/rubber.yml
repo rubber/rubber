@@ -337,6 +337,21 @@ stop_on_error_cmd: "function error_exit { exit 99; }; trap error_exit ERR"
 # Auto detect staging roles
 staging_roles: "#{known_roles.reject {|r| r =~ /slave/ || r =~ /^db$/ }.join(',')}"
 
+# OPTIONAL: Rubber generally works with hostnames rather than IP addresses. This makes log output and configuration
+# files much easier to comprehend because you don't constantly need to perform reverse name lookups. In order to
+# use hostnames, however, you must have a name resolution mechanism. Rubber provides several options: it can update
+# entries in a DNS provider, it can write out to /etc/hosts, or it can resolve names in-process from your generated
+# cluster instance-*.yml files. DNS settings are optional. Writing to a remote host file is currently required. The
+# remaining case is local name resolution (e.g., from a developer machine). The `use_rubber_resolver` setting controls
+# whether Rubber will resolve names in-process or whether it will write to your local hosts file. By default, Rubber
+# will handle its own name resolution. However, if you need to use those hostnames outside of your deploy setup
+# (e.g., entries in ~/.ssh.config), then you should set this value to `false` and allow Rubber to update the hosts file.
+#
+# NB: This will affect any process in which Rubber is loaded. If you load Rubber as part of your Rails application, this
+# setting will affect how names are resolved. Generally it's safe, but if you have some custom name resolver in place,
+# you'll want to disable this setting.
+use_rubber_resolver: true
+
 # OPTIONAL: Lets one assign amazon elastic IPs (static IPs) to your instances
 #           You should typically set this on the role/host level rather than
 #           globally , unless you really do want all instances to have a
