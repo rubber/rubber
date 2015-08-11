@@ -41,8 +41,8 @@ module Kitchen
               # We have to init rubber after the instances are created because the instance files is read once a start-up.
               init_rubber
 
-              state[:hostname] = "#{config[:server_hostname]}.#{::Rubber.config.domain}"
-              state[:ssh_key]= ::Rubber.cloud.env.key_file
+              state[:hostname] = ::Rubber.instances[config[:server_hostname]].external_ip
+              state[:ssh_key] = ::Rubber.cloud.env.key_file
 
               # Disable SSH compression since it doesn't seem to work quite right and upload speed isn't a paramount concern.
               state[:compression] = false
