@@ -79,6 +79,11 @@ module Kitchen
       end
 
       def generate_vagrantfile
+        # While this variable looks unused, it's extracted from the binding when evaluating ERB.
+        # NB: There is no guarantee this won't result in a conflict, but it's a simple solution that should work
+        # most of the time.
+        last_octet = rand(2..254)
+
         ERB.new(File.read(File.join(templates_directory, 'Vagrantfile.erb'))).result(binding)
       end
 

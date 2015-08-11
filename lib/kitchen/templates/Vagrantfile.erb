@@ -127,7 +127,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.ssh.insert_key = false
 
   config.vm.define "<%= config[:server_hostname] %>" do |vagrant|
-    vagrant.vm.network :private_network, ip: "192.168.70.10"
+    vagrant.vm.network :private_network, ip: "192.168.70.<%= last_octet %>"
 
     vagrant.vm.provider :virtualbox do |vb|
       vb.customize ["modifyvm", :id, "--memory", "2048"]
