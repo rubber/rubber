@@ -269,6 +269,9 @@ namespace :rubber do
 
     security_groups = get_assigned_security_groups(instance_alias, role_names)
 
+    vpc = get_vpc()
+    vpc_id = vpc && vpc['id']
+
     cloud_env = env.cloud_providers[env.cloud_provider]
     ami = cloud_env.image_id
     ami_type = cloud_env.image_type
@@ -309,6 +312,11 @@ namespace :rubber do
 
     if !create_spot_instance || (create_spot_instance && max_wait_time < 0)
       logger.info "Creating instance #{ami}/#{ami_type}/#{security_groups.join(',') rescue 'Default'}/#{availability_zone || region || 'Default'}"
+
+      if vpc_id
+        fog_options = { vpc_id: vpc_id }.merge(fog_options)
+      end
+
       instance_id = cloud.create_instance(instance_alias, ami, ami_type, security_groups, availability_zone, region, fog_options)
     end
 
