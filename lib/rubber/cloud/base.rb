@@ -184,6 +184,10 @@ exit 0
         capistrano.run_script('setup_firewall_rules', script, :hosts => instance.external_ip)
       end
 
+      def setup_vpc
+        # No-op by default.
+      end
+
       def describe_security_groups(group_name=nil)
         rules = capistrano.capture("iptables -S INPUT", :hosts => rubber_env.rubber_instances.collect(&:external_ip)).strip.split("\r\n")
         scoped_rules = rules.select { |r| r =~ /dport/ }
