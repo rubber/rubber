@@ -279,7 +279,7 @@ module Rubber
           scoped_env.rubber_instances.artifacts['vpc'] = {
             'id' => vpc.id,
             'private_subnet' => vpc_cfg.private_subnet,
-            'public_subnet' > vpc_cfg.public_subnet
+            'public_subnet' => vpc_cfg.public_subnet
           }
 
           scoped_env.rubber_instances.save
