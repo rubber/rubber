@@ -18,7 +18,7 @@ module Rubber
         @opts = opts
       
         @items = {}
-        @artifacts = {'volumes' => {}, 'static_ips' => {}}
+        @artifacts = {'volumes' => {}, 'static_ips' => {}, 'vpc' => {}}
 
         @filters = Rubber::Util::parse_aliases(ENV['FILTER'])
         @filters, @filters_negated = @filters.partition {|f| f !~ /^-/ }
