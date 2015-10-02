@@ -72,7 +72,7 @@ module Rubber
       end
 
       def before_create_instance(instance_alias, role_names)
-        setup_vpc()
+        setup_vpc
         setup_security_groups(instance_alias, role_names)
       end
 
@@ -82,6 +82,24 @@ module Rubber
         Rubber::Util.retry_on_failure(StandardError, :retry_sleep => 1, :retry_count => 120) do
           Rubber::Tag::update_instance_tags(instance.name)
         end
+      end
+
+      def create_instance(instance_alias, ami, ami_type, security_groups, availability_zone, region, fog_options={})
+        response = compute_provider.servers.create({:image_id => ami,
+                                                   :flavor_id => ami_type,
+                                                   :availability_zone => availability_zone,
+                                                   :key_name => env.key_name,
+                                                   :name => instance_alias}.merge(
+                                                       Rubber::Util.symbolize_keys(fog_options)))
+
+        instance_id = response.id
+
+        instance = compute_provider.servers.get(instance_id)
+
+        instance.groups = security_groups
+        instance.save
+
+        instance_id
       end
       
       def after_refresh_instance(instance)
@@ -258,43 +276,63 @@ module Rubber
           security_group_defns = inject_auto_security_groups(security_group_defns, sghosts, sgroles)
         end
 
-        sync_security_groups(security_group_defns)
+        sync_security_groups(scoped_env.rubber_instances.artifacts['vpc']['id'], security_group_defns)
       end
 
-      def setup_vpc
-        rubber_cfg = Rubber::Configuration.get_configuration(Rubber.env)
-        scoped_env = rubber_cfg.environment.bind(nil, [])
-        vpc_cfg = scoped_env.cloud_providers.aws.vpc
-        instance_vpc = scoped_env.rubber_instances.artifacts['vpc']
+      # def isolate_group_name(group_name)
+      #   name = super
 
-        require 'byebug'
-        byebug
+      #   env = load_bound_env
+      #   vpc_part = env.rubber_instances.artifacts['vpc']['id'].gsub('-', '')
         
-        if vpc_cfg && (vpc_cfg.length > 0) && instance_vpc && (instance_vpc.length == 0)
-          vpc = create_vpc(vpc_cfg.vpc_subnet)
-          capistrano.logger.debug "Created VPC #{vpc.id}"
-          create_vpc_subnet(vpc.id, vpc_cfg.private_subnet)
-          create_vpc_subnet(vpc.id, vpc_cfg.public_subnet)
+      #   "#{vpc_part}_#{name}"
+      # end
 
-          scoped_env.rubber_instances.artifacts['vpc'] = {
+      def setup_vpc
+        bound_env = load_bound_env
+
+        vpc_cfg = bound_env.cloud_providers.aws.vpc
+        instance_vpc = bound_env.rubber_instances.artifacts['vpc']
+
+        if vpc_cfg && (vpc_cfg.length > 0) && instance_vpc && (instance_vpc.length == 0)
+          vpc = create_vpc("#{bound_env.app_name}_#{Rubber.env}", vpc_cfg.vpc_subnet)
+          capistrano.logger.debug "Created VPC #{vpc.id}"
+
+          private_subnet = create_vpc_subnet(vpc.id, vpc_cfg.private_subnet)
+          capistrano.logger.debug "Created Private Subnet #{private_subnet.subnet_id} #{vpc_cfg.private_subnet}"
+
+          public_subnet = create_vpc_subnet(vpc.id, vpc_cfg.public_subnet)
+          capistrano.logger.debug "Created Public Subnet #{public_subnet.subnet_id} #{vpc_cfg.public_subnet}"
+
+          bound_env.rubber_instances.artifacts['vpc'] = {
             'id' => vpc.id,
+            'private_subnet_id' => private_subnet.subnet_id,
             'private_subnet' => vpc_cfg.private_subnet,
-            'public_subnet' => vpc_cfg.public_subnet
+            'public_subnet_id' => public_subnet.subnet_id,
+            'public_subnet' =>  vpc_cfg.public_subnet
           }
 
-          scoped_env.rubber_instances.save
+          bound_env.rubber_instances.save
         end
       end
 
-      def describe_security_groups(group_name=nil)
+      def destroy_vpc(vpc_id)
+        compute_provider.vpcs.destroy(vpc_id)
+      end
+
+      def describe_security_groups(vpc_id, group_name=nil)
         groups = []
 
+        # As of 10/2/2015, vpcId isn't a valid filter, so we have to filter
+        # manually
         opts = {}
         opts["group-name"] = group_name if group_name
         response = compute_provider.security_groups.all(opts)
 
         response.each do |item|
+          next if item.vpc_id != vpc_id
           group = {}
+          group[:group_id] = item.group_id
           group[:name] = item.name
           group[:description] = item.description
 
@@ -327,6 +365,8 @@ module Rubber
                                     else
                                       nil
                                     end
+
+              source_group[:group_id] = rule_group["groupId"]
 
               rule[:source_groups] << source_group
             end if ip_item["groups"]
@@ -406,28 +446,30 @@ module Rubber
 
       private
 
-      def create_vpc(cidr_block)
-        compute_provider.vpcs.create(:cidr_block => cidr_block)        
+      def create_vpc(name, subnet_str)
+        compute_provider.vpcs.create(:name => name, :cidr_block => subnet_str)
       end
 
-      def create_vpc_subnet(vpc_id, subnet)
-        compute_provider.create_subnet(vpc_id, subnet)
+      def create_vpc_subnet(vpc_id, subnet_str)
+        compute_provider.subnets.create(:vpc_id => vpc_id, :cidr_block => subnet_str)
       end
 
-      def sync_vpc(vpc_config)
-        
-      end
-      
-      def create_security_group(group_name, group_description)
-        compute_provider.security_groups.create(:name => group_name, :description => group_description)
+      def destroy_subnet(subnet_id)
+        compute_provider.subnets.destroy(subnet_id)
       end
 
-      def destroy_security_group(group_name)
-        compute_provider.security_groups.get(group_name).destroy
+      def create_security_group(vpc_id, group_name, group_description)
+        compute_provider.security_groups.create :vpc_id => vpc_id,
+                                                :name => group_name,
+                                                :description => group_description
       end
 
-      def add_security_group_rule(group_name, protocol, from_port, to_port, source)
-        group = compute_provider.security_groups.get(group_name)
+      def destroy_security_group(group_id)
+        compute_provider.security_groups.get(group_id).destroy
+      end
+
+      def add_security_group_rule(group_id, protocol, from_port, to_port, source)
+        group = compute_provider.security_groups.all('group-id' => group_id).first
         opts = {:ip_protocol => protocol || 'tcp'}
 
         if source.instance_of? Hash
@@ -439,8 +481,8 @@ module Rubber
         group.authorize_port_range(from_port.to_i..to_port.to_i, opts)
       end
 
-      def remove_security_group_rule(group_name, protocol, from_port, to_port, source)
-        group = compute_provider.security_groups.get(group_name)
+      def remove_security_group_rule(group_id, protocol, from_port, to_port, source)
+        group = compute_provider.security_groups.get(group_id)
         opts = {:ip_protocol => protocol || 'tcp'}
 
         if source.instance_of? Hash
@@ -452,7 +494,7 @@ module Rubber
         group.revoke_port_range(from_port.to_i..to_port.to_i, opts)
       end
 
-      def sync_security_groups(groups)
+      def sync_security_groups(vpc_id, groups)
         return unless groups
 
         groups = Rubber::Util::stringify(groups)
@@ -460,9 +502,10 @@ module Rubber
         group_keys = groups.keys.clone()
 
         # For each group that does already exist in cloud
-        cloud_groups = describe_security_groups()
+        cloud_groups = describe_security_groups(vpc_id)
         cloud_groups.each do |cloud_group|
           group_name = cloud_group[:name]
+          group_id = cloud_group[:group_id]
 
           # skip those groups that don't belong to this project/env
           next if env.isolate_security_groups && group_name !~ /^#{isolate_prefix}/
@@ -495,6 +538,7 @@ module Rubber
                   rule_map = rule.clone
                   rule_map.delete(:source_ips)
                   rule_map[:source_group_name] = source_group[:name]
+                  rule_map[:source_group_id] = source_group[:group_id]
                   rule_map[:source_group_account] = source_group[:account]
                   rule_map = Rubber::Util::stringify(rule_map)
                   rule_maps << rule_map unless rule_maps.include?(rule_map)
@@ -504,6 +548,7 @@ module Rubber
                 rule_maps << rule_map unless rule_maps.include?(rule_map)
               end
             end if cloud_group[:permissions]
+
             # For each rule, if it exists, do nothing, otherwise remove it as its no longer defined locally
             rule_maps.each do |rule_map|
               if rules.delete(rule_map)
@@ -521,11 +566,11 @@ module Rubber
 
                 if answer =~ /^y/
                   rule_map = Rubber::Util::symbolize_keys(rule_map)
-                  if rule_map[:source_group_name]
-                    remove_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], {:name => rule_map[:source_group_name], :account => rule_map[:source_group_account]})
+                  if rule_map[:source_group_id]
+                    remove_security_group_rule(group_id, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], {:id => rule_map[:source_group_id], :account => rule_map[:source_group_account]})
                   else
                     rule_map[:source_ips].each do |source_ip|
-                      remove_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], source_ip)
+                      remove_security_group_rule(group_id, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], source_ip)
                     end if rule_map[:source_ips]
                   end
                 end
@@ -536,11 +581,11 @@ module Rubber
               # create non-existing rules
               capistrano.logger.debug "Missing rule, creating: #{rule_map.inspect}"
               rule_map = Rubber::Util::symbolize_keys(rule_map)
-              if rule_map[:source_group_name]
-                add_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], {:name => rule_map[:source_group_name], :account => rule_map[:source_group_account]})
+              if rule_map[:source_group_id]
+                add_security_group_rule(group_id, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], {:id => rule_map[:source_group_id], :account => rule_map[:source_group_account]})
               else
                 rule_map[:source_ips].each do |source_ip|
-                  add_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], source_ip)
+                  add_security_group_rule(group_id, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], source_ip)
                 end if rule_map[:source_ips]
               end
             end
@@ -562,22 +607,28 @@ module Rubber
           group = groups[group_name]
           capistrano.logger.debug "Creating new security group: #{group_name}"
           # create each group
-          create_security_group(group_name, group['description'])
+          new_group = create_security_group(vpc_id, group_name, group['description'])
+          group_id = new_group.group_id
           # create rules for group
           group['rules'].each do |rule_map|
             capistrano.logger.debug "Creating new rule: #{rule_map.inspect}"
             rule_map = Rubber::Util::symbolize_keys(rule_map)
             if rule_map[:source_group_name]
-              add_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], {:name => rule_map[:source_group_name], :account => rule_map[:source_group_account]})
+              add_security_group_rule(group_id, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], {:id => rule_map[:source_group_id], :account => rule_map[:source_group_account]})
             else
               rule_map[:source_ips].each do |source_ip|
-                add_security_group_rule(group_name, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], source_ip)
+                add_security_group_rule(group_id, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], source_ip)
               end if rule_map[:source_ips]
             end
           end
         end
       end
-    end
 
+      def load_bound_env
+        rubber_cfg = Rubber::Configuration.get_configuration(Rubber.env)
+        scoped_env = rubber_cfg.environment.bind(nil, [])
+      end
+    end
   end
 end
+
