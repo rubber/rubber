@@ -71,8 +71,8 @@ module Rubber
         'stopped'
       end
 
-      def before_create_instance(instance_alias, role_names)
-        setup_vpc
+      def before_create_instance(instance_alias, role_names, availability_zone)
+        setup_vpc(availability_zone)
         setup_security_groups(instance_alias, role_names)
       end
 
@@ -288,7 +288,7 @@ module Rubber
       #   "#{vpc_part}_#{name}"
       # end
 
-      def setup_vpc
+      def setup_vpc(availability_zone)
         bound_env = load_bound_env
 
         vpc_cfg = bound_env.cloud_providers.aws.vpc

@@ -10,7 +10,7 @@ module Rubber
         @capistrano = capistrano
       end
 
-      def before_create_instance(instance_alias, role_names)
+      def before_create_instance(instance_alias, role_names, availability_zone)
         # No-op by default.
       end
 

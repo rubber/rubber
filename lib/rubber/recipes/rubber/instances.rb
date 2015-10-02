@@ -263,8 +263,10 @@ namespace :rubber do
     role_names = instance_roles.collect{|x| x.name}
     env = rubber_cfg.environment.bind(role_names, instance_alias)
 
+    availability_zone = cloud_env.availability_zone
+
     monitor.synchronize do
-      cloud.before_create_instance(instance_alias, role_names)
+      cloud.before_create_instance(instance_alias, role_names, availability_zone)
     end
 
     security_groups = get_assigned_security_groups(instance_alias, role_names)
@@ -277,7 +279,6 @@ namespace :rubber do
     cloud_env = env.cloud_providers[env.cloud_provider]
     ami = cloud_env.image_id
     ami_type = cloud_env.image_type
-    availability_zone = cloud_env.availability_zone
     region = cloud_env.region
     fog_options = cloud_env.fog_options || {}
 
