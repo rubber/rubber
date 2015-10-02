@@ -83,24 +83,6 @@ module Rubber
           Rubber::Tag::update_instance_tags(instance.name)
         end
       end
-
-      def create_instance(instance_alias, ami, ami_type, security_groups, availability_zone, region, fog_options={})
-        response = compute_provider.servers.create({:image_id => ami,
-                                                   :flavor_id => ami_type,
-                                                   :availability_zone => availability_zone,
-                                                   :key_name => env.key_name,
-                                                   :name => instance_alias}.merge(
-                                                       Rubber::Util.symbolize_keys(fog_options)))
-
-        instance_id = response.id
-
-        instance = compute_provider.servers.get(instance_id)
-
-        instance.groups = security_groups
-        instance.save
-
-        instance_id
-      end
       
       def after_refresh_instance(instance)
         # Sometimes tag creation will fail, indicating that the instance doesn't exist yet even though it does.  It seems to
