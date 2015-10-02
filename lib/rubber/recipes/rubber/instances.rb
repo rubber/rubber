@@ -321,7 +321,7 @@ namespace :rubber do
       logger.info "Creating instance #{ami}/#{ami_type}/#{sg_str}/#{az_str}/#{vpc_str}"
 
       if vpc_id
-        unless public_subnet_id && private_subnet_str
+        unless public_subnet_id && private_subnet_id
           fatal("vpc requires a public and private subnet")
         end
 
@@ -331,7 +331,8 @@ namespace :rubber do
 
         fog_options = {
           :vpc_id => vpc_id,
-          :subnet_id => (subnet == "private") ? private_subnet_id : public_subnet_id
+          :subnet_id => (subnet == "private") ? private_subnet_id : public_subnet_id,
+          :associate_public_ip => true
         }.merge(fog_options)
       end
     end
