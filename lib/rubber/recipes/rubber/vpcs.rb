@@ -19,8 +19,6 @@ namespace :rubber do
 
     fatal("Exiting", 0) if value != "yes"
 
-    cloud.destroy_subnet(vpc_cfg['public_subnet'])
-    cloud.destroy_subnet(vpc_cfg['private_subnet'])
     cloud.destroy_vpc(vpc_cfg['id'])
 
     env.rubber_instances.artifacts['vpc'] = {}
