@@ -25,7 +25,7 @@ namespace :rubber do
     env.rubber_instances.save
   end
 
-  def get_vpc
+  def get_instance_vpc
     env = rubber_cfg.environment.bind(nil, [])
 
     env.rubber_instances.artifacts['vpc']
