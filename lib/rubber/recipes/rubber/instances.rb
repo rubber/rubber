@@ -266,10 +266,7 @@ namespace :rubber do
 
     availability_zone = cloud_env.availability_zone
 
-    vpc = get_vpc()
-    vpc_id = vpc && vpc['id']
-
-    if vpc_id
+    if cloud_env.vpc
       public_private = get_env("SUBNET", "Public or Private Subnet [public,private]", true, "private")
 
       unless %[ public private ].include? public_private
@@ -324,6 +321,9 @@ namespace :rubber do
     end
 
     if !create_spot_instance || (create_spot_instance && max_wait_time < 0)
+      vpc = get_instance_vpc()
+      vpc_id = vpc && vpc['id']
+
       sg_str = security_groups.join(',') rescue 'Default'
       az_str = availability_zone || region || 'Default'
       vpc_str = vpc_id || 'No VPC'
