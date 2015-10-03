@@ -266,14 +266,26 @@ namespace :rubber do
 
     availability_zone = cloud_env.availability_zone
 
+    vpc = get_vpc()
+    vpc_id = vpc && vpc['id']
+
+    if vpc_id
+      public_private = get_env("SUBNET", "Public or Private Subnet [public,private]", true, "private")
+
+      unless %[ public private ].include? public_private
+        fatal("SUBNET must be one of \"public\", \"private\"", 0)
+      end
+
+      is_public = public_private == 'public'
+    else
+      is_public = true
+    end
+
     monitor.synchronize do
-      cloud.before_create_instance(instance_alias, role_names, availability_zone)
+      cloud.before_create_instance(instance_alias, role_names, availability_zone, is_public)
     end
 
     security_groups = get_assigned_security_groups(instance_alias, role_names)
-
-    vpc = get_vpc()
-    vpc_id = vpc && vpc['id']
 
     ami = cloud_env.image_id
     ami_type = cloud_env.image_type
@@ -317,12 +329,6 @@ namespace :rubber do
       vpc_str = vpc_id || 'No VPC'
 
       if vpc_id
-        public_private = get_env("SUBNET", "Public or Private Subnet [public,private]", true, "private")
-
-        unless %[ public private ].include? public_private
-          fatal("SUBNET must be one of \"public\", \"private\"", 0)
-        end
-
         subnet = vpc &&
                  vpc['instance_subnets'] &&
                  vpc['instance_subnets'][public_private] &&
