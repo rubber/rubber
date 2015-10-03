@@ -275,10 +275,6 @@ namespace :rubber do
     vpc = get_vpc()
     vpc_id = vpc && vpc['id']
 
-    subnet = vpc && vpc['instance_subnets'] && vpc['instance_subnets'].find do |s|
-      s['availability_zone'] == availability_zone
-    end
-
     ami = cloud_env.image_id
     ami_type = cloud_env.image_type
     region = cloud_env.region
@@ -323,8 +319,21 @@ namespace :rubber do
       logger.info "Creating instance #{ami}/#{ami_type}/#{sg_str}/#{az_str}/#{vpc_str}"
 
       if vpc_id
+        public_private = get_env("SUBNET", "Public or Private Subnet [public,private]", true, "private")
+
+        unless %[ public private ].include? public_private
+          fatal("SUBNET must be one of \"public\", \"private\"", 0)
+        end
+
+        subnet = vpc &&
+                 vpc['instance_subnets'] &&
+                 vpc['instance_subnets'][public_private] &&
+                 vpc['instance_subnets'][public_private].find do |s|
+          s['availability_zone'] == availability_zone
+        end
+
         unless subnet
-          fatal("No VPC instance_subnet defined for availability zone #{availability_zone}")
+          fatal("No VPC #{public_private} instance_subnet defined for availability zone #{availability_zone}", 0)
         end
 
         fog_options = {

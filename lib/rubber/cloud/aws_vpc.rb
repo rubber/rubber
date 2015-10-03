@@ -71,8 +71,8 @@ module Rubber
         'stopped'
       end
 
-      def before_create_instance(instance_alias, role_names, availability_zone)
-        setup_vpc(availability_zone)
+      def before_create_instance(instance_alias, role_names, availability_zone, is_public)
+        setup_vpc(availability_zone, is_public)
         setup_security_groups(instance_alias, role_names)
       end
 
@@ -263,7 +263,7 @@ module Rubber
 
       # Idempotent call which will ensure we have a vpc configured as well as a
       # subnet for the given availability zone
-      def setup_vpc(availability_zone)
+      def setup_vpc(availability_zone, is_public)
         bound_env = load_bound_env
 
         vpc_id = get_vpc_id(bound_env)
@@ -280,17 +280,18 @@ module Rubber
           vpc_id = vpc.id
         end
 
-        cidr = vpc_cfg.instance_subnets[availability_zone]
+        public_private = is_public ? "public" : "private"
 
-        subnet = subnet_for_availability_zone bound_env, availability_zone
+        cidr = vpc_cfg.instance_subnets[public_private][availability_zone]
+
+        subnet = subnet_for_availability_zone bound_env, availability_zone, is_public
 
         unless subnet
-          subnet = create_vpc_subnet vpc.id, availability_zone, availability_zone, cidr, true
-          capistrano.logger.debug "Created Public Subnet #{subnet.subnet_id} #{availability_zone} #{cidr}"
+          subnet = create_vpc_subnet vpc.id, availability_zone, availability_zone, cidr, is_public
 
-          add_subnet_to_instance_file bound_env, subnet
+          capistrano.logger.debug "Created #{public_private} Subnet #{subnet.subnet_id} #{availability_zone} #{cidr}"
 
-          bound_env.rubber_instances.save
+          add_subnet_to_instance_file bound_env, subnet, is_public
         end
       end
 
@@ -638,13 +639,15 @@ module Rubber
         scoped_env = rubber_cfg.environment.bind(nil, [])
       end
 
-      def subnet_for_availability_zone(bound_env, availability_zone)
+      def subnet_for_availability_zone(bound_env, availability_zone, is_public)
         vpc_cfg = bound_env.rubber_instances.artifacts['vpc']
 
         return nil unless vpc_cfg
         return nil unless vpc_cfg.has_key? 'instance_subnets'
 
-        vpc_cfg['instance_subnets'].find do |s|
+        public_private = is_public ? "public" : "private"
+
+        vpc_cfg['instance_subnets'][public_private].find do |s|
           s.availability_zone == availability_zone
         end
       end
@@ -663,15 +666,23 @@ module Rubber
         bound_env.rubber_instances.save
       end
 
-      def add_subnet_to_instance_file(bound_env, subnet)
-        subnet_cfg = (bound_env.rubber_instances.artifacts['vpc']['instance_subnets'] ||= [])
-        subnet_cfg <<  {
+      def add_subnet_to_instance_file(bound_env, subnet, is_public)
+        subnet_cfg = instance_subnets(bound_env)
+
+        subnet_cfg[is_public ? "public" : "private"]  <<  {
           'availability_zone' => subnet.availability_zone,
           'subnet_id' => subnet.subnet_id,
           'cidr' => subnet.cidr_block
         }
 
         bound_env.rubber_instances.save
+      end
+
+      def instance_subnets(bound_env)
+        bound_env.rubber_instances.artifacts['vpc']['instance_subnets'] ||= {
+          "public" => [],
+          "private" => []
+        }
       end
     end
   end
