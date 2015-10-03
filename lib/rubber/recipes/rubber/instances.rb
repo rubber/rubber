@@ -262,6 +262,7 @@ namespace :rubber do
   def create_instance(instance_alias, instance_roles, create_spot_instance)
     role_names = instance_roles.collect{|x| x.name}
     env = rubber_cfg.environment.bind(role_names, instance_alias)
+    cloud_env = env.cloud_providers[env.cloud_provider]
 
     availability_zone = cloud_env.availability_zone
 
@@ -273,10 +274,11 @@ namespace :rubber do
 
     vpc = get_vpc()
     vpc_id = vpc && vpc['id']
-    public_subnet_id = vpc && vpc['public_subnet_id']
-    private_subnet_id = vpc && vpc['private_subnet_id']
 
-    cloud_env = env.cloud_providers[env.cloud_provider]
+    subnet = vpc && vpc['instance_subnets'] && vpc['instance_subnets'].find do |s|
+      s['availability_zone'] == availability_zone
+    end
+
     ami = cloud_env.image_id
     ami_type = cloud_env.image_type
     region = cloud_env.region
@@ -321,17 +323,13 @@ namespace :rubber do
       logger.info "Creating instance #{ami}/#{ami_type}/#{sg_str}/#{az_str}/#{vpc_str}"
 
       if vpc_id
-        unless public_subnet_id && private_subnet_id
-          fatal("vpc requires a public and private subnet")
+        unless subnet
+          fatal("No VPC instance_subnet defined for availability zone #{availability_zone}")
         end
-
-        subnet = get_env("SUBNET", "Instance subnet [private/public]", true, "private").strip
-
-        fatal "SUBNET must be either \"private\" or \"public\"" unless %w[ public private ].include? subnet
 
         fog_options = {
           :vpc_id => vpc_id,
-          :subnet_id => (subnet == "private") ? private_subnet_id : public_subnet_id,
+          :subnet_id => subnet['subnet_id'],
           :associate_public_ip => true
         }.merge(fog_options)
       end
