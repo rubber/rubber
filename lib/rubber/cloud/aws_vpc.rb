@@ -276,22 +276,25 @@ module Rubber
         vpc_cfg = bound_env.cloud_providers.aws.vpc
         instance_vpc = bound_env.rubber_instances.artifacts['vpc']
 
+        # TODO this needs to be additive
         if vpc_cfg && (vpc_cfg.length > 0) && instance_vpc && (instance_vpc.length == 0)
           vpc = create_vpc("#{bound_env.app_name}_#{Rubber.env}", vpc_cfg.vpc_subnet)
           capistrano.logger.debug "Created VPC #{vpc.id}"
 
-          private_subnet = create_vpc_subnet(vpc.id, vpc_cfg.private_subnet)
-          capistrano.logger.debug "Created Private Subnet #{private_subnet.subnet_id} #{vpc_cfg.private_subnet}"
+          cidr = vpc_cfg.instance_subnets[availability_zone]
 
-          public_subnet = create_vpc_subnet(vpc.id, vpc_cfg.public_subnet)
-          capistrano.logger.debug "Created Public Subnet #{public_subnet.subnet_id} #{vpc_cfg.public_subnet}"
+          public_subnet = create_vpc_subnet(vpc.id, availability_zone, availability_zone, cidr, true)
+          capistrano.logger.debug "Created Public Subnet #{public_subnet.subnet_id} #{cidr}"
 
           bound_env.rubber_instances.artifacts['vpc'] = {
             'id' => vpc.id,
-            'private_subnet_id' => private_subnet.subnet_id,
-            'private_subnet' => vpc_cfg.private_subnet,
-            'public_subnet_id' => public_subnet.subnet_id,
-            'public_subnet' =>  vpc_cfg.public_subnet
+            'instance_subnets' => [
+              {
+                'availability_zone' => availability_zone,
+                'subnet_id' => public_subnet.subnet_id,
+                'cidr' => cidr
+              }
+            ]
           }
 
           bound_env.rubber_instances.save
@@ -432,8 +435,39 @@ module Rubber
         compute_provider.vpcs.create(:name => name, :cidr_block => subnet_str)
       end
 
-      def create_vpc_subnet(vpc_id, subnet_str)
-        compute_provider.subnets.create(:vpc_id => vpc_id, :cidr_block => subnet_str)
+      def create_vpc_subnet(vpc_id, name, availability_zone, subnet_str, is_public=false)
+        opts = {
+          :vpc_id => vpc_id,
+          :cidr_block => subnet_str,
+          :name => name,
+          :availability_zone => availability_zone
+        }
+
+        if is_public
+          opts[:map_public_ip_on_launch] = true
+        end
+
+        subnet = compute_provider.subnets.create opts
+
+        if is_public
+          internet_gateway = create_vpc_internet_gateway(vpc_id)
+
+          route_table = compute_provider.route_tables.all.find do |t|
+            t.vpc_id == vpc_id
+          end
+
+          compute_provider.associate_route_table(route_table.id, subnet.subnet_id)
+          # Add a route so that non-local traffic can reach the internet
+          compute_provider.create_route(route_table.id, "0.0.0.0/0", internet_gateway.id)
+        end
+
+        subnet
+      end
+
+      def create_vpc_internet_gateway(vpc_id)
+        gateway = compute_provider.internet_gateways.create
+        gateway.attach(vpc_id)
+        gateway
       end
 
       def destroy_subnet(subnet_id)
