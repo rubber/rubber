@@ -316,8 +316,6 @@ namespace :rubber do
       az_str = availability_zone || region || 'Default'
       vpc_str = vpc_id || 'No VPC'
 
-      logger.info "Creating instance #{ami}/#{ami_type}/#{sg_str}/#{az_str}/#{vpc_str}"
-
       if vpc_id
         public_private = get_env("SUBNET", "Public or Private Subnet [public,private]", true, "private")
 
@@ -342,6 +340,8 @@ namespace :rubber do
           :associate_public_ip => true
         }.merge(fog_options)
       end
+
+      logger.info "Creating instance #{ami}/#{ami_type}/#{sg_str}/#{az_str}/#{vpc_str}"
     end
 
     instance_id = cloud.create_instance(instance_alias, ami, ami_type, security_groups, availability_zone, region, fog_options)

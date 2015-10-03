@@ -282,11 +282,22 @@ module Rubber
 
         public_private = is_public ? "public" : "private"
 
-        cidr = vpc_cfg.instance_subnets[public_private][availability_zone]
+        cidr = vpc_cfg.instance_subnets[availability_zone][public_private]
 
         subnet = subnet_for_availability_zone bound_env, availability_zone, is_public
 
         unless subnet
+          # TODO we want to check for any instances with the nat_gateway role
+          unless is_public
+            capistrano.logger.info ":ssh_gateway required in deploy.rb to communicate with instances in a private network"
+
+            unless bound_env.rubber_instances.filter { }
+              r = Capistrano::CLI.ui.ask("You currently have no nat_gateway setup.  If you continue, instances on your private subnet will not be able to communicate beyond the internal network.  Do you want to continue? [y\n]")
+
+              fatal("Aborted", 0) unless r == 'y'
+            end
+          end
+
           subnet = create_vpc_subnet vpc.id, availability_zone, availability_zone, cidr, is_public
 
           capistrano.logger.debug "Created #{public_private} Subnet #{subnet.subnet_id} #{availability_zone} #{cidr}"
