@@ -300,7 +300,7 @@ module Rubber
 
           subnet = create_vpc_subnet vpc.id, availability_zone, availability_zone, cidr, is_public
 
-          capistrano.logger.debug "Created #{public_private} Subnet #{subnet.subnet_id} #{availability_zone} #{cidr}"
+          capistrano.logger.debug "Created #{public_private} subnet #{subnet.subnet_id} #{availability_zone} #{cidr}"
 
           add_subnet_to_instance_file bound_env, subnet, is_public
         end
