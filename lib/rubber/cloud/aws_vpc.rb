@@ -286,7 +286,7 @@ module Rubber
 
         unless subnet
           subnet = create_vpc_subnet vpc.id, availability_zone, availability_zone, cidr, true
-          capistrano.logger.debug "Created Public Subnet #{public_subnet.subnet_id} #{availability_zone} #{cidr}"
+          capistrano.logger.debug "Created Public Subnet #{subnet.subnet_id} #{availability_zone} #{cidr}"
 
           add_subnet_to_instance_file bound_env, subnet
 
