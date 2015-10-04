@@ -206,6 +206,7 @@ module Rubber
       attr_accessor :spot_instance_request_id
       attr_accessor :provider, :platform
       attr_accessor :capistrano
+      attr_accessor :private
 
       def initialize(name, domain, roles, instance_id, image_type, image_id, security_group_list=[])
         @name = name
@@ -216,6 +217,7 @@ module Rubber
         @image_id = image_id
         @security_groups = security_group_list
         @os_version = nil
+        @private = false
       end
 
       def self.from_hash(hash)
@@ -273,6 +275,10 @@ module Rubber
 
       def windows?
         platform == Rubber::Platforms::WINDOWS
+      end
+
+      def private?
+        !!@private
       end
 
       def os_version
