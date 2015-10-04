@@ -534,6 +534,11 @@ module Rubber
           opts[:cidr_ip] = source
         end
 
+        # VPC Security Rules sometimes have nil to/from ports which means the
+        # entire range is authorized
+        from_port = 0 if from_port.nil?
+        from_port = 65535 if to_port.nil?
+
         group.authorize_port_range(from_port.to_i..to_port.to_i, opts)
       end
 
@@ -571,14 +576,25 @@ module Rubber
             capistrano.logger.debug "Security Group already in cloud, syncing rules: #{group_name}"
             group = groups[group_name]
 
-            # convert the special case default rule into what it actually looks like when
-            # we query ec2 so that we can match things up when syncing
+            # Convert the special case default rule into what it actually looks like when
+            # we query ec2 so that we can match things up when syncing.  Also,
+            # retain a reference to the default rule so we can add the source_group_id
+            # when we sync from the cloud
+            default_rules = []
+
             rules = group['rules'].clone
             group['rules'].each do |rule|
-              if [3, 4].include?(rule.size) && rule['source_group_name'] && rule['source_group_account']
-                rules << rule.merge({'protocol' => 'tcp', 'from_port' => '1', 'to_port' => '65535' })
-                rules << rule.merge({'protocol' => 'udp', 'from_port' => '1', 'to_port' => '65535' })
-                rules << rule.merge({'protocol' => 'icmp', 'from_port' => '-1', 'to_port' => '-1' })
+              if [2, 3].include?(rule.size) && rule['source_group_name'] && rule['source_group_account']
+                # source_group_id value will be populated when we fetch rules from the cloud
+                # TODO we appear to have a mismatch on source_group_account for some reason
+                default_rule = rule.merge({
+                                            "source_group_id" => nil,
+                                            "protocol" => "-1",
+                                            "from_port" => "",
+                                            "to_port" => ""
+                                          })
+                rules << default_rule
+                default_rules << default_rule
                 rules.delete(rule)
               end
             end
@@ -596,6 +612,17 @@ module Rubber
                   rule_map[:source_group_name] = source_group[:name]
                   rule_map[:source_group_id] = source_group[:group_id]
                   rule_map[:source_group_account] = source_group[:account]
+
+                  # Update the special case default rule with the group id if
+                  # appropriate
+                  if (rule_map[:protocol] == "-1") && rule_map[:to_port].nil? && rule_map[:from_port].nil?
+                    default_rules.each do |default_rule|
+                      if default_rule['source_group_account'] == source_group[:account]
+                        default_rule['source_group_id'] = rule_map[:source_group_id]
+                      end
+                    end
+                  end
+
                   rule_map = Rubber::Util::stringify(rule_map)
                   rule_maps << rule_map unless rule_maps.include?(rule_map)
                 end
