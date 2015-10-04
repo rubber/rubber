@@ -267,11 +267,10 @@ module Rubber
         bound_env = load_bound_env
 
         vpc_id = get_vpc_id(bound_env)
+        vpc_cfg = bound_env.cloud_providers.aws.vpc
 
         unless vpc_id
-          vpc_cfg = bound_env.cloud_providers.aws.vpc
-
-          vpc = create_vpc "#{bound_env.app_name}_#{Rubber.env}", vpc_cfg.vpc_subnet
+          vpc = create_vpc "#{bound_env.app_name} #{Rubber.env}", vpc_cfg.vpc_subnet
 
           add_vpc_to_instance_file bound_env, vpc
 
@@ -290,15 +289,10 @@ module Rubber
           # TODO we want to check for any instances with the nat_gateway role
           unless is_public
             capistrano.logger.info ":ssh_gateway required in deploy.rb to communicate with instances in a private network"
-
-            unless bound_env.rubber_instances.filter { }
-              r = Capistrano::CLI.ui.ask("You currently have no nat_gateway setup.  If you continue, instances on your private subnet will not be able to communicate beyond the internal network.  Do you want to continue? [y\n]")
-
-              fatal("Aborted", 0) unless r == 'y'
-            end
           end
 
-          subnet = create_vpc_subnet vpc.id, availability_zone, availability_zone, cidr, is_public
+          subnet_name = "#{bound_env.app_name} #{Rubber.env} #{availability_zone} #{public_private}"
+          subnet = create_vpc_subnet vpc_id, subnet_name, availability_zone, cidr, is_public
 
           capistrano.logger.debug "Created #{public_private} subnet #{subnet.subnet_id} #{availability_zone} #{cidr}"
 
@@ -437,33 +431,79 @@ module Rubber
       private
 
       def create_vpc(name, subnet_str)
-        compute_provider.vpcs.create(:name => name, :cidr_block => subnet_str)
+        vpc = compute_provider.vpcs.create(:cidr_block => subnet_str)
+
+        Rubber::Util.retry_on_failure(StandardError, :retry_sleep => 1, :retry_count => 120) do
+          create_tags(vpc.id, :Name => name, :Environment => Rubber.env)
+        end
+
+        vpc
       end
 
-      def create_vpc_subnet(vpc_id, name, availability_zone, subnet_str, is_public=false)
+      def create_vpc_subnet(vpc_id, name, availability_zone, cidr_block, is_public=false)
         opts = {
           :vpc_id => vpc_id,
-          :cidr_block => subnet_str,
-          :name => name,
+          :cidr_block => cidr_block,
           :availability_zone => availability_zone
         }
 
+        nat = nil
+
         if is_public
           opts[:map_public_ip_on_launch] = true
+        else
+          bound_env = load_bound_env
+
+          # Check for nat in this availability zone
+          nat = bound_env.rubber_instances.find do |i|
+            i.roles.map(&:name).include?("nat_gateway") &&
+              (i.zone == availability_zone)
+          end
+
+          unless nat
+            fatal("Cannot create a private subnet in #{availability_zone} without a nat_gateway configured in the public subnet", 0)
+          end
         end
 
         subnet = compute_provider.subnets.create opts
 
+        Rubber::Util.retry_on_failure(StandardError, :retry_sleep => 1, :retry_count => 120) do
+          create_tags(subnet.subnet_id, :Name => name, :Environment => Rubber.env)
+        end
+
+        route_tables = compute_provider.route_tables.all.select do |t|
+          t.vpc_id == vpc_id
+        end
+
+        subnet_count = compute_provider.subnets.all.count
+
+        # The first subnet comes with a route table.  We will have to create our
+        # own route tables for subsequent subnets
+        if subnet_count == route_tables.count
+          route_table = route_tables.first
+
+          Rubber::Util.retry_on_failure(StandardError, :retry_sleep => 1, :retry_count => 120) do
+            create_tags(route_table.id, :Name => name, :Environment => Rubber.env)
+          end
+        else
+          route_table = compute_provider.create_route_table
+
+          #cloud_provider.create_route(route_table.id, cidr_block, nil, nil, "local")
+
+          Rubber::Util.retry_on_failure(StandardError, :retry_sleep => 1, :retry_count => 120) do
+            create_tags(route_table.id, :Name => name, :Environment => Rubber.env)
+          end
+        end
+
+        compute_provider.associate_route_table(route_table.id, subnet.subnet_id)
+
         if is_public
           internet_gateway = create_vpc_internet_gateway(vpc_id)
 
-          route_table = compute_provider.route_tables.all.find do |t|
-            t.vpc_id == vpc_id
-          end
-
-          compute_provider.associate_route_table(route_table.id, subnet.subnet_id)
           # Add a route so that non-local traffic can reach the internet
           compute_provider.create_route(route_table.id, "0.0.0.0/0", internet_gateway.id)
+        else
+          compute_provider.create_route(route_table.id, "0.0.0.0/0", nil, nat.instance_id)
         end
 
         subnet
