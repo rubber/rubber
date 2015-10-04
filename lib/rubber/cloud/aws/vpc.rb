@@ -4,7 +4,7 @@ require 'rubber/cloud/aws_table_store'
 module Rubber
   module Cloud
   
-    class AwsVpc < Fog
+    class Aws::Vpc < Fog
       
       def initialize(env, capistrano)
         
