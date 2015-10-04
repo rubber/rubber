@@ -1,5 +1,3 @@
-require 'rubber/cloud/fog'
-require 'rubber/cloud/aws_table_store'
 require 'rubber/cloud/aws/base'
 
 module Rubber
