@@ -417,10 +417,16 @@ namespace :rubber do
             puts 'Trying to enable root login'
 
             # turn back on root ssh access if we are using root as the capistrano user for connecting
-            enable_root_ssh(instance_item.external_ip, fetch(:initial_ssh_user, 'ubuntu')) if user == 'root'
+            if instance_item.private?
+              ip = instance_item.internal_ip
+            else
+              ip = instance_item.external_ip
+            end
+
+            enable_root_ssh(ip, fetch(:initial_ssh_user, 'ubuntu')) if user == 'root'
 
             # force a connection so if above isn't enabled we still timeout if initial connection hangs
-            direct_connection(instance_item.external_ip) do
+            direct_connection(ip) do
               run "echo"
             end
           end
@@ -666,6 +672,7 @@ namespace :rubber do
             when /#{instance_item.full_name}/; ''
             when /#{instance_item.external_host}/; ''
             when /#{instance_item.external_ip}/; ''
+            when /#{instance_item.internal_ip}/; ''
             else line;
           end
           out << line
