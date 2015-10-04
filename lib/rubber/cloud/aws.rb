@@ -2,9 +2,9 @@ require 'rubber/cloud/fog'
 require 'rubber/cloud/aws_table_store'
 
 module Rubber
-  module Cloud
-  
+  module Cloud  
     module Aws
+
       class Factory
         def self.get_provider(provider_env, capistrano)
           if provider_env.vpc
@@ -18,8 +18,8 @@ module Rubber
           end
         end
       end
-    end
 
+    end
   end      
 end
 
