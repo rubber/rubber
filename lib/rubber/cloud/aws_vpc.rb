@@ -286,7 +286,6 @@ module Rubber
         subnet = subnet_for_availability_zone bound_env, availability_zone, is_public
 
         unless subnet
-          # TODO we want to check for any instances with the nat_gateway role
           unless is_public
             capistrano.logger.info ":ssh_gateway required in deploy.rb to communicate with instances in a private network"
           end
