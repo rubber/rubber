@@ -199,7 +199,7 @@ class InstanceTest < Test::Unit::TestCase
       setup do
         env = {'access_key' => "XXX", 'secret_access_key' => "YYY", 'region' => "us-east-1"}
         env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil, nil)
-        @cloud = Rubber::Cloud::Aws.new(env, nil)
+        @cloud = Rubber::Cloud::Aws::Classic.new(env, nil)
         @cloud.storage_provider.put_bucket('bucket')
         Rubber.stubs(:cloud).returns(@cloud)
       end
@@ -284,7 +284,8 @@ class InstanceTest < Test::Unit::TestCase
             'instance_id' => 'xxxyyy',
             'image_type' => 'm1.small',
             'image_id' => 'ami-7000f019',
-            'security_groups' => ['sg1', 'sg2']
+            'security_groups' => ['sg1', 'sg2'],
+            'private' => false
         }
       end
       

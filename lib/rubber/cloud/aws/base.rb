@@ -1,5 +1,5 @@
 require 'rubber/cloud/fog'
-require 'rubber/cloud/aws_table_store'
+require 'rubber/cloud/aws'
 
 module Rubber
   module Cloud
@@ -35,7 +35,7 @@ module Rubber
       end
       
       def table_store(table_key)
-        return Rubber::Cloud::AwsTableStore.new(@table_store, table_key)  
+        return Rubber::Cloud::Aws::TableStore.new(@table_store, table_key)  
       end
 
       def describe_instances(instance_id=nil)
