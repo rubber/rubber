@@ -695,7 +695,7 @@ module Rubber
         public_private = is_public ? "public" : "private"
 
         vpc_cfg['instance_subnets'][public_private].find do |s|
-          s.availability_zone == availability_zone
+          s['availability_zone'] == availability_zone
         end
       end
 
