@@ -131,65 +131,6 @@ module Rubber
         groups
       end
 
-      def create_volume(instance, volume_spec)
-        fog_options = Rubber::Util.symbolize_keys(volume_spec['fog_options'] || {})
-        volume_data = {
-            :size => volume_spec['size'], :availability_zone => volume_spec['zone']
-        }.merge(fog_options)
-        volume = compute_provider.volumes.create(volume_data)
-        volume.id
-      end
-
-      def after_create_volume(instance, volume_id, volume_spec)
-        # After we create an EBS volume, we need to attach it to the instance.
-        volume = compute_provider.volumes.get(volume_id)
-        server = compute_provider.servers.get(instance.instance_id)
-        volume.device = volume_spec['device']
-        volume.server = server
-      end
-
-      def before_destroy_volume(volume_id)
-        # Before we can destroy an EBS volume, we must detach it from any running instances.
-        volume = compute_provider.volumes.get(volume_id)
-        volume.force_detach
-      end
-
-      def destroy_volume(volume_id)
-        compute_provider.volumes.get(volume_id).destroy
-      end
-
-      def describe_volumes(volume_id=nil)
-        volumes = []
-        opts = {}
-        opts[:'volume-id'] = volume_id if volume_id
-        response = compute_provider.volumes.all(opts)
-
-        response.each do |item|
-          volume = {}
-          volume[:id] = item.id
-          volume[:status] = item.state
-
-          if item.server_id
-            volume[:attachment_instance_id] = item.server_id
-            volume[:attachment_status] = item.attached_at ? "attached" : "waiting"
-          end
-
-          volumes << volume
-        end
-
-        volumes
-      end
-
-      # resource_id is any Amazon resource ID (e.g., instance ID or volume ID)
-      # tags is a hash of tag_name => tag_value pairs
-      def create_tags(resource_id, tags)
-        # Tags need to be created individually in fog
-        tags.each do |k, v|
-          compute_provider.tags.create(:resource_id => resource_id,
-                                        :key => k.to_s, :value => v.to_s)
-        end
-      end
-
       private
 
       def create_vpc(name, subnet_str)
