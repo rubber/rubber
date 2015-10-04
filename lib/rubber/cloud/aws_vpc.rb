@@ -481,18 +481,14 @@ module Rubber
         # own route tables for subsequent subnets
         if subnet_count == route_tables.count
           route_table = route_tables.first
-
-          Rubber::Util.retry_on_failure(StandardError, :retry_sleep => 1, :retry_count => 120) do
-            create_tags(route_table.id, :Name => name, :Environment => Rubber.env)
-          end
         else
-          route_table = compute_provider.create_route_table
+          route_table = compute_provider.create_route_table vpc_id
 
           #cloud_provider.create_route(route_table.id, cidr_block, nil, nil, "local")
+        end
 
-          Rubber::Util.retry_on_failure(StandardError, :retry_sleep => 1, :retry_count => 120) do
-            create_tags(route_table.id, :Name => name, :Environment => Rubber.env)
-          end
+        Rubber::Util.retry_on_failure(StandardError, :retry_sleep => 1, :retry_count => 120) do
+          create_tags(route_table.id, :Name => name, :Environment => Rubber.env)
         end
 
         compute_provider.associate_route_table(route_table.id, subnet.subnet_id)
@@ -580,7 +576,7 @@ module Rubber
             # we query ec2 so that we can match things up when syncing
             rules = group['rules'].clone
             group['rules'].each do |rule|
-              if [2, 3].include?(rule.size) && rule['source_group_name'] && rule['source_group_account']
+              if [3, 4].include?(rule.size) && rule['source_group_name'] && rule['source_group_account']
                 rules << rule.merge({'protocol' => 'tcp', 'from_port' => '1', 'to_port' => '65535' })
                 rules << rule.merge({'protocol' => 'udp', 'from_port' => '1', 'to_port' => '65535' })
                 rules << rule.merge({'protocol' => 'icmp', 'from_port' => '-1', 'to_port' => '-1' })
