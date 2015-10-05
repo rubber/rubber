@@ -340,10 +340,13 @@ namespace :rubber do
           fatal("No VPC #{public_private} instance_subnet defined for availability zone #{availability_zone}", 0)
         end
 
+        is_nat = role_names.include? "nat_gateway"
+
         fog_options = {
           :vpc_id => vpc_id,
           :subnet_id => subnet['subnet_id'],
-          :associate_public_ip => is_public
+          :associate_public_ip => is_public,
+          :source_dest_check => !is_nat
         }.merge(fog_options)
       end
 
