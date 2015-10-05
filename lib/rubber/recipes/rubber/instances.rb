@@ -343,7 +343,7 @@ namespace :rubber do
         fog_options = {
           :vpc_id => vpc_id,
           :subnet_id => subnet['subnet_id'],
-          :associate_public_ip => true
+          :associate_public_ip => is_public
         }.merge(fog_options)
       end
 
