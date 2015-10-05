@@ -398,6 +398,7 @@ namespace :rubber do
     end
 
     if instance[:state] == cloud.active_state
+      sleep 10
       print "\n"
       logger.info "Instance running, fetching hostname/ip data"
       instance_item.external_host = instance[:external_host]
