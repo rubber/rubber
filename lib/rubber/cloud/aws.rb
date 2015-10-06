@@ -7,7 +7,7 @@ module Rubber
           require 'rubber/cloud/aws/vpc'
           require 'rubber/cloud/aws/classic'
 
-          klazz = provider_env.vpc ? Rubber::Cloud::Aws::Vpc : Rubber::Cloud::Aws::Classic
+          klazz = provider_env.vpc_alias ? Rubber::Cloud::Aws::Vpc : Rubber::Cloud::Aws::Classic
           klazz.new provider_env, capistrano
         end
       end
