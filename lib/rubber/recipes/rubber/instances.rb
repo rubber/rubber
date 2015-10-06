@@ -266,28 +266,18 @@ namespace :rubber do
 
     availability_zone = cloud_env.availability_zone
 
-    if cloud_env.vpc
-      public_private = get_env("SUBNET", "Public or Private Subnet [public,private]", true, "private")
-
-      unless %[ public private ].include? public_private
-        fatal("SUBNET must be one of \"public\", \"private\"", 0)
-      end
-
-      is_public = public_private == 'public'
-    else
-      is_public = true
-    end
-
-    monitor.synchronize do
-      cloud.before_create_instance(instance_alias, role_names, availability_zone, is_public)
-    end
-
     security_groups = get_assigned_security_groups(instance_alias, role_names)
 
     ami = cloud_env.image_id
     ami_type = cloud_env.image_type
     region = cloud_env.region
     fog_options = cloud_env.fog_options || {}
+
+    instance_item = Rubber::Configuration::InstanceItem.new(instance_alias, env.domain, instance_roles, nil, ami_type, ami, security_groups)
+
+    monitor.synchronize do
+      cloud.before_create_instance(instance_item)
+    end
 
     create_spot_instance ||= cloud_env.spot_instance
 
@@ -357,7 +347,7 @@ namespace :rubber do
 
     logger.info "Instance #{instance_alias} created: #{instance_id}"
 
-    instance_item = Rubber::Configuration::InstanceItem.new(instance_alias, env.domain, instance_roles, instance_id, ami_type, ami, security_groups)
+    instance_item.instance_id = instance_id
     instance_item.spot_instance_request_id = request_id if create_spot_instance
     instance_item.capistrano = self
     instance_item.private = !is_public

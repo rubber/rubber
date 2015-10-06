@@ -5,9 +5,16 @@ module Rubber
   
     class Aws::Vpc < Aws::Base
 
-      def before_create_instance(instance_alias, role_names, availability_zone, is_public)
-        setup_vpc(availability_zone, is_public)
-        setup_security_groups(instance_alias, role_names)
+      def before_create_instance(instance)
+        role_names = instance.roles.map(&:name)
+        instance.vpc_id = setup_vpc(instance.vpc_alias).id
+        instance.subnet_id = setup_vpc_subnet(
+          instance.vpc_alias,
+          instance.private_nic,
+          instance.availability_zone
+        ).subnet_id
+        setup_security_groups(instance.instance_alias, instance.role_names)
+      end
       end
 
       def setup_security_groups(host=nil, roles=[])
