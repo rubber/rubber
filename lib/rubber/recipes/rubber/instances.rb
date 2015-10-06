@@ -335,14 +335,24 @@ namespace :rubber do
 
     logger.info "Instance #{instance_alias} created: #{instance_id}"
 
-    instance_item = Rubber::Configuration::InstanceItem.new(instance_alias, env.domain, instance_roles, instance_id, ami_type, ami, security_groups)
-    instance_item.spot_instance_request_id = request_id if create_spot_instance
-    instance_item.capistrano = self
-    rubber_instances.add(instance_item)
+    # Recreate the InstanceItem now that we have an instance_id
+    created_instance_item = Rubber::Configuration::InstanceItem.new(
+      instance_alias,
+      env.domain,
+      instance_roles,
+      instance_id,
+      ami_type,
+      ami,
+      security_groups
+    )
+    created_instance_item.spot_instance_request_id = request_id if create_spot_instance
+    created_instance_item.capistrano = self
+    created_instance_item.gateway = instance_item.gateway
+    rubber_instances.add(created_instance_item)
     rubber_instances.save()
 
     monitor.synchronize do
-      cloud.after_create_instance(instance_item)
+      cloud.after_create_instance(created_instance_item)
     end
   end
 
