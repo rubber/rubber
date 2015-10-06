@@ -336,6 +336,9 @@ namespace :rubber do
     logger.info "Instance #{instance_alias} created: #{instance_id}"
 
     # Recreate the InstanceItem now that we have an instance_id
+    # Security Groups are handled in the after_create_instance callback of the
+    # Vpc cloud provider, so pass an empty array here to make sure it isn't
+    # assigned to any other default groups that might be floating around.
     created_instance_item = Rubber::Configuration::InstanceItem.new(
       instance_alias,
       env.domain,
@@ -343,7 +346,7 @@ namespace :rubber do
       instance_id,
       ami_type,
       ami,
-      security_groups
+      fog_options[:vpc_id] ? security_groups : []
     )
     created_instance_item.spot_instance_request_id = request_id if create_spot_instance
     created_instance_item.capistrano = self

@@ -21,11 +21,27 @@ module Rubber
           instance.zone,
           "#{instance.vpc_alias} #{instance.zone} #{private_public}"
         ).subnet_id
+
         setup_security_groups(instance.vpc_id, instance.name, instance.role_names)
       end
 
       def after_create_instance(instance)
         super
+
+        # Creating an instance with both a subnet id and groups doesn't seem to
+        # result in the groups actually sticking.  Lucky, VPC instances have
+        # mutable security groups
+        group_ids = describe_security_groups(instance.vpc_id).map { |g|
+          if instance.security_groups.include?(g[:name])
+            g[:group_id]
+          else
+            nil
+          end
+        }.compact
+
+        compute.provider.modify_instance_attribute(instance.instance_id, {
+                                                     'GroupId' => group_ids
+                                                   })
 
         if instance.roles.map(&:name).include? "nat_gateway"
           # NAT gateways need the sourceDestCheck attribute to be false for AWS
@@ -232,7 +248,8 @@ module Rubber
                 route_table_id,
                 'Name' => name,
                 'Environment' => Rubber.env,
-                'RubberVpcAlias' => vpc_alias
+                'RubberVpcAlias' => vpc_alias,
+                'Public' => (gateway == 'public')
               )
             end
 
