@@ -280,8 +280,10 @@ namespace :rubber do
       instance_item.vpc_cidr = cloud_env.vpc_cidr
     end
 
+    instance_item.zone = availability_zone
+
     monitor.synchronize do
-      cloud.before_create_instance(instance_item, availability_zone)
+      cloud.before_create_instance(instance_item)
     end
 
     create_spot_instance ||= cloud_env.spot_instance

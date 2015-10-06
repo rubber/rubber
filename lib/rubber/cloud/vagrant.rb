@@ -12,7 +12,7 @@ module Rubber
         'saved'
       end
 
-      def before_create_instance(instance, availability_zone)
+      def before_create_instance(instance)
         unless ENV.has_key?('RUN_FROM_VAGRANT')
           capistrano.fatal "Since you are using the 'vagrant' provider, you must create instances by running `vagrant up #{instance.instance_alias}`."
         end

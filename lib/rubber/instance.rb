@@ -198,7 +198,7 @@ module Rubber
       UBUNTU_OS_VERSION_CMD = 'lsb_release -sr'.freeze
       VARIABLES_TO_OMIT_IN_SERIALIZATION = [
         '@capistrano', '@os_version', '@vpc_id', '@subnet_id', '@vpc_alias',
-        '@vpc_cidr', '@gateway'
+        '@vpc_cidr'
       ]
 
       attr_reader :name, :domain, :instance_id, :image_type, :image_id, :security_groups

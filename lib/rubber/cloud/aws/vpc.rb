@@ -1,11 +1,12 @@
 require 'rubber/cloud/aws/base'
+require 'rubber/util'
 
 module Rubber
   module Cloud
   
     class Aws::Vpc < Aws::Base
 
-      def before_create_instance(instance, availability_zone)
+      def before_create_instance(instance)
         host_env = load_bound_env(instance.name)
 
         role_names = instance.roles.map(&:name)
@@ -17,7 +18,7 @@ module Rubber
           instance.vpc_id,
           instance.vpc_alias,
           host_env.private_nic,
-          availability_zone,
+          instance.zone,
           "#{instance.vpc_alias} #{availability_zone} #{private_public}"
         ).subnet_id
         setup_security_groups(instance.vpc_id, instance.name, instance.role_names)
