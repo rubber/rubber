@@ -71,7 +71,7 @@ module Rubber
         'stopped'
       end
 
-      def before_create_instance(instance)
+      def before_create_instance(instance, availability_zone)
         setup_security_groups(instance.instance_alias, instance.role_names)
       end
 

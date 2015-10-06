@@ -5,7 +5,7 @@ module Rubber
   
     class Aws::Vpc < Aws::Base
 
-      def before_create_instance(instance)
+      def before_create_instance(instance, availability_zone)
         role_names = instance.roles.map(&:name)
         instance.vpc_id = setup_vpc(instance.vpc_alias).id
         instance.subnet_id = setup_vpc_subnet(
