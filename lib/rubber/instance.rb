@@ -196,7 +196,7 @@ module Rubber
     # The configuration for a single instance
     class InstanceItem
       UBUNTU_OS_VERSION_CMD = 'lsb_release -sr'.freeze
-      VARIABLES_TO_OMIT_IN_SERIALIZATION = ['@capistrano', '@os_version']
+      VARIABLES_TO_OMIT_IN_SERIALIZATION = ['@capistrano', '@os_version', '@vpc_id', '@subnet_id']
 
       attr_reader :name, :domain, :instance_id, :image_type, :image_id, :security_groups
       attr_accessor :roles, :zone
@@ -206,7 +206,8 @@ module Rubber
       attr_accessor :spot_instance_request_id
       attr_accessor :provider, :platform
       attr_accessor :capistrano
-      attr_accessor :private
+      attr_accessor :vpc_id
+      attr_accessor :subnet_id
 
       def initialize(name, domain, roles, instance_id, image_type, image_id, security_group_list=[])
         @name = name
@@ -217,7 +218,6 @@ module Rubber
         @image_id = image_id
         @security_groups = security_group_list
         @os_version = nil
-        @private = false
       end
 
       def self.from_hash(hash)
@@ -229,7 +229,7 @@ module Rubber
         end
         return item
       end
-      
+
       def to_hash
         hash = {}
         instance_variables.each do |iv|
@@ -242,11 +242,11 @@ module Rubber
         end
         return hash
       end
-      
+
       def <=>(rhs)
         name <=> rhs.name
       end
-      
+
       def full_name
         "#{@name}.#{@domain}"
       end
