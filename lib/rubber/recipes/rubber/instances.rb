@@ -317,9 +317,9 @@ namespace :rubber do
 
       logger.info "Creating instance #{ami}/#{ami_type}/#{sg_str}/#{az_str}/#{vpc_str}"
 
-      fog_options[:vpc_id] = instance.vpc_id if instance.vpc_id
-      fog_options[:subnet_id] = instance.subnet_id if instance.subnet_id
       if instance.vpc_id
+        fog_options[:vpc_id] = instance.vpc_id
+        fog_options[:subnet_id] = instance.subnet_id
         fog_options[:associate_public_ip] = (instance.private_nic.gateway == 'internet_gateway')
       end
     end
