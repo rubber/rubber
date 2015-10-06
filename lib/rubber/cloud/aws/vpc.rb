@@ -185,7 +185,7 @@ module Rubber
       end
 
       def find_or_create_vpc_subnet(vpc_id, vpc_alias, name, availability_zone, cidr_block, gateway)
-        unless is_instance_id?(gateway) || is_internet_gateway_id?(gateway)
+        unless is_instance_id?(gateway) || (gateway == 'internet_gateway')
           fatal("gateway must be an instance id or internet gateway id", 0)
         end
 
