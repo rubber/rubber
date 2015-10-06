@@ -13,11 +13,33 @@ module Rubber
           instance.private_nic,
           instance.availability_zone
         ).subnet_id
-        setup_security_groups(instance.instance_alias, instance.role_names)
-      end
+        setup_security_groups(instance.vpc_id, instance.instance_alias, instance.role_names)
       end
 
-      def setup_security_groups(host=nil, roles=[])
+      def after_create_instance(instance)
+        super
+
+        if instance.roles.map(&:name).include? "nat_gateway"
+          # NAT gateways need the sourceDestCheck attribute to be false for AWS
+          # to allow them to route traffic
+          server = compute_provider.servers.get(instance.instance_id)
+
+          server.network_interfaces.each do |interface|
+            # Sometimes we get a blank interface back
+            next unless interface.count > 0
+
+            interface_id = interface['networkInterfaceId']
+
+            compute_provider.modify_network_interface_attribute(
+              interface_id,
+              'sourceDestCheck',
+              false
+            )
+          end
+        end
+      end
+
+      def setup_security_groups(vpc_id, host=nil, roles=[])
         rubber_cfg = Rubber::Configuration.get_configuration(Rubber.env)
         scoped_env = rubber_cfg.environment.bind(roles, host)
         security_group_defns = Hash[scoped_env.security_groups.to_a]
@@ -28,45 +50,54 @@ module Rubber
           security_group_defns = inject_auto_security_groups(security_group_defns, sghosts, sgroles)
         end
 
-        sync_security_groups(scoped_env.rubber_instances.artifacts['vpc']['id'], security_group_defns)
+        sync_security_groups(vpc_id, security_group_defns)
       end
 
-      # Idempotent call which will ensure we have a vpc configured as well as a
-      # subnet for the given availability zone
-      def setup_vpc(availability_zone, is_public)
+      def setup_vpc(vpc_alias)
         bound_env = load_bound_env
 
-        vpc_id = get_vpc_id(bound_env)
-        vpc_cfg = bound_env.cloud_providers.aws.vpc
+        # First, check to see if the VPC is defined in the instance file.  If it
+        # isn't, then check AWS for any VPCs with the same tag:RubberAlias.
+        # Failing that, create it
 
-        unless vpc_id
-          vpc = create_vpc "#{bound_env.app_name} #{Rubber.env}", vpc_cfg.vpc_subnet
+        if bound_env.rubber_instances.artifacts['vpcs'][vpc_alias]
+          vpc_id = bound_env.rubber_instances.artifacts['vpcs'][vpc_alias]
+        else
+          vpc = compute_provider.vpcs.all("tag:RubberAlias" => vpc_alias).first
+          vpc_id = vpc && vpc.id
+        end
 
-          add_vpc_to_instance_file bound_env, vpc
-
-          capistrano.logger.debug "Created VPC #{vpc.id}"
+        if vpc_id
+          capistrano.logger.debug "Using #{vpc_alias} #{vpc_id}"
+        else
+          vpc = create_vpc(
+            "#{bound_env.app_name} #{Rubber.env}",
+            network_id,
+            vpc_cfg.vpc_subnet
+          )
 
           vpc_id = vpc.id
+
+          capistrano.logger.debug "Created #{vpc_alias} #{vpc_id}"
         end
 
-        public_private = is_public ? "public" : "private"
+        add_vpc_to_instance_file bound_env, vpc_alias, vpc_id
+      end
 
-        cidr = vpc_cfg.instance_subnets[availability_zone][public_private]
+      def setup_vpc_subnet(vpc_alias, private_nic, availability_zone, name)
+        public_private = is_instance_id?(private_nic.gateway) ? "private" : "public"
+        subnet = find_or_create_vpc_subnet(
+          vpc_id,
+          vpc_alias,
+          "#{bound_env.app_name} #{Rubber.env} #{availability_zone} #{public_private}",
+          availability_zone,
+          private_nic.subnet_cidr,
+          private_nic.gateway
+        )
 
-        subnet = subnet_for_availability_zone bound_env, availability_zone, is_public
+        capistrano.logger.debug "Using #{subnet.subnet_id}"
 
-        unless subnet
-          unless is_public
-            capistrano.logger.info ":ssh_gateway required in deploy.rb to communicate with instances in a private network"
-          end
-
-          subnet_name = "#{bound_env.app_name} #{Rubber.env} #{availability_zone} #{public_private}"
-          subnet = create_vpc_subnet vpc_id, subnet_name, availability_zone, cidr, is_public
-
-          capistrano.logger.debug "Created #{public_private} subnet #{subnet.subnet_id} #{availability_zone} #{cidr}"
-
-          add_subnet_to_instance_file bound_env, subnet, is_public
-        end
+        subnet
       end
 
       def destroy_vpc(vpc_id)
@@ -140,84 +171,97 @@ module Rubber
 
       private
 
-      def create_vpc(name, subnet_str)
+      def create_vpc(name, vpc_alias, subnet_str)
         vpc = compute_provider.vpcs.create(:cidr_block => subnet_str)
 
         Rubber::Util.retry_on_failure(StandardError, :retry_sleep => 1, :retry_count => 120) do
-          create_tags(vpc.id, :Name => name, :Environment => Rubber.env)
+          create_tags(vpc.id,
+                      :Name => name,
+                      :Environment => Rubber.env,
+                      :RubberAlias => vpc_alias)
         end
 
         vpc
       end
 
-      def create_vpc_subnet(vpc_id, name, availability_zone, cidr_block, is_public=false)
-        opts = {
-          :vpc_id => vpc_id,
-          :cidr_block => cidr_block,
-          :availability_zone => availability_zone
-        }
+      def find_or_create_vpc_subnet(vpc_id, vpc_alias, name, availability_zone, cidr_block, gateway)
+        unless is_instance_id?(gateway) || is_internet_gateway_id?(gateway)
+          fatal("gateway must be an instance id or internet gateway id", 0)
+        end
 
-        nat = nil
+        subnet = compute_provider.subnets.all(
+          'tag:RubberVpcAlias' => vpc_alias,
+          'cidr-block' => private_nic.subnet_cidr,
+          'availability-zone' => availability_zone
+        ).first
 
-        if is_public
-          opts[:map_public_ip_on_launch] = true
-        else
-          bound_env = load_bound_env
+        unless subnet
+          subnet = compute_provider.subnets.create :vpc_id => vpc_id,
+                                                   :cidr_block => cidr_block,
+                                                   :availability_zone => availability_zone
 
-          # Check for nat in this availability zone
-          nat = bound_env.rubber_instances.find do |i|
-            i.roles.map(&:name).include?("nat_gateway") &&
-              (i.zone == availability_zone)
+
+          Rubber::Util.retry_on_failure(StandardError, :retry_sleep => 1, :retry_count => 120) do
+            create_tags(subnet.subnet_id,
+                        'Name' => name,
+                        'Environment' => Rubber.env,
+                        'tag:RubberVpcAlias' => vpc_alias
+                       )
           end
 
-          unless nat
-            fatal("Cannot create a private subnet in #{availability_zone} without a nat_gateway configured in the public subnet", 0)
+          route_table = compute_provider.route_tables.all(
+            'vpc-id' => vpc_id,
+            'association.subnet-id' => subnet.subnet_id,
+            'RubberVpcAlias' => vpc_alias
+          ).first
+
+          unless route_table
+            route_table = compute_provider.create_route_table(vpc_id)
+
+            Rubber::Util.retry_on_failure(StandardError, :retry_sleep => 1, :retry_count => 120) do
+              create_tags(
+                route_table.id,
+                'Name' => name,
+                'Environment' => Rubber.env
+                'RubberVpcAlias' => vpc_alias
+              )
+            end
+
+            compute_provider.associate_route_table(route_table.id, subnet.subnet_id)
           end
-        end
 
-        subnet = compute_provider.subnets.create opts
+          if is_instance_id?(gateway)
+            compute_provider.create_route(route_table.id, "0.0.0.0/0", nil, nat.instance_id)
+          else
+            internet_gateway = find_or_create_vpc_internet_gateway(vpc_id, vpc_alias)
 
-        Rubber::Util.retry_on_failure(StandardError, :retry_sleep => 1, :retry_count => 120) do
-          create_tags(subnet.subnet_id, :Name => name, :Environment => Rubber.env)
-        end
+            compute_provider.create_route(route_table.id, "0.0.0.0/0", internet_gateway.id)
+          end
 
-        route_tables = compute_provider.route_tables.all.select do |t|
-          t.vpc_id == vpc_id
-        end
-
-        subnet_count = compute_provider.subnets.all.count
-
-        # The first subnet comes with a route table.  We will have to create our
-        # own route tables for subsequent subnets
-        if subnet_count == route_tables.count
-          route_table = route_tables.first
-        else
-          route_table = compute_provider.create_route_table vpc_id
-
-          #cloud_provider.create_route(route_table.id, cidr_block, nil, nil, "local")
-        end
-
-        Rubber::Util.retry_on_failure(StandardError, :retry_sleep => 1, :retry_count => 120) do
-          create_tags(route_table.id, :Name => name, :Environment => Rubber.env)
-        end
-
-        compute_provider.associate_route_table(route_table.id, subnet.subnet_id)
-
-        if is_public
-          internet_gateway = create_vpc_internet_gateway(vpc_id)
-
-          # Add a route so that non-local traffic can reach the internet
-          compute_provider.create_route(route_table.id, "0.0.0.0/0", internet_gateway.id)
-        else
-          compute_provider.create_route(route_table.id, "0.0.0.0/0", nil, nat.instance_id)
+          capistrano.logger.debug "Created #{subnet.subnet_id} #{name}"
         end
 
         subnet
       end
 
-      def create_vpc_internet_gateway(vpc_id)
-        gateway = compute_provider.internet_gateways.create
-        gateway.attach(vpc_id)
+      def find_or_create_vpc_internet_gateway(vpc_id, vpc_alias)
+        gateway = compute_provider.internet_gateways.all(
+          'tag:RubberVpcAlias' => vpc_alias
+        ).first
+
+        unless gateway
+          gateway = compute_provider.internet_gateways.create
+          gateway.attach(vpc_id)
+          Rubber::Util.retry_on_failure(StandardError, :retry_sleep => 1, :retry_count => 120) do
+            create_tags(
+              gateway.id,
+              'Name' => name,
+              'Environment' => Rubber.env
+              'RubberVpcAlias' => vpc_alias
+            )
+          end
+        end
+
         gateway
       end
 
@@ -423,50 +467,18 @@ module Rubber
         scoped_env = rubber_cfg.environment.bind(nil, [])
       end
 
-      def subnet_for_availability_zone(bound_env, availability_zone, is_public)
-        vpc_cfg = bound_env.rubber_instances.artifacts['vpc']
-
-        return nil unless vpc_cfg
-        return nil unless vpc_cfg.has_key? 'instance_subnets'
-
-        public_private = is_public ? "public" : "private"
-
-        vpc_cfg['instance_subnets'][public_private].find do |s|
-          s['availability_zone'] == availability_zone
-        end
-      end
-
-      def get_vpc_id(bound_env)
-        vpc_cfg = bound_env.rubber_instances.artifacts['vpc']
-
-        vpc_cfg && vpc_cfg['id']
-      end
-
-      def add_vpc_to_instance_file(bound_env, vpc)
-        bound_env.rubber_instances.artifacts['vpc'] = {
-          'id' => vpc.id
-        }
-
+      def add_vpc_to_instance_file(bound_env, vpc_alias, vpc_id)
+        bound_env.rubber_instances.artifacts['vpcs'] ||= {}
+        bound_env.rubber_instances.artifacts['vpcs'][vpc_alias] = vpc_id
         bound_env.rubber_instances.save
       end
 
-      def add_subnet_to_instance_file(bound_env, subnet, is_public)
-        subnet_cfg = instance_subnets(bound_env)
-
-        subnet_cfg[is_public ? "public" : "private"]  <<  {
-          'availability_zone' => subnet.availability_zone,
-          'subnet_id' => subnet.subnet_id,
-          'cidr' => subnet.cidr_block
-        }
-
-        bound_env.rubber_instances.save
+      def is_instance_id?(str)
+        str =~ /^i-[a-z0-9]+$/
       end
 
-      def instance_subnets(bound_env)
-        bound_env.rubber_instances.artifacts['vpc']['instance_subnets'] ||= {
-          "public" => [],
-          "private" => []
-        }
+      def is_internet_gateway_id?(str)
+        str =~ /^igw-[a-z0-9]+$/
       end
     end
   end
