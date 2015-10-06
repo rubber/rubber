@@ -311,36 +311,14 @@ namespace :rubber do
     end
 
     if !create_spot_instance || (create_spot_instance && max_wait_time < 0)
-      vpc = get_instance_vpc()
-      vpc_id = vpc && vpc['id']
-
       sg_str = security_groups.join(',') rescue 'Default'
       az_str = availability_zone || region || 'Default'
-      vpc_str = vpc_id || 'No VPC'
-
-      if vpc_id
-        subnet = vpc &&
-                 vpc['instance_subnets'] &&
-                 vpc['instance_subnets'][public_private] &&
-                 vpc['instance_subnets'][public_private].find do |s|
-          s['availability_zone'] == availability_zone
-        end
-
-        unless subnet
-          fatal("No VPC #{public_private} instance_subnet defined for availability zone #{availability_zone}", 0)
-        end
-
-        is_nat = role_names.include? "nat_gateway"
-
-        fog_options = {
-          :vpc_id => vpc_id,
-          :subnet_id => subnet['subnet_id'],
-          :associate_public_ip => is_public,
-          :source_dest_check => !is_nat
-        }.merge(fog_options)
-      end
+      vpc_str = instance.vpc_id || 'No VPC'
 
       logger.info "Creating instance #{ami}/#{ami_type}/#{sg_str}/#{az_str}/#{vpc_str}"
+
+      fog_options[:vpc_id] = instance.vpc_id if instance.vpc_id
+      fog_options[:subnet_id] = instance.vpc_id if instance.subnet_id
     end
 
     instance_id = cloud.create_instance(instance_alias, ami, ami_type, security_groups, availability_zone, region, fog_options)
@@ -350,7 +328,6 @@ namespace :rubber do
     instance_item.instance_id = instance_id
     instance_item.spot_instance_request_id = request_id if create_spot_instance
     instance_item.capistrano = self
-    instance_item.private = !is_public
     rubber_instances.add(instance_item)
     rubber_instances.save()
 
