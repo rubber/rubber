@@ -39,7 +39,7 @@ module Rubber
           end
         }.compact
 
-        compute.provider.modify_instance_attribute(instance.instance_id, {
+        compute_provider.modify_instance_attribute(instance.instance_id, {
                                                      'GroupId' => group_ids
                                                    })
 
