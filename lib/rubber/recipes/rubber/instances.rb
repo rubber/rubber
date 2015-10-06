@@ -281,7 +281,7 @@ namespace :rubber do
     end
 
     monitor.synchronize do
-      cloud.before_create_instance(instance_item)
+      cloud.before_create_instance(instance_item, availability_zone)
     end
 
     create_spot_instance ||= cloud_env.spot_instance
@@ -318,14 +318,14 @@ namespace :rubber do
     if !create_spot_instance || (create_spot_instance && max_wait_time < 0)
       sg_str = security_groups.join(',') rescue 'Default'
       az_str = availability_zone || region || 'Default'
-      vpc_str = instance.vpc_id || 'No VPC'
+      vpc_str = instance_item.vpc_id || 'No VPC'
 
       logger.info "Creating instance #{ami}/#{ami_type}/#{sg_str}/#{az_str}/#{vpc_str}"
 
-      if instance.vpc_id
-        fog_options[:vpc_id] = instance.vpc_id
-        fog_options[:subnet_id] = instance.subnet_id
-        fog_options[:associate_public_ip] = (instance.private_nic.gateway == 'public')
+      if instance_item.vpc_id
+        fog_options[:vpc_id] = instance_item.vpc_id
+        fog_options[:subnet_id] = instance_item.subnet_id
+        fog_options[:associate_public_ip] = (instance_item.gateway == 'public')
       end
     end
 
@@ -333,7 +333,7 @@ namespace :rubber do
 
     logger.info "Instance #{instance_alias} created: #{instance_id}"
 
-    instance_item.instance_id = instance_id
+    instance_item = Rubber::Configuration::InstanceItem.new(instance_alias, env.domain, instance_roles, instance_id, ami_type, ami, security_groups)
     instance_item.spot_instance_request_id = request_id if create_spot_instance
     instance_item.capistrano = self
     rubber_instances.add(instance_item)

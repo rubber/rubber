@@ -6,14 +6,21 @@ module Rubber
     class Aws::Vpc < Aws::Base
 
       def before_create_instance(instance, availability_zone)
+        host_env = load_bound_env(instance.name)
+
         role_names = instance.roles.map(&:name)
-        instance.vpc_id = setup_vpc(instance.vpc_alias).id
+        instance.vpc_id = setup_vpc(instance.vpc_alias, instance.vpc_cidr).id
+        instance.gateway = host_env.private_nic.gateway
+        private_public = instance.gateway == 'public' ? 'public' : 'private'
+
         instance.subnet_id = setup_vpc_subnet(
+          instance.vpc_id,
           instance.vpc_alias,
-          instance.private_nic,
-          instance.availability_zone
+          host_env.private_nic,
+          availability_zone,
+          "#{instance.vpc_alias} #{availability_zone} #{private_public}"
         ).subnet_id
-        setup_security_groups(instance.vpc_id, instance.instance_alias, instance.role_names)
+        setup_security_groups(instance.vpc_id, instance.name, instance.role_names)
       end
 
       def after_create_instance(instance)
@@ -53,7 +60,7 @@ module Rubber
         sync_security_groups(vpc_id, security_group_defns)
       end
 
-      def setup_vpc(vpc_alias)
+      def setup_vpc(vpc_alias, vpc_cidr)
         bound_env = load_bound_env
 
         # First, check to see if the VPC is defined in the instance file.  If it
@@ -64,32 +71,33 @@ module Rubber
         vpc_id = vpc && vpc.id
 
         if vpc_id
-          capistrano.logger.debug "Using #{vpc_alias} #{vpc_id}"
+          capistrano.logger.debug "Using #{vpc_id} #{vpc_alias}"
         else
           vpc = create_vpc(
             "#{bound_env.app_name} #{Rubber.env}",
-            network_id,
-            vpc_cfg.vpc_subnet
+            vpc_alias,
+            vpc_cidr
           )
 
           vpc_id = vpc.id
 
-          capistrano.logger.debug "Created #{vpc_alias} #{vpc_id}"
+          capistrano.logger.debug "Created #{vpc_id} #{vpc_alias}"
         end
+
+        vpc
       end
 
-      def setup_vpc_subnet(vpc_alias, private_nic, availability_zone, name)
-        public_private = is_instance_id?(private_nic.gateway) ? "private" : "public"
+      def setup_vpc_subnet(vpc_id, vpc_alias, private_nic, availability_zone, name)
         subnet = find_or_create_vpc_subnet(
           vpc_id,
           vpc_alias,
-          "#{bound_env.app_name} #{Rubber.env} #{availability_zone} #{public_private}",
+          name,
           availability_zone,
           private_nic.subnet_cidr,
           private_nic.gateway
         )
 
-        capistrano.logger.debug "Using #{subnet.subnet_id}"
+        capistrano.logger.debug "Using #{subnet.subnet_id} #{name}"
 
         subnet
       end
@@ -185,7 +193,7 @@ module Rubber
 
         subnet = compute_provider.subnets.all(
           'tag:RubberVpcAlias' => vpc_alias,
-          'cidr-block' => private_nic.subnet_cidr,
+          'cidr-block' => cidr_block,
           'availability-zone' => availability_zone
         ).first
 
@@ -199,39 +207,43 @@ module Rubber
             create_tags(subnet.subnet_id,
                         'Name' => name,
                         'Environment' => Rubber.env,
-                        'tag:RubberVpcAlias' => vpc_alias
+                        'RubberVpcAlias' => vpc_alias
                        )
           end
 
           route_table = compute_provider.route_tables.all(
             'vpc-id' => vpc_id,
             'association.subnet-id' => subnet.subnet_id,
-            'RubberVpcAlias' => vpc_alias
+            'tag:RubberVpcAlias' => vpc_alias
           ).first
 
-          unless route_table
-            route_table = compute_provider.create_route_table(vpc_id)
+          route_table_id = route_table && route_table.id
+
+          unless route_table_id
+            resp = compute_provider.create_route_table(vpc_id)
+
+            route_table_id = resp.body['routeTable'].first['routeTableId']
 
             Rubber::Util.retry_on_failure(StandardError, :retry_sleep => 1, :retry_count => 120) do
               create_tags(
-                route_table.id,
+                route_table_id,
                 'Name' => name,
-                'Environment' => Rubber.env
+                'Environment' => Rubber.env,
                 'RubberVpcAlias' => vpc_alias
               )
             end
 
-            compute_provider.associate_route_table(route_table.id, subnet.subnet_id)
+            compute_provider.associate_route_table(route_table_id, subnet.subnet_id)
           end
 
           if is_instance_id?(gateway)
-            compute_provider.create_route(route_table.id, "0.0.0.0/0", nil, nat.instance_id)
+            compute_provider.create_route(route_table_id, "0.0.0.0/0", nil, nat.instance_id)
           elsif is_internet_gateway_id?(gateway)
-            compute_provider.create_route(route_table.id, "0.0.0.0/0", gateway)
+            compute_provider.create_route(route_table_id, "0.0.0.0/0", gateway)
           else
-            internet_gateway = find_or_create_vpc_internet_gateway(vpc_id, vpc_alias)
+            internet_gateway = find_or_create_vpc_internet_gateway(vpc_id, vpc_alias, "#{name} gateway")
 
-            compute_provider.create_route(route_table.id, "0.0.0.0/0", internet_gateway.id)
+            compute_provider.create_route(route_table_id, "0.0.0.0/0", internet_gateway.id)
 
             capistrano.logger.debug "Created #{subnet.subnet_id} #{name}"
           end
@@ -240,7 +252,7 @@ module Rubber
         subnet
       end
 
-      def find_or_create_vpc_internet_gateway(vpc_id, vpc_alias)
+      def find_or_create_vpc_internet_gateway(vpc_id, vpc_alias, name)
         gateway = compute_provider.internet_gateways.all(
           'tag:RubberVpcAlias' => vpc_alias
         ).first
@@ -252,10 +264,12 @@ module Rubber
             create_tags(
               gateway.id,
               'Name' => name,
-              'Environment' => Rubber.env
+              'Environment' => Rubber.env,
               'RubberVpcAlias' => vpc_alias
             )
           end
+
+          capistrano.logger.debug "Created #{gateway.id} #{name}"
         end
 
         gateway
@@ -458,9 +472,9 @@ module Rubber
         end
       end
 
-      def load_bound_env
+      def load_bound_env(host=nil)
         rubber_cfg = Rubber::Configuration.get_configuration(Rubber.env)
-        scoped_env = rubber_cfg.environment.bind(nil, [])
+        scoped_env = rubber_cfg.environment.bind(nil, host)
       end
 
       def is_instance_id?(str)
