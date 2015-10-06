@@ -275,6 +275,11 @@ namespace :rubber do
 
     instance_item = Rubber::Configuration::InstanceItem.new(instance_alias, env.domain, instance_roles, nil, ami_type, ami, security_groups)
 
+    if cloud_env.vpc_alias
+      instance_item.vpc_alias = cloud_env.vpc_alias
+      instance_item.vpc_cidr = cloud_env.vpc_cidr
+    end
+
     monitor.synchronize do
       cloud.before_create_instance(instance_item)
     end
