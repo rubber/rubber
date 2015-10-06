@@ -356,6 +356,7 @@ namespace :rubber do
       ami,
       security_groups
     )
+    created_instance_item.vpc_id = instance_item.vpc_id
     created_instance_item.spot_instance_request_id = request_id if create_spot_instance
     created_instance_item.capistrano = self
     created_instance_item.gateway = instance_item.gateway
