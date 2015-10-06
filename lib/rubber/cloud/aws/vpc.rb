@@ -187,7 +187,9 @@ module Rubber
       end
 
       def find_or_create_vpc_subnet(vpc_id, vpc_alias, name, availability_zone, cidr_block, gateway)
-        unless is_instance_id?(gateway) || is_internet_gateway_id?(gateway) ||(gateway == 'public')
+        unless Rubber::Util.is_instance_id?(gateway) ||
+               Rubber::Util.is_internet_gateway_id?(gateway) ||
+               (gateway == 'public')
           raise "gateway must be an instance id, gateway id, or \"public\""
         end
 
@@ -236,9 +238,9 @@ module Rubber
             compute_provider.associate_route_table(route_table_id, subnet.subnet_id)
           end
 
-          if is_instance_id?(gateway)
+          if Rubber::Util.is_instance_id?(gateway)
             compute_provider.create_route(route_table_id, "0.0.0.0/0", nil, gateway)
-          elsif is_internet_gateway_id?(gateway)
+          elsif Rubber::Util.is_internet_gateway_id?(gateway)
             compute_provider.create_route(route_table_id, "0.0.0.0/0", gateway)
           else
             internet_gateway = find_or_create_vpc_internet_gateway(vpc_id, vpc_alias, "#{name} gateway")
@@ -475,14 +477,6 @@ module Rubber
       def load_bound_env(host=nil)
         rubber_cfg = Rubber::Configuration.get_configuration(Rubber.env)
         scoped_env = rubber_cfg.environment.bind(nil, host)
-      end
-
-      def is_instance_id?(str)
-        str =~ /^i-[a-z0-9]+$/
-      end
-
-      def is_internet_gateway_id?(str)
-        str =~ /^igw-[a-z0-9]+$/
       end
     end
   end

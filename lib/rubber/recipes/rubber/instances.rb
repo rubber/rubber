@@ -396,7 +396,7 @@ namespace :rubber do
             puts 'Trying to enable root login'
 
             # turn back on root ssh access if we are using root as the capistrano user for connecting
-            if instance_item.private?
+            if Rubber::Util.is_instance_id?(instance_item.gateway?)
               ip = instance_item.internal_ip
             else
               ip = instance_item.external_ip
