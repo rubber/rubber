@@ -60,12 +60,8 @@ module Rubber
         # isn't, then check AWS for any VPCs with the same tag:RubberAlias.
         # Failing that, create it
 
-        if bound_env.rubber_instances.artifacts['vpcs'][vpc_alias]
-          vpc_id = bound_env.rubber_instances.artifacts['vpcs'][vpc_alias]
-        else
-          vpc = compute_provider.vpcs.all("tag:RubberAlias" => vpc_alias).first
-          vpc_id = vpc && vpc.id
-        end
+        vpc = compute_provider.vpcs.all("tag:RubberAlias" => vpc_alias).first
+        vpc_id = vpc && vpc.id
 
         if vpc_id
           capistrano.logger.debug "Using #{vpc_alias} #{vpc_id}"
@@ -80,8 +76,6 @@ module Rubber
 
           capistrano.logger.debug "Created #{vpc_alias} #{vpc_id}"
         end
-
-        add_vpc_to_instance_file bound_env, vpc_alias, vpc_id
       end
 
       def setup_vpc_subnet(vpc_alias, private_nic, availability_zone, name)
@@ -465,12 +459,6 @@ module Rubber
       def load_bound_env
         rubber_cfg = Rubber::Configuration.get_configuration(Rubber.env)
         scoped_env = rubber_cfg.environment.bind(nil, [])
-      end
-
-      def add_vpc_to_instance_file(bound_env, vpc_alias, vpc_id)
-        bound_env.rubber_instances.artifacts['vpcs'] ||= {}
-        bound_env.rubber_instances.artifacts['vpcs'][vpc_alias] = vpc_id
-        bound_env.rubber_instances.save
       end
 
       def is_instance_id?(str)
