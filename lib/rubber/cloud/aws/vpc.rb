@@ -128,12 +128,13 @@ module Rubber
 
         # As of 10/2/2015, vpcId isn't a valid filter, so we have to filter
         # manually
-        opts = {}
+        opts = {
+          'vpc-id' => vpc_id
+        }
         opts["group-name"] = group_name if group_name
         response = compute_provider.security_groups.all(opts)
 
         response.each do |item|
-          next if item.vpc_id != vpc_id
           group = {}
           group[:group_id] = item.group_id
           group[:name] = item.name
