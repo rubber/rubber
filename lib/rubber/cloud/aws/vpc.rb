@@ -19,7 +19,7 @@ module Rubber
           instance.vpc_alias,
           host_env.private_nic,
           instance.zone,
-          "#{instance.vpc_alias} #{availability_zone} #{private_public}"
+          "#{instance.vpc_alias} #{instance.zone} #{private_public}"
         ).subnet_id
         setup_security_groups(instance.vpc_id, instance.name, instance.role_names)
       end
