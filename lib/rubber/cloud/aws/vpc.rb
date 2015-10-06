@@ -237,7 +237,7 @@ module Rubber
           end
 
           if is_instance_id?(gateway)
-            compute_provider.create_route(route_table_id, "0.0.0.0/0", nil, nat.instance_id)
+            compute_provider.create_route(route_table_id, "0.0.0.0/0", nil, gateway)
           elsif is_internet_gateway_id?(gateway)
             compute_provider.create_route(route_table_id, "0.0.0.0/0", gateway)
           else
