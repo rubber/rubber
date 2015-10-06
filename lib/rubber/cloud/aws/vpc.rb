@@ -188,7 +188,7 @@ module Rubber
 
       def find_or_create_vpc_subnet(vpc_id, vpc_alias, name, availability_zone, cidr_block, gateway)
         unless is_instance_id?(gateway) || is_internet_gateway_id?(gateway) ||(gateway == 'public')
-          fatal("gateway must be an instance id, gateway id, or \"public\"", 0)
+          raise "gateway must be an instance id, gateway id, or \"public\""
         end
 
         subnet = compute_provider.subnets.all(
