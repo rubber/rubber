@@ -305,7 +305,7 @@ module Rubber
         # VPC Security Rules sometimes have nil to/from ports which means the
         # entire range is authorized
         from_port = 0 if from_port.nil?
-        from_port = 65535 if to_port.nil?
+        to_port = 65535 if to_port.nil?
 
         group.authorize_port_range(from_port.to_i..to_port.to_i, opts)
       end
