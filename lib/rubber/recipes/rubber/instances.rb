@@ -400,7 +400,6 @@ namespace :rubber do
     end
 
     if instance[:state] == cloud.active_state
-      sleep 10
       print "\n"
       logger.info "Instance running, fetching hostname/ip data"
       instance_item.external_host = instance[:external_host]
@@ -414,8 +413,14 @@ namespace :rubber do
       rubber_instances.save()
 
       if instance_item.linux?
-        # weird cap/netssh bug, sometimes just hangs forever on initial connect, so force a timeout
         begin
+          # davebenvenuti: Sometimes with VPC subnets, we see an IOError
+          # (connection refused) while the instance is booting, so give it some
+          # time.  It would be preferable to catch the exception and retry, but
+          # I couldn't figure out a good way to do that.
+          sleep 10 if instance_item.vpc_id
+
+          # weird cap/netssh bug, sometimes just hangs forever on initial connect, so force a timeout
           Timeout::timeout(env.enable_root_login_timeout || 30) do
             puts 'Trying to enable root login'
 
