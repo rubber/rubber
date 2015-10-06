@@ -196,7 +196,9 @@ module Rubber
     # The configuration for a single instance
     class InstanceItem
       UBUNTU_OS_VERSION_CMD = 'lsb_release -sr'.freeze
-      VARIABLES_TO_OMIT_IN_SERIALIZATION = ['@capistrano', '@os_version', '@vpc_id', '@subnet_id']
+      VARIABLES_TO_OMIT_IN_SERIALIZATION = [
+        '@capistrano', '@os_version', '@vpc_id', '@subnet_id', '@vpc_alias'
+      ]
 
       attr_reader :name, :domain, :instance_id, :image_type, :image_id, :security_groups
       attr_accessor :roles, :zone
@@ -207,6 +209,7 @@ module Rubber
       attr_accessor :provider, :platform
       attr_accessor :capistrano
       attr_accessor :vpc_id
+      attr_accessor :vpc_alias
       attr_accessor :subnet_id
 
       def initialize(name, domain, roles, instance_id, image_type, image_id, security_group_list=[])
