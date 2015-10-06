@@ -179,8 +179,8 @@ module Rubber
       end
 
       def find_or_create_vpc_subnet(vpc_id, vpc_alias, name, availability_zone, cidr_block, gateway)
-        unless is_instance_id?(gateway) || (gateway == 'internet_gateway')
-          fatal("gateway must be an instance id or internet gateway id", 0)
+        unless is_instance_id?(gateway) || is_internet_gateway_id?(gateway) ||(gateway == 'auto')
+          fatal("gateway must be an instance id, gateway id, or \"auto\"", 0)
         end
 
         subnet = compute_provider.subnets.all(
@@ -226,13 +226,15 @@ module Rubber
 
           if is_instance_id?(gateway)
             compute_provider.create_route(route_table.id, "0.0.0.0/0", nil, nat.instance_id)
+          elsif is_internet_gateway_id?(gateway)
+            compute_provider.create_route(route_table.id, "0.0.0.0/0", gateway)
           else
             internet_gateway = find_or_create_vpc_internet_gateway(vpc_id, vpc_alias)
 
             compute_provider.create_route(route_table.id, "0.0.0.0/0", internet_gateway.id)
-          end
 
-          capistrano.logger.debug "Created #{subnet.subnet_id} #{name}"
+            capistrano.logger.debug "Created #{subnet.subnet_id} #{name}"
+          end
         end
 
         subnet

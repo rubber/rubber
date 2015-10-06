@@ -320,7 +320,7 @@ namespace :rubber do
       if instance.vpc_id
         fog_options[:vpc_id] = instance.vpc_id
         fog_options[:subnet_id] = instance.subnet_id
-        fog_options[:associate_public_ip] = (instance.private_nic.gateway == 'internet_gateway')
+        fog_options[:associate_public_ip] = (instance.private_nic.gateway == 'auto')
       end
     end
 
