@@ -283,10 +283,6 @@ module Rubber
         platform == Rubber::Platforms::WINDOWS
       end
 
-      def private?
-        !!@private
-      end
-
       def os_version
         @os_version ||= begin
           os_version_cmd = Rubber.config.os_version_cmd || UBUNTU_OS_VERSION_CMD
