@@ -284,8 +284,7 @@ class InstanceTest < Test::Unit::TestCase
             'instance_id' => 'xxxyyy',
             'image_type' => 'm1.small',
             'image_id' => 'ami-7000f019',
-            'security_groups' => ['sg1', 'sg2'],
-            'private' => false
+            'security_groups' => ['sg1', 'sg2']
         }
       end
       
