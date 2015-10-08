@@ -382,10 +382,12 @@ module Rubber
 
       def add_security_group_rule(group_id, protocol, from_port, to_port, source)
         group = compute_provider.security_groups.all('group-id' => group_id).first
-        opts = {:ip_protocol => protocol || 'tcp'}
+        # ip_protocol of -1 means all
+        # See: http://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_AuthorizeSecurityGroupIngress.html
+        opts = {:ip_protocol => protocol || '-1' }
 
         if source.instance_of? Hash
-          opts[:group] = {source[:account] => source[:name]}
+          opts[:group] = {source[:account] => (source[:id] || source[:name])}
         else
           opts[:cidr_ip] = source
         end
@@ -553,7 +555,19 @@ module Rubber
             capistrano.logger.debug "Creating new rule: #{rule_map.inspect}"
             rule_map = Rubber::Util::symbolize_keys(rule_map)
             if rule_map[:source_group_name]
-              add_security_group_rule(group_id, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], {:id => rule_map[:source_group_id], :account => rule_map[:source_group_account]})
+              source = { :account => rule_map[:source_group_account] }
+
+              if rule_map[:source_group_id]
+                source[:id] = rule_map[:source_group_id]
+              elsif rule_map[:source_group_name]
+                cloud_group = describe_security_groups(vpc_id, rule_map[:source_group_name]).first
+
+                if cloud_group
+                  source[:id] = cloud_group[:group_id]
+                end
+              end
+
+              add_security_group_rule(group_id, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], source)
             else
               rule_map[:source_ips].each do |source_ip|
                 add_security_group_rule(group_id, rule_map[:protocol], rule_map[:from_port], rule_map[:to_port], source_ip)
