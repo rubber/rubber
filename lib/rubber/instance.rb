@@ -197,7 +197,7 @@ module Rubber
     class InstanceItem
       UBUNTU_OS_VERSION_CMD = 'lsb_release -sr'.freeze
       VARIABLES_TO_OMIT_IN_SERIALIZATION = [
-        '@capistrano', '@os_version', '@vpc_id', '@subnet_id', '@vpc_alias',
+        '@capistrano', '@os_version', '@subnet_id', '@vpc_id',
         '@vpc_cidr'
       ]
 
@@ -210,7 +210,7 @@ module Rubber
       attr_accessor :provider, :platform
       attr_accessor :capistrano
       attr_accessor :vpc_id
-      attr_accessor :vpc_alias
+      attr_accessor :network # more generic term for vpc_alias
       attr_accessor :vpc_cidr
       attr_accessor :subnet_id
       attr_accessor :gateway
