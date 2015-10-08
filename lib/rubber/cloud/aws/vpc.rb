@@ -9,17 +9,18 @@ module Rubber
       def before_create_instance(instance)
         host_env = load_bound_env(instance.name)
 
+        # Remember that instance.network is our more generic term for vpc_alias
         role_names = instance.roles.map(&:name)
-        instance.vpc_id = setup_vpc(instance.vpc_alias, instance.vpc_cidr).id
+        instance.vpc_id = setup_vpc(instance.network, instance.vpc_cidr).id
         instance.gateway = host_env.private_nic.gateway
         private_public = instance.gateway == 'public' ? 'public' : 'private'
 
         instance.subnet_id = setup_vpc_subnet(
           instance.vpc_id,
-          instance.vpc_alias,
+          instance.network,
           host_env.private_nic,
           instance.zone,
-          "#{instance.vpc_alias} #{instance.zone} #{private_public}"
+          "#{instance.network} #{instance.zone} #{private_public}"
         ).subnet_id
 
         setup_security_groups(instance.vpc_id, instance.name, instance.role_names)

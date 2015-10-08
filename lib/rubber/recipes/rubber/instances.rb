@@ -276,7 +276,7 @@ namespace :rubber do
     instance_item = Rubber::Configuration::InstanceItem.new(instance_alias, env.domain, instance_roles, nil, ami_type, ami, security_groups)
 
     if cloud_env.vpc_alias
-      instance_item.vpc_alias = cloud_env.vpc_alias
+      instance_item.network = cloud_env.vpc_alias
       instance_item.vpc_cidr = cloud_env.vpc_cidr
     end
 
@@ -418,7 +418,7 @@ namespace :rubber do
           # (connection refused) while the instance is booting, so give it some
           # time.  It would be preferable to catch the exception and retry, but
           # I couldn't figure out a good way to do that.
-          sleep 10 if instance_item.vpc_id
+          sleep 10 if instance_item.network
 
           # weird cap/netssh bug, sometimes just hangs forever on initial connect, so force a timeout
           Timeout::timeout(env.enable_root_login_timeout || 30) do
