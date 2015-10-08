@@ -81,6 +81,31 @@ cloud_providers:
     # OPTIONAL: Needed for backing up database to s3
     # backup_bucket: "#{app_name}-backups"
 
+    # Define a VPC to deploy to. The alias can be thought of as a unique
+    # Rubber-specific Id.  If vpc_alias and vpc_addr are absent, Rubber will
+    # instead assume we're deploying to EC2 Classic
+    vpc_alias: "#{app_name}_#{Rubber.env == 'production' ? 'production' : 'development'}"
+    vpc_cidr: 10.0.0.0/16
+
+    # VPCs will typically have two subnets - one for instances that need a
+    # direct internet connection (load balancers, etc.), and one for instances
+    # that don't (database servers, app servers, etc.).  At the very least,
+    # we'll need a public subnet.  Rubber will detect the instance's private_nic
+    # configuration, and auto-create a subnet if appropriate.  Any instances on
+    # the public subnet will need the following:
+    private_nic:
+      subnet_cidr: '10.0.0.0/24'
+      gateway: public
+
+    # For a private subnet, you will need to configure a nat_gateway instance in
+    # the public subnet so that machines can still reach the outside world for
+    # things like software updates.  After configuring a NAT gateway, you can
+    # set up a separate private subnet.  Instances which are on this subnet will
+    # need:
+    #  private_nic:
+    #    subnet_cidr: '10.0.1.0/24'
+    #    gateway: "#{rubber_instances.for_role('nat_gateway').first.instance_id}"
+
     # REQUIRED: the ami and instance type for creating instances
     # The Ubuntu images at http://alestic.com/ work well
     # Ubuntu 14.04.1 Trusty instance-store 64-bit: ami-92f569fa
