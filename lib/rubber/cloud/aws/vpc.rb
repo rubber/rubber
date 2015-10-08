@@ -119,8 +119,77 @@ module Rubber
         subnet
       end
 
-      def destroy_vpc(vpc_id)
-        compute_provider.vpcs.destroy(vpc_id)
+      def destroy_vpc(vpc_alias)
+        %w[
+           subnets
+           route_tables
+           security_groups
+           internet_gateways 
+        ].each do |resource_name|
+          destroy_vpc_resource(vpc_alias, resource_name.strip)
+        end
+
+        vpc = compute_provider.vpcs.all('tag:RubberAlias' => vpc_alias).first
+        if vpc
+          compute_provider.vpcs.destroy(vpc.id)
+
+          capistrano.logger.info "Destroyed #{vpc.id} #{vpc_alias}"
+        else
+          capistrano.logger.info "No VPC found with alias #{vpc_alias}"
+        end
+      end
+
+      def destroy_internet_gateways(vpc_alias)
+        vpc = compute_provider.vpcs.all("tag:RubberAlias" => vpc_alias).first
+        gateways = compute_provider.internet_gateways.all('tag:RubberVpcAlias' => vpc_alias)
+
+        gateways.each do |gateway|
+          compute_provider.detach_internet_gateway(gateway.id, vpc.id)
+
+          sleep 5
+
+          gateway.reload
+
+          if gateway.attachment_set.length > 0
+            compute_provider.delete_tags gateway.id, { "RubberVpcAlias" => vpc_alias }
+            capistrano.logger.info "not destroying #{gateway.id} due to other VPC attachments"
+          else
+            gateway.destroy
+          end
+        end
+
+        capistrano.logger.info "destroyed internet_gateways"
+      end
+
+      def destroy_security_groups(vpc_alias)
+        vpc = compute_provider.vpcs.all("tag:RubberAlias" => vpc_alias).first
+
+        groups = compute_provider.security_groups.all('vpc-id' => vpc.id)
+
+        groups.all.each do |group|
+          begin
+            group.destroy
+          rescue ::Fog::Compute::AWS::Error => e
+            # Some groups cannot be deleted by users.  Just ignore these
+            raise e unless e.message =~ /CannotDelete/
+          end
+        end
+
+        capistrano.logger.info "destroyed security_groups"
+      end
+
+      def destroy_vpc_resource(vpc_alias, resource_name_plural)
+        specific_call = "destroy_#{resource_name_plural}"
+
+        if self.respond_to? specific_call
+          should_destroy = self.send specific_call, vpc_alias
+        else
+          resources = compute_provider.send(resource_name_plural).all('tag:RubberVpcAlias' => vpc_alias)
+
+          resources.each(&:destroy)
+
+          capistrano.logger.info "destroyed #{resource_name_plural}"
+        end
       end
 
       def describe_security_groups(vpc_id, group_name=nil)
