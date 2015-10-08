@@ -92,7 +92,7 @@ cloud_providers:
     # that don't (database servers, app servers, etc.).  At the very least,
     # we'll need a public subnet.  Rubber will detect the instance's private_nic
     # configuration, and auto-create a subnet if appropriate.  Any instances on
-    # the public subnet will need the following:
+    # the public subnet will need the following configuration
     private_nic:
       subnet_cidr: '10.0.0.0/24'
       gateway: public
@@ -100,8 +100,10 @@ cloud_providers:
     # For a private subnet, you will need to configure a nat_gateway instance in
     # the public subnet so that machines can still reach the outside world for
     # things like software updates.  After configuring a NAT gateway, you can
-    # set up a separate private subnet.  Instances which are on this subnet will
-    # need:
+    # set up a separate private subnet.  You will also need to set your :gateway
+    # Capistrano configuration value to the full hostname of the nat gateway in
+    # order to communicate with instances on private subnets.  Instances which
+    # are on a private subnet will need the following configuration
     #  private_nic:
     #    subnet_cidr: '10.0.1.0/24'
     #    gateway: "#{rubber_instances.for_role('nat_gateway').first.instance_id}"
