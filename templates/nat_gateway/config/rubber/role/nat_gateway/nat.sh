@@ -2,6 +2,8 @@
   @perms = 0744
   @path = '/etc/init.d/nat'
   @post = 'ln -sf /etc/init.d/nat /etc/rc2.d/S90nat && service nat start'
+
+  vpc_cidr = Rubber.config.cloud_providers.aws.vpc_cidr
 %>
 echo -e "\n\nLoading simple rc.firewall-iptables version $FWVER..\n"
 DEPMOD=/sbin/depmod
@@ -37,7 +39,7 @@ echo "   Clearing any existing NAT rules and setting default policy.."
 
 # Share public Internet connection.
 iptables --table nat --flush
-iptables -t nat -C POSTROUTING -o eth0 -s 10.0.0.0/16 -j MASQUERADE 2> /dev/null || iptables -t nat -A POSTROUTING -o eth0 -s 10.0.0.0/16 -j MASQUERADE
+iptables -t nat -C POSTROUTING -o eth0 -s <%= vpc_cidr %> -j MASQUERADE 2> /dev/null || iptables -t nat -A POSTROUTING -o eth0 -s <%= vpc_cidr %> -j MASQUERADE
 
 echo -e "\nrc.firewall-iptables v$FWVER done.\n"
 
