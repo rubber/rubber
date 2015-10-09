@@ -92,7 +92,11 @@ cloud_providers:
     # that don't (database servers, app servers, etc.).  At the very least,
     # we'll need a public subnet.  Rubber will detect the instance's private_nic
     # configuration, and auto-create a subnet if appropriate.  Any instances on
-    # the public subnet will need the following configuration
+    # the public subnet will need the following configuration.  It is also
+    # important to note that AWS VPC Subnets are availability zone-specific,
+    # meaning you probably want to specify an availability zone for your
+    # instance.  You will also have to specify a different subnet_cidr for each
+    # availability zone, since subnets cannot overlap.
     private_nic:
       subnet_cidr: '10.0.0.0/24'
       gateway: public
