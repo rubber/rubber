@@ -1,7 +1,5 @@
 require 'rubber/environment'
 
-class PrivateNic < Struct.new(:subnet_cidr, :gateway); end
-
 namespace :rubber do
   desc <<-DESC
     Sets up the VPC identified by vpc_alias
