@@ -113,7 +113,7 @@ cloud_providers:
     #    gateway: "#{rubber_instances.for_role('nat_gateway').first.instance_id}"
 
     # REQUIRED: the ami and instance type for creating instances
-    # The Ubuntu images at http://alestic.com/ work well
+    # The Ubuntu images at http://old.alestic.com/ work well
     # Ubuntu 14.04.1 Trusty instance-store 64-bit: ami-92f569fa
     #
     # m1.small or m1.large or m1.xlarge
