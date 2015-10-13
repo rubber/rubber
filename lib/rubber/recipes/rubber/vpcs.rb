@@ -12,6 +12,24 @@ namespace :rubber do
   end
 
   desc <<-DESC
+    List all VPCs (not just Rubber-created)
+  DESC
+  required_task :describe_vpcs do
+    vpcs = cloud.describe_vpcs
+
+    if vpcs
+      puts "VPCs:"
+      puts "\t\tId\tName\t\t\tRubber Alias"
+
+      vpcs.each do |vpc|
+        puts "\t#{vpc[:id]}\t#{vpc[:name]}\t#{vpc[:rubber_alias]}"
+      end
+    else
+      puts "No VPCs found"
+    end
+  end
+
+  desc <<-DESC
     Configure a new subnet on the configured VPC
   DESC
   required_task :create_vpc_subnet do
