@@ -140,6 +140,12 @@ module Rubber
         end
       end
 
+      def describe_vpcs
+        compute_provider.vpcs.all.map do |vpc|
+          { id: vpc.id, name: vpc.tags['Name'], rubber_alias: vpc.tags['RubberAlias'] }
+        end
+      end
+
       def destroy_internet_gateways(vpc_alias)
         vpc = compute_provider.vpcs.all("tag:RubberAlias" => vpc_alias).first
         gateways = compute_provider.internet_gateways.all('tag:RubberVpcAlias' => vpc_alias)
