@@ -19,10 +19,12 @@ namespace :rubber do
 
     if vpcs
       puts "VPCs:"
-      puts "\t\tId\tName\t\t\tRubber Alias"
 
       vpcs.each do |vpc|
         puts "\t#{vpc[:id]}\t#{vpc[:name]}\t#{vpc[:rubber_alias]}"
+        vpc[:subnets].each do |subnet|
+          puts "\t\t#{subnet[:id]}\t#{subnet[:rubber_alias]}\t#{subnet[:cidr_block]}\t#{subnet[:public] ? 'public' : 'private'}"
+        end
       end
     else
       puts "No VPCs found"

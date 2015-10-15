@@ -142,7 +142,22 @@ module Rubber
 
       def describe_vpcs
         compute_provider.vpcs.all.map do |vpc|
-          { id: vpc.id, name: vpc.tags['Name'], rubber_alias: vpc.tags['RubberAlias'] }
+          subnets = compute_provider.subnets.all('vpc-id' => vpc.id).map do |subnet|
+            tags = compute_provider.tags.all('resource-id' => subnet.subnet_id)
+
+            {
+              id: subnet.subnet_id,
+              public: (tags.to_s == 'true'),
+              cidr_block: subnet.cidr_block
+            }
+          end
+
+          {
+            id: vpc.id,
+            name: vpc.tags['Name'],
+            rubber_alias: vpc.tags['RubberAlias'],
+            subnets: subnets
+          }
         end
       end
 
