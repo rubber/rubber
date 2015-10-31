@@ -8,6 +8,10 @@ module Rubber
 
       def before_create_instance(instance)
         host_env = load_bound_env(instance.name)
+        cloud_env = host_env.cloud_providers[env.cloud_provider]
+
+        instance.network = cloud_env.vpc_alias
+        instance.vpc_cidr = cloud_env.vpc_cidr
 
         # Remember that instance.network is our more generic term for vpc_alias
         role_names = instance.roles.map(&:name)

@@ -275,11 +275,6 @@ namespace :rubber do
 
     instance_item = Rubber::Configuration::InstanceItem.new(instance_alias, env.domain, instance_roles, nil, ami_type, ami, security_groups)
 
-    if cloud_env.vpc_alias
-      instance_item.network = cloud_env.vpc_alias
-      instance_item.vpc_cidr = cloud_env.vpc_cidr
-    end
-
     instance_item.zone = availability_zone
 
     monitor.synchronize do
