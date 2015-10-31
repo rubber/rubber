@@ -81,11 +81,11 @@ cloud_providers:
     # OPTIONAL: Needed for backing up database to s3
     # backup_bucket: "#{app_name}-backups"
 
-    # Define a VPC to deploy to. The alias can be thought of as a unique
-    # Rubber-specific Id.  If vpc_alias and vpc_addr are absent, Rubber will
-    # instead assume we're deploying to EC2 Classic
-    vpc_alias: "#{app_name}_#{Rubber.env == 'production' ? 'production' : 'development'}"
-    vpc_cidr: 10.0.0.0/16
+    # OPTIONAL: Define a VPC to deploy to. The alias can be thought of as a
+    # unique Rubber-specific Id.  If vpc_alias and vpc_addr are absent, Rubber
+    # will instead assume we're deploying to EC2 Classic
+    # vpc_alias: "#{app_name}_#{Rubber.env == 'production' ? 'production' : 'development'}"
+    # vpc_cidr: 10.0.0.0/16
 
     # VPCs will typically have two subnets - one for instances that need a
     # direct internet connection (load balancers, etc.), and one for instances
@@ -97,9 +97,9 @@ cloud_providers:
     # meaning you probably want to specify an availability zone for your
     # instance.  You will also have to specify a different subnet_cidr for each
     # availability zone, since subnets cannot overlap.
-    private_nic:
-      subnet_cidr: '10.0.0.0/24'
-      gateway: public
+    # private_nic:
+    #   subnet_cidr: '10.0.0.0/24'
+    #   gateway: public
 
     # For a private subnet, you will need to configure a nat_gateway instance in
     # the public subnet so that machines can still reach the outside world for
