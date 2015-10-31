@@ -7,9 +7,8 @@ module Rubber
 
       def initialize(env, capistrano)
         compute_credentials = {
-          :provider => 'DigitalOcean',
-          :digitalocean_api_key => env.api_key,
-          :digitalocean_client_id => env.client_key
+          :provider => 'DigitalOceanV2',
+          :digitalocean_token => env.token,
         }
 
         if env.cloud_providers && env.cloud_providers.aws
