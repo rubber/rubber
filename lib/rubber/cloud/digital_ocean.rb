@@ -87,18 +87,10 @@ module Rubber
                                                     :flavor => flavor.slug,
                                                     :region => do_region.slug,
                                                     :ssh_keys => [ssh_key['id']],
-                                                    # This didn't seem to actually enable private networking for me (dave)
                                                     :private_networking => (env.private_networking.to_s.downcase == 'true')
                                                    }
                                                     .merge(Rubber::Util.symbolize_keys(fog_options))
                                                   )
-
-        # TODO private networking must be enabled when the droplet is powered
-        # off, so we'll have to do that after the refresh or something
-        #
-        # if env.private_networking.to_s.downcase == 'true'
-        #   response.enable_private_networking
-        # end
 
         response.id
       end
