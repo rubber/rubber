@@ -171,7 +171,12 @@ namespace :rubber do
         end
 
         hosts_data.compact.each do |host_name|
-          local_hosts << ic.external_ip.ljust(18) << host_name << "\n"
+          # Private instances must be connected to via an ssh gateway
+          if Rubber::Util.is_instance_id?(ic.gateway)
+            local_hosts << ic.internal_ip.ljust(18) << host_name << "\n"
+          else
+            local_hosts << ic.external_ip.ljust(18) << host_name << "\n"
+          end
         end
 
       else # non-Windows OS
@@ -189,7 +194,12 @@ namespace :rubber do
           end
         end
 
-        local_hosts << ic.external_ip << ' ' << hosts_data.compact.join(' ') << "\n"
+        # Private instances must be connected to via an ssh gateway
+        if Rubber::Util.is_instance_id?(ic.gateway)
+          local_hosts << ic.internal_ip << ' ' << hosts_data.compact.join(' ') << "\n"
+        else
+          local_hosts << ic.external_ip << ' ' << hosts_data.compact.join(' ') << "\n"
+        end
       end
     end
 

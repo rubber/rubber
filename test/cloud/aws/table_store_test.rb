@@ -1,5 +1,5 @@
-require File.expand_path(File.join(__FILE__, '../..', 'test_helper'))
-require 'rubber/cloud/aws_table_store'
+require File.expand_path(File.join(__FILE__, '../../..', 'test_helper'))
+require 'rubber/cloud/aws/table_store'
 
 class AwsTableStoreTest < Test::Unit::TestCase
 
@@ -10,34 +10,34 @@ class AwsTableStoreTest < Test::Unit::TestCase
                                            :aws_secret_access_key => 'YYY')
       @table = 'mytable'
       @provider.create_domain(@table)
-      @table_store = Rubber::Cloud::AwsTableStore.new(@provider, @table)
+      @table_store = Rubber::Cloud::Aws::TableStore.new(@provider, @table)
     end
 
     should "require a table" do
       
       assert_raise do
-        Rubber::Cloud::AwsTableStore.new(@provider, nil)
+        Rubber::Cloud::Aws::TableStore.new(@provider, nil)
       end
 
       assert_raise do
-        Rubber::Cloud::AwsTableStore.new(@provider, "")
+        Rubber::Cloud::Aws::TableStore.new(@provider, "")
       end
       
-      assert Rubber::Cloud::AwsTableStore.new(@provider, @table)
+      assert Rubber::Cloud::Aws::TableStore.new(@provider, @table)
     end
     
     context "ensure_table" do
       
       should "created table if not there" do
         assert_raises { @provider.domain_metadata('sometable') }
-        @table_store = Rubber::Cloud::AwsTableStore.new(@provider, 'sometable')
+        @table_store = Rubber::Cloud::Aws::TableStore.new(@provider, 'sometable')
         assert @provider.domain_metadata('sometable')
       end
       
       should "still work if table already exists" do
         @provider.create_domain('sometable')
         assert @provider.domain_metadata('sometable')
-        @table_store = Rubber::Cloud::AwsTableStore.new(@provider, 'sometable')
+        @table_store = Rubber::Cloud::Aws::TableStore.new(@provider, 'sometable')
         assert @provider.domain_metadata('sometable')
       end
       

@@ -18,7 +18,7 @@ module Rubber
         @opts = opts
       
         @items = {}
-        @artifacts = {'volumes' => {}, 'static_ips' => {}}
+        @artifacts = {'volumes' => {}, 'static_ips' => {}, 'vpc' => {}}
 
         @filters = Rubber::Util::parse_aliases(ENV['FILTER'])
         @filters, @filters_negated = @filters.partition {|f| f !~ /^-/ }
@@ -196,7 +196,10 @@ module Rubber
     # The configuration for a single instance
     class InstanceItem
       UBUNTU_OS_VERSION_CMD = 'lsb_release -sr'.freeze
-      VARIABLES_TO_OMIT_IN_SERIALIZATION = ['@capistrano', '@os_version']
+      VARIABLES_TO_OMIT_IN_SERIALIZATION = [
+        '@capistrano', '@os_version', '@subnet_id', '@vpc_id',
+        '@vpc_cidr'
+      ]
 
       attr_reader :name, :domain, :instance_id, :image_type, :image_id, :security_groups
       attr_accessor :roles, :zone
@@ -206,6 +209,11 @@ module Rubber
       attr_accessor :spot_instance_request_id
       attr_accessor :provider, :platform
       attr_accessor :capistrano
+      attr_accessor :vpc_id
+      attr_accessor :network # more generic term for vpc_alias
+      attr_accessor :vpc_cidr
+      attr_accessor :subnet_id
+      attr_accessor :gateway
 
       def initialize(name, domain, roles, instance_id, image_type, image_id, security_group_list=[])
         @name = name
@@ -227,7 +235,7 @@ module Rubber
         end
         return item
       end
-      
+
       def to_hash
         hash = {}
         instance_variables.each do |iv|
@@ -240,11 +248,11 @@ module Rubber
         end
         return hash
       end
-      
+
       def <=>(rhs)
         name <=> rhs.name
       end
-      
+
       def full_name
         "#{@name}.#{@domain}"
       end
