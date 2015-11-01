@@ -31,7 +31,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'net-ssh', '~> 2.6'
   s.add_dependency 'thor'
   s.add_dependency 'clamp'
-  s.add_dependency 'fog', '2.0.0.pre0'
+  s.add_dependency 'fog', '1.35.0'
 
   s.add_development_dependency('rake')
   s.add_development_dependency('test-unit')
