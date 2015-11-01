@@ -110,10 +110,25 @@ module Rubber
           instance[:id] = item.id
           instance[:state] = item.status
           instance[:type] = item.size_slug
-          instance[:external_ip] = item.public_ip_address
-          # TODO private_ip_address isn't defined, not sure how to get the
-          # private ip
-          instance[:internal_ip] = item.public_ip_address
+
+          public_networking_info = item.networks['v4'].find { |n|
+            n['type'] == 'public'
+          }
+
+          if public_networking_info
+            instance[:external_ip] = public_networking_info['ip_address']
+          end
+
+          private_networking_info = item.networks['v4'].find { |n|
+            n['type'] == 'private'
+          }
+
+          if private_networking_info
+            instance[:internal_ip] = private_networking_info['ip_address']
+          elsif public_networking_info
+            instance[:internal_ip] = public_networking_info['ip_address']
+          end
+
           instance[:region_id] = item.region
           instance[:provider] = 'digital_ocean'
           instance[:platform] = Rubber::Platforms::LINUX
