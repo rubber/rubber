@@ -143,6 +143,10 @@ module Rubber
             source_ips = rule['source_ips']
 
             if protocol && source_ips
+              if source_ips.respond_to?(:split)
+                source_ips = source_ips.split(",").join(&:strip)
+              end
+
               source_ips.each do |source|
                 if from_port && to_port
                   if from_port != to_port
