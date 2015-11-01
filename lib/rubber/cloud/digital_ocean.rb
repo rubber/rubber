@@ -134,6 +134,10 @@ module Rubber
       def active_state
         'active'
       end
+
+      def destroy_instance(instance_id)
+        response = compute_provider.servers.get(instance_id).delete()
+      end
     end
   end
 end
