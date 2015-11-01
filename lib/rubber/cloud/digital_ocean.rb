@@ -7,8 +7,9 @@ module Rubber
 
       def initialize(env, capistrano)
         compute_credentials = {
-          :provider => 'DigitalOceanV2',
-          :digitalocean_token => env.token,
+          :provider => 'DigitalOcean',
+          :version => 'v2',
+          :digitalocean_token => env.digital_ocean_token,
         }
 
         if env.cloud_providers && env.cloud_providers.aws
@@ -30,15 +31,16 @@ module Rubber
 
       # As of October 2014 Digital Ocean supports private networking in
       # New York 2 (id 4), New York 3 (id 8), Amsterdam 2 (id 5), Amsterdam 3 (id 9), Singapore 1 (id 6) and London 1 (id 7)
-      REGIONS_WITH_PRIVATE_NETWORKING = [4, 5, 6, 7, 8, 9]
+      # TODO get the rest of the slugs with private networking enabled
+      REGIONS_WITH_PRIVATE_NETWORKING = %w[ nyc2 nyc3 ]
 
       def create_instance(instance_alias, image_name, image_type, security_groups, availability_zone, region, fog_options={})
-        do_region = compute_provider.regions.find { |r| r.name == region }
+        do_region = compute_provider.regions.find { |r| [r.name, r.slug].include?(region) }
         if do_region.nil?
           raise "Invalid region for DigitalOcean: #{region}"
         end
 
-        if env.private_networking && ! REGIONS_WITH_PRIVATE_NETWORKING.include?(do_region.id)
+        if env.private_networking && ! REGIONS_WITH_PRIVATE_NETWORKING.include?(do_region.slug)
           raise "Private networking is enabled, but region #{region} does not support it"
         end
 
@@ -47,9 +49,15 @@ module Rubber
           raise "Invalid image name for DigitalOcean: #{image_name}"
         end
 
-        flavor = compute_provider.flavors.find { |f| f.name == image_type }
+        # Downcase image_type for backward compatability with v1
+        flavor = compute_provider.flavors.find { |f| f.slug == image_type.downcase }
+
         if flavor.nil?
           raise "Invalid image type for DigitalOcean: #{image_type}"
+        end
+
+        if env.key_name.nil?
+          raise 'missing key_name for DigitalOcean'
         end
 
         # Check if the SSH key has been added to DigitalOcean yet.
@@ -74,13 +82,23 @@ module Rubber
         end
 
         response = compute_provider.servers.create({:name => "#{Rubber.env}-#{instance_alias}",
-                                                   :image_id => image.id,
-                                                   :flavor_id => flavor.id,
-                                                   :region_id => do_region.id,
-                                                   :ssh_key_ids => [ssh_key['id']],
-                                                   :private_networking => (env.private_networking.to_s.downcase == 'true')}.
-                                                   merge(Rubber::Util.symbolize_keys(fog_options))
-        )
+                                                    :image => image.slug,
+                                                    :size => flavor.slug,
+                                                    :flavor => flavor.slug,
+                                                    :region => do_region.slug,
+                                                    :ssh_keys => [ssh_key['id']],
+                                                    # This didn't seem to actually enable private networking for me (dave)
+                                                    :private_networking => (env.private_networking.to_s.downcase == 'true')
+                                                   }
+                                                    .merge(Rubber::Util.symbolize_keys(fog_options))
+                                                  )
+
+        # TODO private networking must be enabled when the droplet is powered
+        # off, so we'll have to do that after the refresh or something
+        #
+        # if env.private_networking.to_s.downcase == 'true'
+        #   response.enable_private_networking
+        # end
 
         response.id
       end
@@ -98,11 +116,13 @@ module Rubber
         response.each do |item|
           instance = {}
           instance[:id] = item.id
-          instance[:state] = item.state
-          instance[:type] = item.flavor_id
+          instance[:state] = item.status
+          instance[:type] = item.size_slug
           instance[:external_ip] = item.public_ip_address
-          instance[:internal_ip] = item.private_ip_address || item.public_ip_address
-          instance[:region_id] = item.region_id
+          # TODO private_ip_address isn't defined, not sure how to get the
+          # private ip
+          instance[:internal_ip] = item.public_ip_address
+          instance[:region_id] = item.region
           instance[:provider] = 'digital_ocean'
           instance[:platform] = Rubber::Platforms::LINUX
           instances << instance
