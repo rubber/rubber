@@ -5,7 +5,11 @@ require 'fog/digitalocean/requests/compute_v2/create_ssh_key'
 module ::Fog
   module Compute
     class DigitalOceanV2
-      # noinspection RubyStringKeysInHashInspection
+      # Fixes an ssh key creation issue currently in fog 1.35.0
+      # This change currently in fog master:
+      #   https://github.com/fog/fog/pull/3743
+      # However, unless it gets backported into 1.x, we'll need this patch until
+      # we update fog to 2.x
       class Real
 
         def create_ssh_key(name, public_key)
