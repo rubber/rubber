@@ -144,7 +144,7 @@ module Rubber
 
             if protocol && source_ips
               if source_ips.respond_to?(:split)
-                source_ips = source_ips.split(",").join(&:strip)
+                source_ips = source_ips.split(",").map(&:strip)
               end
 
               source_ips.each do |source|
