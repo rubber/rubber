@@ -1,3 +1,4 @@
+require 'ext/fog/compute/digital_ocean_v2'
 require 'rubber/cloud/fog'
 
 module Rubber

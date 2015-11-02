@@ -1,5 +1,6 @@
 require 'fog'
 require 'fog/digitalocean/compute_v2'
+require 'fog/digitalocean/requests/compute_v2/create_ssh_key'
 
 module ::Fog
   module Compute
