@@ -30,18 +30,13 @@ module Rubber
         super(env, capistrano)
       end
 
-      # As of October 2014 Digital Ocean supports private networking in
-      # New York 2 (id 4), New York 3 (id 8), Amsterdam 2 (id 5), Amsterdam 3 (id 9), Singapore 1 (id 6) and London 1 (id 7)
-      # TODO get the rest of the slugs with private networking enabled
-      REGIONS_WITH_PRIVATE_NETWORKING = %w[ nyc2 nyc3 ]
-
       def create_instance(instance_alias, image_name, image_type, security_groups, availability_zone, region, fog_options={})
         do_region = compute_provider.regions.find { |r| [r.name, r.slug].include?(region) }
         if do_region.nil?
           raise "Invalid region for DigitalOcean: #{region}"
         end
 
-        if env.private_networking && ! REGIONS_WITH_PRIVATE_NETWORKING.include?(do_region.slug)
+        if env.private_networking && ! self.regions_with_private_networking.include?(do_region.slug)
           raise "Private networking is enabled, but region #{region} does not support it"
         end
 
@@ -145,6 +140,15 @@ module Rubber
 
       def destroy_instance(instance_id)
         response = compute_provider.servers.get(instance_id).delete()
+      end
+
+      def regions_with_private_networking
+        @regions_with_private_networking ||= compute_provider
+                                           .regions
+                                           .all
+                                           .select { |r|
+          r.features.include?('private_networking')
+        }.map(&:slug)
       end
     end
   end
