@@ -139,6 +139,21 @@ module Rubber
       end
 
       def destroy_instance(instance_id)
+        # The Digital Ocean API will return a 422 if we attempt to destroy an
+        # instance that's in the middle of booting up, so wait until it's
+        # in a non-"new" state
+        print "Waiting for non-new instance state"
+
+        loop do
+          instance = describe_instances(instance_id).first
+
+          print "."
+
+          break unless instance[:state] == "new"
+
+          sleep 1
+        end
+
         response = compute_provider.servers.get(instance_id).delete()
       end
 
