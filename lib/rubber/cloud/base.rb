@@ -10,7 +10,7 @@ module Rubber
         @capistrano = capistrano
       end
 
-      def before_create_instance(instance_alias, role_names)
+      def before_create_instance(instance)
         # No-op by default.
       end
 
@@ -186,6 +186,10 @@ exit 0
         capistrano.put(iptables_save, '/etc/network/if-post-down.d/iptablessave', :mode => '+x', :hosts => instance.external_ip)
 
         capistrano.run_script('setup_firewall_rules', script, :hosts => instance.external_ip)
+      end
+
+      def setup_vpc
+        # No-op by default.
       end
 
       def describe_security_groups(group_name=nil)

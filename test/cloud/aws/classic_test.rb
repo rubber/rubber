@@ -1,15 +1,15 @@
-require File.expand_path(File.join(__FILE__, '../..', 'test_helper'))
-require 'rubber/cloud/aws'
+require File.expand_path(File.join(__FILE__, '../../..', 'test_helper'))
+require 'rubber/cloud/aws/classic'
 require 'ostruct'
 
-class AwsTest < Test::Unit::TestCase
+class AwsClassicTest < Test::Unit::TestCase
 
   context "aws" do
 
     setup do
       env = {'access_key' => "XXX", 'secret_access_key' => "YYY", 'region' => "us-east-1"}
       env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil, nil)
-      @cloud = Rubber::Cloud::Aws.new(env, nil)
+      @cloud = Rubber::Cloud::Aws::Classic.new(env, nil)
     end
 
     should "instantiate" do
@@ -40,7 +40,7 @@ class AwsTest < Test::Unit::TestCase
       @region = "ap-southeast-2"
       env = {'access_key' => "XXX", 'secret_access_key' => "YYY", 'region' => @region}
       env = Rubber::Configuration::Environment::BoundEnv.new(env, nil, nil, nil)
-      @cloud = Rubber::Cloud::Aws.new(env, nil)
+      @cloud = Rubber::Cloud::Aws::Classic.new(env, nil)
     end
 
     should "set region on compute provider" do
