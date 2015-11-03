@@ -1,6 +1,8 @@
 require 'fog'
 require 'fog/digitalocean/compute_v2'
 require 'fog/digitalocean/requests/compute_v2/create_ssh_key'
+require 'fog/digitalocean/requests/compute_v2/list_ssh_keys'
+require 'fog/digitalocean/requests/compute_v2/delete_ssh_key'
 
 module ::Fog
   module Compute
@@ -11,7 +13,6 @@ module ::Fog
       # However, unless it gets backported into 1.x, we'll need this patch until
       # we update fog to 2.x
       class Real
-
         def create_ssh_key(name, public_key)
           create_options = {
             :name       => name,
@@ -32,21 +33,45 @@ module ::Fog
         end
       end
 
-      # noinspection RubyStringKeysInHashInspection
       class Mock
         def create_ssh_key(name, public_key)
           response        = Excon::Response.new
           response.status = 201
 
-          response.body ={
-            'ssh_key' => {
-              'id'          => 512190,
-              'fingerprint' => "3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa",
-              'public_key'  => "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example",
-              'name'        => "My SSH Public Key"
-            }
+          data[:ssh_keys] << {
+            "id" => Fog::Mock.random_numbers(6).to_i,
+            "fingerprint" => (["00"] * 16).join(':'),
+            "public_key" => public_key,
+            "name" => name
           }
 
+          response.body ={
+            'ssh_key' => data[:ssh_keys].last
+          }
+
+          response
+        end
+
+        def list_ssh_keys
+          response = Excon::Response.new
+          response.status = 200
+          response.body = {
+            "ssh_keys" => data[:ssh_keys],
+            "links" => {},
+            "meta" => {
+              "total" => data[:ssh_keys].count
+            }
+          }
+          response
+        end
+
+        def delete_ssh_key(id)
+          self.data[:ssh_keys].select! do |key|
+            key["id"] != id
+          end
+
+          response        = Excon::Response.new
+          response.status = 204
           response
         end
       end
