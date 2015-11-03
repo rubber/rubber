@@ -36,7 +36,7 @@ module Rubber
           raise "Invalid region for DigitalOcean: #{region}"
         end
 
-        if env.private_networking && ! self.regions_with_private_networking.include?(do_region.slug)
+        if env.private_networking && ! do_region.features.include?("private_networking")
           raise "Private networking is enabled, but region #{region} does not support it"
         end
 
@@ -155,15 +155,6 @@ module Rubber
         end
 
         response = compute_provider.servers.get(instance_id).delete()
-      end
-
-      def regions_with_private_networking
-        @regions_with_private_networking ||= compute_provider
-                                           .regions
-                                           .all
-                                           .select { |r|
-          r.features.include?('private_networking')
-        }.map(&:slug)
       end
     end
   end
