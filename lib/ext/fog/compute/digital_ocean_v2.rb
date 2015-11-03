@@ -33,6 +33,8 @@ module ::Fog
         end
       end
 
+      # These mocking improvements are not yet in fog master:
+      # https://github.com/fog/fog/pull/3748
       class Mock
         def create_ssh_key(name, public_key)
           response        = Excon::Response.new
