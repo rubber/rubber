@@ -142,14 +142,14 @@ module Rubber
         # The Digital Ocean API will return a 422 if we attempt to destroy an
         # instance that's in the middle of booting up, so wait until it's
         # in a non-"new" state
-        print "Waiting for non-new instance state"
+        print 'Waiting for non-new instance state'
 
         loop do
           instance = describe_instances(instance_id).first
 
-          print "."
+          print '.'
 
-          break unless instance[:state] == "new"
+          break unless instance[:state] == 'new'
 
           sleep 1
         end
