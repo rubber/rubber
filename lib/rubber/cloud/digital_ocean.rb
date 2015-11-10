@@ -107,17 +107,17 @@ module Rubber
           instance[:state] = item.status
           instance[:type] = item.size_slug
 
-          public_networking_info = item.networks['v4'].find { |n|
+          public_networking_info = item.networks['v4'].find do |n|
             n['type'] == 'public'
-          }
+          end
 
           if public_networking_info
             instance[:external_ip] = public_networking_info['ip_address']
           end
 
-          private_networking_info = item.networks['v4'].find { |n|
+          private_networking_info = item.networks['v4'].find do |n|
             n['type'] == 'private'
-          }
+          end
 
           if private_networking_info
             instance[:internal_ip] = private_networking_info['ip_address']
