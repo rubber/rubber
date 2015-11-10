@@ -22,7 +22,7 @@ class DigitalOceanTest < Test::Unit::TestCase
 
       # This is currently (as of 11/2/15) the only valid image name in
       # Fog's mocked digital ocean images request
-      @valid_image_name = "Nifty New Snapshot"
+      @valid_image_name = 'Nifty New Snapshot'
     end
 
     should 'instantiate' do
