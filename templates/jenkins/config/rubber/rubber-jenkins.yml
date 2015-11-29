@@ -30,4 +30,4 @@ security_groups:
 roles:
   jenkins:
     assigned_security_groups: [jenkins_web]
-    packages: [openjdk-7-jdk, jenkins, xvfb, firefox]
+    packages: [openjdk-7-jdk, jenkins, xvfb, firefox, zip]
