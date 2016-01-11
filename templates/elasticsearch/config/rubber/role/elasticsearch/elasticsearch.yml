@@ -1,5 +1,5 @@
 <%
-  @path = '/etc/elasticsearch/elasticsearch.yml'
+  @path = rubber_env.elasticsearch_config_dir + '/elasticsearch.yml'
 -%>
 ##################### Elasticsearch Configuration Example #####################
 
@@ -32,7 +32,7 @@
 # Cluster name identifies your cluster for auto-discovery. If you're running
 # multiple clusters on the same network, make sure you're using unique names.
 #
-cluster.name: <%= rubber_env.elasticsearch_cluster_name %>
+cluster.name: "<%= rubber_env.elasticsearch_cluster_name %>"
 
 
 #################################### Node #####################################
@@ -40,7 +40,7 @@ cluster.name: <%= rubber_env.elasticsearch_cluster_name %>
 # Node names are generated dynamically on startup, so you're relieved
 # from configuring them manually. You can tie this node to a specific name:
 #
-#node.name: "Franz Kafka"
+node.name: "<%= rubber_env.host %>"
 
 # Every node can be configured to allow or deny being eligible as the master,
 # and to allow or deny to store the data.
@@ -255,7 +255,7 @@ http.port: <%= rubber_env.elasticsearch_http_port %>
 
 # Allow recovery process after N nodes in a cluster are up:
 #
-#gateway.recover_after_nodes: 1
+gateway.recover_after_nodes: <%= rubber_env.elasticsearch_recover_after_nodes || 1 %>
 
 # Set the timeout to initiate the recovery process, once the N nodes
 # from previous setting are up (accepts time value):
@@ -266,7 +266,7 @@ http.port: <%= rubber_env.elasticsearch_http_port %>
 # are up (and recover_after_nodes is met), begin recovery process immediately
 # (without waiting for recover_after_time to expire):
 #
-#gateway.expected_nodes: 2
+gateway.expected_nodes: <%= rubber_env.elasticsearch_expected_nodes || 1 %>
 
 
 ############################# Recovery Throttling #############################
