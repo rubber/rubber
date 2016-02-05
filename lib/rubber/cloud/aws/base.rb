@@ -72,7 +72,7 @@ module Rubber
       end
 
       def before_create_instance(instance)
-        setup_security_groups(instance.instance_alias, instance.role_names)
+        setup_security_groups(instance.name, instance.role_names)
       end
 
       def after_create_instance(instance)
