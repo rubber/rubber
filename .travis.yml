@@ -3,18 +3,17 @@ sudo: false
 cache: bundler
 
 rvm:
-  - 1.9.3
   - 2.0.0
   - 2.1
   - 2.2
+  - 2.3
   - ruby-head
-  - jruby-19mode
   - jruby-head
   - rbx-2
 
 matrix:
   allow_failures:
-    - rvm: rbx-2
+    - rvm: rbx-3
     - rvm: ruby-head
 
 # script: bundle exec rspec spec
