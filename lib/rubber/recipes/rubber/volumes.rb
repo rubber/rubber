@@ -122,7 +122,13 @@ namespace :rubber do
       # we don't mount/format at this time if we are doing a RAID array
       if vol_spec['mount'] && vol_spec['filesystem']
         # then format/mount/etc if we don't have an entry in hosts file
-        task :_setup_volume, :hosts => ic.external_ip do
+        if ic.external_ip && (ic.external_ip.length > 0)
+          host = ic.external_ip
+        else
+          host = ic.internal_ip
+        end
+
+        task :_setup_volume, :hosts => host do
           rubber.sudo_script 'setup_volume', <<-ENDSCRIPT
             # Make sure the newly added volume was found.
             rescan-scsi-bus || true
