@@ -1,3 +1,17 @@
+3.2.1 (02/07/2016)
+
+Improvements:
+============
+
+[nginx] Added application/json to gzip types. <4a84c93>
+
+Bug Fixes:
+=========
+
+[core] Fixed regression in working with EC2 classic. <0938b8a>
+[jenkins] Fix Jenkins nightly backup. <f723399>
+
+
 3.2.0 (01/09/2016)
 
 New Features:
