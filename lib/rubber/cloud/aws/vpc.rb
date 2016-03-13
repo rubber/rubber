@@ -16,13 +16,21 @@ module Rubber
         # Remember that instance.network is our more generic term for vpc_alias
         role_names = instance.roles.map(&:name)
         instance.vpc_id = setup_vpc(instance.network, instance.vpc_cidr).id
-        instance.gateway = host_env.private_nic.gateway
+
+        # Check the instance config for a private_nic, then the cloud provider
+        private_nic = host_env.private_nic || cloud_env.private_nic
+
+        unless private_nic
+          raise "private_nic configuration required at either the instance level or cloud provider level"
+        end
+
+        instance.gateway = private_nic.gateway
         private_public = instance.gateway == 'public' ? 'public' : 'private'
 
         instance.subnet_id = setup_vpc_subnet(
           instance.vpc_id,
           instance.network,
-          host_env.private_nic,
+          private_nic,
           instance.zone,
           "#{instance.network} #{instance.zone} #{private_public}"
         ).subnet_id
