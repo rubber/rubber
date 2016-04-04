@@ -1,0 +1,5 @@
+docker_tmp_dir: /mnt/docker/tmp
+
+roles:
+  docker:
+    packages: [docker-engine]
