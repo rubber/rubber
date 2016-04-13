@@ -1,3 +1,18 @@
+3.2.2 (04/13/2016)
+
+Improvements:
+============
+
+[core] Default VPC configuration can now be defined at the cloud_provider level. <1f41e31>
+
+Bug Fixes:
+=========
+
+[core] setup_volumes no longer fails for mount points prefixed with "/mnt" (e.g.: "/mnt2", "/mnt3", etc.) <bd3fbbd>
+[core] DNS entries are no longer created for instances with no external ip. <87a2501>
+[core] Additional/custom EBS volumes now work for VPC instances with no external ip. <7b62443>
+
+
 3.2.1 (02/07/2016)
 
 Improvements:
