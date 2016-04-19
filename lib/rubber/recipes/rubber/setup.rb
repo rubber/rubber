@@ -583,7 +583,7 @@ namespace :rubber do
 
   desc <<-DESC
     Enable the ubuntu multiverse source for getting packages like
-    ec2-ami-tools used for bundling images
+    awscli used for bundling images
   DESC
   task :enable_multiverse do
     sudo_script 'enable_multiverse', <<-ENDSCRIPT
@@ -647,7 +647,7 @@ namespace :rubber do
 
       @os_specific_opts = get_host_options('os_packages') { |pkg_list| pkg_list.join(' ') }
 
-      expanded_pkg_list << 'ec2-ami-tools' if rubber_env.cloud_provider == 'aws'
+      expanded_pkg_list << 'awscli' if rubber_env.cloud_provider == 'aws'
       expanded_pkg_list.join(' ')
     end
 
