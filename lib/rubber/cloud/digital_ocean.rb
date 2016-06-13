@@ -40,7 +40,7 @@ module Rubber
           raise "Private networking is enabled, but region #{region} does not support it"
         end
 
-        image = compute_provider.images.find { |i| i.name == image_name }
+        image = compute_provider.images.all(per_page: 999).find { |i| i.name == image_name }
         if image.nil?
           raise "Invalid image name for DigitalOcean: #{image_name}"
         end
