@@ -3,7 +3,7 @@ require 'rubber/util'
 
 module Rubber
   module Cloud
-  
+
     class Aws::Vpc < Aws::Base
 
       def before_create_instance(instance)
@@ -14,7 +14,6 @@ module Rubber
         instance.vpc_cidr = cloud_env.vpc_cidr
 
         # Remember that instance.network is our more generic term for vpc_alias
-        role_names = instance.roles.map(&:name)
         instance.vpc_id = setup_vpc(instance.network, instance.vpc_cidr).id
 
         # Check the instance config for a private_nic, then the cloud provider
@@ -137,7 +136,7 @@ module Rubber
            subnets
            route_tables
            security_groups
-           internet_gateways 
+           internet_gateways
         ].each do |resource_name|
           destroy_vpc_resource(vpc_alias, resource_name.strip)
         end
@@ -216,7 +215,7 @@ module Rubber
         specific_call = "destroy_#{resource_name_plural}"
 
         if self.respond_to? specific_call
-          should_destroy = self.send specific_call, vpc_alias
+          self.send specific_call, vpc_alias
         else
           resources = compute_provider.send(resource_name_plural).all('tag:RubberVpcAlias' => vpc_alias)
 
@@ -267,7 +266,10 @@ module Rubber
               source_group[:name] = if rule_group["groupName"]
                                       rule_group["groupName"]
                                     elsif rule_group["groupId"]
-                                      matching_security_group = response.find { |item| item.group_id == rule_group["groupId"] }
+                                      matching_security_group = response.find do |response_item|
+                                        response_item.group_id == rule_group["groupId"]
+                                      end
+
                                       matching_security_group ? matching_security_group.name : nil
                                     else
                                       nil
@@ -612,9 +614,8 @@ module Rubber
 
       def load_bound_env(host=nil)
         rubber_cfg = Rubber::Configuration.get_configuration(Rubber.env)
-        scoped_env = rubber_cfg.environment.bind(nil, host)
+        rubber_cfg.environment.bind(nil, host)
       end
     end
   end
 end
-
