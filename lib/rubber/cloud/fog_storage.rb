@@ -91,7 +91,7 @@ module Rubber
             @storage_provider.complete_multipart_upload(@bucket, key, upload_id, part_ids)
             logger.info("Completed multipart upload: #{upload_id}")
   
-          rescue Exception => e
+          rescue Exception
             logger.error("Aborting multipart upload: #{upload_id}")
             @storage_provider.abort_multipart_upload(@bucket, key, upload_id)
             raise

@@ -43,7 +43,7 @@ module Rubber
       end
 
       def destroy_instance(instance_id)
-        response = compute_provider.servers.get(instance_id).destroy()
+        compute_provider.servers.get(instance_id).destroy
       end
 
       def destroy_spot_instance_request(request_id)
@@ -51,7 +51,7 @@ module Rubber
       end
   
       def reboot_instance(instance_id)
-        compute_provider.servers.get(instance_id).reboot()
+        compute_provider.servers.get(instance_id).reboot
       end
 
       def stop_instance(instance, force=false)
@@ -60,11 +60,11 @@ module Rubber
       end
 
       def start_instance(instance)
-        compute_provider.servers.get(instance.instance_id).start()
+        compute_provider.servers.get(instance.instance_id).start
       end
 
       def create_static_ip
-        address = compute_provider.addresses.create()
+        address = compute_provider.addresses.create
 
         address.public_ip
       end

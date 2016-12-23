@@ -102,7 +102,7 @@ module Rubber
       retry_count = opts[:retry_count]
       begin
         yield
-      rescue *exception_list => e
+      rescue *exception_list
         if retry_count > 0
           retry_count -= 1
           Rubber.logger.info "Exception, trying again #{retry_count} more times"

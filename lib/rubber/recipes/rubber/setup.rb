@@ -67,7 +67,7 @@ namespace :rubber do
     task :_ensure_key_file_present, :hosts => "#{initial_ssh_user}@#{ip}" do
       public_key_filename = "#{cloud.env.key_file}.pub"
 
-      if File.exists?(public_key_filename)
+      if File.exist?(public_key_filename)
         public_key = File.read(public_key_filename).chomp
 
         rubber.sudo_script 'ensure_key_file_present', <<-ENDSCRIPT

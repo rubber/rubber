@@ -42,7 +42,7 @@ module Rubber
             data = IO.read(file)
             data = yield(data) if block_given?
             @items = Environment.combine(@items, YAML::load(ERB.new(data).result) || {})
-          rescue Exception => e
+          rescue Exception
             Rubber.logger.error{"Unable to read rubber configuration from #{file}"}
             raise
           end

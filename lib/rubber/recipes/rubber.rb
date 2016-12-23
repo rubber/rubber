@@ -109,7 +109,7 @@ namespace :rubber do
 
     # Check that the configuration not only exists, but is also valid.
     normalized_ssh_keys.each do |key|
-      unless File.exists?(File.expand_path(key))
+      unless File.exist?(File.expand_path(key))
         fatal "Invalid SSH key path '#{key}': File does not exist.\nPlease check your cloud provider's 'key_file' setting for correctness."
       end
     end

@@ -22,7 +22,7 @@ module Rubber
       # complicates bootstrap (i.e. can't run config to create db because full
       # rails env needs db to exist as some plugin accesses model or something)
       rails_boot_file = File.join(Rubber.root, 'config', 'boot.rb')
-      require(rails_boot_file) if File.exists? rails_boot_file
+      require(rails_boot_file) if File.exist? rails_boot_file
     end
 
     if defined?(Rails.logger) && Rails.logger
