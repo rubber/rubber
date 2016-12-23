@@ -1,4 +1,4 @@
-require 'fog'
+require 'fog/core'
 require 'rubber/cloud/fog_storage'
 
 module Rubber

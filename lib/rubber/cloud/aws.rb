@@ -1,3 +1,5 @@
+require 'fog/aws'
+
 module Rubber
   module Cloud  
     module Aws
