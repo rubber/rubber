@@ -159,8 +159,10 @@ cloud_providers:
     # Default to New York 2 since this is the only region that currently supports private networking
     region: New York 2
 
-    # REQUIRED: The image name and type for creating instances.
-    image_id: 14.04 x64
+    # REQUIRED: The image name and type for creating instances. The image name can be the image ID, slug, or name. We
+    # can provide faster lookups for the image ID or slug, but they're not exposed in DigitalOcean's UI. Providing an
+    # image name will work, but may require additional API calls due to some limitations in DigitalOcean's API.
+    image_id: ubuntu-16-04-x64
     image_type: 512MB
 
     # Optionally enable private networking for your instances.
