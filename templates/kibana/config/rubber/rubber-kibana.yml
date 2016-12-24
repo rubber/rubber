@@ -1,0 +1,14 @@
+
+kibana_version: 4.1.1
+kibana_package_url: "https://download.elastic.co/kibana/kibana/kibana-#{kibana_version}-linux-x64.tar.gz"
+
+kibana_pid_file: /var/run/kibana.pid
+kibana_prefix: /usr/local
+kibana_dir: "#{kibana_prefix}/kibana-#{kibana_version}-linux-x64"
+kibana_port: 5601
+
+web_tools_proxies:
+  kibana:
+    role: kibana
+    port: "#{kibana_port}"
+    path: /

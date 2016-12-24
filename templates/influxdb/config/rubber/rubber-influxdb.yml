@@ -1,0 +1,25 @@
+influxdb_version: 0.9.1
+influxdb_package_url: "http://influxdb.s3.amazonaws.com/influxdb_#{influxdb_version}_amd64.deb"
+
+influxdb_data_dir: "/mnt/influxdb"
+influxdb_pid_file: "/var/run/influxdb/influxd.pid"
+
+influxdb_admin_port: 8083
+influxdb_http_port: 8086
+influxdb_collectd_port: 8096
+
+# web tools won't work through basic auth proxy, so influxdb-api is configured
+# to disable auth for the api proxy.  Commented out so users have to explictly
+# enable it if desired (exposes api publically with no access - one can setup
+# the influxdb http auth to protect it)
+#
+#web_tools_proxies:
+#  influxdb:
+#    role: influxdb
+#    port: "#{influxdb_admin_port}"
+#    path: /
+#  influxdb-api:
+#    role: influxdb
+#    port: "#{influxdb_http_port}"
+#    path: /
+#    disable_auth: true
