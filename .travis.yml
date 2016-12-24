@@ -6,23 +6,20 @@ rvm:
   - 2.0.0
   - 2.1
   - 2.2
-  - 2.3
+  - 2.3.3
   - ruby-head
+  - jruby-9.1.6.0
   - jruby-head
-  - rbx-3
 
 matrix:
   allow_failures:
-    - rvm: rbx-3
     - rvm: ruby-head
+    - rvm: jruby-head
 
 before_install:
   - gem install bundler
 
 # script: bundle exec rspec spec
-env:
-  global:
-    - JAVA_OPTS="-server -Djruby.cext.enabled=false -Djruby.compile.invokedynamic=false"
 
 notifications:
   irc: "irc.freenode.net#rubber"
