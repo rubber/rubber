@@ -40,7 +40,26 @@ module Rubber
           raise "Private networking is enabled, but region #{region} does not support it"
         end
 
-        image = compute_provider.images.find { |i| i.name == image_name }
+        # Fog only shows image names in its UI, but its API is based around image slugs. If someone has the image slug,
+        # we can look up the image directly in a single API call. If they have an image name, we need to iterate through
+        # the list of images until we find a match (and we'll have to hope that these are unique). So, do the fast slug
+        # lookup first and barring that, the exhaustive name search.
+        image = compute_provider.images.get(image_name)
+
+        if image.nil?
+          image_list = compute_provider.images
+
+          loop do
+            break if image_list.nil?
+
+            image = image_list.find { |i| i.name == image_name }
+            break if image
+
+            # We have to explicitly paginate through fog's collections. The list maintains pagination state internally.
+            image_list.next_page
+          end
+        end
+
         if image.nil?
           raise "Invalid image name for DigitalOcean: #{image_name}"
         end
