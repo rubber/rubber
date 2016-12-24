@@ -15,6 +15,7 @@ matrix:
   allow_failures:
     - rvm: ruby-head
     - rvm: jruby-head
+    - rvm: jruby-9.1.6.0
 
 before_install:
   - gem install bundler
