@@ -5,7 +5,7 @@ gem 'unlimited-strength-crypto', :platform => :jruby
 
 group :development do
   gem 'fog-aws'
-  gem 'fog-digitalocean'
+  gem 'fog-digitalocean', git: 'https://github.com/nirvdrum/fog-digitalocean.git', branch: 'fix-bad-nulls'
   gem 'fog-vsphere'
   gem 'mime-types'
 end
