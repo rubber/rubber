@@ -55,8 +55,8 @@ module Rubber
             image = image_list.find { |i| i.name == image_name }
             break if image
 
-            # We have to explicitly paginate through fog's collections. The list maintains pagination state internally.
-            image_list.next_page
+            # We have to explicitly paginate through fog's collections.
+            image_list = image_list.next_page
           end
         end
 
