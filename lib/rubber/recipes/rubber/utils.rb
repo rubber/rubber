@@ -214,6 +214,11 @@ namespace :rubber do
       if cfg_value
         if cfg_value.is_a?(Hash)
           cfg_value = cfg_value[ic.os_version]
+
+          if cfg_value.nil?
+            logger.important "missing '#{cfg_name}' configuration for OS version '#{ic.os_version}' -- are you on a supported OS?"
+            next
+          end
         end
 
         if block
