@@ -9,7 +9,10 @@ role_dependencies:
 
 roles:
   passenger:
-    packages: [apache2-mpm-prefork, apache2-prefork-dev, libcurl4-openssl-dev, libapache2-mod-xsendfile, [libapache2-mod-passenger, "#{passenger_version}"]]
+    packages: [libapache2-mod-xsendfile, libapache2-mod-passenger]
+    os_packages:
+      '12.04': [apache2-mpm-prefork]
+      '14.04': [apache2-mpm-prefork]
     rolling_restart_port: "#{passenger_listen_port}"
 
   web_tools:
