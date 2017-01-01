@@ -23,8 +23,10 @@ roles:
     os_packages:
       '12.04': [python-django, python-django-tagging, python-cairo, python-memcache, memcached, uwsgi, uwsgi-plugin-python, uwsgi-plugin-http, sqlite3, bzr, zip]
       '14.04': [uwsgi, uwsgi-plugin-python, graphite-web]
+      '16.04': [uwsgi, uwsgi-plugin-python, graphite-web]
   graphite_server:
     os_packages:
       '14.04': [graphite-carbon]
+      '16.04': [uwsgi, uwsgi-plugin-python, graphite-web]
   collectd:
     packages: [libperl-dev]
