@@ -7,4 +7,7 @@ browsermob_proxy_permgen_in_mb: 256
 
 roles:
   browsermob_proxy:
-    packages: [openjdk-7-jdk]
+    os_packages:
+      '12.04': [openjdk-7-jdk]
+      '14.04': [openjdk-7-jdk]
+      '16.04': [openjdk-8-jdk]
