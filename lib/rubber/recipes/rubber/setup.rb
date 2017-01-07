@@ -105,7 +105,7 @@ namespace :rubber do
       if initial_ssh_user != fetch(:user, nil)
         teardown_connections_to(sessions.keys)
       end
-    rescue ConnectionError => e
+    rescue ConnectionError, IOError => e
       if e.message =~ /Net::SSH::AuthenticationFailed/
         logger.info "Can't connect as user #{initial_ssh_user} to #{ip}, assuming root allowed"
       else
@@ -128,7 +128,7 @@ namespace :rubber do
 
     begin
       send task_name
-    rescue ConnectionError => e
+    rescue ConnectionError, IOError
       sleep 2
       logger.info "Failed to connect to #{ip}, retrying"
       retry
