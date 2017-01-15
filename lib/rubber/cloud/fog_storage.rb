@@ -3,7 +3,7 @@ module Rubber
     
     class FogStorage
 
-      RETRYABLE_EXCEPTIONS = [Excon::Errors::Error]
+      RETRYABLE_EXCEPTIONS = [::Excon::Errors::Error]
 
       def logger
         Rubber.logger
