@@ -9,6 +9,7 @@ require 'shoulda-context'
 require 'pp'
 require 'ap'
 require 'tempfile'
+require 'fog/core'
 
 module Rubber; @@logger = Logger.new("/dev/null"); end
 
