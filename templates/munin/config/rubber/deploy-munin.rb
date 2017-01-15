@@ -62,12 +62,12 @@ namespace :rubber do
 
     desc "Start munin system monitoring"
     task :start, :roles => :munin do
-      rsudo "service munin-node start"
+      rsudo "#{service_status('munin-node')} || #{service_start('munin-node')}"
     end
     
     desc "Stop munin system monitoring"
     task :stop, :roles => :munin do
-      rsudo "service munin-node stop; exit 0"
+      rsudo "#{service_stop('munin-node')}; exit 0"
     end
     
     desc "Restart munin system monitoring"

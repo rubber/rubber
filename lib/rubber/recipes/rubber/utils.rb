@@ -231,6 +231,31 @@ namespace :rubber do
     return opts
   end
 
+  def service_status(service_name)
+    use_systemd = rubber_instance.os_version.split('.').first.to_i >= 16
+    use_systemd ? "systemctl is-active #{service_name}" : "service #{service_name} status"
+  end
+
+  def service_start(service_name)
+    use_systemd = rubber_instance.os_version.split('.').first.to_i >= 16
+    use_systemd ? "systemctl start #{service_name}" : "service #{service_name} start"
+  end
+
+  def service_stop(service_name)
+    use_systemd = rubber_instance.os_version.split('.').first.to_i >= 16
+    use_systemd ? "systemctl stop #{service_name}" : "service #{service_name} stop"
+  end
+
+  def service_restart(service_name)
+    use_systemd = rubber_instance.os_version.split('.').first.to_i >= 16
+    use_systemd ? "systemctl restart #{service_name}" : "service #{service_name} restart"
+  end
+
+  def service_reload(service_name)
+    use_systemd = rubber_instance.os_version.split('.').first.to_i >= 16
+    use_systemd ? "systemctl reload #{service_name}" : "service #{service_name} reload"
+  end
+
   # some bootstraps update code (bootstrap_db), so keep track so we don't do it multiple times  
   after "deploy:update_code" do
     set :rubber_code_was_updated, true

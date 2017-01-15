@@ -11,17 +11,17 @@ namespace :rubber do
 
     desc "Stops the unicorn server"
     task :stop, :roles => :unicorn do
-      rsudo "service unicorn stop"
+      rsudo "#{service_stop('unicorn')} || true"
     end
 
     desc "Starts the unicorn server"
     task :start, :roles => :unicorn do
-      rsudo "service unicorn start"
+      rsudo "#{service_status('unicorn')} || #{service_start('unicorn')}"
     end
 
     desc "Restarts the unicorn server"
     task :restart, :roles => :unicorn do
-      rsudo "service unicorn restart"
+      rsudo service_restart('unicorn')
     end
 
     desc "Reloads the unicorn web server"
@@ -36,7 +36,7 @@ namespace :rubber do
 
     desc "Display status of the unicorn web server"
     task :status, :roles => :unicorn do
-      rsudo "service unicorn status || true"
+      rsudo "#{service_status('unicorn')} || true"
       rsudo "ps -eopid,user,cmd | grep [u]nicorn || true"
       # rsudo "netstat -tupan | grep unicorn || true"
     end

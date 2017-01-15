@@ -30,12 +30,12 @@ namespace :rubber do
 
     desc "Start newrelic system monitoring"
     task :start, :roles => :newrelic do
-      rsudo "service newrelic-sysmond start"
+      rsudo "#{service_status('newrelic-sysmond')} || #{service_start('newrelic-sysmond')}"
     end
 
     desc "Stop newrelic system monitoring"
     task :stop, :roles => :newrelic do
-      rsudo "service newrelic-sysmond stop || true"
+      rsudo "#{service_stop('newrelic-sysmond')} || true"
     end
 
     desc "Restart newrelic system monitoring"

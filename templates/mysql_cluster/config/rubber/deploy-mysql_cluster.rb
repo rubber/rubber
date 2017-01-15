@@ -46,7 +46,7 @@ namespace :rubber do
   
     task :bootstrap, :roles => [:mysql_mgm, :mysql_data, :mysql_sql] do
       # mysql package install starts mysql, so stop it
-      rsudo "service mysql stop" rescue nil
+      rsudo service_stop('mysql') rescue nil
       
       # After everything installed on machines, we need the source tree
       # on hosts in order to run rubber:config for bootstrapping the db
@@ -108,42 +108,42 @@ namespace :rubber do
       Starts the mysql cluster management daemon on the management node
     DESC
     task :start_mgm, :roles => :mysql_mgm do
-      rsudo "service mysql-ndb-mgm start"
+      rsudo "#{service_status('mysql-ndb-mgm')} || #{service_start('mysql-ndb-mgm')}"
     end
     
     desc <<-DESC
       Starts the mysql cluster storage daemon on the data nodes
     DESC
     task :start_data, :roles => :mysql_data do
-      rsudo "service mysql-ndb start"
+      rsudo "#{service_status('mysql-ndb')} || #{service_start('mysql-ndb')}"
     end
     
     desc <<-DESC
       Starts the mysql cluster sql daemon on the sql nodes
     DESC
     task :start_sql, :roles => :mysql_sql do
-      rsudo "service mysql start"
+      rsudo "#{service_status('mysql')} || #{service_start('mysql')}"
     end
     
     desc <<-DESC
       Stops the mysql cluster management daemon on the management node
     DESC
     task :stop_mgm, :roles => :mysql_mgm do
-      rsudo "service mysql-ndb-mgm stop"
+      rsudo "#{service_stop('mysql-ndb-mgm ')} || true"
     end
     
     desc <<-DESC
       Stops the mysql cluster storage daemon on the data nodes
     DESC
     task :stop_data, :roles => :mysql_data do
-      rsudo "service mysql-ndb stop"
+      rsudo "#{service_stop('mysql-ndb')} || true"
     end
     
     desc <<-DESC
       Stops the mysql cluster sql daemon on the sql nodes
     DESC
     task :stop_sql, :roles => :mysql_sql do
-      rsudo "service mysql stop"
+      rsudo "#{service_stop('mysql')} || true"
     end
   
     desc <<-DESC

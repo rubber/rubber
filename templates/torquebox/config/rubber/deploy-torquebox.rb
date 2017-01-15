@@ -55,7 +55,7 @@ namespace :rubber do
     on :load do
       rubber.serial_task self, :serial_reload, :roles => [:torquebox] do
         rsudo "touch #{jboss_home}/standalone/deployments/#{application}-knob.yml.dodeploy"
-        rsudo "if ! ps ax | grep -v grep | grep -c torque &> /dev/null; then service torquebox start; fi"
+        rsudo "if ! ps ax | grep -v grep | grep -c torque &> /dev/null; then #{service_start('torquebox')}; fi"
 
         # Wait for TorqueBox to startup before moving on so we don't remove all hosts from the cluster.
         logger.info "Waiting for TorqueBox to deploy"
@@ -98,11 +98,11 @@ namespace :rubber do
     end
 
     task :stop, :roles => :torquebox do
-      rsudo "service torquebox stop || true"
+      rsudo "#{service_stop('torquebox')} || true"
     end
 
     task :start, :roles => :torquebox do
-      rsudo "service torquebox start"
+      rsudo "#{service_status('torquebox')} || #{service_start('torquebox')}"
     end
 
     desc "Reloads the apache web server"

@@ -55,12 +55,12 @@ namespace :rubber do
 
     desc "Stops the redis server"
     task :stop, :roles => :redis, :on_error => :continue do
-      rsudo "service redis-server stop || true"
+      rsudo "#{service_stop('redis-server')} || true"
     end
 
     desc "Starts the redis server"
     task :start, :roles => :redis do
-      rsudo "service redis-server start"
+      rsudo "#{service_status('redis-server')} || #{service_start('redis-server')}"
     end
 
     desc "Restarts the redis server"

@@ -136,8 +136,8 @@ namespace :rubber do
       begin
         Timeout::timeout(10) do
           logger.info "Stopping server on original master #{master_alias}"
-          rsudo "service monit stop || true", :hosts => master_instance.full_name
-          rsudo "service postgresql stop || true", :hosts => master_instance.full_name
+          rsudo "#{service_stop('monit')} || true", :hosts => master_instance.full_name
+          rsudo "#{service_stop('postgresql')} || true", :hosts => master_instance.full_name
         end
       rescue StandardError
         logger.info "Failed to connect to original master, promoting slave anyway"

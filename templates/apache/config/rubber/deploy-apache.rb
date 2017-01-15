@@ -47,12 +47,12 @@ namespace :rubber do
     
     desc "Stops the apache web server"
     task :stop, :roles => :apache do
-      rsudo "service apache2 stop || true"
+      rsudo "#{service_stop('apache2')} || true"
     end
     
     desc "Starts the apache web server"
     task :start, :roles => :apache do
-      rsudo "service apache2 status || service apache2 start"
+      rsudo "#{service_status('apache2')} || #{service_start('apache2')}"
     end
     
     desc "Restarts the apache web server"

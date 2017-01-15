@@ -35,14 +35,14 @@ namespace :rubber do
       Starts the zookeeper daemon
     DESC
     task :start, :roles => :zookeeper do
-      rsudo "service zookeeper status || service zookeeper start"
+      rsudo "#{service_status('zookeeper')} || #{service_start('zookeeper')}"
     end
     
     desc <<-DESC
       Stops the zookeeper daemon
     DESC
     task :stop, :roles => :zookeeper do
-      rsudo "service zookeeper stop || true"
+      rsudo "#{service_stop('zookeeper')} || true"
     end
     
     desc <<-DESC

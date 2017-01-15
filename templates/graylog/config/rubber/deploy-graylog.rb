@@ -59,12 +59,12 @@ namespace :rubber do
 
       desc "Stops the graylog server"
       task :stop, :roles => :graylog_server, :on_error => :continue do
-        rsudo "service graylog-server stop || true"
+        rsudo "#{service_stop('graylog-server')} || true"
       end
 
       desc "Starts the graylog server"
       task :start, :roles => :graylog_server do
-        rsudo "service graylog-server start"
+        rsudo "#{service_status('graylog-server')} || #{service_start('graylog-server')}"
       end
 
       desc "Restarts the graylog server"
@@ -106,12 +106,12 @@ namespace :rubber do
 
       desc "Stops the graylog web"
       task :stop, :roles => :graylog_web, :on_error => :continue do
-        rsudo "service graylog-web stop || true"
+        rsudo "#{service_stop('graylog-web')} || true"
       end
 
       desc "Starts the graylog web"
       task :start, :roles => :graylog_web do
-        rsudo "service graylog-web start"
+        rsudo "#{service_status('graylog-web')} || #{service_start('graylog-web')}"
       end
 
       desc "Restarts the graylog web"

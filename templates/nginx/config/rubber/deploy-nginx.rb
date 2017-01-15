@@ -22,10 +22,10 @@ namespace :rubber do
     # rubber auto-roles don't get defined till after all tasks are defined
     on :load do
       rubber.serial_task self, :serial_restart, :roles => :nginx do
-        rsudo "service nginx restart"
+        rsudo service_restart('nginx')
       end
       rubber.serial_task self, :serial_reload, :roles => :nginx do
-        rsudo "if ! ps ax | grep -v grep | grep -c nginx &> /dev/null; then service nginx start; else service nginx reload; fi"
+        rsudo "if ! ps ax | grep -v grep | grep -c nginx &> /dev/null; then #{service_start('nginx')}; else #{service_reload('nginx')}; fi"
       end
     end
     
@@ -35,12 +35,12 @@ namespace :rubber do
     
     desc "Stops the nginx web server"
     task :stop, :roles => :nginx do
-      rsudo "service nginx stop; exit 0"
+      rsudo "#{service_stop('nginx')}; exit 0"
     end
     
     desc "Starts the nginx web server"
     task :start, :roles => :nginx do
-      rsudo "service nginx status || service nginx start"
+      rsudo "#{service_status('nginx')} || #{service_start('nginx')}"
     end
     
     desc "Restarts the nginx web server"
@@ -55,7 +55,7 @@ namespace :rubber do
 
     desc "Display status of the nginx web server"
     task :status, :roles => :nginx do
-      rsudo "service nginx status || true"
+      rsudo "#{service_status('nginx')} || true"
       rsudo "ps -eopid,user,fname | grep [n]ginx || true"
       rsudo "netstat -tulpn | grep nginx || true"
     end

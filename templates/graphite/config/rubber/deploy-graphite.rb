@@ -131,7 +131,7 @@ namespace :rubber do
         if old_ubuntu?
           rsudo 'service graphite-server start'
         else
-          rsudo 'service carbon-cache start'
+          rsudo "#{service_status('carbon-cache')} || #{service_start('carbon-cache')}"
         end
       end
 
@@ -140,7 +140,7 @@ namespace :rubber do
         if old_ubuntu?
           rsudo 'service graphite-server stop || true'
         else
-          rsudo 'service carbon-cache stop || true'
+          rsudo "#{service_stop('carbon-cache')} || true"
         end
       end
 
@@ -152,7 +152,7 @@ namespace :rubber do
 
       desc "Display status of graphite system monitoring"
       task :status, :roles => :graphite_server do
-        rsudo "service graphite-server status || true"
+        rsudo "#{service_status('carbon-cache')} || true"
         rsudo "ps -eopid,user,cmd | grep [c]arbon || true"
         rsudo "sudo netstat -tupln | grep [p]ython || true"
       end
@@ -249,12 +249,12 @@ EOF
 
       desc "Start graphite web server"
       task :start, :roles => :graphite_web do
-        rsudo "service graphite-web start"
+        rsudo "#{service_status('graphite-web')} || #{service_start('graphite-web')}"
       end
 
       desc "Stop graphite web server"
       task :stop, :roles => :graphite_web do
-        rsudo "service graphite-web stop || true"
+        rsudo "#{service_stop('graphite-web')} || true"
       end
 
       desc "Restart graphite web server"
@@ -265,7 +265,7 @@ EOF
 
       desc "Display status of graphite web server"
       task :status, :roles => :graphite_web do
-        rsudo "service graphite-web status || true"
+        rsudo "#{service_status('graphite-web')} || true"
         rsudo "ps -eopid,user,cmd | grep '[g]raphite/conf/uwsgi.ini' || true"
         rsudo "netstat -tupln | grep uwsgi || true"
       end
