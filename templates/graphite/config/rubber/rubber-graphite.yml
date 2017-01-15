@@ -27,6 +27,6 @@ roles:
   graphite_server:
     os_packages:
       '14.04': [graphite-carbon]
-      '16.04': [uwsgi, uwsgi-plugin-python, graphite-web]
+      '16.04': [graphite-carbon]
   collectd:
     packages: [libperl-dev]
