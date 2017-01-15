@@ -1,7 +1,5 @@
 <%
-  is_old_ubuntu = rubber_instance.os_version == '12.04'
-
-  @path = is_old_ubuntu ? "#{rubber_env.graphite_dir}/webapp/graphite/local_settings.py" : '/etc/graphite/local_settings.py'
+  @path = '/etc/graphite/local_settings.py'
 %>
 ## Graphite local_settings.py
 # Edit this file to customize the default Graphite webapp settings
@@ -11,13 +9,11 @@
 #####################################
 # General Configuration #
 #####################################
-<% unless is_old_ubuntu %>
 # Set this to a long, random unique string to use as a secret key for this
 # install. This key is used for salting of hashes used in auth tokens,
 # CRSF middleware, cookie storage, etc. This should be set identically among
 # instances if used behind a load balancer.
 SECRET_KEY = '<%= rubber_env.graphite_web_secret %>'
-<% end %>
 
 # In Django 1.5+ set this to the list of hosts your graphite instances is
 # accessible as. See:
@@ -62,24 +58,14 @@ DEBUG = True
 #####################################
 # Change only GRAPHITE_ROOT if your install is merely shifted from /opt/graphite
 # to somewhere else
-<% if is_old_ubuntu %>
-#GRAPHITE_ROOT = '/opt/graphite'
-<% else %>
 GRAPHITE_ROOT = '/usr/share/graphite-web'
-<% end %>
 
 # Most installs done outside of a separate tree such as /opt/graphite will only
 # need to change these three settings. Note that the default settings for each
 # of these is relative to GRAPHITE_ROOT
-<% if is_old_ubuntu %>
-#CONF_DIR = '/opt/graphite/conf'
-#STORAGE_DIR = '/opt/graphite/storage'
-#CONTENT_DIR = '/opt/graphite/webapp/content'
-<% else %>
 CONF_DIR = '/etc/graphite'
 STORAGE_DIR = '<%= rubber_env.graphite_storage_dir %>'
 CONTENT_DIR = '/usr/share/graphite-web/static'
-<% end %>
 
 # To further or fully customize the paths, modify the following. Note that the
 # default settings for each of these are relative to CONF_DIR and STORAGE_DIR
@@ -90,19 +76,11 @@ CONTENT_DIR = '/usr/share/graphite-web/static'
 
 ## Data directories
 # NOTE: If any directory is unreadable in DATA_DIRS it will break metric browsing
-<% if is_old_ubuntu %>
-#WHISPER_DIR = '/opt/graphite/storage/whisper'
-#RRD_DIR = '/opt/graphite/storage/rrd'
-#DATA_DIRS = [WHISPER_DIR, RRD_DIR] # Default: set from the above variables
-#LOG_DIR = '/opt/graphite/storage/log/webapp'
-#INDEX_FILE = '/opt/graphite/storage/index'  # Search index file
-<% else %>
 #WHISPER_DIR = '/var/lib/graphite/whisper'
 #RRD_DIR = '/opt/graphite/storage/rrd'
 #DATA_DIRS = [WHISPER_DIR, RRD_DIR] # Default: set from the above variables
 LOG_DIR = '/var/log/graphite'
 #INDEX_FILE = '/var/lib/graphite/search_index'  # Search index file
-<% end %>
 
 #####################################
 # Email Configuration #

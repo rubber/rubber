@@ -8,7 +8,6 @@ roles:
   elasticsearch:
     packages: [unzip]
     os_packages:
-      '12.04': [openjdk-7-jdk]
       '14.04': [openjdk-7-jdk]
       '16.04': [openjdk-8-jdk]
 
