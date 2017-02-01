@@ -1,4 +1,3 @@
-
 namespace :rubber do
   
   namespace :mongodb do
@@ -9,12 +8,10 @@ namespace :rubber do
   
     task :setup_apt_sources, :roles => :mongodb do
       # Setup apt sources to mongodb from 10gen
-      sources = <<-SOURCES
-        deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen
-      SOURCES
-      sources.gsub!(/^[ \t]*/, '')
-      put(sources, "/etc/apt/sources.list.d/mongodb.list") 
-      rsudo "apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10"
+      rubber.sudo_script "install_mongodb", <<-ENDSCRIPT
+        echo "deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen" > /etc/apt/sources.list.d/mongodb.list
+        apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10
+      ENDSCRIPT
     end
 
     after "rubber:bootstrap", "rubber:mongodb:bootstrap"
