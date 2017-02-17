@@ -2,7 +2,7 @@ require 'rubber/cloud/fog'
 
 module Rubber
   module Cloud
-    class Generic < Fog
+    class Generic < Base
       MUTEX = Mutex.new
 
       def initialize(env, capistrano)
