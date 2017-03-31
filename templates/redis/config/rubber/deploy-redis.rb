@@ -38,8 +38,12 @@ namespace :rubber do
       if exists.strip.size == 0
 
         rubber.sudo_script 'bootstrap_redis', <<-ENDSCRIPT
-          mkdir -p #{rubber_env.redis_db_dir}
-          chown -R redis:redis #{rubber_env.redis_db_dir}
+          for d in #{rubber_env.redis_db_dir} /var/lib/redis /var/log/redis /var/run/redis; do
+            if [ ! -d $d ]; then
+              mkdir -p $d
+              chown -R redis:redis $d
+            fi
+          done
         ENDSCRIPT
 
         # After everything installed on machines, we need the source tree
