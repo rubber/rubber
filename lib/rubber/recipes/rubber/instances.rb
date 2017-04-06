@@ -1,5 +1,7 @@
 include "forwardable"
 
+# TODO check master version of this for fail cases when we have insufficient input
+
 namespace :rubber do
 
   desc <<-DESC
@@ -15,6 +17,8 @@ namespace :rubber do
   DESC
   required_task :refresh do
     ENV.delete('ROLES') # so we don't get an error if people leave ROLES in env from :create CLI
+
+    fatal "Instance does not exist: #{instance_alias}" if ! instance_item
 
     Rubber.instances.refresh
   end

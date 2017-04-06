@@ -17,6 +17,34 @@ module Rubber
 
         create_spot_instance ||= cloud_env.spot_instance
 
+        if create_spot_instance
+          spot_price = cloud_env.spot_price.to_s
+
+          logger.info "Creating spot instance request for instance #{ami}/#{ami_type}/#{security_groups.join(',') rescue 'Default'}/#{availability_zone || 'Default'}"
+          request_id = cloud.create_spot_instance_request(spot_price, ami, ami_type, security_groups, availability_zone, fog_options)
+
+          print "Waiting for spot instance request to be fulfilled"
+          max_wait_time = cloud_env.spot_instance_request_timeout || (1.0 / 0) # Use the specified timeout value or default to infinite.
+          instance_id = nil
+          while instance_id.nil? do
+            print "."
+            sleep 2
+            max_wait_time -= 2
+
+            request = cloud.describe_spot_instance_requests(request_id).first
+            instance_id = request[:instance_id]
+
+            if max_wait_time < 0 && instance_id.nil?
+              cloud.destroy_spot_instance_request(request[:id])
+
+              print "\n"
+              print "Failed to fulfill spot instance in the time specified. Falling back to on-demand instance creation."
+              break
+            end
+          end
+
+          print "\n"
+        end
 
         if !create_spot_instance || (create_spot_instance && max_wait_time < 0)
           sg_str = security_groups.join(',') rescue 'Default'
@@ -32,18 +60,6 @@ module Rubber
           end
         end
 
-        # Security Groups are handled in the after_create_instance callback of the
-        # Vpc cloud provider, so pass an empty array here to make sure it isn't
-        # assigned to any other default groups that might be floating around.
-        instance_id = cloud.create_instance(
-          instance_alias,
-          ami,
-          ami_type,
-          fog_options[:vpc_id] ? security_groups : [],
-          availability_zone,
-          region,
-          fog_options
-        )
 
         logger.info "Instance #{instance_alias} created: #{instance_id}"
 
@@ -64,16 +80,11 @@ module Rubber
         created_instance_item.gateway = instance_item.gateway
         rubber_instances.add(created_instance_item)
         rubber_instances.save()
-
-        monitor.synchronize do
-          cloud.after_create_instance(created_instance_item)
-        end
       end
 
       def configuration
         @configuration ||= Configuration.new
       end
-
     end
   end
 end
