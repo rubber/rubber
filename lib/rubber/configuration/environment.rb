@@ -4,7 +4,6 @@ require 'delegate'
 require 'monitor'
 require 'rbconfig'
 
-
 module Rubber
   module Configuration
     # Contains the configuration defined in rubber.yml
@@ -19,7 +18,7 @@ module Rubber
       def initialize(config_root, env)
         @config_root = config_root
         @config_env = env
-        
+
         @config_files = ["#{@config_root}/rubber.yml"]
         @config_files += Dir["#{@config_root}/rubber-*.yml"].sort
 
@@ -28,13 +27,13 @@ module Rubber
         @config_files -= Dir["#{@config_root}/rubber-*-env.yml"]
         env_yml = "#{@config_root}/rubber-#{Rubber.env}-env.yml"
         @config_files << env_yml if File.exist?(env_yml)
-        
+
         @items = {}
         @config_files.each { |file| read_config(file) }
 
         read_secret_config
       end
-      
+
       def read_config(file)
         Rubber.logger.debug{"Reading rubber configuration from #{file}"}
         if File.exist?(file)
@@ -73,17 +72,17 @@ module Rubber
           end
         end
       end
-      
+
       def known_roles
         return @known_roles if @known_roles
-        
+
         roles = []
         # all the roles known about in config directory
         roles.concat Dir["#{@config_root}/role/*"].collect {|f| File.basename(f) }
-        
+
         # all the roles known about in script directory
         roles.concat Dir["#{Rubber.root}/script/*/role/*"].collect {|f| File.basename(f) }
-        
+
         # all the roles known about in yml files
         Dir["#{@config_root}/rubber*.yml"].each do |yml|
           rubber_yml = YAML::load(ERB.new(IO.read(yml)).result) rescue {}
@@ -91,18 +90,18 @@ module Rubber
           roles.concat(rubber_yml['role_dependencies'].keys) rescue nil
           roles.concat(rubber_yml['role_dependencies'].values) rescue nil
         end
-        
+
         @known_roles = roles.flatten.uniq.sort
       end
-      
+
       def current_host
         Socket::gethostname.gsub(/\..*/, '')
       end
-      
+
       def current_full_host
         Socket::gethostname
       end
-      
+
       def bind(roles = nil, host = nil)
         BoundEnv.new(@items, roles, host, config_env)
       end
@@ -172,7 +171,7 @@ module Rubber
             yield key, self[key]
           end
         end
-        
+
         # allows expansion when to_a gets called on hash proxy, e.g. when wrapping
         # a var in Array() to ensure error free iteration for possible null values
         def to_a

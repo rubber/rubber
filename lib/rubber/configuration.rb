@@ -1,6 +1,6 @@
 require 'logger'
-require 'rubber/environment'
-require 'rubber/instance'
+require 'rubber/configuration/environment'
+require 'rubber/core/instance_collection'
 require 'rubber/generator'
 
 module Rubber
@@ -32,7 +32,7 @@ module Rubber
 
     def self.rubber_instances
       raise "This convenience method needs Rubber.env to be set" unless Rubber.env
-      Rubber::Configuration.get_configuration(Rubber.env).instance
+      Rubber::Configuration.get_configuration(Rubber.env).instances
     end
 
     def self.reset
@@ -53,16 +53,23 @@ module Rubber
         instance_storage = config['instance_storage']
         instance_storage_backup = config['instance_storage_backup']
         instance_storage ||= "file:#{@root}/instance-#{@env}.yml"
-        @instance = Instance.new(instance_storage, :backup => instance_storage_backup)
+        @instances = Rubber::Core::InstanceCollection.new(
+          instance_storage: instance_storage,
+          backup: instance_storage_backup,
+          roles: Rubber::Util::parse_aliases(ENV['FILTER_ROLES']),
+          filters: Rubber::Util::parse_aliases(ENV['FILTER']))
       end
-      
+
       def environment
         @environment
       end
 
-      def instance
-        @instance
+      def instances
+        @instances
       end
+
+      # For backward compatability
+      alias_method :instance, :instances
     end
 
   end

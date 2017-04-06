@@ -1,32 +1,12 @@
+include "forwardable"
+
 namespace :rubber do
 
   desc <<-DESC
     Create a new EC2 instance with the given ALIAS and ROLES
   DESC
   required_task :create do
-    instance_aliases = get_env('ALIAS', "Instance alias (e.g. web01 or web01~web05,web09)", true)
-
-    aliases = Rubber::Util::parse_aliases(instance_aliases)
-
-    if aliases.size > 1
-      default_roles = "roles for instance in *.yml"
-      r = get_env("ROLES", "Instance roles (e.g. web,app,db:primary=true)", false, default_roles)
-      r = "" if r == default_roles
-    else
-      env = rubber_cfg.environment.bind(nil, aliases.first)
-      default_roles = env.instance_roles
-      r = get_env("ROLES", "Instance roles (e.g. web,app,db:primary=true)", true, default_roles)
-    end
-
-    create_spot_instance = ENV.delete("SPOT_INSTANCE")
-
-    if r == '*'
-      instance_roles = rubber_cfg.environment.known_roles.reject {|r| r =~ /slave/ || r =~ /^db$/ }
-    else
-      instance_roles = r.split(/\s*,\s*/)
-    end
-    
-    create_instances(aliases, instance_roles, create_spot_instance)
+    Rubber::InstanceManager.create_instances
   end
 
   desc <<-DESC
@@ -34,88 +14,60 @@ namespace :rubber do
     This is useful to run when rubber:create fails after instance creation
   DESC
   required_task :refresh do
-    instance_aliases = get_env('ALIAS', "Instance alias (e.g. web01 or web01~web05,web09)", true)
-
-    aliases = Rubber::Util::parse_aliases(instance_aliases)
-
     ENV.delete('ROLES') # so we don't get an error if people leave ROLES in env from :create CLI
-    
-    refresh_instances(aliases)
+
+    Rubber.instances.refresh
   end
 
   desc <<-DESC
     Destroy the EC2 instance for the given ALIAS
   DESC
   required_task :destroy do
-    instance_aliases = get_env('ALIAS', "Instance alias (e.g. web01 or web01~web05,web09)", true)
-
-    aliases = Rubber::Util::parse_aliases(instance_aliases)
-
     ENV.delete('ROLES') # so we don't get an error if people leave ROLES in env from :create CLI
-    destroy_instances(aliases, ENV['FORCE'] =~ /^(t|y)/)
+
+    Rubber.instances.filtered.each(&:destroy)
   end
 
   desc <<-DESC
     Destroy ALL the EC2 instances for the current env
   DESC
   required_task :destroy_all do
-    rubber_instances.each do |ic|
-      destroy_instance(ic.name, ENV['FORCE'] =~ /^(t|y)/)
-    end
+    Rubber.instances.destroy_all
   end
 
   desc <<-DESC
     Reboot the EC2 instance for the give ALIAS
   DESC
   required_task :reboot do
-    instance_aliases = get_env('ALIAS', "Instance alias (e.g. web01 or web01~web05,web09)", true)
-    
-    aliases = Rubber::Util::parse_aliases(instance_aliases)
-    ENV.delete('ROLES') # so we don't get an error if people leave ROLES in env from :create CLI
-    reboot_instances(aliases, ENV['FORCE'] =~ /^(t|y)/)
+    Rubber.instances.filtered.each(&:reboot)
   end
 
   desc <<-DESC
     Stop the EC2 instance for the give ALIAS
   DESC
   required_task :stop do
-    instance_aliases = get_env('ALIAS', "Instance alias (e.g. web01 or web01~web05,web09)", true)
-    
-    aliases = Rubber::Util::parse_aliases(instance_aliases)
-    ENV.delete('ROLES') # so we don't get an error if people leave ROLES in env from :create CLI
-    stop_instances(aliases)
+    Rubber.instances.filtered.each(&:stop)
   end
 
   desc <<-DESC
     Start the EC2 instance for the give ALIAS
   DESC
   required_task :start do
-    instance_aliases = get_env('ALIAS', "Instance alias (e.g. web01 or web01~web05,web09)", true)
-
-    aliases = Rubber::Util::parse_aliases(instance_aliases)
-    ENV.delete('ROLES') # so we don't get an error if people leave ROLES in env from :create CLI
-    start_instances(aliases)
+    Rubber.instances.filtered.each(&:start)
   end
 
   namespace :roles do
     rubber.allow_optional_tasks(self)
-    
+
     desc <<-DESC
       Adds the given ROLES to the instance named ALIAS
     DESC
     required_task :add do
       instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
-      roles_string = get_env('ROLES', "Instance roles (e.g. web,app,db:primary=true)", true)
-      
+
       instance = rubber_instances[instance_alias]
       fatal "Instance does not exist: #{instance_alias}" unless instance
-    
-      # Parse roles_string into an Array of roles
-      ir = roles_string.split(/\s*,\s*/).collect{|r| Rubber::Configuration::RoleItem.parse(r)}
-    
-      # Add in roles that the given set of roles depends on
-      ir = Rubber::Configuration::RoleItem.expand_role_dependencies(ir, get_role_dependencies)
-    
+
       instance.roles = (instance.roles + ir).uniq
       rubber_instances.save()
       logger.info "Roles for #{instance_alias} are now:"
@@ -130,20 +82,20 @@ namespace :rubber do
     required_task :remove do
       instance_alias = get_env('ALIAS', "Instance alias (e.g. web01)", true)
       roles_string = get_env('ROLES', "Instance roles (e.g. web,app,db:primary=true)", true)
-      
+
       instance = rubber_instances[instance_alias]
       fatal "Instance does not exist: #{instance_alias}" unless instance
-    
+
       # Parse roles_string into an Array of roles
       ir = roles_string.split(/\s*,\s*/).collect{|r| Rubber::Configuration::RoleItem.parse(r)}
-    
+
       instance.roles = (instance.roles - ir).uniq
       rubber_instances.save()
       logger.info "Roles for #{instance_alias} are now:"
       logger.info instance.role_names.sort.join("\n")
     end
   end
-  
+
   # The :add_role and :remove_role tasks are for backwards-compatibility
   desc <<-DESC
     Alias for rubber:roles:add
@@ -238,7 +190,7 @@ namespace :rubber do
 
       sleep 2
     end
-    
+
     creation_threads.each {|t| t.join }
 
     print "Waiting for instances to start"
@@ -260,108 +212,6 @@ namespace :rubber do
   # Creates a new ec2 instance with the given alias and roles
   # Configures aliases (/etc/hosts) on local and remote machines
   def create_instance(instance_alias, instance_roles, create_spot_instance)
-    role_names = instance_roles.collect{|x| x.name}
-    env = rubber_cfg.environment.bind(role_names, instance_alias)
-    cloud_env = env.cloud_providers[env.cloud_provider]
-
-    availability_zone = cloud_env.availability_zone
-
-    security_groups = get_assigned_security_groups(instance_alias, role_names)
-
-    ami = cloud_env.image_id
-    ami_type = cloud_env.image_type
-    region = cloud_env.region
-    fog_options = cloud_env.fog_options || {}
-
-    instance_item = Rubber::Configuration::InstanceItem.new(instance_alias, env.domain, instance_roles, nil, ami_type, ami, security_groups)
-
-    instance_item.zone = availability_zone
-
-    monitor.synchronize do
-      cloud.before_create_instance(instance_item)
-    end
-
-    create_spot_instance ||= cloud_env.spot_instance
-
-    if create_spot_instance
-      spot_price = cloud_env.spot_price.to_s
-
-      logger.info "Creating spot instance request for instance #{ami}/#{ami_type}/#{security_groups.join(',') rescue 'Default'}/#{availability_zone || 'Default'}"
-      request_id = cloud.create_spot_instance_request(spot_price, ami, ami_type, security_groups, availability_zone, fog_options)
-
-      print "Waiting for spot instance request to be fulfilled"
-      max_wait_time = cloud_env.spot_instance_request_timeout || (1.0 / 0) # Use the specified timeout value or default to infinite.
-      instance_id = nil
-      while instance_id.nil? do
-        print "."
-        sleep 2
-        max_wait_time -= 2
-
-        request = cloud.describe_spot_instance_requests(request_id).first
-        instance_id = request[:instance_id]
-
-        if max_wait_time < 0 && instance_id.nil?
-          cloud.destroy_spot_instance_request(request[:id])
-
-          print "\n"
-          print "Failed to fulfill spot instance in the time specified. Falling back to on-demand instance creation."
-          break
-        end
-      end
-
-      print "\n"
-    end
-
-    if !create_spot_instance || (create_spot_instance && max_wait_time < 0)
-      sg_str = security_groups.join(',') rescue 'Default'
-      az_str = availability_zone || region || 'Default'
-      vpc_str = instance_item.vpc_id || 'No VPC'
-
-      logger.info "Creating instance #{ami}/#{ami_type}/#{sg_str}/#{az_str}/#{vpc_str}"
-
-      if instance_item.vpc_id
-        fog_options[:vpc_id] = instance_item.vpc_id
-        fog_options[:subnet_id] = instance_item.subnet_id
-        fog_options[:associate_public_ip] = (instance_item.gateway == 'public')
-      end
-    end
-
-    # Security Groups are handled in the after_create_instance callback of the
-    # Vpc cloud provider, so pass an empty array here to make sure it isn't
-    # assigned to any other default groups that might be floating around.
-    instance_id = cloud.create_instance(
-      instance_alias,
-      ami,
-      ami_type,
-      fog_options[:vpc_id] ? security_groups : [],
-      availability_zone,
-      region,
-      fog_options
-    )
-
-    logger.info "Instance #{instance_alias} created: #{instance_id}"
-
-    # Recreate the InstanceItem now that we have an instance_id
-    created_instance_item = Rubber::Configuration::InstanceItem.new(
-      instance_alias,
-      env.domain,
-      instance_roles,
-      instance_id,
-      ami_type,
-      ami,
-      security_groups
-    )
-    created_instance_item.vpc_id = instance_item.vpc_id
-    created_instance_item.network = instance_item.network
-    created_instance_item.spot_instance_request_id = request_id if create_spot_instance
-    created_instance_item.capistrano = self
-    created_instance_item.gateway = instance_item.gateway
-    rubber_instances.add(created_instance_item)
-    rubber_instances.save()
-
-    monitor.synchronize do
-      cloud.after_create_instance(created_instance_item)
-    end
   end
 
   def refresh_instances(instance_aliases)
@@ -451,7 +301,7 @@ namespace :rubber do
 
   def post_refresh
     env = rubber_cfg.environment.bind(nil, nil)
-    
+
     # setup amazon elastic ips if configured to do so
     setup_static_ips
 
@@ -461,7 +311,7 @@ namespace :rubber do
 
     # re-load the roles since we may have just defined new ones
     load_roles() unless env.disable_auto_roles
-    
+
     rubber_instances.save()
 
     # Add the aliases for this instance to all other hosts
@@ -514,20 +364,20 @@ namespace :rubber do
 
   def post_destroy
     env = rubber_cfg.environment.bind(nil, nil)
-    
+
     # re-load the roles since we just removed some and setup_remote_aliases
     # shouldn't hit removed ones
     load_roles() unless env.disable_auto_roles
 
     setup_aliases
   end
-  
+
   def reboot_instances(instance_aliases, force=false)
     instance_aliases.each do |instance_alias|
       reboot_instance(instance_alias, force)
     end
   end
-  
+
   # Reboots the given ec2 instance
   def reboot_instance(instance_alias, force=false)
     instance_item = rubber_instances[instance_alias]
@@ -542,18 +392,18 @@ namespace :rubber do
 
     cloud.reboot_instance(instance_item.instance_id)
   end
-  
+
   # Stops the given ec2 instances.  Note that this operation only works for instances that use an EBS volume for the root
   # device and that are not spot instances.
   def stop_instances(aliases)
     stop_threads = []
-    
+
     instance_items = aliases.collect{|instance_alias| rubber_instances[instance_alias]}
     instance_items = aliases.collect do |instance_alias|
       instance_item = rubber_instances[instance_alias]
-      
+
       fatal "Instance does not exist: #{instance_alias}" if ! instance_item
-      
+
       instance_item
     end
 
@@ -562,20 +412,20 @@ namespace :rubber do
         cloud.before_stop_instance(instance_item)
       end
     end
-    
+
     # Get user confirmation
     human_instance_list = instance_items.collect{|instance_item| "#{instance_item.name} (#{instance_item.instance_id})"}.join(', ')
     value = Capistrano::CLI.ui.ask("About to STOP #{human_instance_list} in mode #{Rubber.env}.  Are you SURE [yes/NO]?: ")
     fatal("Exiting", 0) if value != "yes"
-    
+
     instance_items.each do |instance_item|
       logger.info "Stopping instance alias=#{instance_item.name}, instance_id=#{instance_item.instance_id}"
-      
+
       stop_threads << Thread.new do
         env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
 
         cloud.stop_instance(instance_item)
-        
+
         stopped = false
         while !stopped
           sleep 1
@@ -584,7 +434,7 @@ namespace :rubber do
         end
       end
     end
-      
+
     print "Waiting for #{instance_items.size == 1 ? 'instance' : 'instances'} to stop"
     while true do
       print "."
@@ -592,7 +442,7 @@ namespace :rubber do
       break unless stop_threads.any?(&:alive?)
     end
     print "\n"
-      
+
     stop_threads.each(&:join)
 
     monitor.synchronize do
@@ -607,7 +457,7 @@ namespace :rubber do
   def start_instances(aliases)
     start_threads = []
     describe_threads = []
-    
+
     instance_items = aliases.collect do |instance_alias|
       instance_item = rubber_instances[instance_alias]
 
@@ -621,18 +471,18 @@ namespace :rubber do
         cloud.before_start_instance(instance_item)
       end
     end
-    
+
     # Get user confirmation
     human_instance_list = instance_items.collect{|instance_item| "#{instance_item.name} (#{instance_item.instance_id})"}.join(', ')
     value = Capistrano::CLI.ui.ask("About to START #{human_instance_list} in mode #{Rubber.env}.  Are you SURE [yes/NO]?: ")
     fatal("Exiting", 0) if value != "yes"
-  
+
     instance_items.each do |instance_item|
       logger.info "Starting instance alias=#{instance_item.name}, instance_id=#{instance_item.instance_id}"
-      
+
       start_threads << Thread.new do
         env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
-        
+
         cloud.start_instance(instance_item)
 
         describe_threads << Thread.new do
@@ -645,7 +495,7 @@ namespace :rubber do
         end
       end
     end
-    
+
     print "Waiting for #{instance_items.size == 1 ? 'instance' : 'instances'} to start"
     while true do
       print "."
@@ -703,4 +553,3 @@ namespace :rubber do
     return deps
   end
 end
-
