@@ -111,6 +111,7 @@ namespace :rubber do
       else
         sleep 2
         logger.info "Failed to connect to #{ip}, retrying"
+        teardown_connections_to(sessions.keys) if e.message =~ /closed stream/
         retry
       end
     end
@@ -128,9 +129,10 @@ namespace :rubber do
 
     begin
       send task_name
-    rescue ConnectionError, IOError
+    rescue ConnectionError, IOError => e
       sleep 2
       logger.info "Failed to connect to #{ip}, retrying"
+      teardown_connections_to(sessions.keys) if e.message =~ /closed stream/
       retry
     end
   end
