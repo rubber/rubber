@@ -26,3 +26,13 @@ roles:
       '16.04': [graphite-carbon]
   collectd:
     packages: [libperl-dev]
+
+security_groups:
+  graphite_server:
+    description: "To open up port #{graphite_server_port} for graphite_server role"
+    rules:
+      - protocol: tcp
+        from_port: "#{graphite_server_port}"
+        to_port: "#{graphite_server_port}"
+        source_group_name: collectd
+        source_group_account: "#{cloud_providers.aws.account}"
