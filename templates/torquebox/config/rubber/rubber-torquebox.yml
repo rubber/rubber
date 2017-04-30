@@ -10,14 +10,14 @@ torquebox_ajp_port: 8009
 backstage_user: admin
 backstage_password: admin123
 
-mod_cluster_version: 1.2.0
+mod_cluster_version: 1.3.6
 
 apache_listen_port: 80
 apache_listen_ssl_port: 443
 
 roles:
   torquebox:
-    packages: [libaio1, unzip]
+    packages: [libaio1, unzip, maven, apache2-dev]
     os_packages:
       '14.04': [openjdk-7-jdk]
       '16.04': [openjdk-8-jdk]

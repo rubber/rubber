@@ -1,0 +1,21 @@
+<%
+  @path = "/lib/systemd/system/torquebox.service"
+  @backup = false
+  @post = "systemctl daemon-reload"
+
+  is_old_ubuntu = rubber_instance.os_version == '14.04'
+  @skip = is_old_ubuntu
+%>
+
+[Unit]
+Description=TorqueBox daemon
+After=network.target
+
+[Service]
+Type=forking
+WorkingDirectory=<%= rubber_env.torquebox_dir %>
+User=<%= rubber_env.app_user %>
+ExecStart=/bin/sh -c '<%= rubber_env.torquebox_dir %>/jboss/bin/standalone.sh >> /var/log/torquebox/torquebox.log 2>&1'
+
+[Install]
+WantedBy=multi-user.target
