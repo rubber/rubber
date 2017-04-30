@@ -13,13 +13,10 @@ After=network.target
 
 [Service]
 Type=forking
-#PIDFile=<%= rubber_env.zookeeper_pid_file %>
 LimitNOFILE=65535
 
 WorkingDirectory=<%= rubber_env.zookeeper_install_dir %>
-ExecStart=<%= rubber_env.zookeeper_install_dir %>/bin/zkServer.sh start-foreground
-#ExecStartPost=
-#ExecStop=/usr/bin/pkill -F <%= rubber_env.zookeeper_pid_file %>
+ExecStart=<%= rubber_env.zookeeper_install_dir %>/bin/zkServer.sh start
 
 
 [Install]

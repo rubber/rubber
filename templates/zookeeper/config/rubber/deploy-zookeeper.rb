@@ -30,7 +30,7 @@ namespace :rubber do
         restart
       end
     end
-    
+
     desc <<-DESC
       Starts the zookeeper daemon
     DESC
