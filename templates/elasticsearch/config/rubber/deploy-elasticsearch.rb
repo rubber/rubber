@@ -7,15 +7,20 @@ namespace :rubber do
     after "rubber:install_packages", "rubber:elasticsearch:install"
 
     task :install, :roles => :elasticsearch do
+      plugin_script = rubber_env.elasticsearch_plugins.map do |plugin|
+        <<-ENDSCRIPT
+        /usr/share/elasticsearch/bin/plugin remove #{plugin}
+        /usr/share/elasticsearch/bin/plugin install #{plugin}
+        ENDSCRIPT
+      end.join("\n")
+
       rubber.sudo_script 'install_elasticsearch', <<-ENDSCRIPT
         if [[ ! -f /usr/share/elasticsearch/lib/elasticsearch-#{rubber_env.elasticsearch_version}.jar ]]; then
           wget -qNP /tmp https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-#{rubber_env.elasticsearch_version}.deb
           dpkg -i /tmp/elasticsearch-#{rubber_env.elasticsearch_version}.deb
           rm /tmp/elasticsearch-#{rubber_env.elasticsearch_version}.deb
-
-          rm -rf /usr/share/elasticsearch/plugins/head
-          /usr/share/elasticsearch/bin/plugin -install mobz/elasticsearch-head
         fi
+        #{plugin_script}
       ENDSCRIPT
     end
 
@@ -45,6 +50,5 @@ namespace :rubber do
       stop
       start
     end
-
   end
 end
