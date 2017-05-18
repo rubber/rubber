@@ -1,7 +1,9 @@
 # REQUIRED: The name of your application
 app_name: your_app_name
 
-# REQUIRED: The system user to run your app servers as
+# REQUIRED: The system user to run your app servers as.
+# This should be the user your bare instance has been set up with.
+# For EC2 Canonical Ubuntu instances, for example, it should be "ubuntu"
 app_user: app
 
 # REQUIRED: Notification emails (e.g. monit) get sent to this address
@@ -63,7 +65,7 @@ cloud_providers:
     account: 'ZZZ'
 
     # REQUIRED:  The name of the amazon keypair and location of its private key
-    #
+    # The key_name here must match the name of the key in the EC2 console.
     # NOTE: for some reason Capistrano requires you to have both the public and
     # the private key in the same folder, the public key should have the
     # extension ".pub".  The easiest way to get your hand on this is to create the
