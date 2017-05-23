@@ -1,0 +1,23 @@
+<%
+  @path = "/lib/systemd/system/zookeeper.service"
+  @backup = false
+  @post = "systemctl daemon-reload"
+
+  is_old_ubuntu = rubber_instance.os_version == '14.04'
+  @skip = is_old_ubuntu
+%>
+
+[Unit]
+Description=ZooKeeper daemon
+After=network.target
+
+[Service]
+Type=forking
+LimitNOFILE=65535
+
+WorkingDirectory=<%= rubber_env.zookeeper_install_dir %>
+ExecStart=<%= rubber_env.zookeeper_install_dir %>/bin/zkServer.sh start
+
+
+[Install]
+WantedBy=multi-user.target

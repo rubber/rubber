@@ -10,12 +10,12 @@ namespace :rubber do
     
     desc "Stops the resque_scheduler"
     task :stop, :roles => :resque_scheduler do
-      rsudo "service resque-scheduler stop || true"
+      rsudo "#{service_stop('resque-scheduler')} || true"
     end
 
     desc "Starts the resque_scheduler"
     task :start, :roles => :resque_scheduler do
-      rsudo "service resque-scheduler start"
+      rsudo "#{service_status('resque-scheduler')} || #{service_start('resque-scheduler')}"
     end
 
     desc "Restarts the resque_scheduler"

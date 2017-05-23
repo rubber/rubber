@@ -1,4 +1,5 @@
 require 'rubber/cloud/fog'
+require 'fog/digitalocean'
 
 module Rubber
   module Cloud
@@ -8,8 +9,8 @@ module Rubber
       def initialize(env, capistrano)
         compute_credentials = {
           :provider => 'DigitalOcean',
-          :digitalocean_api_key => env.api_key,
-          :digitalocean_client_id => env.client_key
+          :version => 'v2',
+          :digitalocean_token => env.digital_ocean_token,
         }
 
         if env.cloud_providers && env.cloud_providers.aws
@@ -29,28 +30,49 @@ module Rubber
         super(env, capistrano)
       end
 
-      # As of July 2014 Digital Ocean supports private networking in
-      # New York 2 (id 4), Amsterdam 2 (id 5), Singapore 1 (id 6) and London 1 (id 7)
-      REGIONS_WITH_PRIVATE_NETWORKING = [4, 5, 6, 7]
-
-      def create_instance(instance_alias, image_name, image_type, security_groups, availability_zone, region)
-        do_region = compute_provider.regions.find { |r| r.name == region }
+      def create_instance(instance_alias, image_name, image_type, security_groups, availability_zone, region, fog_options={})
+        do_region = compute_provider.regions.find { |r| [r.name, r.slug].include?(region) }
         if do_region.nil?
           raise "Invalid region for DigitalOcean: #{region}"
         end
 
-        if env.private_networking && ! REGIONS_WITH_PRIVATE_NETWORKING.include?(do_region.id)
+        if env.private_networking && ! do_region.features.include?("private_networking")
           raise "Private networking is enabled, but region #{region} does not support it"
         end
 
-        image = compute_provider.images.find { |i| i.name == image_name }
+        # Fog only shows image names in its UI, but its API is based around image slugs. If someone has the image slug,
+        # we can look up the image directly in a single API call. If they have an image name, we need to iterate through
+        # the list of images until we find a match (and we'll have to hope that these are unique). So, do the fast slug
+        # lookup first and barring that, the exhaustive name search.
+        image = compute_provider.images.get(image_name)
+
+        if image.nil?
+          image_list = compute_provider.images
+
+          loop do
+            break if image_list.nil?
+
+            image = image_list.find { |i| i.name == image_name }
+            break if image
+
+            # We have to explicitly paginate through fog's collections.
+            image_list = image_list.next_page
+          end
+        end
+
         if image.nil?
           raise "Invalid image name for DigitalOcean: #{image_name}"
         end
 
-        flavor = compute_provider.flavors.find { |f| f.name == image_type }
+        # Downcase image_type for backward compatability with v1
+        flavor = compute_provider.flavors.find { |f| f.slug == image_type.downcase }
+
         if flavor.nil?
           raise "Invalid image type for DigitalOcean: #{image_type}"
+        end
+
+        if env.key_name.nil?
+          raise 'missing key_name for DigitalOcean'
         end
 
         # Check if the SSH key has been added to DigitalOcean yet.
@@ -58,18 +80,32 @@ module Rubber
         ssh_key = compute_provider.list_ssh_keys.body['ssh_keys'].find { |key| key['name'] == env.key_name }
         if ssh_key.nil?
           if env.key_file
-            ssh_key = compute_provider.create_ssh_key(env.key_name, File.read("#{env.key_file}.pub"))
+            compute_provider.create_ssh_key(env.key_name, File.read("#{env.key_file}.pub"))
+
+            # Although not documented, DigitalOcean is eventually consistent.  Receiving a 200 response with the key
+            # body does not mean the key has propagated through their systems yet.  Thus we need to query to see if
+            # the key is yet available.  Otherwise our request will end up creating a droplet without an attached key.
+
+            begin
+              sleep(0.5)
+              ssh_key = compute_provider.list_ssh_keys.body['ssh_keys'].find { |key| key['name'] == env.key_name }
+            end while ssh_key.nil?
+
           else
             raise 'Missing key_file for DigitalOcean'
           end
         end
 
-        response = compute_provider.servers.create(:name => "#{Rubber.env}-#{instance_alias}",
-                                                   :image_id => image.id,
-                                                   :flavor_id => flavor.id,
-                                                   :region_id => do_region.id,
-                                                   :ssh_key_ids => [ssh_key['id']],
-                                                   :private_networking => (env.private_networking.to_s.downcase == 'true'))
+        response = compute_provider.servers.create({:name => "#{Rubber.env}-#{instance_alias}",
+                                                    :image => image.slug,
+                                                    :size => flavor.slug,
+                                                    :flavor => flavor.slug,
+                                                    :region => do_region.slug,
+                                                    :ssh_keys => [ssh_key['id']],
+                                                    :private_networking => (env.private_networking.to_s.downcase == 'true')
+                                                   }
+                                                    .merge(Rubber::Util.symbolize_keys(fog_options))
+                                                  )
 
         response.id
       end
@@ -87,11 +123,28 @@ module Rubber
         response.each do |item|
           instance = {}
           instance[:id] = item.id
-          instance[:state] = item.state
-          instance[:type] = item.flavor_id
-          instance[:external_ip] = item.public_ip_address
-          instance[:internal_ip] = item.private_ip_address || item.public_ip_address
-          instance[:region_id] = item.region_id
+          instance[:state] = item.status
+          instance[:type] = item.size_slug
+
+          public_networking_info = item.networks['v4'].find do |n|
+            n['type'] == 'public'
+          end
+
+          if public_networking_info
+            instance[:external_ip] = public_networking_info['ip_address']
+          end
+
+          private_networking_info = item.networks['v4'].find do |n|
+            n['type'] == 'private'
+          end
+
+          if private_networking_info
+            instance[:internal_ip] = private_networking_info['ip_address']
+          elsif public_networking_info
+            instance[:internal_ip] = public_networking_info['ip_address']
+          end
+
+          instance[:region_id] = item.region
           instance[:provider] = 'digital_ocean'
           instance[:platform] = Rubber::Platforms::LINUX
           instances << instance
@@ -102,6 +155,25 @@ module Rubber
 
       def active_state
         'active'
+      end
+
+      def destroy_instance(instance_id)
+        # The Digital Ocean API will return a 422 if we attempt to destroy an
+        # instance that's in the middle of booting up, so wait until it's
+        # in a non-"new" state
+        print 'Waiting for non-new instance state'
+
+        loop do
+          instance = describe_instances(instance_id).first
+
+          print '.'
+
+          break unless instance[:state] == 'new'
+
+          sleep 1
+        end
+
+        response = compute_provider.servers.get(instance_id).delete()
       end
     end
   end

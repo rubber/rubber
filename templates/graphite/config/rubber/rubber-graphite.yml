@@ -5,9 +5,6 @@ graphite_web_port: 2080
 graphite_carbon_port: 8002
 graphite_storage_dir: /mnt/graphite_storage
 
-# uncomment out the repo version to install from given repo version
-# graphite_repo_version: 426
-graphite_version: '0.9.12'
 graphite_whisper_package_url: "https://github.com/graphite-project/whisper/archive/#{graphite_version}.tar.gz"
 graphite_carbon_package_url: "https://github.com/graphite-project/carbon/archive/#{graphite_version}.tar.gz"
 graphite_web_package_url: "https://github.com/graphite-project/graphite-web/archive/#{graphite_version}.tar.gz"
@@ -21,11 +18,11 @@ web_tools_proxies:
 roles:
   graphite_web:
     os_packages:
-      '10.04': [python-django, python-django-tagging, python-cairo, python-memcache, memcached, uwsgi, uwsgi-plugin-python, uwsgi-plugin-http, sqlite3, bzr, zip]
-      '12.04': [python-django, python-django-tagging, python-cairo, python-memcache, memcached, uwsgi, uwsgi-plugin-python, uwsgi-plugin-http, sqlite3, bzr, zip]
       '14.04': [uwsgi, uwsgi-plugin-python, graphite-web]
+      '16.04': [uwsgi, uwsgi-plugin-python, graphite-web]
   graphite_server:
     os_packages:
       '14.04': [graphite-carbon]
+      '16.04': [graphite-carbon]
   collectd:
     packages: [libperl-dev]

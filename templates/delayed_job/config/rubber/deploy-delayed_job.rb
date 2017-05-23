@@ -16,7 +16,7 @@ namespace :rubber do
       bin_path = "bin/delayed_job"
       script_path = "script/delayed_job"
 
-      File.exists?(bin_path) ? bin_path : script_path
+      File.exist?(bin_path) ? bin_path : script_path
     end
 
     desc "Stop the delayed_job process"

@@ -1,9 +1,10 @@
 require 'json'
+require 'rubber/cloud/aws'
 
 module Rubber
   module Cloud
     
-    class AwsTableStore
+    class Aws::TableStore
 
       RETRYABLE_EXCEPTIONS = [Excon::Errors::Error]
 

@@ -1,6 +1,10 @@
 
 roles:
   apache:
-    packages: [apache2, apache2-utils, libapache2-mod-proxy-html, libcurl4-openssl-dev, libapache2-mod-xsendfile]
+    packages: [apache2, apache2-utils, libcurl4-openssl-dev, libapache2-mod-xsendfile]
+    os_packages:
+      '14.04': [libapache2-mod-proxy-html]
   web_tools:
-    packages: [apache2, apache2-utils, libapache2-mod-proxy-html, libcurl4-openssl-dev, libapache2-mod-xsendfile]
+    packages: [apache2, apache2-utils, libcurl4-openssl-dev, libapache2-mod-xsendfile]
+    os_packages:
+      '14.04': [libapache2-mod-proxy-html]

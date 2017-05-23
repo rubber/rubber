@@ -1,0 +1,43 @@
+<%
+  @path = "/lib/systemd/system/redis-server.service"
+  @backup = false
+  @post = "systemctl daemon-reload"
+
+  is_old_ubuntu = rubber_instance.os_version == '14.04'
+  @skip = is_old_ubuntu
+%>
+
+[Unit]
+Description=Redis server
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/usr/local/bin/redis-server <%= rubber_env.redis_server_conf_file %>
+PIDFile=<%= rubber_env.redis_server_pid_file %>
+TimeoutStopSec=0
+Restart=always
+User=redis
+Group=redis
+
+ExecStop=/bin/kill -s TERM $MAINPID
+
+PrivateTmp=yes
+LimitNOFILE=65535
+PrivateDevices=yes
+ProtectHome=yes
+ReadOnlyDirectories=/
+ReadWriteDirectories=-/var/lib/redis
+ReadWriteDirectories=-/var/log/redis
+ReadWriteDirectories=-/var/run/redis
+ReadWriteDirectories=-<%= rubber_env.redis_db_dir %>
+CapabilityBoundingSet=~CAP_SYS_PTRACE
+
+# redis-server writes its own config file when in cluster mode so we allow
+# writing there (NB. ProtectSystem=true over ProtectSystem=full)
+ProtectSystem=true
+ReadWriteDirectories=-/etc/redis
+
+[Install]
+WantedBy=multi-user.target
+Alias=redis.service

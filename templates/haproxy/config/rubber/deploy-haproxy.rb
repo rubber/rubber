@@ -22,12 +22,12 @@ namespace :rubber do
     
     desc "Stops the haproxy server"
     task :stop, :roles => :haproxy do
-      rsudo "service haproxy stop || true"
+      rsudo "#{service_stop('haproxy')} || true"
     end
     
     desc "Starts the haproxy server"
     task :start, :roles => :haproxy do
-      rsudo "service haproxy status || service haproxy start"
+      rsudo "#{service_status('haproxy')} || #{service_start('haproxy')}"
     end
     
     desc "Restarts the haproxy server"

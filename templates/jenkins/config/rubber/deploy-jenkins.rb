@@ -76,14 +76,14 @@ namespace :rubber do
       Starts the jenkins daemon
     DESC
     task :start, :roles => :jenkins do
-      rsudo "service jenkins status || service jenkins start"
+      rsudo "#{service_status('jenkins')} || #{service_start('jenkins')}"
     end
 
     desc <<-DESC
       Stops the jenkins daemon
     DESC
     task :stop, :roles => :jenkins do
-      rsudo "service jenkins stop || true"
+      rsudo "#{service_stop('jenkins')} || true"
     end
 
     desc <<-DESC

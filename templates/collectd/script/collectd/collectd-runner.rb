@@ -77,16 +77,34 @@ STDERR.puts "#{Time.now}: Starting rubber-collectd execution loop"
 loop do
   start_time = Time.now.to_i
 
-  scripts.each do |script|
-    fork do
-      begin
-        load script
-      rescue Exception => e
-        STDERR.puts("#{script}: #{e}")
+  if defined?(JRUBY_VERSION)
+    threads = []
+
+    scripts.each do |script|
+      threads << Thread.new do
+        begin
+          load script
+        rescue Exception => e
+          STDERR.puts("#{script}: #{e}")
+        end
       end
     end
+
+    threads.each(&:join)
+
+  else
+    scripts.each do |script|
+      fork do
+        begin
+          load script
+        rescue Exception => e
+          STDERR.puts("#{script}: #{e}")
+        end
+      end
+    end
+
+    Process.waitall
   end
-  Process.waitall
 
   run_time = Time.now.to_i - start_time
   begin
@@ -103,5 +121,4 @@ loop do
   end
 
   sleep sleep_time
-  
 end

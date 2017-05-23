@@ -102,7 +102,7 @@ module Rubber
       retry_count = opts[:retry_count]
       begin
         yield
-      rescue *exception_list => e
+      rescue *exception_list
         if retry_count > 0
           retry_count -= 1
           Rubber.logger.info "Exception, trying again #{retry_count} more times"
@@ -117,6 +117,14 @@ module Rubber
 
     def camelcase(str)
       str.split('_').map{ |part| part.capitalize }.join
+    end
+
+    def is_instance_id?(str)
+      str =~ /^i-[a-z0-9]+$/
+    end
+
+    def is_internet_gateway_id?(str)
+      str =~ /^igw-[a-z0-9]+$/
     end
 
     extend self

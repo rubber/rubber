@@ -1,0 +1,22 @@
+<%
+  @path = "/lib/systemd/system/graphite-web.service"
+  @backup = false
+  @post = "systemctl daemon-reload"
+
+  is_old_ubuntu = rubber_instance.os_version == '14.04'
+  @skip = is_old_ubuntu
+%>
+
+[Unit]
+Description=graphite-web uwsgi daemon
+After=network.target
+
+[Service]
+Type=forking
+Environment=PID=/var/run/graphite-web.pid
+ExecStart=/usr/bin/uwsgi --ini /opt/graphite/conf/uwsgi.ini
+ExecStop=/usr/bin/pkill -F /var/run/graphite-web.pid
+ExecStopPost=/bin/rm /var/run/graphite-web.pid
+
+[Install]
+WantedBy=multi-user.target

@@ -39,7 +39,7 @@ namespace :rubber do
             end
             begin
               _wait_for_static_ip
-            rescue ConnectionError
+            rescue ConnectionError, IOError
               sleep 2
               logger.info "Failed to connect to static ip #{ip}, retrying"
               retry

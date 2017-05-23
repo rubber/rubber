@@ -38,8 +38,12 @@ namespace :rubber do
       if exists.strip.size == 0
 
         rubber.sudo_script 'bootstrap_redis', <<-ENDSCRIPT
-          mkdir -p #{rubber_env.redis_db_dir}
-          chown -R redis:redis #{rubber_env.redis_db_dir}
+          for d in #{rubber_env.redis_db_dir} /var/lib/redis /var/log/redis /var/run/redis; do
+            if [ ! -d $d ]; then
+              mkdir -p $d
+              chown -R redis:redis $d
+            fi
+          done
         ENDSCRIPT
 
         # After everything installed on machines, we need the source tree
@@ -55,12 +59,12 @@ namespace :rubber do
 
     desc "Stops the redis server"
     task :stop, :roles => :redis, :on_error => :continue do
-      rsudo "service redis-server stop || true"
+      rsudo "#{service_stop('redis-server')} || true"
     end
 
     desc "Starts the redis server"
     task :start, :roles => :redis do
-      rsudo "service redis-server start"
+      rsudo "#{service_status('redis-server')} || #{service_start('redis-server')}"
     end
 
     desc "Restarts the redis server"

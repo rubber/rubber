@@ -14,7 +14,7 @@ class UtilTest < Test::Unit::TestCase
     should "generate a key" do
       out = `#{@rubber} util:obfuscation -g`
       assert_equal 0, $?.exitstatus, "Process failed, output: #{out}"
-      assert_match /Obfuscation key: [^\n\s]+/, out
+      assert_match(/Obfuscation key: [^\n\s]+/, out)
     end
     
     should "encrypt and decrypt rubber-secret.yml" do
@@ -24,7 +24,7 @@ class UtilTest < Test::Unit::TestCase
       out = `#{@rubber} util:obfuscation -f '#{fixture_dir}/secret.yml' -k '#{@key}'`
       assert_equal 0, $?.exitstatus, "Process failed, output: #{out}"
       assert out.size > 0
-      assert_no_match /secret_key: secret_val/, out
+      assert_no_match(/secret_key: secret_val/, out)
       
       tempfile = Tempfile.new('encryptedsecret')
       open(tempfile.path, "w") {|f| f.write(out) }
@@ -32,7 +32,7 @@ class UtilTest < Test::Unit::TestCase
       out2 = `#{@rubber} util:obfuscation -f '#{tempfile.path}' -k '#{@key}' -d`
       assert_equal 0, $?.exitstatus, "Process failed, output: #{out2}"
       assert out2.size > 0
-      assert_match /secret_key: secret_val/, out2
+      assert_match(/secret_key: secret_val/, out2)
     end
 
   end

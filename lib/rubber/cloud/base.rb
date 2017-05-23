@@ -10,7 +10,7 @@ module Rubber
         @capistrano = capistrano
       end
 
-      def before_create_instance(instance_alias, role_names)
+      def before_create_instance(instance)
         # No-op by default.
       end
 
@@ -143,6 +143,10 @@ module Rubber
             source_ips = rule['source_ips']
 
             if protocol && source_ips
+              if source_ips.respond_to?(:split)
+                source_ips = source_ips.split(",").map(&:strip)
+              end
+
               source_ips.each do |source|
                 if from_port && to_port
                   if from_port != to_port
@@ -182,6 +186,10 @@ exit 0
         capistrano.put(iptables_save, '/etc/network/if-post-down.d/iptablessave', :mode => '+x', :hosts => instance.external_ip)
 
         capistrano.run_script('setup_firewall_rules', script, :hosts => instance.external_ip)
+      end
+
+      def setup_vpc
+        # No-op by default.
       end
 
       def describe_security_groups(group_name=nil)

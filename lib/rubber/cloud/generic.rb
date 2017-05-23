@@ -26,7 +26,7 @@ module Rubber
         'active'
       end
 
-      def create_instance(instance_alias, image_name, image_type, security_groups, availability_zone, region)
+      def create_instance(instance_alias, image_name, image_type, security_groups, availability_zone, region, fog_options={})
         instance = {}
         instance[:id] = instance_alias
         instance[:state] = active_state
@@ -35,7 +35,7 @@ module Rubber
         instance[:provider] = 'generic'
         instance[:platform] = Rubber::Platforms::LINUX
 
-        Generic.add_instance(instance)
+        Generic.add_instance(instance.merge(Rubber::Util.symbolize_keys(fog_options)))
 
         instance_alias
       end

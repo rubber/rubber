@@ -14,12 +14,12 @@ namespace :rubber do
 
     desc "Start monit daemon monitoring"
     task :start, :roles => :monit do
-      rsudo "service monit status || service monit start"
+      rsudo "#{service_status('monit')} || #{service_start('monit')}"
     end
     
     desc "Stop monit daemon monitoring"
     task :stop, :roles => :monit do
-      rsudo "service monit stop || true"
+      rsudo "#{service_stop('monit')} || true"
     end
     
     desc "Restart monit daemon monitoring"
@@ -33,6 +33,10 @@ namespace :rubber do
       rsudo "service monit status || true"
       rsudo "ps -eopid,user,fname | grep [m]onit || true"
       rsudo "netstat -tulpn | grep monit || true"
+    end
+
+    def use_systemd?
+      rubber_instance.os_version.split('.').first.to_i >= 16
     end
 
   end

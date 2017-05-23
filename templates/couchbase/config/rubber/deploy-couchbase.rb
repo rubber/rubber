@@ -81,12 +81,12 @@ namespace :rubber do
 
     desc "Stops the couchbase server"
     task :stop, :roles => :couchbase, :on_error => :continue do
-      rsudo "service couchbase-server stop || true"
+      rsudo "#{service_stop('couchbase-server')} || true"
     end
 
     desc "Starts the couchbase server"
     task :start, :roles => :couchbase do
-      rsudo "service couchbase-server status || service couchbase-server start"
+      rsudo "#{service_status('couchbase-server')} || #{service_start('couchbase-server')}"
     end
 
     desc "Restarts the couchbase server"

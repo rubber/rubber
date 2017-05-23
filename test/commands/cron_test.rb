@@ -25,8 +25,8 @@ class CronTest < Test::Unit::TestCase
     logs = Dir["#{@rubber_root}/log/*.log"]
     assert_equal 1, logs.size
     assert_equal "#{@rubber_root}/log/cron-sh-echo.log", logs.first
-    assert_match /rubber:cron running \["echo", "#{date}"\] at/, File.read(logs.first).strip
-    assert_match /\n#{date}$/, File.read(logs.first).strip
+    assert_match(/rubber:cron running \["echo", "#{date}"\] at/, File.read(logs.first).strip)
+    assert_match(/\n#{date}$/, File.read(logs.first).strip)
   end
   
   def test_rubber_cron_log_append
@@ -48,24 +48,24 @@ class CronTest < Test::Unit::TestCase
   
   def test_rubber_cron_logfile
     date = Time.now.tv_sec.to_s
-    out = `#{@rubber} cron -l #{@rubber_root}/log/foo.log -- echo #{date}`
+    `#{@rubber} cron -l #{@rubber_root}/log/foo.log -- echo #{date}`
     logs = Dir["#{@rubber_root}/log/*.log"]
     assert_equal 1, logs.size
     assert_equal "#{@rubber_root}/log/foo.log", logs.first
-    assert_match /\n#{date}$/, File.read(logs.first).strip
+    assert_match(/\n#{date}$/, File.read(logs.first).strip)
   end
   
   def test_rubber_cron_task_logfile
     date = Time.now.tv_sec.to_s
-    out = `#{@rubber} cron --task -- cron -o -- echo #{date}`
+    `#{@rubber} cron --task -- cron -o -- echo #{date}`
     logs = Dir["#{@rubber_root}/log/cron-task*.log"]
     assert_equal 1, logs.size
-    assert_match /\n#{date}$/, File.read(logs.first).strip
+    assert_match(/\n#{date}$/, File.read(logs.first).strip)
   end
   
   def test_rubber_cron_directory_changed
     out = `#{@rubber} cron -o -r /tmp -- pwd`
-    assert_match /(\/private)?\/tmp/, out, "Unexpected output:\n#{out}"
+    assert_match(/(\/private)?\/tmp/, out, "Unexpected output:\n#{out}")
   end
   
   def test_rubber_cron_output_empty

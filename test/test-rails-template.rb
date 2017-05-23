@@ -53,7 +53,7 @@ run "cp -f #{secret} config/rubber/rubber-secret.yml"
 chmod 'config/rubber/rubber-secret.yml', 0644
 gsub_file 'config/rubber/rubber-secret.yml', /dns_provider: .*/, ''
 
-run "vagrant init precise32 http://files.vagrantup.com/precise32.box"
+run "vagrant init ubuntu/trusty64"
 vagrantfile = <<-EOS
   config.vm.define :vagrant do |vagrant|
     vagrant.vm.network :private_network, ip: "192.168.70.10"

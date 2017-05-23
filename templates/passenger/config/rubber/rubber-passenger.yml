@@ -1,4 +1,4 @@
-passenger_version: '1:4.0.53-1~`lsb_release -sc`1'
+passenger_version: '1:5.1.1-1~`lsb_release -sc`1'
 passenger_ruby: "#{ruby_path}/bin/ruby"
 passenger_listen_port: 7000
 passenger_listen_ssl_port: 7001
@@ -9,7 +9,9 @@ role_dependencies:
 
 roles:
   passenger:
-    packages: [apache2-mpm-prefork, apache2-prefork-dev, libcurl4-openssl-dev, libapache2-mod-xsendfile, [libapache2-mod-passenger, "#{passenger_version}"]]
+    packages: [libapache2-mod-xsendfile, libapache2-mod-passenger]
+    os_packages:
+      '14.04': [apache2-mpm-prefork]
     rolling_restart_port: "#{passenger_listen_port}"
 
   web_tools:

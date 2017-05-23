@@ -29,7 +29,7 @@ module Rubber
         super(env, capistrano)
       end
 
-      def create_instance(instance_alias, image_name, image_type, security_groups, availability_zone, datacenter)
+      def create_instance(instance_alias, image_name, image_type, security_groups, availability_zone, datacenter, fog_options={})
         if env.domain.nil?
           raise "'domain' value must be configured"
         end
@@ -87,8 +87,8 @@ module Rubber
         # just start fresh and guarantee everything works as intended.
         server.interfaces.each(&:destroy)
 
-        server.interfaces.create(:network => env.public_network_name) if host_env.public_nic
-        server.interfaces.create(:network => env.private_network_name) if host_env.private_nic
+        server.interfaces.create(:network => env.public_network_name, :type => 'VirtualVmxnet3') if host_env.public_nic
+        server.interfaces.create(:network => env.private_network_name, :type => 'VirtualVmxnet3') if host_env.private_nic
 
         vm_ref = compute_provider.send(:get_vm_ref, server.id)
         vm_ref.CustomizeVM_Task(:spec => customization_spec(instance_alias, nics))
@@ -199,7 +199,8 @@ module Rubber
           config[:eager_zero] = eager_zero
         end
 
-        volume = server.volumes.create(config)
+        fog_options = Rubber::Util.symbolize_keys(volume_spec['fog_options'] || {})
+        volume = server.volumes.create(config.merge(fog_options))
 
         volume.id
       end

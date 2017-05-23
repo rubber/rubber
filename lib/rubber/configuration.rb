@@ -5,15 +5,20 @@ require 'rubber/generator'
 
 module Rubber
   module Configuration
+    extend MonitorMixin
 
     @@configurations = {}
 
     def self.get_configuration(env=nil, root=nil)
       key = "#{env}-#{root}"
-      unless @@configurations[key]
-        @@configurations[key] = ConfigHolder.new(env, root)
-        @@configurations[key].load()
+
+      synchronize do
+        unless @@configurations[key]
+          @@configurations[key] = ConfigHolder.new(env, root)
+          @@configurations[key].load()
+        end
       end
+
       return @@configurations[key]
     end
 
@@ -28,6 +33,12 @@ module Rubber
     def self.rubber_instances
       raise "This convenience method needs Rubber.env to be set" unless Rubber.env
       Rubber::Configuration.get_configuration(Rubber.env).instance
+    end
+
+    def self.reset
+      synchronize do
+        @@configurations.clear
+      end
     end
 
     class ConfigHolder

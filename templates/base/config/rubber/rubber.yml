@@ -28,7 +28,7 @@ domain: foo.com
 # OPTIONAL: Additional rubber file to pull config from if it exists.  This file will
 # also be pushed to remote host at Rubber.root/config/rubber/rubber-secret.yml
 #
-# rubber_secret: "#{File.expand_path('~') + '/.ec2' + (Rubber.env == 'production' ? '' : '_dev') + '/rubber-secret.yml' rescue ''}"
+# rubber_secret: "#{File.expand_path('~') + '/.ec2' + (Rubber.env == 'production' ? '' : '_dev') + '/rubber-secret.yml' rescue 'rubber-secret.yml'}"
 
 # OPTIONAL: Encryption key that was used to obfuscate the contents of rubber-secret.yml with "rubber util:obfuscation" 
 # Not that much better when stored in here, but you could use a ruby snippet in here to fetch it from a key server or something
@@ -81,13 +81,55 @@ cloud_providers:
     # OPTIONAL: Needed for backing up database to s3
     # backup_bucket: "#{app_name}-backups"
 
+    # OPTIONAL: Define a VPC to deploy to. The alias can be thought of as a
+    # unique Rubber-specific Id.  If vpc_alias and vpc_addr are absent, Rubber
+    # will instead assume we're deploying to EC2 Classic
+    # vpc_alias: "#{app_name}_#{Rubber.env == 'production' ? 'production' : 'development'}"
+    # vpc_cidr: 10.0.0.0/16
+
+    # VPCs will typically have two subnets - one for instances that need a
+    # direct internet connection (load balancers, etc.), and one for instances
+    # that don't (database servers, app servers, etc.).  At the very least,
+    # we'll need a public subnet.  Rubber will detect the instance's private_nic
+    # configuration, and auto-create a subnet if appropriate.  Any instances on
+    # the public subnet will need the following configuration.  It is also
+    # important to note that AWS VPC Subnets are availability zone-specific,
+    # meaning you probably want to specify an availability zone for your
+    # instance.  You will also have to specify a different subnet_cidr for each
+    # availability zone, since subnets cannot overlap.
+    # private_nic:
+    #   subnet_cidr: '10.0.0.0/24'
+    #   gateway: public
+
+    # For a private subnet, you will need to configure a nat_gateway instance in
+    # the public subnet so that machines can still reach the outside world for
+    # things like software updates.  After configuring a NAT gateway, you can
+    # set up a separate private subnet.  You will also need to set your :gateway
+    # Capistrano configuration value to the full hostname of the nat gateway in
+    # order to communicate with instances on private subnets.  Instances which
+    # are on a private subnet will need the following configuration
+    #  private_nic:
+    #    subnet_cidr: '10.0.1.0/24'
+    #    gateway: "#{rubber_instances.for_role('nat_gateway').first.instance_id}"
+
     # REQUIRED: the ami and instance type for creating instances
-    # The Ubuntu images at http://alestic.com/ work well
-    # Ubuntu 14.04.1 Trusty instance-store 64-bit: ami-90c574f8
+    # The Ubuntu images at http://old.alestic.com/ work well
+    # Ubuntu 14.04.1 Trusty instance-store 64-bit: ami-92f569fa
     #
     # m1.small or m1.large or m1.xlarge
     image_type: c1.medium
-    image_id: ami-90c574f8
+    image_id: ami-92f569fa
+
+    # OPTIONAL: Provide fog-specific options directly.  This should only be used if you need a special setting that
+    # Rubber does not directly expose.  Since these settings will be passed directly through to fog, we can't make any
+    # guarantee about how they work (if fog renames an attribute, e.g., your config will break).  Please see the fog
+    # source code for the option names.
+    # fog_options:
+      # EBS I/O optimized instance
+      # EBS-optimized instances deliver dedicated throughput between Amazon EC2 and Amazon EBS, with options
+      # between 500 Mbps and 1000 Mbps depending on the instance type used.
+      # Read more and make sure that your image_type supports ebs_optimized function at: http://aws.amazon.com/ec2/instance-types/
+      # ebs_optimized: false
 
     # OPTIONAL: EC2 spot instance request support.
     #
@@ -117,8 +159,10 @@ cloud_providers:
     # Default to New York 2 since this is the only region that currently supports private networking
     region: New York 2
 
-    # REQUIRED: The image name and type for creating instances.
-    image_id: Ubuntu 14.04 x64
+    # REQUIRED: The image name and type for creating instances. The image name can be the image ID, slug, or name. We
+    # can provide faster lookups for the image ID or slug, but they're not exposed in DigitalOcean's UI. Providing an
+    # image name will work, but may require additional API calls due to some limitations in DigitalOcean's API.
+    image_id: ubuntu-16-04-x64
     image_type: 512MB
 
     # Optionally enable private networking for your instances.
@@ -275,8 +319,8 @@ os_version_cmd: 'lsb_release -sr'
 
 # OPTIONAL: The gems to install on all instances
 # You can install a specific version of a gem by using a sub-array of gem, version
-# For example, gem: [[rails, 2.2.2], open4, aws-s3]
-gems: [open4, aws-s3, bundler, [rubber, "#{Rubber.version}"]]
+# For example, gem: [[rails, 4.2.1], bundler]
+gems: [bundler, [rubber, "#{Rubber.version}"]]
 
 # OPTIONAL: A string prepended to shell command strings that cause multi
 # statement shell commands to fail fast.  You may need to comment this out
@@ -324,21 +368,39 @@ staging_roles: "#{known_roles.reject {|r| r =~ /slave/ || r =~ /^db$/ }.join(','
 #         zone: us-east-1a # zone to create volume in, needs to match host's zone
 #         device: /dev/sdh # OS device to attach volume to
 #         mount: /mnt/mysql # The directory to mount this volume to
-#         filesystem: ext3 # the filesystem to create on volume
-#       - size: 10 # size of vol in GBs
-#         zone: us-east-1a # zone to create volume in, needs to match host's zone
-#         device: /dev/sdi # OS device to attach volume to
-#         mount: /mnt/logs # The directory to mount this volume to
-#         filesystem: ext3 # the filesystem to create on volume
+#         filesystem: ext4 # the filesystem to create on volume
+#
+#         # OPTIONAL: Provide fog-specific options directly.  This should only be used if you need a special setting that
+#         # Rubber does not directly expose.  Since these settings will be passed directly through to fog, we can't make any
+#         # guarantee about how they work (if fog renames an attribute, e.g., your config will break).  Please see the fog
+#         # source code for the option names.
+#         fog_options:
+#           type: gp2 # type of volume, standard (EBS magnetic), io1 (provisioned IOPS - SSD), or gp2 (general purpose - SSD).
+#           iops: 500 # The number of I/O operations per second (IOPS) that the volume supports.
+#                     # Required when the volume type is io1; not used with non-provisioned IOPS volumes.
+#       - size: 10
+#         zone: us-east-1a
+#         device: /dev/sdi
+#         mount: /mnt/logs
+#         filesystem: ext4
+#         fog_options:
+#           type: io1
+#           iops: 500
 #
 #       # volumes without mount/filesystem can be used in raid arrays
 #
-#       - size: 50 # size of vol in GBs
-#         zone: us-east-1a # zone to create volume in, needs to match host's zone
-#         device: /dev/sdx # OS device to attach volume to
-#       - size: 50 # size of vol in GBs
-#         zone: us-east-1a # zone to create volume in, needs to match host's zone
-#         device: /dev/sdy # OS device to attach volume to
+#       - size: 50
+#         zone: us-east-1a
+#         device: /dev/sdx
+#         fog_options:
+#           type: gp2
+#           iops: 500
+#       - size: 50
+#         zone: us-east-1a
+#         device: /dev/sdy
+#         fog_options:
+#           type: gp2
+#           iops: 500
 #
 #    # Use some ephemeral volumes for raid array
 #    local_volumes:

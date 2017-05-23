@@ -24,7 +24,7 @@ namespace :rubber do
           # Set up libraries for graylog logger.
           mkdir -p #{rubber_env.torquebox_dir}/jboss/modules/org/graylog2/logging/main
           wget -qNO "#{rubber_env.torquebox_dir}/jboss/modules/org/graylog2/logging/main/gelfj-1.0.1.jar" https://github.com/downloads/t0xa/gelfj/gelfj-1.0.1.jar
-          wget -qNO "#{rubber_env.torquebox_dir}/jboss/modules/org/graylog2/logging/main/json-simple-1.1.1.jar" http://json-simple.googlecode.com/files/json-simple-1.1.1.jar
+          wget -qNO "#{rubber_env.torquebox_dir}/jboss/modules/org/graylog2/logging/main/json-simple-1.1.1.jar" http://central.maven.org/maven2/com/googlecode/json-simple/json-simple/1.1.1/json-simple-1.1.1.jar
 
           # Cleanup after ourselves.
           rm torquebox-dist-#{rubber_env.torquebox_version}-bin.zip
@@ -37,15 +37,24 @@ namespace :rubber do
     task :install_mod_cluster, :roles => :app do
       rubber.sudo_script 'install_mod_cluster', <<-ENDSCRIPT
         if [[ ! -f /usr/lib/apache2/modules/mod_proxy_cluster.so ]]; then
-          wget -q http://downloads.jboss.org/mod_cluster/#{rubber_env.mod_cluster_version}.Final/mod_cluster-#{rubber_env.mod_cluster_version}.Final-linux2-x64-so.tar.gz
-          tar -zxf mod_cluster-#{rubber_env.mod_cluster_version}.Final-linux2-x64-so.tar.gz
+          wget -q https://github.com/modcluster/mod_cluster/archive/#{rubber_env.mod_cluster_version}.Final.tar.gz
+          tar -zxf #{rubber_env.mod_cluster_version}.Final.tar.gz
 
-          # Install to appropriate locations
-          chmod 644 mod_*.so
-          mv mod_*.so /usr/lib/apache2/modules/
+          # Build & install the modules.
+          pushd mod_cluster-#{rubber_env.mod_cluster_version}.Final/native
+          for d in advertise mod_cluster_slotmem mod_manager mod_proxy_cluster; do
+            pushd $d
+            ./buildconf
+            ./configure --with-apxs=/usr/bin/apxs2
+            make
+            chmod 644 mod_*.so
+            mv mod_*.so /usr/lib/apache2/modules/
+            popd
+          done
 
           # Cleanup after ourselves.
-          rm mod_cluster-#{rubber_env.mod_cluster_version}.Final-linux2-x64-so.tar.gz
+          popd
+          rm #{rubber_env.mod_cluster_version}.Final.tar.gz
         fi
       ENDSCRIPT
     end
@@ -55,7 +64,7 @@ namespace :rubber do
     on :load do
       rubber.serial_task self, :serial_reload, :roles => [:torquebox] do
         rsudo "touch #{jboss_home}/standalone/deployments/#{application}-knob.yml.dodeploy"
-        rsudo "if ! ps ax | grep -v grep | grep -c torque &> /dev/null; then service torquebox start; fi"
+        rsudo "if ! ps ax | grep -v grep | grep -c torque &> /dev/null; then #{service_start('torquebox')}; fi"
 
         # Wait for TorqueBox to startup before moving on so we don't remove all hosts from the cluster.
         logger.info "Waiting for TorqueBox to deploy"
@@ -98,11 +107,11 @@ namespace :rubber do
     end
 
     task :stop, :roles => :torquebox do
-      rsudo "service torquebox stop || true"
+      rsudo "#{service_stop('torquebox')} || true"
     end
 
     task :start, :roles => :torquebox do
-      rsudo "service torquebox start"
+      rsudo "#{service_status('torquebox')} || #{service_start('torquebox')}"
     end
 
     desc "Reloads the apache web server"

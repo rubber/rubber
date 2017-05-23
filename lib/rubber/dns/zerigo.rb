@@ -1,5 +1,5 @@
 require 'rubygems'
-require 'fog'
+require 'fog/core'
 
 module Rubber
   module Dns
