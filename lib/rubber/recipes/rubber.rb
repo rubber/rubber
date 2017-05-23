@@ -92,6 +92,8 @@ namespace :rubber do
     else
       if cloud.env.key_file.nil?
         fatal "Missing required cloud provider configuration item 'key_file'."
+      elsif cloud.env.key_file.strip.empty?
+        fatal "Empty path supplied for required cloud provider configuration item 'key_file'."
       else
         cloud.env.key_file
       end
@@ -107,7 +109,7 @@ namespace :rubber do
 
     # Check that the configuration not only exists, but is also valid.
     normalized_ssh_keys.each do |key|
-      unless File.exists?(File.expand_path(key))
+      unless File.exist?(File.expand_path(key))
         fatal "Invalid SSH key path '#{key}': File does not exist.\nPlease check your cloud provider's 'key_file' setting for correctness."
       end
     end
@@ -121,6 +123,15 @@ namespace :rubber do
     # auth_methods are used, so we're best off using that unless the methods have already been set explicitly by
     # the Rubber user elsewhere.
     ssh_options[:auth_methods] = nil unless ssh_options.has_key?(:auth_methods)
+
+    # Starting with net-ssh 2.9.2, net-ssh will block on a password prompt if a nil password is supplied.  This
+    # breaks our discovery and retry logic.  To return to the old behavior, we can set set the number of password
+    # prompts to 0.  We handle password prompts directly ourselves, using Capistrano's helpers, so this is a
+    # safe thing to do.
+    ssh_options[:number_of_password_prompts] = 0
+
+    # Set the net-ssh log level.
+    ssh_options[:verbose] = fetch(:ssh_log_level, :warn)
   end
 
 

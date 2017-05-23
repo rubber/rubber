@@ -34,11 +34,11 @@ namespace :rubber do
     end
 
     task :start, :roles => :elasticsearch do
-      rsudo "service elasticsearch start"
+      rsudo "#{service_status('elasticsearch')} || #{service_start('elasticsearch')}"
     end
 
     task :stop, :roles => :elasticsearch do
-      rsudo "service elasticsearch stop || true"
+      rsudo "#{service_stop('elasticsearch')} || true"
     end
 
     task :restart, :roles => :elasticsearch do

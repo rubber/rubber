@@ -3,7 +3,7 @@
 # !!!IMPORTANT!!! add the following lines inside your application.rb class:
 #
 # dalli_config = Rails.root.join('config','dalli.rb')
-# if File.exists?(dalli_config)
+# if File.exist?(dalli_config)
 #   require dalli_config; include ::Rubber::Dalli::Config
 # end
 

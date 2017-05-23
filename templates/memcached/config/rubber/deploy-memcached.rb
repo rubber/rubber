@@ -5,12 +5,12 @@ namespace :rubber do
 
     desc "Starts memcached shared memory"
     task :start, :roles => :memcached do
-      rsudo "service memcached status || service memcached start"
+      rsudo "#{service_status('memcached')} || #{service_start('memcached')}"
     end
 
     desc "Stops memcached shared memory"
     task :stop, :roles => :memcached do
-      rsudo "service memcached stop || true"
+      rsudo "#{service_stop('memcached')} || true"
     end
 
     desc "Restarts memcached shared memory"

@@ -1,4 +1,4 @@
-require 'fog'
+require 'fog/core'
 require 'rubber/cloud/fog_storage'
 
 module Rubber
@@ -29,19 +29,21 @@ module Rubber
         raise NotImplementedError, "No table store available for generic fog adapter"
       end
 
-      def create_instance(instance_alias, ami, ami_type, security_groups, availability_zone, region)
-        response = compute_provider.servers.create(:image_id => ami,
+      def create_instance(instance_alias, ami, ami_type, security_groups, availability_zone, region, fog_options={})
+
+        response = compute_provider.servers.create({:image_id => ami,
                                                    :flavor_id => ami_type,
                                                    :groups => security_groups,
                                                    :availability_zone => availability_zone,
                                                    :key_name => env.key_name,
-                                                   :name => instance_alias)
+                                                   :name => instance_alias}.merge(
+                                                       Rubber::Util.symbolize_keys(fog_options)))
 
         response.id
       end
 
       def destroy_instance(instance_id)
-        response = compute_provider.servers.get(instance_id).destroy()
+        compute_provider.servers.get(instance_id).destroy
       end
 
       def destroy_spot_instance_request(request_id)
@@ -49,7 +51,7 @@ module Rubber
       end
   
       def reboot_instance(instance_id)
-        compute_provider.servers.get(instance_id).reboot()
+        compute_provider.servers.get(instance_id).reboot
       end
 
       def stop_instance(instance, force=false)
@@ -58,11 +60,11 @@ module Rubber
       end
 
       def start_instance(instance)
-        compute_provider.servers.get(instance.instance_id).start()
+        compute_provider.servers.get(instance.instance_id).start
       end
 
       def create_static_ip
-        address = compute_provider.addresses.create()
+        address = compute_provider.addresses.create
 
         address.public_ip
       end

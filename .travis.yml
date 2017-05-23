@@ -1,55 +1,26 @@
 language: ruby
-
-gemfile:
-  - Gemfile
-  - Gemfile.1.8.7
+sudo: false
+cache: bundler
 
 rvm:
-  - 1.8.7
-  - 1.9.2
-  - 1.9.3
-  - 2.0.0
   - 2.1
+  - 2.2
+  - 2.3.3
+  - 2.4.0
   - ruby-head
-  - jruby-18mode
-  - jruby-19mode
+  - jruby-9.1.6.0
   - jruby-head
-  - rbx-2
 
 matrix:
-  exclude:
-    - rvm: 1.8.7
-      gemfile: Gemfile
-    - rvm: 1.9.2
-      gemfile: Gemfile.1.8.7
-    - rvm: 1.9.3
-      gemfile: Gemfile.1.8.7
-    - rvm: 2.0.0
-      gemfile: Gemfile.1.8.7
-    - rvm: 2.1
-      gemfile: Gemfile.1.8.7
-    - rvm: ruby-head
-      gemfile: Gemfile.1.8.7
-    - rvm: jruby-18mode
-      gemfile: Gemfile
-    - rvm: jruby-19mode
-      gemfile: Gemfile.1.8.7
-    - rvm: jruby-head
-      gemfile: Gemfile.1.8.7
-    - rvm: rbx-2
-      gemfile: Gemfile.1.8.7
-
   allow_failures:
-    - rvm: rbx-2
-    - rvm: 1.8.7
-    - rvm: jruby-18mode
-    - rvm: jruby-head
     - rvm: ruby-head
+    - rvm: jruby-head
+    - rvm: jruby-9.1.6.0
+
+before_install:
+  - gem install bundler
 
 # script: bundle exec rspec spec
-env:
-  global:
-    - JAVA_OPTS="-server -Djruby.cext.enabled=false -Djruby.compile.invokedynamic=false"
 
 notifications:
   irc: "irc.freenode.net#rubber"

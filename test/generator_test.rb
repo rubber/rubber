@@ -40,7 +40,7 @@ class GeneratorTest < Test::Unit::TestCase
     SRC
 
     Generator.new(nil, nil, nil).transform(src)
-    assert File.exists?(out_file.path), "transform did not generate an output file"
+    assert File.exist?(out_file.path), "transform did not generate an output file"
     assert_equal "hello", File.read(out_file.path).strip, "transformed contents are incorrect"
   end
 
@@ -56,13 +56,13 @@ class GeneratorTest < Test::Unit::TestCase
     SRC
 
     Generator.new(nil, nil, nil).transform(src)
-    assert File.exists?(out_file.path), "transform did not generate an output file"
+    assert File.exist?(out_file.path), "transform did not generate an output file"
     assert_equal "howdy\n#start      \n      hello\n#end", File.read(out_file.path).strip, "transformed contents are incorrect"
 
     src += "neato\n"
     open(out_file.path, 'a') { |f| f.write("again\n")}
     Generator.new(nil, nil, nil).transform(src)
-    assert File.exists?(out_file.path), "transform did not generate an output file"
+    assert File.exist?(out_file.path), "transform did not generate an output file"
     assert_equal "howdy\n#start      \n      hello\nneato\n#end\nagain", File.read(out_file.path).strip, "transformed contents are incorrect"
   end
 
@@ -78,37 +78,37 @@ class GeneratorTest < Test::Unit::TestCase
     SRC
 
     Generator.new(nil, nil, nil).transform(src)
-    assert File.exists?(out_file.path), "transform did not generate an output file"
-    assert File.exists?(post_file), "transform did not execute post"
+    assert File.exist?(out_file.path), "transform did not generate an output file"
+    assert File.exist?(post_file), "transform did not execute post"
     assert_equal "hello", File.read(out_file.path).strip, "transformed contents are incorrect"
 
     FileUtils.rm_f(post_file)
     Generator.new(nil, nil, nil).transform(src)
-    assert File.exists?(out_file.path), "transform did not generate an output file"
-    assert ! File.exists?(post_file), "post should not have been executed as dest file unchanged"
+    assert File.exist?(out_file.path), "transform did not generate an output file"
+    assert ! File.exist?(post_file), "post should not have been executed as dest file unchanged"
     assert_equal "hello", File.read(out_file.path).strip, "transformed contents are incorrect"
 
     FileUtils.rm_f(post_file)
     gen = Generator.new(nil, nil, nil)
     gen.force = true
     gen.transform(src)
-    assert File.exists?(out_file.path), "transform did not generate an output file"
-    assert File.exists?(post_file), "forced transform did not execute post"
+    assert File.exist?(out_file.path), "transform did not generate an output file"
+    assert File.exist?(post_file), "forced transform did not execute post"
     assert_equal "hello", File.read(out_file.path).strip, "transformed contents are incorrect"
 
     FileUtils.rm_f(post_file)
     gen = Generator.new(nil, nil, nil)
     gen.no_post = true
     gen.transform(src + "there")
-    assert File.exists?(out_file.path), "transform did not generate an output file"
-    assert ! File.exists?(post_file), "post should not have been generated for no_post option"
+    assert File.exist?(out_file.path), "transform did not generate an output file"
+    assert ! File.exist?(post_file), "post should not have been generated for no_post option"
     assert_equal "hello\nthere", File.read(out_file.path).strip, "transformed contents are incorrect"
   end
 
   def test_delayed_post_command
     out_dir = "#{Dir::tmpdir}/test_rubber_delayed_post"
     FileUtils.rm_rf(out_dir)
-    assert ! File.exists?(out_dir)
+    assert ! File.exist?(out_dir)
 
     g = Generator.new("#{File.dirname(__FILE__)}/fixtures/basic", nil, nil, :out_dir => out_dir)
 
@@ -142,20 +142,20 @@ class GeneratorTest < Test::Unit::TestCase
     g.transform(src2)
     g.transform(src3)
 
-    assert File.exists?("#{out_dir}/src1"), "transform did not generate an output file"
-    assert ! File.exists?(post_file), "transform executed delayed post early"
+    assert File.exist?("#{out_dir}/src1"), "transform did not generate an output file"
+    assert ! File.exist?(post_file), "transform executed delayed post early"
     assert_equal "contents1", File.read("#{out_dir}/src1").strip, "transformed contents are incorrect"
 
-    assert File.exists?("#{out_dir}/src2"), "transform did not generate an output file"
-    assert ! File.exists?(post_file), "transform executed delayed post early"
+    assert File.exist?("#{out_dir}/src2"), "transform did not generate an output file"
+    assert ! File.exist?(post_file), "transform executed delayed post early"
     assert_equal "contents2", File.read("#{out_dir}/src2").strip, "transformed contents are incorrect"
 
-    assert File.exists?("#{out_dir}/src3"), "transform did not generate an output file"
-    assert ! File.exists?(post_file), "transform executed delayed post early"
+    assert File.exist?("#{out_dir}/src3"), "transform did not generate an output file"
+    assert ! File.exist?(post_file), "transform executed delayed post early"
     assert_equal "contents3", File.read("#{out_dir}/src3").strip, "transformed contents are incorrect"
 
     g.run()
-    assert File.exists?(post_file), "delayed post was not executed"
+    assert File.exist?(post_file), "delayed post was not executed"
     assert_equal 2, File.read(post_file).lines.to_a.size, "delayed post was not de-duped"
   end
 
@@ -172,16 +172,16 @@ class GeneratorTest < Test::Unit::TestCase
 
     g = Generator.new(nil, nil, nil)
     g.transform(src)
-    assert File.exists?(out_file.path), "transform did not generate an output file"
-    assert File.exists?(post_file), "transform did not execute post"
+    assert File.exist?(out_file.path), "transform did not generate an output file"
+    assert File.exist?(post_file), "transform did not execute post"
     assert_equal "hello", File.read(out_file.path).strip, "transformed contents are incorrect"
 
     FileUtils.rm_f(post_file)
     g = Generator.new(nil, nil, nil)
     g.stop_on_error_cmd = "function error_exit { exit 99; }; trap error_exit ERR"
     g.transform(src)
-    assert File.exists?(out_file.path), "transform did not generate an output file"
-    assert ! File.exists?(post_file), "post should not have been executed as comes after error"
+    assert File.exist?(out_file.path), "transform did not generate an output file"
+    assert ! File.exist?(post_file), "post should not have been executed as comes after error"
   end
 
   def test_pipe_command
@@ -195,7 +195,7 @@ class GeneratorTest < Test::Unit::TestCase
     SRC
 
     Generator.new(nil, nil, nil).transform(src)
-    assert File.exists?(out_file.path), "transform did not generate to write_cmd"
+    assert File.exist?(out_file.path), "transform did not generate to write_cmd"
     assert_equal "hello", File.read(out_file.path).strip, "transformed contents are incorrect"
 
     FileUtils.rm_f(out_file.path)
@@ -209,7 +209,7 @@ class GeneratorTest < Test::Unit::TestCase
     SRC
 
     Generator.new(nil, nil, nil).transform(src)
-    assert File.exists?(out_file.path), "transform did not generate to write_cmd"
+    assert File.exist?(out_file.path), "transform did not generate to write_cmd"
     assert_equal "hi\n#start      \n      hello\n#end", File.read(out_file.path).strip, "transformed contents are incorrect"
 
     FileUtils.rm_f(out_file.path)
@@ -223,7 +223,7 @@ class GeneratorTest < Test::Unit::TestCase
     SRC
 
     Generator.new(nil, nil, nil).transform(src)
-    assert File.exists?(out_file.path), "transform did not generate to write_cmd"
+    assert File.exist?(out_file.path), "transform did not generate to write_cmd"
     assert_equal "#start      \n      hello\n#end\nhi", File.read(out_file.path).strip, "transformed contents are incorrect"
     
     FileUtils.rm_f(out_file.path)
@@ -249,7 +249,7 @@ class GeneratorTest < Test::Unit::TestCase
   def test_scoping
     out_dir = "#{Dir::tmpdir}/test_rubber_scoping"
     FileUtils.rm_rf(out_dir)
-    assert ! File.exists?(out_dir)
+    assert ! File.exist?(out_dir)
 
     g = Generator.new("#{File.dirname(__FILE__)}/fixtures/basic", nil, nil, :out_dir => out_dir)
     g.run()
@@ -259,7 +259,7 @@ class GeneratorTest < Test::Unit::TestCase
     assert_equal "common", File.read("#{out_dir}/bar.conf").strip, "transformed contents are incorrect"
 
     FileUtils.rm_rf(out_dir)
-    assert ! File.exists?(out_dir)
+    assert ! File.exist?(out_dir)
 
     g = Generator.new("#{File.dirname(__FILE__)}/fixtures/basic", ['role1'], nil, :out_dir => out_dir)
     g.run()
@@ -269,7 +269,7 @@ class GeneratorTest < Test::Unit::TestCase
     assert_equal "common", File.read("#{out_dir}/bar.conf").strip, "transformed contents are incorrect"
 
     FileUtils.rm_rf(out_dir)
-    assert ! File.exists?(out_dir)
+    assert ! File.exist?(out_dir)
 
     g = Generator.new("#{File.dirname(__FILE__)}/fixtures/basic", ['role2', 'role1'], nil, :out_dir => out_dir)
     g.run()
@@ -279,7 +279,7 @@ class GeneratorTest < Test::Unit::TestCase
     assert_equal "common", File.read("#{out_dir}/bar.conf").strip, "transformed contents are incorrect"
 
     FileUtils.rm_rf(out_dir)
-    assert ! File.exists?(out_dir)
+    assert ! File.exist?(out_dir)
 
     g = Generator.new("#{File.dirname(__FILE__)}/fixtures/basic", ['role1'], 'host1', :out_dir => out_dir)
     g.run()
@@ -295,7 +295,7 @@ class GeneratorTest < Test::Unit::TestCase
   def test_ordering_of_additive
     out_dir = "#{Dir::tmpdir}/test_rubber_ordering"
     FileUtils.rm_rf(out_dir)
-    assert ! File.exists?(out_dir)
+    assert ! File.exist?(out_dir)
     
     g = Generator.new("#{File.dirname(__FILE__)}/fixtures/generator_order", ['role2', 'role1'], 'host1', :out_dir => out_dir)
     g.run()
@@ -332,10 +332,10 @@ DATA
     FileUtils.rm_rf(out_dir)
   end
 
-def test_file_pattern
+  def test_file_pattern
     out_dir = "#{Dir::tmpdir}/test_rubber_scoping"
     FileUtils.rm_rf(out_dir)
-    assert ! File.exists?(out_dir)
+    assert ! File.exist?(out_dir)
 
     g = Generator.new("#{File.dirname(__FILE__)}/fixtures/basic", nil, nil, :out_dir => out_dir)
     g.file_pattern = 'foo\.conf'
@@ -360,7 +360,7 @@ def test_file_pattern
     SRC
 
     Generator.new(nil, nil, nil).transform(src)
-    assert File.exists?(out_file.path), "transform did not generate an output file"
+    assert File.exist?(out_file.path), "transform did not generate an output file"
     assert_equal "100777", sprintf("%o", File.stat(out_file.path).mode), "transformed permissions are incorrect"
     assert_equal Etc.getpwnam(user).uid, File.stat(out_file.path).uid, "transformed owner is incorrect"
     assert_equal Etc.getgrnam(group).gid,  File.stat(out_file.path).gid, "transformed group is incorrect"
@@ -378,12 +378,12 @@ def test_file_pattern
     SRC
 
     Generator.new(nil, nil, nil).transform(src)
-    assert ! File.exists?(out_file.path), "transform didn't skip generation of an output file"
+    assert ! File.exist?(out_file.path), "transform didn't skip generation of an output file"
   end
 
   def test_backup
     out_file = Tempfile.new('testbak')
-    assert ! File.exists?("#{out_file.path}.bak")
+    assert ! File.exist?("#{out_file.path}.bak")
     File.open(out_file.path, 'w') {|f| f.write("howdy")}
     
     src = <<-SRC
@@ -395,13 +395,13 @@ def test_file_pattern
 
     Generator.new(nil, nil, nil).transform(src)
 
-    assert File.exists?("#{out_file.path}.bak"), "transform didn't generate backup"
-    assert_match /howdy/, File.read("#{out_file.path}.bak"), "transform backup has wrong contents"
+    assert File.exist?("#{out_file.path}.bak"), "transform didn't generate backup"
+    assert_match(/howdy/, File.read("#{out_file.path}.bak"), "transform backup has wrong contents")
   end
 
   def test_no_backup
     out_file = Tempfile.new('testnobak')
-    assert ! File.exists?("#{out_file.path}.bak")
+    assert ! File.exist?("#{out_file.path}.bak")
     File.open(out_file.path, 'w') {|f| f.write("howdy")}
     src = <<-SRC
       <%
@@ -413,7 +413,7 @@ def test_file_pattern
 
     Generator.new(nil, nil, nil).transform(src)
 
-    assert ! File.exists?("#{out_file.path}.bak"), "transform shouldn't generate backup"
+    assert ! File.exist?("#{out_file.path}.bak"), "transform shouldn't generate backup"
   end
 
 end

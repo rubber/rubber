@@ -29,21 +29,21 @@ namespace :rubber do
       Starts the mysql proxy daemon
     DESC
     task :start do
-      rsudo "service mysql-proxy start"
+      rsudo "#{service_status('mysql-proxy')} || #{service_start('mysql-proxy')}"
     end
     
     desc <<-DESC
       Stops the mysql proxy daemon
     DESC
     task :stop do
-      rsudo "service mysql-proxy stop"
+      rsudo "#{service_stop('mysql-proxy')} || true"
     end
     
     desc <<-DESC
       Restarts the mysql proxy daemon
     DESC
     task :restart do
-      rsudo "service mysql-proxy restart"
+      rsudo service_restart('mysql-proxy')
     end
     
     

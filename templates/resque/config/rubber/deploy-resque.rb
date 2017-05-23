@@ -15,12 +15,12 @@ namespace :rubber do
 
       desc "Starts resque workers"
       task :start, :roles => :resque_worker do
-        rsudo "service resque-pool start"
+        rsudo "#{service_status('resque-pool')} || #{service_start('resque-pool')}"
       end
 
       desc "Stops resque workers and monitor"
       task :stop, :roles => :resque_worker do
-        rsudo "service resque-pool stop || true"
+        rsudo "#{service_stop('resque-pool')} || true"
       end
 
       desc "Force kill all resque workers and monitor"
@@ -170,12 +170,12 @@ namespace :rubber do
 
       desc "Starts resque web tools"
       task :start, :roles => :resque_web do
-        rsudo "service resque-web start"
+        rsudo "#{service_status('resque-web')} || #{service_start('resque-web')}"
       end
 
       desc "Stops resque web tools"
       task :stop, :roles => :resque_web do
-        rsudo "service resque-web stop || true"
+        rsudo "#{service_stop('resque-web')} || true"
       end
 
       desc "Restarts resque web tools"

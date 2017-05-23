@@ -67,7 +67,7 @@ namespace :rubber do
     task :_ensure_key_file_present, :hosts => "#{initial_ssh_user}@#{ip}" do
       public_key_filename = "#{cloud.env.key_file}.pub"
 
-      if File.exists?(public_key_filename)
+      if File.exist?(public_key_filename)
         public_key = File.read(public_key_filename).chomp
 
         rubber.sudo_script 'ensure_key_file_present', <<-ENDSCRIPT
@@ -105,12 +105,13 @@ namespace :rubber do
       if initial_ssh_user != fetch(:user, nil)
         teardown_connections_to(sessions.keys)
       end
-    rescue ConnectionError => e
+    rescue ConnectionError, IOError => e
       if e.message =~ /Net::SSH::AuthenticationFailed/
         logger.info "Can't connect as user #{initial_ssh_user} to #{ip}, assuming root allowed"
       else
         sleep 2
         logger.info "Failed to connect to #{ip}, retrying"
+        teardown_connections_to(sessions.keys) if e.message =~ /closed stream/
         retry
       end
     end
@@ -128,9 +129,10 @@ namespace :rubber do
 
     begin
       send task_name
-    rescue ConnectionError => e
+    rescue ConnectionError, IOError => e
       sleep 2
       logger.info "Failed to connect to #{ip}, retrying"
+      teardown_connections_to(sessions.keys) if e.message =~ /closed stream/
       retry
     end
   end
@@ -171,7 +173,12 @@ namespace :rubber do
         end
 
         hosts_data.compact.each do |host_name|
-          local_hosts << ic.external_ip.ljust(18) << host_name << "\n"
+          # Private instances must be connected to via an ssh gateway
+          if Rubber::Util.is_instance_id?(ic.gateway)
+            local_hosts << ic.internal_ip.ljust(18) << host_name << "\n"
+          else
+            local_hosts << ic.external_ip.ljust(18) << host_name << "\n"
+          end
         end
 
       else # non-Windows OS
@@ -189,7 +196,12 @@ namespace :rubber do
           end
         end
 
-        local_hosts << ic.external_ip << ' ' << hosts_data.compact.join(' ') << "\n"
+        # Private instances must be connected to via an ssh gateway
+        if Rubber::Util.is_instance_id?(ic.gateway)
+          local_hosts << ic.internal_ip << ' ' << hosts_data.compact.join(' ') << "\n"
+        else
+          local_hosts << ic.external_ip << ' ' << hosts_data.compact.join(' ') << "\n"
+        end
       end
     end
 
@@ -437,8 +449,7 @@ namespace :rubber do
   DESC
   task :install_core_packages do
     core_packages = [
-        'python-software-properties', # Needed for add-apt-repository (<= Ubuntu 12.04), which we use for adding PPAs.
-        'software-properties-common', # Needed for add-apt-repository (> Ubuntu 12.04), which we use for adding PPAs.
+        'software-properties-common', # Needed for add-apt-repository, which we use for adding PPAs.
         'bc',                         # Needed for comparing version numbers in bash, which we do for various setup functions.
         'update-notifier-common',     # Needed for notifying us when a package upgrade requires a reboot.
         'scsitools'                   # Needed to rescan SCSI channels for any added devices.
@@ -589,7 +600,10 @@ namespace :rubber do
     env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
     if env.dns_provider
       provider = Rubber::Dns::get_provider(env.dns_provider, env)
-      provider.update(instance_item.name, instance_item.external_ip)
+
+      if instance_item.external_ip && (instance_item.external_ip.length > 0)
+        provider.update(instance_item.name, instance_item.external_ip)
+      end
 
       # add the ip aliases for web tools hosts so we can map internal tools
       # to their own vhost to make proxying easier (rewriting url paths for

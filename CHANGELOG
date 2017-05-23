@@ -1,3 +1,176 @@
+3.2.1 (02/07/2016)
+
+Improvements:
+============
+
+[nginx] Added application/json to gzip types. <4a84c93>
+
+Bug Fixes:
+=========
+
+[core] Fixed regression in working with EC2 classic. <0938b8a>
+[jenkins] Fix Jenkins nightly backup. <f723399>
+
+
+3.2.0 (01/09/2016)
+
+New Features:
+============
+
+[core] Added support for AWS VPCs.
+[core] Added support for DigitalOcean v2 API.
+
+
+3.1.0 (05/31/2015)
+
+Improvements:
+============
+
+[core] Removed explicit dependency on 'json' gem. <61db9cc>
+[core] Introduced env.enable_root_login_timeout parameter to configure timeout in enabling root login. <f8d1b65>
+[passenger] Updated to Passenger 5.0.8. <c4a8261>
+[passenger_nginx] Updated to Passenger 5.0.8. <c4a8261>
+
+Bug Fixes:
+=========
+
+[passenger_nginx] Replaced defunct passenger_set_cgi_param with passenger_env_var. <ee63694>
+
+
+3.0.1 (04/27/2015)
+
+Improvements:
+============
+
+[core] Force reload of Rubber config between Spring sessions in Rails 4+. <ef18da4>
+
+
+3.0.0 (04/24/2015)
+
+This is a major Rubber release in 3 years.  Most of the Rubber internals haven't changed from the 2.x series.  However,
+we have removed support for Ruby versions < 1.9.3 and Rails < 3.  Dropping older versions of Ruby meant we were able
+to also drop the open4 dependency -- if you relied on that, you'll need to add it to your Gemfile.  We also dropped
+support for Ubuntu 10.04.  While it's tied to this major version release, dropping Ubuntu 10.04 is a consequence of
+it no longer being supported by Canonical.
+
+Breaking Changes:
+================
+
+[core] Force Ruby 1.9.3+ for Rubber 3.0. <a5f4259>
+[core] Removed open4 dependency in favor of standard lib open3. <e7f6d8e>
+[core] Dropped support for Rails 2.3. <cf8d6c2>
+[core] Dropped support for Ubuntu 10.04. <8e0753e>
+
+Improvements:
+============
+
+[base] Bump ruby-build from 20150116 to 20150413 and default Ruby from 2.2.0 to 2.2.2. <48357a3, 2854426>
+[base] Removed obsoleted gems from default install list. <cfe3433>
+[core] Improved SSH key validation. <000c309>
+[core] Worked around DigitalOcean's eventual consistencyness with regards to creating SSH keys. <b6dc6c5>
+[core] Don't modify the Gemfile when vulcanizing 'base'. <422feda>
+[passenger] Upgraded from Passenger from 4.0.57 to 5.0.6. <ca8a7d1>
+[passenger_nginx] Upgraded from Passenger from 4.0.57 to 5.0.6. <ca8a7d1>
+
+Bug Fixes:
+=========
+
+[base] Fixed bad default DigitalOcean image. <000c309>
+
+
+2.16.0 (02/23/2015)
+
+New Features:
+============
+
+[base, core] Added an option to make debugging net-ssh issues much easier. <ae96cfa>
+
+Improvements:
+============
+
+[core] Default to VMXNET 3 Ethernet driver for vSphere. <853fba6>
+
+Bug Fixes:
+=========
+
+[core] Fixed a compatibility issue with net-ssh 2.9.2. <246dbb5>
+
+
+2.15.2 (01/20/2015)
+
+Improvements:
+============
+
+[base] Upgraded from ruby-build 20140702 to 20150116. <8112404>
+[base] Upgraded default Ruby from 2.0.0-p481 to 2.2.0. <8112404>
+[base] Updated ruby-build packages to match latest recommendations. <aad9928>
+[base] Use the latest Ubuntu 14.04 LTS AMI. <68411a0>
+[passenger] Upgraded from Passenger 4.0.53 to 4.0.57. <7bcf418>
+[passenger_nginx] Upgraded from Passenger 4.0.53 to 4.0.57. <7bcf418>
+
+Bug Fixes:
+=========
+
+[core] Reverted process spawning logic in JRuby 9.0.0.0 now that they've restored the method we use in JRuby 1.7.x. <62fde5b>
+
+
+2.15.1 (12/21/2014)
+
+Improvements:
+============
+
+[nginx] Set UTF-8 charset and do not echo server version. <04c03ef>
+
+Bug Fixes:
+=========
+
+[base] Restored comment about EBS volume types in rubber.yml. <73283ff>
+[core] Fixed broken method interface Aws#create_spot_instance_request. <ed95bdb>
+[core] Mostly fixed cronjobs on JRuby 9.0.0.0 (jobs will run, but error cases are incorrectly reported as successful still). <cefbdec>
+[delayed_job] Fixed variable interpolation in monit-delayed_job.conf. <792ba57>
+
+
+2.15.0 (10/24/2014)
+
+New Features:
+============
+
+[core] Add the ability to pass custom fog specific options during instance and volume creation. <a2e1c67>
+
+Improvements:
+============
+
+[base] Document private networking support for new Digital Ocean regions: New York 3 and Amsterdam 3. <e85360f>
+[base] Switch from ext3 to ext4 as the example filesystem in volume creation. <a21b95d>
+
+Bug Fixes:
+=========
+
+[nginx] Add Nginx parameter required by DigitalOcean droplets. <24ac1aa>
+[postgresql] Surround postgresql database name with quotes to avoid syntax error when using hyphens in the DB name. <4017979>
+
+
+
+2.14.0 (10/13/2014)
+
+Improvements:
+============
+
+[base] Updated the base template to play a bit nicer when reading the rubber secret file at runtime. <dc0663c>
+[collectd] Updated the collectd runner scripts to play nicer with JRuby. <283ba21>
+[graylog] Upgraded from Graylog2 0.20.2 to 0.90.0. <6b3d47e>
+[postgresql] Upgraded PostgreSQL from 9.1 to 9.3. <3b2b322>
+[redis] Upgraded Redis from 2.8.8 to 2.8.17. <15c8040>
+
+Bug Fixes:
+=========
+
+[core] Make sure we follow the full after_refresh_instance chain for vSphere (fixes a bug with not creating iptables rules introduced in 2.13.0). <46c8506>
+[core] Make sure we always normalize hostnames with underscores in them. <4b4b4c7>
+[postgresql] Make sure the PostgreSQL client version matches the server version. <f7b5223>
+[postgresql] Reference the correct Ubuntu release in the PostgreSQL apt line. <82127cd>
+
+
 2.13.1 (10/01/2014)
 
 Improvements:

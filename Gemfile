@@ -4,9 +4,10 @@ gem 'jruby-openssl', :platform => :jruby
 gem 'unlimited-strength-crypto', :platform => :jruby
 
 group :development do
-  # Need to run off master for tests until updated Digital Ocean mocking
-  # makes it into a release
-  gem 'fog', :git => 'https://github.com/fog/fog.git', :branch => 'master'
+  gem 'fog-aws'
+  gem 'fog-digitalocean', git: 'https://github.com/nirvdrum/fog-digitalocean.git', branch: 'fix-list_images-pagination'
+  gem 'fog-vsphere'
+  gem 'mime-types'
 end
 
 # Specify your gem's dependencies in rubber.gemspec

@@ -214,6 +214,11 @@ namespace :rubber do
       if cfg_value
         if cfg_value.is_a?(Hash)
           cfg_value = cfg_value[ic.os_version]
+
+          if cfg_value.nil?
+            logger.important "missing '#{cfg_name}' configuration for OS version '#{ic.os_version}' -- are you on a supported OS?"
+            next
+          end
         end
 
         if block
@@ -224,6 +229,31 @@ namespace :rubber do
       end
     end
     return opts
+  end
+
+  def service_status(service_name)
+    use_systemd = rubber_instance.os_version.split('.').first.to_i >= 16
+    use_systemd ? "systemctl is-active #{service_name}" : "service #{service_name} status"
+  end
+
+  def service_start(service_name)
+    use_systemd = rubber_instance.os_version.split('.').first.to_i >= 16
+    use_systemd ? "systemctl start #{service_name}" : "service #{service_name} start"
+  end
+
+  def service_stop(service_name)
+    use_systemd = rubber_instance.os_version.split('.').first.to_i >= 16
+    use_systemd ? "systemctl stop #{service_name}" : "service #{service_name} stop"
+  end
+
+  def service_restart(service_name)
+    use_systemd = rubber_instance.os_version.split('.').first.to_i >= 16
+    use_systemd ? "systemctl restart #{service_name}" : "service #{service_name} restart"
+  end
+
+  def service_reload(service_name)
+    use_systemd = rubber_instance.os_version.split('.').first.to_i >= 16
+    use_systemd ? "systemctl reload #{service_name}" : "service #{service_name} reload"
   end
 
   # some bootstraps update code (bootstrap_db), so keep track so we don't do it multiple times  

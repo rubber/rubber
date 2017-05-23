@@ -262,18 +262,24 @@ namespace :rubber do
   def create_instance(instance_alias, instance_roles, create_spot_instance)
     role_names = instance_roles.collect{|x| x.name}
     env = rubber_cfg.environment.bind(role_names, instance_alias)
+    cloud_env = env.cloud_providers[env.cloud_provider]
 
-    monitor.synchronize do
-      cloud.before_create_instance(instance_alias, role_names)
-    end
+    availability_zone = cloud_env.availability_zone
 
     security_groups = get_assigned_security_groups(instance_alias, role_names)
 
-    cloud_env = env.cloud_providers[env.cloud_provider]
     ami = cloud_env.image_id
     ami_type = cloud_env.image_type
-    availability_zone = cloud_env.availability_zone
     region = cloud_env.region
+    fog_options = cloud_env.fog_options || {}
+
+    instance_item = Rubber::Configuration::InstanceItem.new(instance_alias, env.domain, instance_roles, nil, ami_type, ami, security_groups)
+
+    instance_item.zone = availability_zone
+
+    monitor.synchronize do
+      cloud.before_create_instance(instance_item)
+    end
 
     create_spot_instance ||= cloud_env.spot_instance
 
@@ -281,7 +287,7 @@ namespace :rubber do
       spot_price = cloud_env.spot_price.to_s
 
       logger.info "Creating spot instance request for instance #{ami}/#{ami_type}/#{security_groups.join(',') rescue 'Default'}/#{availability_zone || 'Default'}"
-      request_id = cloud.create_spot_instance_request(spot_price, ami, ami_type, security_groups, availability_zone)
+      request_id = cloud.create_spot_instance_request(spot_price, ami, ami_type, security_groups, availability_zone, fog_options)
 
       print "Waiting for spot instance request to be fulfilled"
       max_wait_time = cloud_env.spot_instance_request_timeout || (1.0 / 0) # Use the specified timeout value or default to infinite.
@@ -307,20 +313,54 @@ namespace :rubber do
     end
 
     if !create_spot_instance || (create_spot_instance && max_wait_time < 0)
-      logger.info "Creating instance #{ami}/#{ami_type}/#{security_groups.join(',') rescue 'Default'}/#{availability_zone || region || 'Default'}"
-      instance_id = cloud.create_instance(instance_alias, ami, ami_type, security_groups, availability_zone, region)
+      sg_str = security_groups.join(',') rescue 'Default'
+      az_str = availability_zone || region || 'Default'
+      vpc_str = instance_item.vpc_id || 'No VPC'
+
+      logger.info "Creating instance #{ami}/#{ami_type}/#{sg_str}/#{az_str}/#{vpc_str}"
+
+      if instance_item.vpc_id
+        fog_options[:vpc_id] = instance_item.vpc_id
+        fog_options[:subnet_id] = instance_item.subnet_id
+        fog_options[:associate_public_ip] = (instance_item.gateway == 'public')
+      end
     end
+
+    # Security Groups are handled in the after_create_instance callback of the
+    # Vpc cloud provider, so pass an empty array here to make sure it isn't
+    # assigned to any other default groups that might be floating around.
+    instance_id = cloud.create_instance(
+      instance_alias,
+      ami,
+      ami_type,
+      fog_options[:vpc_id] ? security_groups : [],
+      availability_zone,
+      region,
+      fog_options
+    )
 
     logger.info "Instance #{instance_alias} created: #{instance_id}"
 
-    instance_item = Rubber::Configuration::InstanceItem.new(instance_alias, env.domain, instance_roles, instance_id, ami_type, ami, security_groups)
-    instance_item.spot_instance_request_id = request_id if create_spot_instance
-    instance_item.capistrano = self
-    rubber_instances.add(instance_item)
+    # Recreate the InstanceItem now that we have an instance_id
+    created_instance_item = Rubber::Configuration::InstanceItem.new(
+      instance_alias,
+      env.domain,
+      instance_roles,
+      instance_id,
+      ami_type,
+      ami,
+      security_groups
+    )
+    created_instance_item.vpc_id = instance_item.vpc_id
+    created_instance_item.network = instance_item.network
+    created_instance_item.spot_instance_request_id = request_id if create_spot_instance
+    created_instance_item.capistrano = self
+    created_instance_item.gateway = instance_item.gateway
+    rubber_instances.add(created_instance_item)
     rubber_instances.save()
 
     monitor.synchronize do
-      cloud.after_create_instance(instance_item)
+      cloud.after_create_instance(created_instance_item)
     end
   end
 
@@ -369,16 +409,28 @@ namespace :rubber do
       rubber_instances.save()
 
       if instance_item.linux?
-        # weird cap/netssh bug, sometimes just hangs forever on initial connect, so force a timeout
         begin
-          Timeout::timeout(30) do
+          # davebenvenuti: Sometimes with VPC subnets, we see an IOError
+          # (connection refused) while the instance is booting, so give it some
+          # time.  It would be preferable to catch the exception and retry, but
+          # I couldn't figure out a good way to do that.
+          sleep 10 if instance_item.network
+
+          # weird cap/netssh bug, sometimes just hangs forever on initial connect, so force a timeout
+          Timeout::timeout(env.enable_root_login_timeout || 30) do
             puts 'Trying to enable root login'
 
             # turn back on root ssh access if we are using root as the capistrano user for connecting
-            enable_root_ssh(instance_item.external_ip, fetch(:initial_ssh_user, 'ubuntu')) if user == 'root'
+            if Rubber::Util.is_instance_id?(instance_item.gateway)
+              ip = instance_item.internal_ip
+            else
+              ip = instance_item.external_ip
+            end
+
+            enable_root_ssh(ip, fetch(:initial_ssh_user, 'ubuntu')) if user == 'root'
 
             # force a connection so if above isn't enabled we still timeout if initial connection hangs
-            direct_connection(instance_item.external_ip) do
+            direct_connection(ip) do
               run "echo"
             end
           end
@@ -624,6 +676,7 @@ namespace :rubber do
             when /#{instance_item.full_name}/; ''
             when /#{instance_item.external_host}/; ''
             when /#{instance_item.external_ip}/; ''
+            when /#{instance_item.internal_ip}/; ''
             else line;
           end
           out << line
@@ -649,5 +702,5 @@ namespace :rubber do
     end if rubber_env.role_dependencies
     return deps
   end
-  
 end
+

@@ -13,8 +13,8 @@ module Rubber
 
     @@root = project_root
     @@env = project_env
-    Object.const_set('RUBBER_ENV', project_env)
-    Object.const_set('RUBBER_ROOT', File.expand_path(project_root))
+    Object.const_set(:RUBBER_ENV, project_env)
+    Object.const_set(:RUBBER_ROOT, File.expand_path(project_root))
 
     if ! defined?(Rails) && ! Rubber::Util::is_bundler?
       # pull in basic rails env.  rubber only needs RAILS_ROOT and RAILS_ENV.
@@ -22,7 +22,7 @@ module Rubber
       # complicates bootstrap (i.e. can't run config to create db because full
       # rails env needs db to exist as some plugin accesses model or something)
       rails_boot_file = File.join(Rubber.root, 'config', 'boot.rb')
-      require(rails_boot_file) if File.exists? rails_boot_file
+      require(rails_boot_file) if File.exist? rails_boot_file
     end
 
     if defined?(Rails.logger) && Rails.logger
@@ -34,8 +34,8 @@ module Rubber
     end
 
     # conveniences for backwards compatibility with old names
-    Object.const_set('RUBBER_CONFIG', self.config)
-    Object.const_set('RUBBER_INSTANCES', self.instances)
+    Object.const_set(:RUBBER_CONFIG, self.config)
+    Object.const_set(:RUBBER_INSTANCES, self.instances)
 
   end
 
@@ -79,6 +79,18 @@ module Rubber
     # sharing a Net::HTTP instance across threads doesn't work, so
     # create a new instance per thread
     Rubber::ThreadSafeProxy.new { Rubber::Cloud::get_provider(self.config.cloud_provider || "aws", self.config, capistrano) }
+  end
+
+  def self.reset
+    [:RUBBER_ENV, :RUBBER_ROOT, :RUBBER_CONFIG, :RUBBER_INSTANCES].each do |const|
+      Object.send(:remove_const, const) if Object.constants.include?(const)
+    end
+
+    Rubber::Configuration.reset
+
+    synchronize do
+      @config = nil
+    end
   end
   
 end

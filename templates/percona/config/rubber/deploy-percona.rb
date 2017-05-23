@@ -126,7 +126,7 @@ namespace :rubber do
     # TODO: Make the setup/update happen just once per host
     def common_bootstrap(role)
       # mysql package install starts mysql, so stop it
-      rsudo "service mysql stop" rescue nil
+      rsudo service_stop('mysql') rescue nil
       
       # After everything installed on machines, we need the source tree
       # on hosts in order to run rubber:config for bootstrapping the db
@@ -147,21 +147,21 @@ namespace :rubber do
       Starts the mysql daemons
     DESC
     task :start, :roles => [:percona_master, :percona_slave] do
-      rsudo "service mysql start"
+      rsudo "#{service_status('mysql')} || #{service_start('mysql')}"
     end
     
     desc <<-DESC
       Stops the mysql daemons
     DESC
     task :stop, :roles => [:percona_master, :percona_slave] do
-      rsudo "service mysql stop"
+      rsudo "#{service_stop('mysql')} || true"
     end
   
     desc <<-DESC
       Restarts the mysql daemons
     DESC
     task :restart, :roles => [:percona_master, :percona_slave] do
-      rsudo "service mysql restart"
+      rsudo service_restart('mysql')
     end
   
   end

@@ -35,16 +35,6 @@ namespace :rubber do
 
     end
 
-    task :oldjdk_install, :roles => [:cassandra, :opscenter] do
-      rubber.sudo_script 'install_cassandra', <<-ENDSCRIPT
-        mkdir /tmp/jdk
-        wget -qNP /tmp/jdk http://archive.canonical.com/pool/partner/s/sun-java6/sun-java6-jre_6.22-0ubuntu1~10.04_all.deb
-        wget -qNP /tmp/jdk http://archive.canonical.com/pool/partner/s/sun-java6/sun-java6-bin_6.22-0ubuntu1~10.04_amd64.deb
-        wget -qNP /tmp/jdk http://archive.canonical.com/pool/partner/s/sun-java6/sun-java6-jdk_6.22-0ubuntu1~10.04_amd64.deb
-        dpkg -i /tmp/jdk/*.deb
-      ENDSCRIPT
-    end
-
     after "rubber:bootstrap", "rubber:cassandra:bootstrap"
 
     task :bootstrap, :roles => :cassandra do

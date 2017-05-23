@@ -5,20 +5,6 @@ namespace :rubber do
   
     rubber.allow_optional_tasks(self)
 
-    after "rubber:install_packages", "rubber:apache:install"
-
-    task :install, :roles => :apache do
-      rubber.sudo_script 'install_apache', <<-ENDSCRIPT
-        a2dissite *default || true
-
-        # TODO: remove this once 12.04 is fixed
-        # https://bugs.launchpad.net/ubuntu/+source/mod-proxy-html/+bug/964397
-        if [[ ! -f /usr/lib/libxml2.so.2 ]]; then
-          ln -sf /usr/lib/x86_64-linux-gnu/libxml2.so.2 /usr/lib/libxml2.so.2
-        fi
-      ENDSCRIPT
-    end
-    
     after "rubber:bootstrap", "rubber:apache:bootstrap"
 
     task :bootstrap, :roles => :apache do
@@ -28,7 +14,7 @@ namespace :rubber do
         rubber.run_config(:file => "role/apache", :force => true, :deploy_path => release_path)
       end
     end
-    
+
 
     # serial_task can only be called after roles defined - not normally a problem, but
     # rubber auto-roles don't get defined till after all tasks are defined
@@ -47,12 +33,12 @@ namespace :rubber do
     
     desc "Stops the apache web server"
     task :stop, :roles => :apache do
-      rsudo "service apache2 stop || true"
+      rsudo "#{service_stop('apache2')} || true"
     end
     
     desc "Starts the apache web server"
     task :start, :roles => :apache do
-      rsudo "service apache2 status || service apache2 start"
+      rsudo "#{service_status('apache2')} || #{service_start('apache2')}"
     end
     
     desc "Restarts the apache web server"

@@ -20,10 +20,10 @@ namespace :rubber do
     
     on :load do
       rubber.serial_task self, :serial_restart, :roles => :passenger_nginx do
-        rsudo "service nginx restart"
+        rsudo service_restart('nginx')
       end
       rubber.serial_task self, :serial_reload, :roles => :passenger_nginx do
-        rsudo "if ! ps ax | grep -v grep | grep -c nginx &> /dev/null; then service nginx start; else service nginx reload; fi"
+        rsudo "if ! ps ax | grep -v grep | grep -c nginx &> /dev/null; then #{service_start('nginx')}; else #{service_reload('nginx')}; fi"
       end
     end
 
@@ -33,12 +33,12 @@ namespace :rubber do
     
     desc "Stops the nginx web server"
     task :stop, :roles => :passenger_nginx do
-      rsudo "service nginx stop; exit 0"
+      rsudo "#{service_stop('nginx')}; exit 0"
     end
     
     desc "Starts the nginx web server"
     task :start, :roles => :passenger_nginx do
-      rsudo "service nginx status || service nginx start"
+      rsudo "#{service_status('nginx')} || #{service_start('nginx')}"
     end
     
     desc "Restarts the nginx web server"
