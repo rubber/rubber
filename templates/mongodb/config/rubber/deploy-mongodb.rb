@@ -38,7 +38,7 @@ namespace :rubber do
       Starts the mongodb daemon
     DESC
     task :start, :roles => :mongodb do
-      rsudo "#{service_status('mongod')} || #{service_start('mongod')}"
+      rsudo "#{service_start('mongod')} || true"
     end
     
     desc <<-DESC
