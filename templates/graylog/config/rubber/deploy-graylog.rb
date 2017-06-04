@@ -44,7 +44,7 @@ namespace :rubber do
       exists = capture("grep '#{rubber_env.graylog_elasticsearch_index}' /etc/graylog/server/server.conf 2> /dev/null || true")
       if exists.strip.size == 0
         rubber.update_code_for_bootstrap
-        rubber.run_config(:file => "role/graylog_server/", :force => true, :deploy_path => release_path)
+        rubber.run_config(:file => "role/graylog/", :force => true, :deploy_path => release_path)
 
         rubber.graylog.server.restart
         sleep 60 # Give graylog-server a bit of time to start up.
