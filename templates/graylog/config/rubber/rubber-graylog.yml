@@ -31,12 +31,3 @@ roles:
     os_packages:
       '14.04': [openjdk-7-jdk]
       '16.04': [openjdk-8-jdk]
-
-security_groups:
-  graylog_web:
-    description: "To open up graylog"
-    rules:
-      - protocol: tcp
-        from_port: "#{graylog_web_port}"
-        to_port: "#{graylog_web_port}"
-        source_ips: [0.0.0.0/0]
