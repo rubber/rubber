@@ -14,7 +14,7 @@ namespace :rubber do
           rm /tmp/elasticsearch-#{rubber_env.elasticsearch_version}.deb
 
           rm -rf /usr/share/elasticsearch/plugins/head
-          /usr/share/elasticsearch/bin/plugin -install mobz/elasticsearch-head
+          /usr/share/elasticsearch/bin/plugin install mobz/elasticsearch-head
         fi
       ENDSCRIPT
     end
@@ -24,6 +24,15 @@ namespace :rubber do
     task :bootstrap, :roles => :elasticsearch do
       exists = capture("echo $(ls #{rubber_env.elasticsearch_data_dir} 2> /dev/null)")
       if exists.strip.size == 0
+        rubber.sudo_script 'bootstrap_redis', <<-ENDSCRIPT
+          for d in #{rubber_env.elasticsearch_data_dir} #{rubber_env.elasticsearch_work_dir} #{rubber_env.elasticsearch_log_dir}; do
+            if [ ! -d $d ]; then
+              mkdir -p $d
+              chown -R elasticsearch:elasticsearch $d
+            fi
+          done
+        ENDSCRIPT
+
         # After everything installed on machines, we need the source tree
         # on hosts in order to run rubber:config for bootstrapping the db
         rubber.update_code_for_bootstrap

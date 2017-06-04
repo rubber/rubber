@@ -1,16 +1,11 @@
-graylog_server_version: "0.90.0"
-graylog_server_prefix: "/usr/local"
-graylog_server_dir: "#{graylog_server_prefix}/graylog2-server-#{graylog_server_version}"
-graylog_server_pid_file: "/var/run/graylog-server.pid"
+graylog_version: "2.2.3-1"
+graylog_prefix: "/usr/local"
+graylog_dir: "#{graylog_prefix}/graylog2-server-#{graylog_version}"
+graylog_pid_file: "/var/run/graylog-server.pid"
 graylog_server_port: 12201
-graylog_server_syslog_port: 12514
+graylog_syslog_port: 12514
 
-graylog_web_version: "0.90.0"
-graylog_web_prefix: "/usr/local"
-graylog_web_dir: "#{graylog_web_prefix}/graylog2-web-interface-#{graylog_web_version}"
-graylog_web_pid_file: "/var/run/graylog-web.pid"
 graylog_web_port: 9000
-
 graylog_web_username: admin
 graylog_web_password: admin1
 
@@ -22,23 +17,26 @@ web_tools_proxies:
     role: graylog_web
     port: "#{graylog_web_port}"
     path: /
-  graylog_server_api_browser:
-    role: graylog_server
-    port: 12900
-    path: /api-browser/
 
 role_dependencies:
-  graylog_server: [graylog_mongodb, graylog_elasticsearch]
+  graylog: [graylog_mongodb, graylog_elasticsearch]
+  graylog_server: [graylog]
+  graylog_web: [graylog]
   graylog_mongodb: [mongodb]
   graylog_elasticsearch: [elasticsearch]
 
 roles:
-  graylog_server:
-    packages: [mongodb-10gen]
+  graylog:
+    packages: [[graylog-server, "#{graylog_version}"]]
     os_packages:
       '14.04': [openjdk-7-jdk]
       '16.04': [openjdk-8-jdk]
+
+security_groups:
   graylog_web:
-    os_packages:
-      '14.04': [openjdk-7-jdk]
-      '16.04': [openjdk-8-jdk]
+    description: "To open up graylog"
+    rules:
+      - protocol: tcp
+        from_port: "#{graylog_web_port}"
+        to_port: "#{graylog_web_port}"
+        source_ips: [0.0.0.0/0]

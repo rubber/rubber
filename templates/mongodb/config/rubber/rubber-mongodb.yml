@@ -5,4 +5,4 @@ mongodb_pid: "#{mongodb_data_dir}/mongod.lock"
 
 roles:
   mongodb:
-    packages: [mongodb-10gen]
+    packages: [mongodb-org]

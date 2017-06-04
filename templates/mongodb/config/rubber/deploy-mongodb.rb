@@ -10,11 +10,16 @@ namespace :rubber do
     task :setup_apt_sources, :roles => :mongodb do
       # Setup apt sources to mongodb from 10gen
       sources = <<-SOURCES
-        deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen
+        deb [ arch=amd64 ] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.4 multiverse
       SOURCES
       sources.gsub!(/^[ \t]*/, '')
       put(sources, "/etc/apt/sources.list.d/mongodb.list") 
-      rsudo "apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10"
+      rsudo "apt-key adv --keyserver keyserver.ubuntu.com --recv 0C49F3730359A14518585931BC711F9BA15703C6"
+
+      rubber.sudo_script 'configure_postgresql_repository', <<-ENDSCRIPT
+        echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/ubuntu `lsb_release -sc`/mongodb-org/3.4 multiverse" > /etc/apt/sources.list.d/mongodb.list
+        apt-key adv --keyserver keyserver.ubuntu.com --recv 0C49F3730359A14518585931BC711F9BA15703C6
+      ENDSCRIPT
     end
 
     after "rubber:bootstrap", "rubber:mongodb:bootstrap"
@@ -33,14 +38,14 @@ namespace :rubber do
       Starts the mongodb daemon
     DESC
     task :start, :roles => :mongodb do
-      rsudo "#{service_status('mongodb')} || #{service_start('mongodb')}"
+      rsudo "#{service_status('mongod')} || #{service_start('mongod')}"
     end
     
     desc <<-DESC
       Stops the mongodb daemon
     DESC
     task :stop, :roles => :mongodb do
-      rsudo "#{service_stop('mongodb')} || true"
+      rsudo "#{service_stop('mongod')} || true"
     end
     
     desc <<-DESC
