@@ -27,7 +27,4 @@ role_dependencies:
 
 roles:
   graylog:
-    packages: [[graylog-server, "#{graylog_version}"]]
-    os_packages:
-      '14.04': [openjdk-7-jdk]
-      '16.04': [openjdk-8-jdk]
+    packages: [[graylog-server, "#{graylog_version}"], openjdk-8-jdk]

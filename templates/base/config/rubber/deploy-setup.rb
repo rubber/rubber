@@ -76,6 +76,22 @@ namespace :rubber do
       ENDSCRIPT
     end
 
+    before "rubber:install_packages", "rubber:base:setup_java8_ppa"
+    task :setup_java8_ppa do
+      need_java8_ppa = rubber_instance.os_version.split('.').first.to_i <= 14
+      if need_java8_ppa
+        rsudo "add-apt-repository -y ppa:openjdk-r/ppa"
+      end
+    end
+
+    after "rubber:install_packages", "rubber:base:setup_java8"
+    task :setup_java8 do
+      need_java8_ppa = rubber_instance.os_version.split('.').first.to_i <= 14
+      if need_java8_ppa
+        rsudo "update-java-alternatives --set java-1.8.0-openjdk-amd64"
+      end
+    end
+
     # We need a rails user for safer permissions used by deploy.rb
     after "rubber:install_packages", "rubber:base:custom_install"
     task :custom_install do

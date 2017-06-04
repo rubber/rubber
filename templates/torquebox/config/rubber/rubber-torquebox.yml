@@ -17,8 +17,5 @@ apache_listen_ssl_port: 443
 
 roles:
   torquebox:
-    packages: [libaio1, unzip, maven, apache2-dev]
-    os_packages:
-      '14.04': [openjdk-7-jdk]
-      '16.04': [openjdk-8-jdk]
+    packages: [libaio1, unzip, maven, apache2-dev, openjdk-8-jdk]
     gems: [[torquebox, "#{torquebox_version}"]]

@@ -8,6 +8,4 @@ zookeeper_client_port: 2181
 
 roles:
   zookeeper:
-    os_packages:
-      '14.04': [openjdk-7-jdk]
-      '16.04': [openjdk-8-jdk]
+    packages: [openjdk-8-jdk]
