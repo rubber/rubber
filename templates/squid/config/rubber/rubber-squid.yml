@@ -1,0 +1,5 @@
+squid_port: 3131
+
+roles:
+  squid:
+    packages: [squid3]

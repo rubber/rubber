@@ -1,0 +1,7 @@
+<%
+  @read_cmd = 'crontab -l'
+  @write_cmd = 'crontab -'
+  @additive = ['# start-squid-crontab', '# end-squid-crontab']
+%>
+
+0 0 * * * /usr/sbin/squid3 -k rotate
