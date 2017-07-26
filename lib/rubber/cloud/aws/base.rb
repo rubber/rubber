@@ -259,7 +259,8 @@ module Rubber
         volume_data = {
           :size => volume_spec['size'],
           :availability_zone => volume_spec['zone'],
-          :snapshot_id => volume_spec['snapshot_id']
+          :snapshot_id => volume_spec['snapshot_id'],
+          :type => volume_spec['type']
         }.merge(fog_options)
         volume = compute_provider.volumes.create(volume_data)
         volume.id
