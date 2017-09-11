@@ -14,7 +14,7 @@ namespace :rubber do
         # first allocate the static ip if we don't have a global record (artifacts) for it
         if ! ip
           logger.info "Allocating static IP for #{ic.full_name}"
-          ip = allocate_static_ip()
+          ip = allocate_static_ip(ic)
           artifacts['static_ips'][ic.name] = ip
           rubber_instances.save
         end
@@ -166,8 +166,8 @@ namespace :rubber do
     logger.info "Run 'cap rubber:describe_static_ips' to check the allocated ones"
   end
 
-  def allocate_static_ip
-    ip = cloud.create_static_ip()
+  def allocate_static_ip(instance)
+    ip = cloud.create_static_ip(instance.vpc_id ? 'vpc' : 'standard')
     fatal "Failed to allocate static ip" if ip.nil?
     return ip
   end

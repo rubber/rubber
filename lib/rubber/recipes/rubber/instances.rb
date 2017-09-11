@@ -333,7 +333,7 @@ namespace :rubber do
       instance_alias,
       ami,
       ami_type,
-      fog_options[:vpc_id] ? security_groups : [],
+      fog_options[:vpc_id] ? [] : security_groups,
       availability_zone,
       region,
       fog_options
