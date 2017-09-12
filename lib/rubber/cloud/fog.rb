@@ -101,6 +101,7 @@ module Rubber
 
       def destroy_static_ip(ip)
         address = compute_provider.addresses.get(ip)
+        detach_static_ip(ip) if address.domain == 'vpc'
         address.destroy
       end
 
