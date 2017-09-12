@@ -2,7 +2,7 @@ require 'rubber/cloud/aws/base'
 
 module Rubber
   module Cloud
-  
+
     class Aws::Classic < Aws::Base
 
       def setup_security_groups(host=nil, roles=[])
@@ -24,7 +24,7 @@ module Rubber
 
         opts = {}
         opts["group-name"] = group_name if group_name
-        response = compute_provider.security_groups.all(opts)
+        response = compute_provider.security_groups.all(opts).reject { |group| group.vpc_id }
 
         response.each do |item|
           group = {}
@@ -80,16 +80,20 @@ module Rubber
 
       private
 
+      def find_security_group_by_name(name)
+        compute_provider.security_groups.all('group-name' => name).reject { |group| group.vpc_id }.first
+      end
+
       def create_security_group(group_name, group_description)
         compute_provider.security_groups.create(:name => group_name, :description => group_description)
       end
 
       def destroy_security_group(group_name)
-        compute_provider.security_groups.get(group_name).destroy
+        find_security_group_by_name(group_name).destroy
       end
 
       def add_security_group_rule(group_name, protocol, from_port, to_port, source)
-        group = compute_provider.security_groups.get(group_name)
+        group = find_security_group_by_name(group_name)
         opts = {:ip_protocol => protocol || 'tcp'}
 
         if source.instance_of? Hash
@@ -102,7 +106,7 @@ module Rubber
       end
 
       def remove_security_group_rule(group_name, protocol, from_port, to_port, source)
-        group = compute_provider.security_groups.get(group_name)
+        group = find_security_group_by_name(group_name)
         opts = {:ip_protocol => protocol || 'tcp'}
 
         if source.instance_of? Hash
@@ -122,7 +126,7 @@ module Rubber
         group_keys = groups.keys.clone()
 
         # For each group that does already exist in cloud
-        cloud_groups = describe_security_groups()
+        cloud_groups = describe_security_groups
         cloud_groups.each do |cloud_group|
           group_name = cloud_group[:name]
 
