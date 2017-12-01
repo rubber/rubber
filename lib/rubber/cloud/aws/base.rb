@@ -271,10 +271,25 @@ module Rubber
         volume.server = server
       end
 
+      def detach_volume(volume_id)
+        volume = compute_provider.volumes.get(volume_id)
+
+        # We can detach only volume that is in fact in use - otherwise we'll get an error
+        if volume.state == 'in-use'
+          volume.force_detach
+
+          # Detaching isn't an immediate process so we should wait until it's finished
+          loop do
+            sleep(1)
+            volume = compute_provider.volumes.get(volume_id)
+            break if volume.state == 'available'
+          end
+        end
+      end
+
       def before_destroy_volume(volume_id)
         # Before we can destroy an EBS volume, we must detach it from any running instances.
-        volume = compute_provider.volumes.get(volume_id)
-        volume.force_detach
+        detach_volume(volume_id)
       end
 
       def destroy_volume(volume_id)

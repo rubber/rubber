@@ -418,29 +418,19 @@ namespace :rubber do
     logger.info "Detaching volume #{volume_id}"
     cloud.detach_volume(volume_id) rescue logger.info("Volume was not attached")
 
-    print "Waiting for volume to detach"
-    while true do
-      print "."
-      sleep 2
-      volume = cloud.describe_volumes(volume_id).first
-      status = volume && volume[:attachment_status]
-      break if !status || status == "detached"
-    end
-    print "\n"
-
     logger.info "Detaching volume #{volume_id} from rubber instances file"
     rubber_instances.each do |ic|
       ic.volumes.delete(volume_id) if ic.volumes
     end
     rubber_instances.save
-
   end
-  
+
   def destroy_volume(volume_id)
+    logger.info "Detaching volume #{volume_id}"
     cloud.before_destroy_volume(volume_id)
 
     logger.info "Deleting volume #{volume_id}"
-    cloud.destroy_volume(volume_id) rescue logger.info("Volume did not exist in cloud")
+    cloud.destroy_volume(volume_id) # rescue logger.info("Volume did not exist in cloud")
 
     cloud.after_destroy_volume(volume_id)
 
