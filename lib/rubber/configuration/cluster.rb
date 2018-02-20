@@ -1,4 +1,5 @@
 require 'rubber/configuration/instance_item'
+require 'rubber/configuration/configuration_storage'
 
 module Rubber
   module Configuration
@@ -6,15 +7,22 @@ module Rubber
     # Contains the ec2 cluster configuration defined in instance.yml
     #
     class Cluster
-      attr_reader :configuration_storage, :artifacts
+      attr_reader :configuration_storage, :artifacts, :items
+
       include Enumerable
-      include MonitorMixin
 
-      def initialize(configuration_storage, opts={})
-        super()
-
-        @configuration_storage = configuration_storage
+      def initialize(configuration_storage_uri, opts={})
         @opts = opts
+
+        @configuration_storage =
+          ConfigurationStorage.for_cluster_from_storage_string(self,
+                                                               configuration_storage_uri)
+
+        if @opts[:backup]
+          @backup_configuration_storage =
+            ConfigurationStorage.for_cluster_from_storage_string(self,
+                                                                 @opts[:backup])
+        end
 
         @items = {}
         @artifacts = {'volumes' => {}, 'static_ips' => {}, 'vpc' => {}}
@@ -27,106 +35,16 @@ module Rubber
         @filter_roles, @filter_roles_negated = @filter_roles.partition {|f| f !~ /^-/ }
         @filter_roles_negated = @filter_roles_negated.collect {|f| f[1..-1] }
 
-        load()
+        load
       end
 
-      def load(configuration_storage=@configuration_storage)
-        case configuration_storage
-          when /file:(.*)/
-            location = $1
-            File.open(location, 'r') {|f| load_from_file(f) } if File.exist?(location)
-          when /storage:(.*)/
-            location = $1
-            bucket = location.split("/")[0]
-            key = location.split("/")[1..-1].join("/")
-            data = Rubber.cloud.storage(bucket).fetch(key)
-            StringIO.open(data, 'r') {|f| load_from_file(f) } if data
-          when /table:(.*)/
-            location = $1
-            load_from_table(location)
-          else
-            raise "Invalid configuration_storage: #{configuration_storage}\n" +
-                "Must be one of file:, table:, storage:"
-        end
+      def load
+        @configuration_storage.load
       end
 
-      def load_from_file(io)
-        item_list = YAML.load(io.read)
-        if item_list
-          item_list.each do |i|
-            if i.is_a? InstanceItem
-              @items[i.name] = i
-            elsif i.is_a? Hash
-              @artifacts.merge!(i)
-            end
-          end
-        end
-      end
-
-      def load_from_table(table_key)
-        Rubber.logger.debug{"Reading rubber instances from cloud table #{table_key}"}
-        store = Rubber.cloud.table_store(table_key)
-        items = store.find()
-        items.each do |name, data|
-          case name
-            when '_artifacts_'
-              @artifacts = data
-            else
-              ic = InstanceItem.from_hash(data.merge({'name' => name}))
-              @items[ic.name] = ic
-          end
-        end
-      end
-
-      def save(configuration_storage=@configuration_storage, backup=@opts[:backup])
-        synchronize do
-          case configuration_storage
-            when /file:(.*)/
-              location = $1
-              File.open(location, 'w') {|f| save_to_file(f) }
-            when /storage:(.*)/
-              location = $1
-              bucket = location.split("/")[0]
-              key = location.split("/")[1..-1].join("/")
-              data = StringIO.open {|f| save_to_file(f); f.string }
-              Rubber.cloud.storage(bucket).store(key, data)
-            when /table:(.*)/
-              location = $1
-              save_to_table(location)
-            else
-              raise "Invalid configuration_storage: #{configuration_storage}\n" +
-                  "Must be one of file:, table:, storage:"
-          end
-        end
-
-        save(backup, false) if backup
-      end
-
-      def save_to_file(io)
-        data = []
-        data.push(*@items.values)
-        data.push(@artifacts)
-        io.write(YAML.dump(data))
-      end
-
-      def save_to_table(table_key)
-        store = Rubber.cloud.table_store(table_key)
-
-        # delete all before writing to handle removals
-        store.find().each do |k, v|
-          store.delete(k)
-        end
-
-        # only write out non-empty artifacts
-        artifacts = @artifacts.select {|k, v| v.size > 0}
-        if artifacts.size > 0
-          store.put('_artifacts_', artifacts)
-        end
-
-        # write out all the instance data
-        @items.values.each do |item|
-          store.put(item.name, item.to_hash)
-        end
+      def save
+        @configuration_storage.save
+        @backup_configuration_storage.save if @backup_configuration_storage
       end
 
       def [](name)
