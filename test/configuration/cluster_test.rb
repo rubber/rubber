@@ -125,6 +125,7 @@ class Rubber::Configuration::ClusterTest < Test::Unit::TestCase
 
     context "cloud storage" do
       require 'rubber/cloud/aws'
+      require 'rubber/cloud/aws/classic'
 
       setup do
         env = {'access_key' => "XXX", 'secret_access_key' => "YYY", 'region' => "us-east-1"}
@@ -140,7 +141,7 @@ class Rubber::Configuration::ClusterTest < Test::Unit::TestCase
         @cloud.storage('bucket').store('key', '')
         Cluster.new('storage:bucket/key')
 
-        Cluster.any_instance.stubs(:load_from_table)
+        TableConfigurationStorage.any_instance.stubs(:load)
         Cluster.new('table:bar')
 
         assert_raises { Cluster.new('foo:bar') }
@@ -148,40 +149,63 @@ class Rubber::Configuration::ClusterTest < Test::Unit::TestCase
 
       should "load and save from file when file given" do
         location = "file:#{Tempfile.new('instancestorage').path}"
-        Cluster.any_instance.expects(:load_from_file)
-        Cluster.any_instance.expects(:save_to_file)
-        Cluster.new(location).save
+
+        FileConfigurationStorage.any_instance.expects(:load)
+        cluster = Cluster.new(location)
+
+        assert cluster.configuration_storage.is_a?(FileConfigurationStorage)
+
+        cluster.configuration_storage.expects(:save)
+        cluster.save
       end
 
       should "create new instance in filesystem when instance file doesn't exist" do
         tempfile = Tempfile.new('instancestorage')
-        location = "file:#{tempfile.path}"
-
         tempfile.close
         tempfile.unlink
 
-        Cluster.any_instance.expects(:load_from_file).never
-        Cluster.any_instance.expects(:save_to_file)
-        Cluster.new(location).save
+        location = "file:#{tempfile.path}"
+        FileConfigurationStorage.any_instance.expects(:load)
+
+        cluster = Cluster.new(location)
+
+        assert cluster.configuration_storage.is_a?(FileConfigurationStorage)
+
+        cluster.configuration_storage.expects(:save)
+        cluster.save
       end
 
       should "load and save from storage when storage given" do
         @cloud.storage('bucket').store('key', '')
-        Cluster.any_instance.expects(:load_from_file)
-        Cluster.any_instance.expects(:save_to_file)
-        Cluster.new('storage:bucket/key').save
+        location = 'storage:bucket/key'
+
+        cluster = assert_nothing_raised { Cluster.new(location) }
+
+        assert cluster.configuration_storage.is_a?(S3ConfigurationStorage)
+
+        cluster.configuration_storage.expects(:save)
+        cluster.save
       end
 
       should "create a new instance in cloud storage when the instance file doesn't exist" do
-        Cluster.any_instance.expects(:load_from_file).never
-        Cluster.any_instance.expects(:save_to_file)
-        Cluster.new('storage:bucket/key').save
+        @cloud.storage('storage').ensure_bucket
+        S3ConfigurationStorage.any_instance.expects(:load_from_file).never
+
+        cluster = assert_nothing_raised { Cluster.new('storage:bucket/key') }
+        assert cluster.configuration_storage.is_a?(S3ConfigurationStorage)
+
+        cluster.configuration_storage.expects(:save)
+        cluster.save
       end
 
       should "load and save from table when table given" do
-        Cluster.any_instance.expects(:load_from_table)
-        Cluster.any_instance.expects(:save_to_table)
-        Cluster.new('table:foobar').save
+        TableConfigurationStorage.any_instance.expects(:load)
+        cluster = Cluster.new('table:foobar')
+
+        assert cluster.configuration_storage.is_a?(TableConfigurationStorage)
+
+        cluster.configuration_storage.expects(:save)
+        cluster.save
       end
 
       should "backup on save when desired" do
