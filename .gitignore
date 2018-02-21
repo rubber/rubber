@@ -10,3 +10,4 @@ pkg
 .gitignore
 atlassian-ide-plugin.xml
 log
+.byebug_history

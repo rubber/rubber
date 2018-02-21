@@ -1,0 +1,29 @@
+---
+- !ruby/object:Rubber::Configuration::InstanceItem
+  name: app01
+  domain: rubber.test
+  roles:
+  - !ruby/object:Rubber::Configuration::RoleItem
+    name: app
+    options: {}
+  instance_id: i-deadbeef1
+  image_type: t2.medium
+  image_id: ami-deadbeef
+  security_groups:
+  - default
+  zone: us-east-1d
+  network: vpc_name
+  gateway: i-deadbeef2
+  external_host:
+  external_ip:
+  internal_host: ip-10-0-0-123.ec2.internal
+  internal_ip: 10.0.0.123
+  provider: aws
+  platform: linux
+  root_device_type: ebs
+  volumes:
+  - vol-deadbeef
+- volumes:
+    app01_/dev/sdi: vol-deadbeef
+  static_ips: {}
+  vpc: {}

@@ -74,7 +74,7 @@ module Rubber
 
     @instances
   end
-  
+
   def self.cloud(capistrano = nil)
     # sharing a Net::HTTP instance across threads doesn't work, so
     # create a new instance per thread
@@ -92,7 +92,7 @@ module Rubber
       @config = nil
     end
   end
-  
+
 end
 
 require 'rubber/version'
@@ -101,7 +101,6 @@ require 'rubber/thread_safe_proxy'
 require 'rubber/configuration'
 require 'rubber/environment'
 require 'rubber/generator'
-require 'rubber/instance'
 require 'rubber/util'
 require 'rubber/cloud'
 require 'rubber/dns'
