@@ -44,7 +44,7 @@ module Rubber
           aliases << a
         end
       end
-      return aliases
+      aliases
     end
 
     # Opens the file for writing by root
@@ -75,7 +75,7 @@ module Rubber
       end
       value = value.size == 0 ? default : value
       fatal "#{name} is required, pass using environment or enter at prompt" if required && ! value
-      return value
+      value
     end
 
     def fatal(msg, code=1)

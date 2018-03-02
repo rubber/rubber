@@ -55,7 +55,7 @@ module Rubber
           value = value.collect {|r| r.to_s } if name == 'roles'
           hash[name] = value
         end
-        return hash
+        hash
       end
 
       def <=>(rhs)

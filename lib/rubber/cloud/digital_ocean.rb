@@ -150,7 +150,7 @@ module Rubber
           instances << instance
         end
 
-        return instances
+        instances
       end
 
       def active_state
@@ -173,7 +173,7 @@ module Rubber
           sleep 1
         end
 
-        response = compute_provider.servers.get(instance_id).delete()
+        compute_provider.servers.get(instance_id).delete()
       end
     end
   end

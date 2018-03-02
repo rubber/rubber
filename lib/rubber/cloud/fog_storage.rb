@@ -22,7 +22,7 @@ module Rubber
         Rubber::Util.retry_on_failure(*RETRYABLE_EXCEPTIONS) do
           @directory = @storage_provider.directories.create(:key => @bucket) unless @directory
         end
-        return self
+        self
       end
     
       # data can be a string or io handle
@@ -127,7 +127,7 @@ module Rubber
         # store the object
         logger.debug "Deleting object: #{key}"
         Rubber::Util.retry_on_failure(*RETRYABLE_EXCEPTIONS) do
-          file = @directory.files.get(key, opts);
+          file = @directory.files.get(key, opts)
           file.destroy if file
         end
       end

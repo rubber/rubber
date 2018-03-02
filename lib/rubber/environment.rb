@@ -195,7 +195,7 @@ module Rubber
         end
 
         def expand(value)
-          val = case value
+          case value
             when Hash
               HashValueProxy.new(global || self, value)
             when String
@@ -205,8 +205,6 @@ module Rubber
             else
               value
           end
-
-          val
         end
 
       end

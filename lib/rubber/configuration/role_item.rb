@@ -46,7 +46,7 @@ module Rubber
           str += (i == 0 ? ':' : ';')
           str += "#{kv[0]}=#{kv[1]}"
         end
-        return str
+        str
       end
 
       def initialize(name, options={})
@@ -64,7 +64,7 @@ module Rubber
       end
 
       def <=>(rhs)
-        return @name <=> rhs.name
+        @name <=> rhs.name
       end
     end
   end

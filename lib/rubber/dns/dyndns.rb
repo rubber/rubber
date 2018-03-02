@@ -20,7 +20,7 @@ module Rubber
         Resolv::DNS.open(:nameserver => [nameserver], :search => [], :ndots => 1) do |dns|
           current_ip = dns.getaddress("#{host}.#{provider_env.domain}").to_s rescue nil
         end
-        return ip == current_ip
+        ip == current_ip
       end
       
       def find_host_records(opts={})

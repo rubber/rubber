@@ -169,7 +169,7 @@ module Rubber
           instances << instance
         end
 
-        return instances
+        instances
       end
 
       def active_state

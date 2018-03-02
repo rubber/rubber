@@ -19,8 +19,7 @@ unless defined?(JRUBY_VERSION)
     # First part is logid, second part is record offset
     parts = val.split("/")
     raise "Invalid location" if parts.size != 2 && parts.any {|p| p.to_s.strip.size == 0}
-    result = (0xFFFFFFFF * parts[0].to_i) + parts[1].to_i(16)
-    return result
+    (0xFFFFFFFF * parts[0].to_i) + parts[1].to_i(16)
   end
 
 

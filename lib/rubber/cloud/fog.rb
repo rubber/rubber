@@ -22,7 +22,7 @@ module Rubber
       end
 
       def storage(bucket)
-        return Rubber::Cloud::FogStorage.new(storage_provider, bucket)
+        Rubber::Cloud::FogStorage.new(storage_provider, bucket)
       end
 
       def table_store(table_key)

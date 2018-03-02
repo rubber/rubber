@@ -137,7 +137,7 @@ module Rubber
           template_dependencies.concat(find_dependencies(dep))
         end
 
-        return template_dependencies.uniq
+        template_dependencies.uniq
       end
 
       def apply_template(name)

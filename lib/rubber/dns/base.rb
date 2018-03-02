@@ -76,7 +76,7 @@ module Rubber
           raise "Missing required options: #{r}" unless actual_opts[r]
         end
 
-        return actual_opts
+        actual_opts
       end
       
 

@@ -50,18 +50,18 @@ module Rubber
       def put(key, attributes)
         data = Hash[attributes.collect {|k, v| [k, encode(v)] }]
         @table_provider.put_attributes(@table_key, key, data, :replace => attributes.keys)
-        return true
+        true
       end
 
       def get(key, attributes=[])
         response = @table_provider.get_attributes(@table_key, key, 'AttributeName' => attributes)
         data = response.body['Attributes']
-        return decode_attributes(data)
+        decode_attributes(data)
       end
 
       def delete(key, attributes=nil)
         @table_provider.delete_attributes(@table_key, key, attributes)
-        return true
+        true
       end
 
       def find(key=nil, attributes=nil, opts={})
@@ -84,7 +84,7 @@ module Rubber
 
         result.next_offset = response.body['NextToken']
 
-        return result
+        result
       end
 
       class TableResponse < Hash

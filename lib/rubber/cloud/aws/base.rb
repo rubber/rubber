@@ -36,7 +36,7 @@ module Rubber
       end
 
       def table_store(table_key)
-        return Rubber::Cloud::Aws::TableStore.new(@table_store, table_key)
+        Rubber::Cloud::Aws::TableStore.new(@table_store, table_key)
       end
 
       def describe_instances(instance_id=nil)
@@ -61,7 +61,7 @@ module Rubber
           instances << instance
         end
 
-        return instances
+        instances
       end
 
       def active_state
@@ -163,7 +163,7 @@ module Rubber
         response = compute_provider.register_image(image_name,
                                                     "rubber bundled image",
                                                     image_location)
-        return response.body["imageId"]
+        response.body["imageId"]
       end
 
       def destroy_image(image_id)
@@ -201,7 +201,7 @@ module Rubber
 
           lbs << lb
         end
-        return lbs
+        lbs
       end
 
       def describe_availability_zones
@@ -214,7 +214,7 @@ module Rubber
           zone[:state] =item["zoneState"]
           zones << zone
         end
-        return zones
+        zones
       end
 
       def create_spot_instance_request(spot_price, ami, ami_type, security_groups, availability_zone, fog_options={})
@@ -224,8 +224,7 @@ module Rubber
                                                           :groups => security_groups,
                                                           :availability_zone => availability_zone,
                                                           :key_name => env.key_name}.merge(Rubber::Util.symbolize_keys(fog_options)))
-        request_id = response.id
-        return request_id
+        response.id
       end
 
       def describe_spot_instance_requests(request_id=nil)
@@ -244,7 +243,7 @@ module Rubber
           request[:instance_id] = item.instance_id
           requests << request
         end
-        return requests
+        requests
       end
 
       def setup_security_groups(host=nil, roles=[])

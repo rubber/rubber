@@ -28,7 +28,7 @@ module Rubber
           msg += ", check dns_providers.nettica.user/password in rubber.yml" if code == 401
           raise msg
         end
-        return response
+        response
       end
 
       def find_hosts(opts = {})
@@ -51,7 +51,7 @@ module Rubber
           result << h if keep
         end
 
-        return result
+        result
       end
 
       def find_host_records(opts = {})
@@ -62,8 +62,7 @@ module Rubber
           group[key] ||= []
           group[key] << h
         end
-        result = group.values.collect {|h| hosts_to_opts(h).merge(:domain => opts[:domain])}
-        return result
+        group.values.collect {|h| hosts_to_opts(h).merge(:domain => opts[:domain])}
       end
       
       def create_host_record(opts = {})
@@ -104,7 +103,7 @@ module Rubber
           domain_info = check_status @client.list_domain(domain)
           raise "Could not create zone in nettica: #{domain}" unless domain_info.record
         end
-        return domain_info
+        domain_info
       end
       
       # multiple hosts with same name/type convert to a single rubber-dns.yml opts format
@@ -124,8 +123,8 @@ module Rubber
             opts[:data] << record.data
           end
         end
-        
-        return opts
+
+        opts
       end
 
       # a single rubber-dns.yml opts format converts to multiple hosts with same name/type 
@@ -150,8 +149,8 @@ module Rubber
                                               priority)
           hosts << host
         end
-        
-        return hosts
+
+        hosts
       end
       
     end

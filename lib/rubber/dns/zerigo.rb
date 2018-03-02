@@ -31,8 +31,8 @@ module Rubber
             opts[:data] << host.value
           end
         end
-        
-        return opts
+
+        opts
       end
 
       # a single rubber-dns.yml opts format converts to multiple hosts with same name/type 
@@ -52,8 +52,8 @@ module Rubber
           end
           hosts << host
         end
-        
-        return hosts
+
+        hosts
       end
 
       def find_or_create_zone(domain)
@@ -61,7 +61,7 @@ module Rubber
         if ! zone
           zone = @client.zones.create(:domain => domain)
         end
-        return zone
+        zone
       end
       
       def find_hosts(opts = {})
@@ -74,8 +74,8 @@ module Rubber
         hosts = zone.records.all
         hosts = hosts.select {|h| name = h.name || ''; name == opts[:host] } if opts.has_key?(:host) && opts[:host] != '*'
         hosts = hosts.select {|h| h.type == opts[:type] } if opts.has_key?(:type) && opts[:type] != '*'
-        
-        return hosts
+
+        hosts
       end
 
       def find_host_records(opts = {})
@@ -86,8 +86,7 @@ module Rubber
           group[key] ||= []
           group[key] << h
         end
-        result = group.values.collect {|h| hosts_to_opts(h).merge(:domain => opts[:domain])}
-        return result
+        group.values.collect {|h| hosts_to_opts(h).merge(:domain => opts[:domain])}
       end
 
       def create_host_record(opts = {})

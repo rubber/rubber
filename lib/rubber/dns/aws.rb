@@ -23,8 +23,8 @@ module Rubber
           # Route 53 encodes asterisks in their ASCII octal representation.
           name = name.gsub("\\052", "*")
         end
-        
-        return name, domain
+
+        [name, domain]
       end
       
       def denormalize_name(name, domain)
@@ -36,8 +36,8 @@ module Rubber
 
         name = "#{name}." 
         domain = "#{domain}."
-        
-        return name, domain
+
+        [name, domain]
       end
       
       # Convert from fog/aws model to rubber option hash that represents a dns record
@@ -70,7 +70,7 @@ module Rubber
           opts[:data].concat(Array(host.value))
         end
 
-        return opts
+        opts
       end
 
       # Convert from rubber option hash that represents a dns record to fog/aws model 
@@ -96,7 +96,7 @@ module Rubber
           end
         end
 
-        return host
+        host
       end
 
       def find_or_create_zone(domain)
@@ -104,7 +104,7 @@ module Rubber
         if ! zone
           zone = @client.zones.create(:domain => domain)
         end
-        return zone
+        zone
       end
       
       def all_hosts(zone)
@@ -120,8 +120,8 @@ module Rubber
           }
           hosts.concat(all_hosts)
         end
-        
-        return hosts        
+
+        hosts
       end
       
       
@@ -147,9 +147,7 @@ module Rubber
 
       def find_host_records(opts = {})
         hosts = find_hosts(opts)
-        result = hosts.collect {|h| host_to_opts(h).merge(:domain => opts[:domain]) }
-
-        result
+        hosts.collect {|h| host_to_opts(h).merge(:domain => opts[:domain]) }
       end
 
       def create_host_record(opts = {})

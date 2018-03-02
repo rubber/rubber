@@ -23,9 +23,7 @@ module Rubber
       cipher.pkcs5_keyivgen(cipher_digest.hexdigest(secret))
       
       encrypted_data = cipher.update(payload) + cipher.final
-      encoded_encrypted_data = Base64.encode64(encrypted_data)
-      
-      return encoded_encrypted_data
+      Base64.encode64(encrypted_data)
     end
     
     def decrypt(encoded_encrypted_data, secret)
@@ -35,9 +33,7 @@ module Rubber
       cipher.pkcs5_keyivgen(cipher_digest.hexdigest(secret))
       
       encrypted_data = Base64.decode64(encoded_encrypted_data)
-      payload = cipher.update(encrypted_data) + cipher.final
-      
-      return payload
+      cipher.update(encrypted_data) + cipher.final
     end
 
     extend self

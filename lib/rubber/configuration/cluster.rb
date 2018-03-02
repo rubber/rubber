@@ -74,7 +74,7 @@ module Rubber
         filtered_results.delete_if {|ic| @filters_negated.include?(ic.name) }
         filtered_results.delete_if {|ic| ic.roles.any? {|r| @filter_roles_negated.include?(r.name)} }
 
-        return filtered_results
+        filtered_results
       end
 
       def validate_filters

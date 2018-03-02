@@ -39,7 +39,8 @@ def get_secret(path)
   parts.each do |part|
     result = result[part] if result
   end
-  return result
+
+  result
 end
 
 TEST_DOMAIN = 'rubbertester'
