@@ -1,5 +1,6 @@
 *.gem
 .bundle
+bundle/
 Gemfile.lock
 pkg
 .buildpath
