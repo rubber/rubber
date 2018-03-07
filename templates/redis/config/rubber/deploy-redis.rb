@@ -64,7 +64,7 @@ namespace :rubber do
 
     desc "Starts the redis server"
     task :start, :roles => :redis do
-      rsudo "#{service_status('redis-server')} || #{service_start('redis-server')}"
+      rsudo "#{service_start('redis-server')} || true"
     end
 
     desc "Restarts the redis server"

@@ -1,0 +1,24 @@
+<%
+  @path = "/lib/systemd/system/resque-scheduler.service"
+  @backup = false
+  @post = "systemctl daemon-reload"
+
+  is_old_ubuntu = rubber_instance.os_version == '14.04'
+  @skip = is_old_ubuntu
+%>
+
+[Unit]
+Description=Resque Scheduler
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=bundle exec rake resque:scheduler
+PIDFile=<%= rubber_env.resque_scheduler_pid_file %>
+
+WorkingDirectory=<%= Rubber.root %>
+User=<%= rubber_env.app_user %>
+
+
+[Install]
+WantedBy=multi-user.target
