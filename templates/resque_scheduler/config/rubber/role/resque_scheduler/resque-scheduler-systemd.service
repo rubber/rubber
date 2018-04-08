@@ -1,7 +1,7 @@
 <%
   @path = "/lib/systemd/system/resque-scheduler.service"
   @backup = false
-  @post = "systemctl daemon-reload"
+  @post = "systemctl daemon-reload && systemctl enable resque-scheduler"
 
   is_old_ubuntu = rubber_instance.os_version == '14.04'
   @skip = is_old_ubuntu
@@ -9,15 +9,20 @@
 
 [Unit]
 Description=Resque Scheduler
-After=network.target
+After=network.target redis-server.service
 
 [Service]
-Type=forking
-ExecStart=bundle exec rake resque:scheduler
-PIDFile=<%= rubber_env.resque_scheduler_pid_file %>
+# resque-scheduler uses these environment variables internally to control where to write log & PID files.
+Environment="LOGFILE=<%= rubber_env.resque_scheduler_log_file %>"
+Environment="PIDFILE=<%= rubber_env.resque_scheduler_pid_file %>"
 
 WorkingDirectory=<%= Rubber.root %>
 User=<%= rubber_env.app_user %>
+Group=<%= rubber_env.app_user %>
+ExecStart=<%= rubber_env.ruby_path %>/bin/bundle exec rake resque:scheduler
+PIDFile=<%= rubber_env.resque_scheduler_pid_file %>
+RuntimeDirectory=resque-scheduler
+RuntimeDirectoryMode=2755
 
 
 [Install]

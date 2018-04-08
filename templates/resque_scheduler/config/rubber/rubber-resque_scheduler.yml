@@ -1,5 +1,5 @@
-resque_scheduler_pid_file: /var/run/resque-scheduler.pid
-resque_scheduler_log_file: /var/log/resque-scheduler.log
+resque_scheduler_pid_file: /var/run/resque-scheduler/resque-scheduler.pid
+resque_scheduler_log_file: /var/log/resque-scheduler/resque-scheduler.log
 
 gems: [resque-scheduler]
 

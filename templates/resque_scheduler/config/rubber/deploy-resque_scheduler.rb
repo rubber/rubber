@@ -24,6 +24,22 @@ namespace :rubber do
       start      
     end
 
+    after "rubber:bootstrap", "rubber:resque_scheduler:bootstrap"
+
+    task :bootstrap, :roles => :resque_scheduler do
+      log_dir = File.dirname(rubber_env.resque_scheduler_log_file)
+
+      exists = capture("echo $(ls #{log_dir} 2> /dev/null)")
+      if exists.strip.size == 0
+        rubber.sudo_script 'bootstrap_resque_scheduler', <<-ENDSCRIPT
+          if [ ! -d #{log_dir} ]; then
+            mkdir -p #{log_dir}
+            chown #{rubber_env.app_user}:#{rubber_env.app_user} #{log_dir}
+          fi
+        ENDSCRIPT
+      end
+    end
+
     # pauses deploy until daemon is up so monit doesn't try and start it
     before "rubber:monit:start", "rubber:resque_scheduler:wait_start"
     task :wait_start, :roles => :resque_scheduler do
