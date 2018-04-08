@@ -1,7 +1,9 @@
 <%
   @path = "/lib/systemd/system/redis-server.service"
   @backup = false
-  @post = "systemctl daemon-reload"
+  @post = "systemctl daemon-reload && systemctl enable redis-server"
+
+  runtime_dirs = %w[/var/lib/redis /var/log/redis /var/run/redis]
 
   is_old_ubuntu = rubber_instance.os_version == '14.04'
   @skip = is_old_ubuntu
@@ -13,12 +15,16 @@ After=network.target
 
 [Service]
 Type=forking
+
 ExecStart=/usr/local/bin/redis-server <%= rubber_env.redis_server_conf_file %>
 PIDFile=<%= rubber_env.redis_server_pid_file %>
 TimeoutStopSec=0
 Restart=always
 User=redis
 Group=redis
+RuntimeDirectory=redis
+RuntimeDirectoryMode=2755
+
 
 ExecStop=/bin/kill -s TERM $MAINPID
 

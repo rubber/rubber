@@ -38,7 +38,7 @@ namespace :rubber do
       if exists.strip.size == 0
 
         rubber.sudo_script 'bootstrap_redis', <<-ENDSCRIPT
-          for d in #{rubber_env.redis_db_dir} /var/lib/redis /var/log/redis /var/run/redis; do
+          for d in #{rubber_env.redis_db_dir} /var/lib/redis #{File.dirname(rubber_env.redis_server_log_file)}; do
             if [ ! -d $d ]; then
               mkdir -p $d
               chown -R redis:redis $d
