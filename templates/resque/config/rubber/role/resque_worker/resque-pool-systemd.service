@@ -1,0 +1,48 @@
+<%
+  @path = "/lib/systemd/system/resque-pool.service"
+  @backup = false
+  @post = "systemctl daemon-reload && systemctl enable resque-pool"
+
+  log_file = "#{Rubber.root}/log/resque-pool.log"
+
+  is_old_ubuntu = rubber_instance.os_version == '14.04'
+  @skip = is_old_ubuntu
+%>
+
+[Unit]
+Description=Resque pool Server
+After=network.target redis-server.service
+
+[Service]
+WorkingDirectory=<%= Rubber.root %>
+User=<%= rubber_env.app_user %>
+Group=<%= rubber_env.app_user %>
+ExecStart=/bin/sh -c '<%= rubber_env.ruby_path %>/bin/bundle exec resque-pool --environment <%= Rubber.env %> 2>&1 >> <%= log_file %>'
+PIDFile=<%= rubber_env.resque_pool_pid_file %>
+RuntimeDirectory=resque-pool
+RuntimeDirectoryMode=2755
+
+# Allow workers to finish their current jobs before forcefully shutting down.
+ExecStopPre=/bin/sh -c 'pid=`cat <%= rubber_env.resque_pool_pid_file %>`; kill -WINCH $pid; while ps -p $pid > /dev/null; do sleep 0.1; done'
+
+# The pool manager responds to the following signals:
+#
+# HUP - reload the config file, reload logfiles, restart all workers.
+# QUIT - send QUIT to each worker parent and shutdown the manager after all workers are done.
+# INT - send QUIT to each worker parent and immediately shutdown manager
+# TERM - send TERM to each worker parent and immediately shutdown manager
+# WINCH - send QUIT to each worker, but keep manager running (send HUP to reload config and restart workers)
+# USR1/USR2/CONT - pass the signal on to all worker parents (see Resque docs).
+# Use HUP to help logrotate run smoothly and to change the number of workers per worker type.
+#
+# Resque workers respond to a few different signals:
+#
+# QUIT - Wait for child to finish processing then exit
+# TERM / INT - Immediately kill child then exit
+# USR1 - Immediately kill child but don't exit
+# USR2 - Don't start to process any new jobs
+# CONT - Start to process new jobs again after a USR2
+
+
+[Install]
+WantedBy=multi-user.target

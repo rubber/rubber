@@ -1,6 +1,6 @@
 resque_web_port: 5678
-resque_web_pid_file: /var/run/resque-web.pid
-resque_pool_pid_file: /var/run/resque-pool.pid
+resque_web_pid_file: /var/run/resque-web/resque-web.pid
+resque_pool_pid_file: /var/run/resque-pool/resque-pool.pid
 
 # list of workers with the queues to be run on each - on each worker instance,
 # a worker is run for each item in this list to handle the queues specified

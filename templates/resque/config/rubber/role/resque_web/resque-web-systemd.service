@@ -1,0 +1,27 @@
+<%
+  @path = "/lib/systemd/system/resque-web.service"
+  @backup = false
+  @post = "systemctl daemon-reload && systemctl enable resque-web"
+
+  log_file = "#{Rubber.root}/log/resque-web.log"
+
+  is_old_ubuntu = rubber_instance.os_version == '14.04'
+  @skip = is_old_ubuntu
+%>
+
+[Unit]
+Description=Resque Web Server
+After=network.target redis-server.service
+
+[Service]
+WorkingDirectory=<%= Rubber.root %>
+User=<%= rubber_env.app_user %>
+Group=<%= rubber_env.app_user %>
+ExecStart=<%= rubber_env.ruby_path %>/bin/bundle exec puma --port <%= rubber_env.resque_web_port %> --pidfile <%= rubber_env.resque_web_pid_file %> --redirect-stdout <%= log_file %> --redirect-stderr <%= log_file %> --redirect-append config/resque-web.ru
+PIDFile=<%= rubber_env.resque_web_pid_file %>
+RuntimeDirectory=resque-web
+RuntimeDirectoryMode=2755
+
+
+[Install]
+WantedBy=multi-user.target
