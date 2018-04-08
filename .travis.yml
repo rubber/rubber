@@ -7,15 +7,16 @@ rvm:
   - 2.2
   - 2.3.3
   - 2.4.0
+  - 2.5.1
   - ruby-head
-  - jruby-9.1.6.0
+  - jruby-9.1.16.0
   - jruby-head
 
 matrix:
   allow_failures:
     - rvm: ruby-head
     - rvm: jruby-head
-    - rvm: jruby-9.1.6.0
+    - rvm: jruby-9.1.16.0
 
 before_install:
   - gem install bundler
