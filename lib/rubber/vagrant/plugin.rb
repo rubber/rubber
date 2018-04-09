@@ -5,17 +5,17 @@ module VagrantPlugins
       description 'Provides support for provisioning your virtual machines with Rubber.'
 
       command(:rubber) do
-        require File.expand_path('../command', __FILE__)
+        require_relative 'command'
         Command
       end
 
       config(:rubber, :provisioner) do
-        require File.expand_path('../config', __FILE__)
+        require_relative 'config'
         Config
       end
 
       provisioner(:rubber) do
-        require File.expand_path('../provisioner', __FILE__)
+        require_relative 'provisioner'
         Provisioner
       end
     end
