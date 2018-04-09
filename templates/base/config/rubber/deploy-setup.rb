@@ -118,7 +118,7 @@ namespace :rubber do
 
     after "rubber:bootstrap", "rubber:base:reinstall_virtualbox_additions"
     task :reinstall_virtualbox_additions, :only => { :provider => 'vagrant' } do
-      rsudo "service vboxadd setup"
+      rsudo "service vboxadd setup || true"
     end
 
     task :cleanup_old_kernels do
