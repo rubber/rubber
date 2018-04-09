@@ -1,5 +1,9 @@
 module VagrantPlugins
   module Rubber
+    class PrivateNetworkNotSet < Vagrant::Errors::VagrantError
+      error_message('Rubber requires a private network address to be configured in your Vagrantfile.')
+    end
+
     class Provisioner < Vagrant.plugin("2", :provisioner)
       attr_reader :ssh_info, :private_ip
 
@@ -11,8 +15,7 @@ module VagrantPlugins
         end
 
         if @private_ip.nil?
-          $stderr.puts "Rubber requires a private network address to be configured in your Vagrantfile."
-          exit(-1)
+          raise PrivateNetworkNotSet.new
         end
       end
 
