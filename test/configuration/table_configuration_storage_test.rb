@@ -14,9 +14,6 @@ class Rubber::Configuration::TableConfigurationStorageTest < Test::Unit::TestCas
     # cloud data
     Rubber.cloud.table_store(@key).ensure_table_key
 
-    # Fog doesn't have a mock implementation for SimpleDB select yet
-    stub_simple_db_select
-
     @items = {}
     @artifacts = {}
 
@@ -24,7 +21,14 @@ class Rubber::Configuration::TableConfigurationStorageTest < Test::Unit::TestCas
     @storage = TableConfigurationStorage.new @cluster, @key
   end
 
+  should "not indicate that it's stored locally" do
+    assert !@storage.stored_locally?
+  end
+
   should "load configuration from a SimpleDB table" do
+    # Fog doesn't have a mock implementation for SimpleDB select yet
+    stub_simple_db_select
+
     fixture_file_array.each do |node|
       if node.is_a?(InstanceItem)
         Rubber.cloud.table_store(@key).put(node.name, node.to_hash)
@@ -44,6 +48,9 @@ class Rubber::Configuration::TableConfigurationStorageTest < Test::Unit::TestCas
   end
 
   should "save configuration to a SimpleDB table" do
+    # Fog doesn't have a mock implementation for SimpleDB select yet
+    stub_simple_db_select
+
     @cluster.items["app01"] = InstanceItem.new "app01",
                                                "rubber.test",
                                                [RoleItem.new("app")],

@@ -26,6 +26,10 @@ module Rubber
         @path = path
       end
 
+      def stored_locally?
+        false
+      end
+
       private
 
       def load_from_io(io)

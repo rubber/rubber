@@ -18,6 +18,10 @@ class Rubber::Configuration::FileConfigurationStorageTest < Test::Unit::TestCase
     FileUtils.remove_entry_secure @tmpdir
   end
 
+  should "indicate that it's stored locally" do
+    assert @storage.stored_locally?
+  end
+
   should "load configuration from a file" do
     FileUtils.cp fixture_file("configuration/instance-test.yml"), @config_file
     @storage.load

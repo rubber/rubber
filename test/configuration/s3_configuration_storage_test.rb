@@ -22,6 +22,10 @@ class Rubber::Configuration::S3ConfigurationStorageTest < Test::Unit::TestCase
     @storage = S3ConfigurationStorage.new @cluster, File.join(@bucket, @key)
   end
 
+  should "not indicate that it's stored locally" do
+    assert !@storage.stored_locally?
+  end
+
   should "load configuration from an s3 object" do
     Rubber.cloud.storage(@bucket).store(
       @key,
