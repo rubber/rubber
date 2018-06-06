@@ -96,7 +96,7 @@ namespace :rubber do
         end
 
         push_files.each do |file|
-          dest_file = file.sub(/^file:#{Rubber.root}\/?/, '')
+          dest_file = file.sub(/^#{Rubber.root}\/?/, '')
           put(File.read(file), File.join(path, dest_file), :mode => "+r")
         end
       end
