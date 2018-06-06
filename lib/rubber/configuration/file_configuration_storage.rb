@@ -14,6 +14,10 @@ module Rubber
           File.open(path, 'w') { |f| save_to_io(f) }
         end
       end
+
+      def stored_locally?
+        true
+      end
     end
   end
 end
