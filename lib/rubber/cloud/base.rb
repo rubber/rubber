@@ -105,8 +105,8 @@ module Rubber
 
 
         if scoped_env.auto_security_groups
-          sghosts = (scoped_env.rubber_instances.collect{|ic| ic.name } + [host]).uniq.compact
-          sgroles = (scoped_env.rubber_instances.all_roles + roles).uniq.compact
+          sghosts = (scoped_env.rubber_cluster.collect{|ic| ic.name } + [host]).uniq.compact
+          sgroles = (scoped_env.rubber_cluster.all_roles + roles).uniq.compact
           security_group_defns = inject_auto_security_groups(security_group_defns, sghosts, sgroles)
         end
 
@@ -132,7 +132,7 @@ module Rubber
           script << "\niptables -A INPUT -p icmp -j ACCEPT -m comment --comment 'private_network_#{network}'"
         end
 
-        instance = scoped_env.rubber_instances[host]
+        instance = scoped_env.rubber_cluster[host]
         instance.security_groups.each do |group_name|
           group = groups[group_name]
 
@@ -193,7 +193,7 @@ exit 0
       end
 
       def describe_security_groups(group_name=nil)
-        rules = capistrano.capture("iptables -S INPUT", :hosts => rubber_env.rubber_instances.collect(&:external_ip)).strip.split("\r\n")
+        rules = capistrano.capture("iptables -S INPUT", :hosts => rubber_env.rubber_cluster.collect(&:external_ip)).strip.split("\r\n")
         scoped_rules = rules.select { |r| r =~ /dport/ }
 
         groups = []

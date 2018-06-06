@@ -35,7 +35,7 @@ module Rubber
 
     # conveniences for backwards compatibility with old names
     Object.const_set(:RUBBER_CONFIG, self.config)
-    Object.const_set(:RUBBER_INSTANCES, self.instances)
+    Object.const_set(:RUBBER_INSTANCES, self.cluster)
 
   end
 
@@ -65,14 +65,23 @@ module Rubber
     @config
   end
 
-  def self.instances
-    unless @instances
+  def self.cluster
+    unless @cluster
       synchronize do
-        @instances ||= Rubber::Configuration.rubber_instances
+        @cluster ||= Rubber::Configuration.rubber_cluster
       end
     end
 
-    @instances
+    @cluster
+  end
+
+  # Despite the name changes of Instance -> Cluster, and InstanceItem -> Server,
+  # keeping an accessor called instances still feels appropriate.  Instance is a
+  # more generic, base type for a Server which could also be use to describe
+  # non-server pieces of the cluster (ELB/Digital Ocean load balancers, AWS
+  # Aurora Serverless instances, etc
+  def self.instances
+    cluster
   end
 
   def self.cloud(capistrano = nil)

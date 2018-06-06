@@ -90,8 +90,8 @@ namespace :rubber do
         push_files = rubber_cfg.environment.config_files
 
         # If we're using a local instance file, push that up.  This isn't necessary when storing in S3 or SimpleDB.
-        if rubber_instances.configuration_storage.stored_locally?
-          location = rubber_instances.configuration_storage.path
+        if rubber_cluster.configuration_storage.stored_locally?
+          location = rubber_cluster.configuration_storage.path
           push_files << location
         end
 

@@ -5,10 +5,10 @@ namespace :rubber do
     Sets up static IPs for the instances configured to have them
   DESC
   required_task :setup_static_ips do
-    rubber_instances.each do |ic|
+    rubber_cluster.each do |ic|
       env = rubber_cfg.environment.bind(ic.role_names, ic.name)
       if env.use_static_ip
-        artifacts = rubber_instances.artifacts
+        artifacts = rubber_cluster.artifacts
         ip = artifacts['static_ips'][ic.name] rescue nil
 
         # first allocate the static ip if we don't have a global record (artifacts) for it
@@ -16,7 +16,7 @@ namespace :rubber do
           logger.info "Allocating static IP for #{ic.full_name}"
           ip = allocate_static_ip()
           artifacts['static_ips'][ic.name] = ip
-          rubber_instances.save
+          rubber_cluster.save
         end
 
         # then, associate it if we don't have a record (on instance) of association or it
@@ -30,7 +30,7 @@ namespace :rubber do
           ic.internal_host = instance[:internal_host]
           ic.external_ip = ip
           ic.static_ip = ip
-          rubber_instances.save()
+          rubber_cluster.save()
 
           logger.info "Waiting for static ip to associate"
           while true do
@@ -69,7 +69,7 @@ namespace :rubber do
 
       results << format % [instance_id || "Unassigned", ip, local_alias || "Unknown"]
     end
-    
+
     results.each {|r| logger.info r}
   end
 
@@ -87,20 +87,20 @@ namespace :rubber do
     receiver_alias = get_env 'RECEIVER', 'Instance alias to assign the IP to (e.g., web02)', true
 
     # Sanity checks
-    donor = rubber_instances[donor_alias]
+    donor = rubber_cluster[donor_alias]
     fatal "Instance does not exist: #{donor_alias}" unless donor
 
     static_ip = donor.static_ip
     fatal 'No static IP address to move exists' unless static_ip && static_ip != ''
 
-    receiver = rubber_instances[receiver_alias]
+    receiver = rubber_cluster[receiver_alias]
     fatal "Instance does not exist: #{receiver_alias}" unless receiver
 
     # Temporary removal of the instances.
-    old_donor = rubber_instances.remove(donor_alias)
-    old_receiver = rubber_instances.remove(receiver_alias)
+    old_donor = rubber_cluster.remove(donor_alias)
+    old_receiver = rubber_cluster.remove(receiver_alias)
 
-    rubber_instances.save
+    rubber_cluster.save
 
     # Getting rid of alias->IP mappings and SSH's known_hosts records.
     load_roles
@@ -111,9 +111,9 @@ namespace :rubber do
     # Detachment of EIPA.
     success = cloud.detach_static_ip(static_ip)
     fatal "Failed to detach static IP address #{static_ip}" unless success
-    rubber_instances.artifacts['static_ips'].delete(old_donor.name)
+    rubber_cluster.artifacts['static_ips'].delete(old_donor.name)
 
-    rubber_instances.save
+    rubber_cluster.save
 
     # Attachment of EIPA.
     success = cloud.attach_static_ip(static_ip, old_receiver.instance_id)
@@ -128,9 +128,9 @@ namespace :rubber do
     end
 
     # Partial cleanup of static IP records.
-    rubber_instances.artifacts['static_ips'][old_receiver.name] = static_ip
+    rubber_cluster.artifacts['static_ips'][old_receiver.name] = static_ip
 
-    rubber_instances.save
+    rubber_cluster.save
 
     # First half of the sync.
     new_receiver = Rubber::Configuration::InstanceItem.new(old_receiver.name,
@@ -138,9 +138,9 @@ namespace :rubber do
       old_receiver.image_type, old_receiver.image_id,
       old_receiver.security_groups)
     new_receiver.static_ip = static_ip
-    rubber_instances.add(new_receiver)
+    rubber_cluster.add(new_receiver)
 
-    rubber_instances.save
+    rubber_cluster.save
 
     refresh_instance(receiver_alias)
 
@@ -157,9 +157,9 @@ namespace :rubber do
       old_donor.domain, old_donor.roles, old_donor.instance_id,
       old_donor.image_type, old_donor.image_id,
       old_donor.security_groups)
-    rubber_instances.add(new_donor)
+    rubber_cluster.add(new_donor)
 
-    rubber_instances.save
+    rubber_cluster.save
 
     refresh_instance(donor_alias)
 
@@ -182,12 +182,12 @@ namespace :rubber do
     cloud.destroy_static_ip(ip) rescue logger.info("IP was not attached")
 
     logger.info "Removing ip #{ip} from rubber instances file"
-    artifacts = rubber_instances.artifacts
+    artifacts = rubber_cluster.artifacts
     artifacts['static_ips'].delete_if {|k,v| v == ip}
-    rubber_instances.each do |ic|
+    rubber_cluster.each do |ic|
       ic.static_ip = nil if ic.static_ip == ip
     end
-    rubber_instances.save
+    rubber_cluster.save
   end
 
 end

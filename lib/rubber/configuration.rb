@@ -26,13 +26,22 @@ module Rubber
       raise "This convenience method needs Rubber.env to be set" unless Rubber.env
       cfg = Rubber::Configuration.get_configuration(Rubber.env)
       host = cfg.environment.current_host
-      roles = cfg.instance[host] ? cfg.instance[host].role_names : nil
+      roles = cfg.cluster[host] ? cfg.cluster[host].role_names : nil
       cfg.environment.bind(roles, host)
     end
 
-    def self.rubber_instances
+    def self.rubber_cluster
       raise "This convenience method needs Rubber.env to be set" unless Rubber.env
-      Rubber::Configuration.get_configuration(Rubber.env).instance
+      Rubber::Configuration.get_configuration(Rubber.env).cluster
+    end
+
+    # Despite the name changes of Instance -> Cluster, and InstanceItem -> Server,
+    # keeping an accessor called instances still feels appropriate.  Instance is a
+    # more generic, base type for a Server which could also be use to describe
+    # non-server pieces of the cluster (ELB/Digital Ocean load balancers, AWS
+    # Aurora Serverless instances, etc
+    def self.rubber_instances
+      rubber_cluster
     end
 
     def self.reset
@@ -50,20 +59,35 @@ module Rubber
 
       def load
         config = @environment.bind()
-        instance_storage = config['instance_storage']
-        instance_storage_backup = config['instance_storage_backup']
-        instance_storage ||= "file:#{@root}/instance-#{@env}.yml"
-        @instance = Cluster.new(instance_storage, :backup => instance_storage_backup)
+        cluster_storage = config['configuration_storage'] || config['instance_storage']
+        cluster_storage_backup = config['configuration_storage_backup'] || config['instance_storage_backup']
+
+        unless cluster_storage
+          if File.exists? legacy_cluster_file_path
+            cluster_storage = "file:#{legacy_cluster_file_path}"
+          else
+            cluster_storage = "file:#{cluster_file_path}"
+          end
+        end
+
+        @cluster = Cluster.new(cluster_storage, backup: cluster_storage_backup)
       end
 
       def environment
         @environment
       end
 
-      def instance
-        @instance
+      def cluster
+        @cluster
+      end
+
+      def cluster_file_path
+        "#{@root}/cluster-#{@env}.yml"
+      end
+
+      def legacy_cluster_file_path
+        "#{@root}/instance-#{@env}.yml"
       end
     end
-
   end
 end

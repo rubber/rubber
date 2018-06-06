@@ -1,5 +1,5 @@
 namespace :rubber do
-    
+
   desc <<-DESC
     Convenience task for creating a staging instance for the given RUBBER_ENV/RAILS_ENV.
     By default this task assigns all known roles when creating the instance,
@@ -10,18 +10,18 @@ namespace :rubber do
     e.g. RUBBER_ENV=matt cap create_staging
   DESC
   required_task :create_staging do
-    if rubber_instances.size > 0
+    if rubber_cluster.size > 0
       value = Capistrano::CLI.ui.ask("The #{Rubber.env} environment already has instances, Are you SURE you want to create a staging instance that may interact with them [y/N]?: ")
       fatal("Exiting", 0) if value !~ /^y/
     end
     instance_alias = ENV['ALIAS'] = rubber.get_env("ALIAS", "Hostname to use for staging instance", true, Rubber.env)
 
-    if rubber_instances[instance_alias]
+    if rubber_cluster[instance_alias]
       logger.info "Instance already exists, skipping to bootstrap"
     else
       default_roles = rubber_env.staging_roles
       roles = ENV['ROLES'] = rubber.get_env("ROLES", "Roles to use for staging instance", true, default_roles)
-      
+
       rubber.create
     end
 
@@ -30,7 +30,7 @@ namespace :rubber do
     deploy.stop rescue nil
 
     rubber.bootstrap
-    
+
     # stop everything after in case package upgrades during bootstrap start up
     # services - we should be able to safely do a deploy:start below
     deploy.stop rescue nil
@@ -83,7 +83,7 @@ namespace :rubber do
   def serial_task(ns, name, options = {}, &block)
     # first figure out server names for the passed in roles - when no roles
     # are passed in, use all servers
-    
+
     serial_roles = Array(options[:roles].respond_to?(:call) ? options[:roles].call() : options[:roles])
     servers = {}
     if serial_roles.empty?
@@ -117,11 +117,11 @@ namespace :rubber do
       # figure out size of each slice by dividing server count by # of groups
       slice_size = (svrs.size.to_f / (options.delete(:groups) || 2)).round
       slice_size = 1 if slice_size < 1
-      
+
       # add servers to slices
       slices += svrs.each_slice(slice_size).to_a
     end
-    
+
     # for each slice, define a new task specific to the hosts in that slice
     task_syms = []
     slices.each do |server_group|
@@ -141,7 +141,7 @@ namespace :rubber do
 
   def find_alias(ip, instance_id, do_connect=true)
     if instance_id
-      instance = rubber_instances.find {|i| i.instance_id == instance_id }
+      instance = rubber_cluster.find {|i| i.instance_id == instance_id }
       local_alias = instance.full_name if instance
     end
     local_alias ||= File.read("/etc/hosts").grep(/#{ip}/).first.split[1] rescue nil
@@ -207,7 +207,7 @@ namespace :rubber do
   # be installed.
   def get_host_options(cfg_name, &block)
     opts = {}
-    rubber_instances.each do |ic|
+    rubber_cluster.each do |ic|
       env = rubber_cfg.environment.bind(ic.role_names, ic.name)
       cfg_value = env[cfg_name]
 
@@ -232,35 +232,35 @@ namespace :rubber do
   end
 
   def service_status(service_name)
-    use_systemd = rubber_instance.os_version.split('.').first.to_i >= 16
+    use_systemd = server.os_version.split('.').first.to_i >= 16
     use_systemd ? "systemctl is-active #{service_name}" : "service #{service_name} status"
   end
 
   def service_start(service_name)
-    use_systemd = rubber_instance.os_version.split('.').first.to_i >= 16
+    use_systemd = server.os_version.split('.').first.to_i >= 16
     use_systemd ? "systemctl start #{service_name}" : "service #{service_name} start"
   end
 
   def service_stop(service_name)
-    use_systemd = rubber_instance.os_version.split('.').first.to_i >= 16
+    use_systemd = server.os_version.split('.').first.to_i >= 16
     use_systemd ? "systemctl stop #{service_name}" : "service #{service_name} stop"
   end
 
   def service_restart(service_name)
-    use_systemd = rubber_instance.os_version.split('.').first.to_i >= 16
+    use_systemd = server.os_version.split('.').first.to_i >= 16
     use_systemd ? "systemctl restart #{service_name}" : "service #{service_name} restart"
   end
 
   def service_reload(service_name)
-    use_systemd = rubber_instance.os_version.split('.').first.to_i >= 16
+    use_systemd = server.os_version.split('.').first.to_i >= 16
     use_systemd ? "systemctl reload #{service_name}" : "service #{service_name} reload"
   end
 
-  # some bootstraps update code (bootstrap_db), so keep track so we don't do it multiple times  
+  # some bootstraps update code (bootstrap_db), so keep track so we don't do it multiple times
   after "deploy:update_code" do
     set :rubber_code_was_updated, true
   end
-  
+
   def update_code_for_bootstrap
     unless fetch(:rubber_code_was_updated, false)
       deploy.setup
@@ -268,5 +268,5 @@ namespace :rubber do
       deploy.update_code
     end
   end
-  
+
 end

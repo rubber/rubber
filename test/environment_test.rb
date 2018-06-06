@@ -15,7 +15,7 @@ class EnvironmentTest < Test::Unit::TestCase
     assert_equal 'val2', e['var2'], 'env not retrieving right val'
     assert_equal 'val1', e.var1, 'env not retrieving right val for method missing'
     assert_equal 'val2', e.var2, 'env not retrieving right val for method missing'
-    
+
     assert_equal 'val3', e.var3, 'env not retrieving right val for config in supplemental file'
 
     e = env.bind('role1', 'nohost')
@@ -42,21 +42,21 @@ class EnvironmentTest < Test::Unit::TestCase
     e = env.bind()
     assert_equal 'val1', e['var1'], 'should be global val with no overrides'
     assert_equal 'val2', e['var2'], 'should be global val with no overrides'
-    
+
     env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures/basic", 'env1')
     e = env.bind(nil, nil)
     assert_equal 'env1val1', e['var1'], 'should be val from env override'
     assert_equal 'env1val2', e['var2'], 'should be val from env override'
-    
+
     env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures/basic", 'env1')
     e = env.bind('role1', nil)
     assert_equal 'env1val2', e['var2'], 'env override should win against role'
-    
+
     env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures/basic", 'env1')
     e = env.bind(nil, 'host1')
-    assert_equal 'host1val2', e['var2'], 'host override should win against env'    
+    assert_equal 'host1val2', e['var2'], 'host override should win against env'
   end
-  
+
   def test_host_override
     env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures/basic", 'test')
     e = env.bind('norole', 'host2')
@@ -98,7 +98,7 @@ class EnvironmentTest < Test::Unit::TestCase
     Array(e.map1).each do |k, v|
       assert_equal expected[k], v
     end
-      
+
     e = env.bind('role1', 'nohost')
     assert_equal 'role1val1', e['var1']
     assert_equal 'role1val1', e['var3']
@@ -108,7 +108,7 @@ class EnvironmentTest < Test::Unit::TestCase
     assert_equal 'host1val1', e['var1']
     assert_equal 'host1val1', e['var3']
     assert_equal %w[lv1 lv2 host1val1 role1lv1 host1val2 host1lv1], e['list1'] # lists are additive
-    
+
     e = env.bind('norole', 'host1')
     assert_equal 'host1val1', e['var1']
     assert_equal 'host1val1', e['var3']
@@ -124,31 +124,31 @@ class EnvironmentTest < Test::Unit::TestCase
     assert 'true' != e['truevar_exp']
     assert_equal false, e['falsevar_exp']
     assert 'false' != e['falsevar_exp']
-    assert_equal 'true thing', e['faketruevar_exp']      
+    assert_equal 'true thing', e['faketruevar_exp']
   end
 
   def test_secret_env
     env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures/basic", 'test')
     e = env.bind()
     assert_nil e['rubber_secret'], 'env should not have secret set'
-    
+
     fixture_dir = File.expand_path("#{File.dirname(__FILE__)}/fixtures/secret")
     env = Rubber::Configuration::Environment.new(fixture_dir, 'test')
     e = env.bind()
     assert_equal "#{fixture_dir}/secret.yml", e['rubber_secret'], 'env should have secret set'
-    assert_equal "secret_val", e['secret_key'], 'env should have gotten setting from secret file'    
+    assert_equal "secret_val", e['secret_key'], 'env should have gotten setting from secret file'
   end
 
   def test_obfuscated_secret_env
     env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures/basic", 'test')
     e = env.bind()
     assert_nil e['rubber_secret'], 'env should not have secret set'
-    
+
     fixture_dir = File.expand_path("#{File.dirname(__FILE__)}/fixtures/obfuscated")
     env = Rubber::Configuration::Environment.new(fixture_dir, 'test')
     e = env.bind()
     assert_equal "#{fixture_dir}/secret.yml", e['rubber_secret'], 'env should have secret set'
-    assert_equal "secret_val", e['secret_key'], 'env should have gotten setting from secret file'    
+    assert_equal "secret_val", e['secret_key'], 'env should have gotten setting from secret file'
   end
 
   def test_nested_ref
@@ -163,18 +163,29 @@ class EnvironmentTest < Test::Unit::TestCase
     assert_equal 'val5', e.var2.var9, 'env not retrieving right val'
   end
 
-  def test_instances_in_expansion
+  def test_cluster_in_expansion
     config = Rubber::Configuration::get_configuration('test', "#{File.dirname(__FILE__)}/fixtures/instance_expansion")
     config.environment
     e = config.environment.bind()
-    e.stubs(:rubber_instances).returns(config.instance)
+    e.stubs(:rubber_cluster).returns(config.cluster)
     assert_equal "50.1.1.1", e['var1']
+  end
+
+  def test_legacy_instances_in_expansion
+    $debug = true
+    config = Rubber::Configuration::get_configuration('test', "#{File.dirname(__FILE__)}/fixtures/instance_expansion_legacy")
+    config.environment
+    e = config.environment.bind()
+    e.stubs(:rubber_cluster).returns(config.cluster)
+    assert_equal "50.1.1.1", e['var1']
+  ensure
+    $debug = false
   end
 
   def test_erb_yml
     env = Rubber::Configuration::Environment.new("#{File.dirname(__FILE__)}/fixtures/basic", 'test')
     e = env.bind()
-    assert_equal [0, 1, 2], e["erb_var"], 'should be able to generate env using erb'    
+    assert_equal [0, 1, 2], e["erb_var"], 'should be able to generate env using erb'
   end
-  
+
 end

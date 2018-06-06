@@ -160,7 +160,7 @@ namespace :rubber do
     # Generate /etc/hosts contents for the local machine from instance config
     delim = "## rubber config #{rubber_env.domain} #{Rubber.env}"
     local_hosts = delim + "\n"
-    rubber_instances.each do |ic|
+    rubber_cluster.each do |ic|
 
       if rubber_env.local_windows?
 
@@ -248,7 +248,7 @@ namespace :rubber do
     delim = "## rubber config #{Rubber.env}"
     remote_hosts = []
 
-    rubber_instances.each do |ic|
+    rubber_cluster.each do |ic|
       hosts_data = [ic.internal_ip, ic.full_name, ic.name, ic.external_host, ic.internal_host]
 
       # add the ip aliases for web tools hosts so we can map internal tools
@@ -264,7 +264,7 @@ namespace :rubber do
       remote_hosts << hosts_data.join(' ')
     end
 
-    if rubber_instances.size > 0
+    if rubber_cluster.size > 0
 
       replace="#{delim}\\n#{remote_hosts.join("\\n")}\\n#{delim}"
 
@@ -300,7 +300,7 @@ namespace :rubber do
     Sets up aliases in dynamic dns provider for instance hostnames based on contents of instance.yml.
   DESC
   required_task :setup_dns_aliases do
-    rubber_instances.each do |ic|
+    rubber_cluster.each do |ic|
       update_dyndns(ic)
     end
   end
@@ -343,7 +343,7 @@ namespace :rubber do
       rubber_records = {}
       records.each do |record|
         record = Rubber::Util.symbolize_keys(record)
-        record = provider.setup_opts(record) # assign defaults        
+        record = provider.setup_opts(record) # assign defaults
         key = record_key(record)
         rubber_records[key] ||= []
         rubber_records[key] << record
@@ -616,7 +616,7 @@ namespace :rubber do
       end
     end
   end
-  
+
   def destroy_dyndns(instance_item)
     env = rubber_cfg.environment.bind(instance_item.role_names, instance_item.name)
     if env.dns_provider
@@ -711,7 +711,7 @@ namespace :rubber do
     reboot_hosts = reboot_needed.collect {|k, v| v.strip.size > 0 ? k : nil}.compact.sort
 
     # Figure out which hosts are bootstrapping for the first time so we can auto reboot
-    # If there is no deployed app directory, then we have never bootstrapped. 
+    # If there is no deployed app directory, then we have never bootstrapped.
     auto_reboot = multi_capture("echo $(ls #{deploy_to} 2> /dev/null)")
     auto_reboot_hosts = auto_reboot.collect {|k, v| v.strip.size == 0 ? k : nil}.compact.sort
 

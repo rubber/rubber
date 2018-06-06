@@ -1,0 +1,20 @@
+---
+- !ruby/object:Rubber::Configuration::InstanceItem
+  domain: domain.com
+  external_host: ec2-50-1-1-1.compute-1.amazonaws.com
+  external_ip: 50.1.1.1
+  instance_id: i-deadbeef
+  internal_host: ip-10-0-0-1.ec2.internal
+  internal_ip: 10.0.0.1
+  name: host1
+  platform: linux
+  roles:
+  - !ruby/object:Rubber::Configuration::RoleItem
+    name: role1
+    options: {}
+
+  root_device_type: instance-store
+  security_groups:
+  - app_env_default
+  zone: us-east-1a
+

@@ -5,7 +5,7 @@ namespace :rubber do
     All volumes defined in rubber.yml will be created if necessary, and attached/mounted on their associated instances
   DESC
   required_task :setup_volumes do
-    rubber_instances.filtered.each do |ic|
+    rubber_cluster.filtered.each do |ic|
       env = rubber_cfg.environment.bind(ic.role_names, ic.name)
       created_vols = []
       vol_specs = env.volumes || []
@@ -22,7 +22,7 @@ namespace :rubber do
       created_parts.compact!
       zero_partitions(ic, created_parts)
       created_vols += created_parts
-      
+
       created_vols = created_vols.compact.uniq
       raid_specs = env.raid_volumes || []
       raid_volume_list = raid_specs.collect {|vol| vol["source_devices"]}.join(" ")
@@ -88,7 +88,7 @@ namespace :rubber do
   def setup_volume(ic, vol_spec)
     created = nil
     key = "#{ic.name}_#{vol_spec['device']}"
-    artifacts = rubber_instances.artifacts
+    artifacts = rubber_cluster.artifacts
     vol_id = artifacts['volumes'][key]
 
     cloud.before_create_volume(ic, vol_spec)
@@ -98,7 +98,7 @@ namespace :rubber do
       logger.info "Creating volume for #{ic.full_name}:#{vol_spec['device']}"
       vol_id = cloud.create_volume(ic, vol_spec)
       artifacts['volumes'][key] = vol_id
-      rubber_instances.save
+      rubber_cluster.save
       created = vol_spec['device']
     end
 
@@ -108,7 +108,7 @@ namespace :rubber do
       logger.info "Attaching volume #{vol_id} to #{ic.full_name}:#{vol_spec['device']}"
       cloud.after_create_volume(ic, vol_id, vol_spec)
       ic.volumes << vol_id
-      rubber_instances.save
+      rubber_cluster.save
 
       print "Waiting for volume to attach"
       while true do
@@ -144,9 +144,9 @@ namespace :rubber do
 	            else
 		            device='#{vol_spec['device']}'
 	            fi
-		 
+
 		          echo "$device #{vol_spec['mount']} #{vol_spec['filesystem']} #{vol_spec['mount_opts'] ? vol_spec['mount_opts'] : 'noatime'} 0 0 # rubber volume #{vol_id}" >> /etc/fstab
-		          
+
 		          # Ensure volume is ready before running mkfs on it.
 		          echo 'Waiting for device'
               cnt=0
@@ -207,7 +207,7 @@ namespace :rubber do
       _setup_partition
 
       ic.partitions << part_id
-      rubber_instances.save
+      rubber_cluster.save
       created = part_id
 
     end
@@ -244,7 +244,7 @@ namespace :rubber do
             echo -n .
             sleep 5
           done
-          
+
           # this returns exit code even if pid has already died, and thus triggers fail fast shell error
           wait $bg_pid
         ENDSCRIPT
@@ -259,14 +259,14 @@ namespace :rubber do
     else
       mdadm_init = "yes | mdadm --assemble #{raid_spec['device']} #{raid_spec['source_devices'].sort.join(' ')}"
     end
-    
+
     task :_setup_raid_volume, :hosts => ic.external_ip do
       rubber.sudo_script 'setup_raid_volume', <<-ENDSCRIPT
         if ! grep -qE '#{raid_spec['device']}|#{raid_spec['mount']}' /etc/fstab; then
           if mount | grep -q '#{raid_spec['mount']}'; then
             umount '#{raid_spec['mount']}'
           fi
-          
+
           # wait for devices to initialize, otherwise mdadm fails because
           # device not ready even though ec2 says the volume is attached
           echo 'Waiting for devices'
@@ -292,13 +292,13 @@ namespace :rubber do
           echo 'MAILADDR #{rubber_env.admin_email}' > /etc/mdadm/mdadm.conf
           echo 'DEVICE #{raid_volume_list}' >> /etc/mdadm/mdadm.conf
           mdadm --detail --scan | sed s/name=.*\\ // >> /etc/mdadm/mdadm.conf
-          
+
           update-initramfs -u
 
           mv /etc/rc.local /etc/rc.local.bak
           echo "mdadm --assemble --scan" > /etc/rc.local
           chmod +x /etc/rc.local
-          
+
           mv /etc/fstab /etc/fstab.bak
           cat /etc/fstab.bak | grep -vE '#{raid_spec['device']}|#{raid_spec['mount']}' > /etc/fstab
           echo '#{raid_spec['device']} #{raid_spec['mount']} #{raid_spec['filesystem']} #{raid_spec['mount_opts'] ? raid_spec['mount_opts'] : 'noatime'} 0 0 # rubber raid volume' >> /etc/fstab
@@ -306,7 +306,7 @@ namespace :rubber do
           #{('yes | mkfs -t ' + raid_spec['filesystem'] + ' ' + raid_spec['filesystem_opts'] + ' ' + raid_spec['device']) if create}
           mkdir -p '#{raid_spec['mount']}'
           mount '#{raid_spec['mount']}'
-                 
+
         fi
       ENDSCRIPT
     end
@@ -429,13 +429,13 @@ namespace :rubber do
     print "\n"
 
     logger.info "Detaching volume #{volume_id} from rubber instances file"
-    rubber_instances.each do |ic|
+    rubber_cluster.each do |ic|
       ic.volumes.delete(volume_id) if ic.volumes
     end
-    rubber_instances.save
+    rubber_cluster.save
 
   end
-  
+
   def destroy_volume(volume_id)
     cloud.before_destroy_volume(volume_id)
 
@@ -445,9 +445,9 @@ namespace :rubber do
     cloud.after_destroy_volume(volume_id)
 
     logger.info "Removing volume #{volume_id} from rubber instances file"
-    artifacts = rubber_instances.artifacts
+    artifacts = rubber_cluster.artifacts
     artifacts['volumes'].delete_if {|k,v| v == volume_id}
-    rubber_instances.save
+    rubber_cluster.save
   end
 
 end

@@ -81,8 +81,8 @@ module Rubber
         security_group_defns = Hash[scoped_env.security_groups.to_a]
 
         if scoped_env.auto_security_groups
-          sghosts = (scoped_env.rubber_instances.collect{|ic| ic.name } + [host]).uniq.compact
-          sgroles = (scoped_env.rubber_instances.all_roles + roles).uniq.compact
+          sghosts = (scoped_env.rubber_cluster.collect{|ic| ic.name } + [host]).uniq.compact
+          sgroles = (scoped_env.rubber_cluster.all_roles + roles).uniq.compact
           security_group_defns = inject_auto_security_groups(security_group_defns, sghosts, sgroles)
         end
 

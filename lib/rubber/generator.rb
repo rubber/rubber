@@ -31,7 +31,7 @@ module Rubber
         config_dirs << "#{@config_dir}/host/#{@host}/**/**"
 
         pat = Regexp.new(file_pattern) if file_pattern
-        
+
         config_dirs.each do |dir|
           Dir[dir].sort.each do |f|
             next if f =~ /\/(CVS|\.svn)\//
@@ -106,7 +106,7 @@ module Rubber
         config.options = options
         template = ERB.new(src_data, nil, "-")
         result = template.result(config.get_binding())
-        
+
         return if config.skip
 
         config_path = config.path
@@ -176,10 +176,10 @@ module Rubber
             if fake_root
               Rubber.logger.info("Not performing chown (#{config.owner}:#{config.group}) as a fake root was given")
             else
-              FileUtils.chown(config.owner, config.group, config_path) 
+              FileUtils.chown(config.owner, config.group, config_path)
             end
           end
-          
+
           # Run post transform command if needed
           if config.post
             run_post_command(config.post)
@@ -198,7 +198,7 @@ module Rubber
     # Instances of this object are used accept settings from with
     # a config file for when it is transformed by Generator
     class ConfigDescriptor
-      
+
       # The output path to write the transformed config file to
       attr_accessor :path
       # The command to use for reading the original config file from (e.g. "crontab -l")
@@ -232,23 +232,32 @@ module Rubber
       def initialize
         @backup = true
       end
-      
+
       def get_binding
         binding
       end
-    
+
       def rubber_env
         Rubber::Configuration.rubber_env
       end
 
+      def rubber_cluster
+        Rubber.cluster
+      end
+
       def rubber_instances
-        Rubber.instances
+        Rubber.logger.warn "[DEPRECATED] please use 'rubber_cluster' instead of 'rubber_instances' in your configuration templates"
+        rubber_cluster
       end
 
       def rubber_instance
-        rubber_instances[rubber_env.host]
+        Rubber.logger.warn "[DEPRECATED] please use 'server' instead of 'rubber_instance' in your configuration templates"
+        server
       end
 
+      def server
+        rubber_cluster[rubber_env.host]
+      end
     end
 
   end

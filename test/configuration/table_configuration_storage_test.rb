@@ -6,7 +6,7 @@ class Rubber::Configuration::TableConfigurationStorageTest < Test::Unit::TestCas
   include Rubber::Configuration
 
   setup do
-    @key = "table_configuration_storage_test/instance-test"
+    @key = "table_configuration_storage_test/cluster-test"
 
     stub_rubber_storage
 
@@ -30,7 +30,7 @@ class Rubber::Configuration::TableConfigurationStorageTest < Test::Unit::TestCas
     stub_simple_db_select
 
     fixture_file_array.each do |node|
-      if node.is_a?(InstanceItem)
+      if node.is_a?(Server)
         Rubber.cloud.table_store(@key).put(node.name, node.to_hash)
       else
         Rubber.cloud.table_store(@key).put("_artifacts", node)
@@ -41,22 +41,42 @@ class Rubber::Configuration::TableConfigurationStorageTest < Test::Unit::TestCas
 
     assert_equal 1, @cluster.items.length
     assert @cluster.items.key?("app01")
-    assert @cluster.items["app01"].is_a?(InstanceItem)
+    assert @cluster.items["app01"].is_a?(Server)
     assert @cluster.artifacts.key?("volumes")
     assert @cluster.artifacts["volumes"].key?("app01_/dev/sdi")
     assert_equal "vol-deadbeef", @cluster.artifacts["volumes"]["app01_/dev/sdi"]
   end
 
+  should "load a legacy configuration from a SimpleDB table" do
+    fixture_file_array(legacy: true).each do |node|
+      if node.is_a?(Server)
+        Rubber.cloud.table_store(@key).put(node.name, node.to_hash)
+      else
+        Rubber.cloud.table_store(@key).put("_artifacts", node)
+      end
+    end
+
+    @storage.load
+
+    assert_equal 1, @cluster.items.length
+    assert @cluster.items.key?("app01")
+    assert @cluster.items["app01"].is_a?(Server)
+    assert @cluster.artifacts.key?("volumes")
+    assert @cluster.artifacts["volumes"].key?("app01_/dev/sdi")
+    assert_equal "vol-deadbeef", @cluster.artifacts["volumes"]["app01_/dev/sdi"]
+  end
+
+
   should "save configuration to a SimpleDB table" do
     # Fog doesn't have a mock implementation for SimpleDB select yet
     stub_simple_db_select
 
-    @cluster.items["app01"] = InstanceItem.new "app01",
-                                               "rubber.test",
-                                               [RoleItem.new("app")],
-                                               "i-deadbeef",
-                                               "t2.medium",
-                                               "ami-deadbeef"
+    @cluster.items["app01"] = Server.new "app01",
+                                         "rubber.test",
+                                         [RoleItem.new("app")],
+                                         "i-deadbeef",
+                                         "t2.medium",
+                                         "ami-deadbeef"
     @cluster.artifacts["volumes"] = {
       "app01_/dev/sdi" => "vol-deadbeef"
     }
@@ -134,7 +154,11 @@ class Rubber::Configuration::TableConfigurationStorageTest < Test::Unit::TestCas
       .returns(fake_response)
   end
 
-  def fixture_file_array
-    YAML.parse(File.read(fixture_file("configuration/instance-test.yml"))).to_ruby
+  def fixture_file_array(legacy: false)
+    if legacy
+      YAML.parse(File.read(fixture_file("configuration_legacy/instance-test.yml"))).to_ruby
+    else
+      YAML.parse(File.read(fixture_file("configuration/cluster-test.yml"))).to_ruby
+    end
   end
 end

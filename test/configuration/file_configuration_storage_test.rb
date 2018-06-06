@@ -5,7 +5,7 @@ class Rubber::Configuration::FileConfigurationStorageTest < Test::Unit::TestCase
 
   setup do
     @tmpdir = Dir.mktmpdir
-    @config_file = File.join(@tmpdir, "instance-test.yml")
+    @config_file = File.join(@tmpdir, "cluster-test.yml")
 
     @items = {}
     @artifacts = {}
@@ -23,19 +23,31 @@ class Rubber::Configuration::FileConfigurationStorageTest < Test::Unit::TestCase
   end
 
   should "load configuration from a file" do
-    FileUtils.cp fixture_file("configuration/instance-test.yml"), @config_file
+    FileUtils.cp fixture_file("configuration/cluster-test.yml"), @config_file
     @storage.load
 
     assert_equal 1, @cluster.items.length
     assert @cluster.items.key?("app01")
-    assert @cluster.items["app01"].is_a?(InstanceItem)
+    assert @cluster.items["app01"].is_a?(Server)
+    assert @cluster.artifacts.key?("volumes")
+    assert @cluster.artifacts["volumes"].key?("app01_/dev/sdi")
+    assert_equal "vol-deadbeef", @cluster.artifacts["volumes"]["app01_/dev/sdi"]
+  end
+
+  should "load a legacy configuration from a file" do
+    FileUtils.cp fixture_file("configuration_legacy/instance-test.yml"), @config_file
+    @storage.load
+
+    assert_equal 1, @cluster.items.length
+    assert @cluster.items.key?("app01")
+    assert @cluster.items["app01"].is_a?(Server)
     assert @cluster.artifacts.key?("volumes")
     assert @cluster.artifacts["volumes"].key?("app01_/dev/sdi")
     assert_equal "vol-deadbeef", @cluster.artifacts["volumes"]["app01_/dev/sdi"]
   end
 
   should "save configuration to a file" do
-    @cluster.items["app01"] = InstanceItem.new "app01", "rubber.test", nil, nil, nil, nil
+    @cluster.items["app01"] = Server.new "app01", "rubber.test", nil, nil, nil, nil
     @cluster.artifacts["volumes"] = {
       "app01_/dev/sdi" => "vol-deadbeef"
     }
@@ -47,7 +59,7 @@ class Rubber::Configuration::FileConfigurationStorageTest < Test::Unit::TestCase
     loaded = YAML.load_file @config_file
 
     assert_equal 2, loaded.length
-    assert loaded.first.is_a?(InstanceItem)
+    assert loaded.first.is_a?(Server)
     assert_equal "app01", loaded.first.name
     assert_equal "rubber.test", loaded.first.domain
 

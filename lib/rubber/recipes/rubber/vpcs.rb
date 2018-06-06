@@ -44,7 +44,7 @@ namespace :rubber do
     vpc_id = cloud.compute_provider.vpcs.all('tag:RubberVpcAlias' => vpc_alias).first.id
 
     unless gateway == 'public'
-      gateway = Rubber.config.rubber_instances.find { |i|
+      gateway = Rubber.config.rubber_cluster.find { |i|
         i.name == gateway
       }.instance_id
     end
@@ -81,7 +81,7 @@ namespace :rubber do
     gateway = get_env("GATEWAY", "Gateway (\"public\" or NAT instance alias): ", true)
 
     unless gateway == 'public'
-      gateway = Rubber.config.rubber_instances.find { |i|
+      gateway = Rubber.config.rubber_cluster.find { |i|
         i.name == gateway
       }.instance_id
     end
@@ -89,4 +89,3 @@ namespace :rubber do
     cloud.update_vpc_gateway(vpc_alias, zone, gateway)
   end
 end
-

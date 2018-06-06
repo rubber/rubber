@@ -63,9 +63,9 @@ namespace :rubber do
   required_task :init do
     set :rubber_cfg, Rubber::Configuration.get_configuration(Rubber.env)
     set :rubber_env, rubber_cfg.environment.bind()
-    set :rubber_instances, rubber_cfg.instance
+    set :rubber_cluster, rubber_cfg.cluster
 
-    rubber_cfg.instance.each { |instance| instance.capistrano = self }
+    rubber_cfg.cluster.each { |instance| instance.capistrano = self }
 
     # Disable connecting to any Windows instance.
     # pass -l to bash in :shell to that run also gets full env
@@ -141,13 +141,13 @@ namespace :rubber do
 
     # define empty roles for all known ones so tasks don't fail if a role
     # doesn't exist due to a filter
-    all_roles = rubber_instances.all_roles
+    all_roles = rubber_cluster.all_roles
     all_roles += rubber_cfg.environment.known_roles
     all_roles.uniq!
     all_roles.each {|name| top.roles[name.to_sym] = []}
 
     # define capistrano host => role mapping for all instances
-    rubber_instances.filtered.each do |ic|
+    rubber_cluster.filtered.each do |ic|
       ic.roles.each do |role|
         opts = Rubber::Util::symbolize_keys(role.options).merge(:platform => ic.platform, :provider => ic.provider)
         msg = "Auto role: #{role.name.to_sym} => #{ic.full_name}"
@@ -160,10 +160,10 @@ namespace :rubber do
 
 end
 
-def top.rubber_instance
+def top.server
   hostname = capture('hostname').chomp
 
-  rubber_instances[hostname]
+  rubber_cluster[hostname]
 end
 
 Dir[File.join(File.dirname(__FILE__), 'rubber/*.rb')].each do |rubber_part|

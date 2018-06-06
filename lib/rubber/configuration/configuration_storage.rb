@@ -38,6 +38,9 @@ module Rubber
         if item_list
           item_list.each do |i|
             if i.is_a? InstanceItem
+              # Convert deprecated InstanceItem objects to Server objects
+              cluster.items[i.name] = Server.from_hash(i.to_hash)
+            elsif i.is_a? Server
               cluster.items[i.name] = i
             elsif i.is_a? Hash
               cluster.artifacts.merge!(i)

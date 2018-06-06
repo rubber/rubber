@@ -1,7 +1,7 @@
 module Rubber
   module Configuration
     # The configuration for a single role contained in the list
-    # of roles in InstanceItem
+    # of roles in Server
     class RoleItem
       attr_reader :name, :options
 

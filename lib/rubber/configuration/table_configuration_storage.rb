@@ -17,7 +17,7 @@ module Rubber
           when '_artifacts_'
             cluster.artifacts.replace(data)
           else
-            ic = InstanceItem.from_hash(data.merge({'name' => name}))
+            ic = Server.from_hash(data.merge({'name' => name}))
 
             cluster.items[ic.name] = ic
           end
