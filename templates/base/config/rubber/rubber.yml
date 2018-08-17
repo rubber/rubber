@@ -30,14 +30,14 @@ domain: foo.com
 #
 # rubber_secret: "#{File.expand_path('~') + '/.ec2' + (Rubber.env == 'production' ? '' : '_dev') + '/rubber-secret.yml' rescue 'rubber-secret.yml'}"
 
-# OPTIONAL: Encryption key that was used to obfuscate the contents of rubber-secret.yml with "rubber util:obfuscation" 
+# OPTIONAL: Encryption key that was used to obfuscate the contents of rubber-secret.yml with "rubber util:obfuscation"
 # Not that much better when stored in here, but you could use a ruby snippet in here to fetch it from a key server or something
 #
 # rubber_secret_key: "XXXyyy=="
 
 # REQUIRED All known cloud providers with the settings needed to configure them
 # There's only one working cloud provider right now - Amazon Web Services
-# To implement another, clone lib/rubber/cloud/aws.rb or make the fog provider 
+# To implement another, clone lib/rubber/cloud/aws.rb or make the fog provider
 # work in a generic fashion
 #
 cloud_providers:
@@ -320,7 +320,10 @@ os_version_cmd: 'lsb_release -sr'
 # OPTIONAL: The gems to install on all instances
 # You can install a specific version of a gem by using a sub-array of gem, version
 # For example, gem: [[rails, 4.2.1], bundler]
-gems: [bundler, [rubber, "#{Rubber.version}"]]
+# Everything rubber-related is executed through bundler, so as long as your
+# Gemfile is up to date, and you don't need any other globally-installed gems
+# for any other reason, all you should need here is bundler
+gems: [bundler]
 
 # OPTIONAL: A string prepended to shell command strings that cause multi
 # statement shell commands to fail fast.  You may need to comment this out
