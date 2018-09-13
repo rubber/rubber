@@ -50,7 +50,7 @@ namespace :rubber do
     Destroy the staging instance for the given RUBBER_ENV.
   DESC
   task :destroy_staging do
-    ENV['ALIAS'] = rubber.get_env("ALIAS", "Hostname of staging instance to be destroyed", true, Rubber.env)
+    ENV['ALIAS'] = rubber.get_env("ALIAS", "Hostname of staging instance to be destroyed", true, 'web01')
     rubber.destroy
   end
 
