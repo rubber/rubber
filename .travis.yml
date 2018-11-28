@@ -11,12 +11,14 @@ rvm:
   - ruby-head
   - jruby-9.1.16.0
   - jruby-head
+  - truffleruby
 
 matrix:
   allow_failures:
     - rvm: ruby-head
     - rvm: jruby-head
     - rvm: jruby-9.1.16.0
+    - rvm: truffleruby
 
 before_install:
   - gem install bundler
