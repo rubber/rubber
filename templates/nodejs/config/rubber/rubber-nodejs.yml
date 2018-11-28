@@ -1,0 +1,20 @@
+roles:
+  nodejs:
+    packages: [nodejs]
+
+nodejs:
+  app_dir:  'my/nodejs/dir'
+  app_file: 'app.js'
+  config_file: 'config.js'
+  pid_dir:  '/var/run'
+  pid_file: 'nodejs.pid'
+  port: 4300
+
+security_groups:
+  nodejs:
+    description: "To open up web port for nodejs server on nodejs role"
+    rules:
+      - protocol: tcp
+        from_port: "#{nodejs.port}"
+        to_port: "#{nodejs.port}"
+        source_ips: [0.0.0.0/0]
