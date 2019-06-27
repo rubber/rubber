@@ -1,0 +1,60 @@
+<div class="page-header"><h1>Reporting</h1></div>
+<div>
+  <table class="table">
+    <tr>
+      <td>Autoscale Status</td>
+      <td>
+        <% if autoscale_status > 0 %>
+            <span class="label label-success">
+            <%= case autoscale_status
+                  when 1 then "Autoscale Idle"
+                  when 2 then "Creating new instance"
+                  when 3 then "Bootstraping"
+                  when 4 then "Deploying"
+                  when 5 then "Stopping workers"
+                  when 6 then "Destroying instance"
+                end %>
+            </span>
+        <% else %>
+            <span class="label label-important">Autoscale Disabled</span>
+        <% end %>
+      </td>
+    </tr>
+    <tr>
+      <td>Total Workers</td>
+      <td><%= @resque_info[:workers] %></td>
+    </tr>
+    <tr>
+      <td>Working Workers</td>
+      <td><%= @resque_info[:working] %></td>
+    </tr>
+  </table>
+
+</div>
+
+<div id='chart'></div>
+<%= @chart.to_js('chart').html_safe %>
+
+<div>
+  <div class="page-header"><h3>Latest logs</h3></div>
+  <table class="table">
+    <thead>
+    <tr>
+      <th>Time</th>
+      <th>Message</th>
+    </tr>
+    </thead>
+    <tbody>
+    <% @latest_logs.each do |log|
+      time, message = log.split(":::")
+    %>
+        <tr>
+          <td><%= Time.at(time.to_i) %></td>
+          <td><%= message %></td>
+          </td>
+        </tr>
+    <% end %>
+    </tbody>
+  </table>
+</div>
+

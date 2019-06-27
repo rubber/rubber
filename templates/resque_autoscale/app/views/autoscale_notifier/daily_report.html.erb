@@ -1,0 +1,11 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Rubber Autoscale Daily Report</title>
+</head>
+<body>
+<p><h3>Autoscale Status: <%= @autoscale_status > 0 ? "Enabled" : "Disabled" %></h3></p>
+<p><h3>Number of workers: <%= @resque_info[:workers]%></h3></p>
+<p><h3>Number of working workers: <%= @resque_info[:working]%></h3></p>
+<p><img src="<%= @url %>" alt="Loading chart"/></p>
+</body>

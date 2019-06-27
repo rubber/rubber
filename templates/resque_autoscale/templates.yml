@@ -1,0 +1,3 @@
+description: Autoscaling resque workers with rubber
+dependent_templates:
+  - resque

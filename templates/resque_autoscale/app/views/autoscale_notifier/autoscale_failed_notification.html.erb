@@ -1,0 +1,31 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Rubber Autoscale Failed</title>
+</head>
+<body>
+<p><h3>Rubber Autoscale faced with following problem:</h3></p>
+<p><%= @message %></p>
+<p>
+<h3>Latest log entries:</h3>
+<table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 13px;">
+  <thead>
+  <tr>
+    <th>Time</th>
+    <th>Message</th>
+  </tr>
+  </thead>
+  <tbody>
+  <% @latest_logs.each do |log|
+    time, message = log.split(":::")
+  %>
+      <tr>
+        <td><%= Time.at(time.to_i) %></td>
+        <td><%= message %></td>
+        </td>
+      </tr>
+  <% end %>
+  </tbody>
+</table>
+</p>
+</body>
