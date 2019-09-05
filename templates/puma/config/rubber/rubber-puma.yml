@@ -1,0 +1,5 @@
+role_dependencies:
+  puma: [nginx]
+roles:
+  puma:
+    gems: [puma]
