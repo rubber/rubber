@@ -1,0 +1,15 @@
+hubot_version: 'v2.5.1'
+hubot_hipchat_rooms: ''
+hubot_hipchat_jid: ''
+hubot_hipchat_password: ''
+hubot_prefix: '/opt'
+hubot_home: '/opt/hubot'
+hubot_user: 'hubot'
+hubot_git_url: ''
+
+role_dependencies:
+  hubot: [node, redis]
+
+roles:
+  hubot:
+    packages: [python-software-properties, build-essential, libssl-dev, libexpat1-dev]
