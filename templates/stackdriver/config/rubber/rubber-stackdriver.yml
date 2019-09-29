@@ -1,0 +1,12 @@
+stackdriver_api_key: YOUR_STACKDRIVER_API_KEY
+
+role_dependencies:
+  common: [stackdriver_agent]
+
+roles:
+  stackdriver_agent:
+    packages: [stackdriver-agent]
+  redis:
+    packages: [libhiredis0.10]
+  elasticsearch:
+    packages: [libyajl1]
