@@ -1,0 +1,6 @@
+splunk_forwarder_version: "6.0.3-204106"
+splunk_forwarder_pkg_url: "http://some_url/splunkforwarder-#{splunk_forwarder_version}-Linux-x86_64.tgz"
+splunk_prefix: "/opt"
+splunk_forwarder_dir: "#{splunk_prefix}/splunkforwarder"
+splunk_forwarder_admin_user: admin
+splunk_servers:
